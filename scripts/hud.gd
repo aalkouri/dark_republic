@@ -233,7 +233,7 @@ func _build_ability_bar(root: Control) -> void:
 	bar.alignment = BoxContainer.ALIGNMENT_CENTER
 	bar.add_theme_constant_override("separation", 14)
 	root.add_child(bar)
-	var icons := [AbilitySlot.Icon.METEOR, AbilitySlot.Icon.SHOCKWAVE, AbilitySlot.Icon.INFERNO]
+	var icons := [AbilitySlot.Icon.INFERNO, AbilitySlot.Icon.SHOCKWAVE, AbilitySlot.Icon.METEOR]
 	for i in Abilities.DEFS.size():
 		var d: Dictionary = Abilities.DEFS[i]
 		var col := VBoxContainer.new()

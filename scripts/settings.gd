@@ -16,8 +16,8 @@ const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"],
 	["move_left", "Move left"], ["move_right", "Move right"],
 	["jump", "Jump"], ["slide", "Slide"],
-	["ability_1", "Ability 1 - Meteor"], ["ability_2", "Ability 2 - Fire Shockwave"],
-	["ability_3", "Ability 3 - Inferno"], ["pause", "Pause / menu"],
+	["ability_1", "Ability 1 - Inferno"], ["ability_2", "Ability 2 - Fire Shockwave"],
+	["ability_3", "Ultimate - Meteor"], ["pause", "Pause / menu"],
 ]
 
 # Sound

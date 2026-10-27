@@ -405,8 +405,11 @@ func choose_upgrade(i: int) -> void:
 func cast_ability(i: int) -> void:
 	if state != "playing":
 		return
-	if abilities.try_cast(i) and i == 2:
-		hud.flash_message("INFERNO!", 2.0)
+	if abilities.try_cast(i):
+		if i == Abilities.INFERNO:
+			hud.flash_message("INFERNO!", 2.0)
+		elif i == Abilities.METEOR:
+			hud.flash_message("METEOR!", 2.0)
 
 
 func resume_from_pause() -> void:
@@ -574,7 +577,7 @@ func _smoke_tick(dt: float) -> void:
 					added += 1
 				print("SMOKE stress: added %d enemies, total %d" % [added, enemies.count])
 				abilities.reset_cooldowns()
-				cast_ability(2)
+				cast_ability(Abilities.INFERNO)
 				print("SMOKE inferno: burning %d" % enemies.burning_count())
 				_reset_acc()
 		1:  # stress at ~1400 enemies

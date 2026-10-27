@@ -15,7 +15,7 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 | Move / look | WASD + mouse | Left / right stick |
 | Jump (buffered, coyote time) | Space | A |
 | Slide | Shift, Ctrl or C | B / LB |
-| Abilities: Meteor / Fire Shockwave / Inferno | 1 / 2 / 3 (or click the slot) | X / Y / RB |
+| Abilities: Inferno / Fire Shockwave / Meteor (ultimate) | 1 / 2 / 3 (or click the slot) | X / Y / RB |
 | Pick level-up card | Mouse click | |
 | Pause | Esc | Start |
 | Restart (end screen) | R | Back |
@@ -33,13 +33,13 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 
 ## The fire wizard
 
-**Abilities** (bottom-center bar; the ultimate has a yellow outline):
+**Abilities** (bottom-center bar; the ultimate, Meteor, has a yellow outline):
 
 | Key | Ability | Cooldown | Effect |
 |---|---|---|---|
-| 1 | Meteor | 30 s | The wizard vanishes (invulnerable, untouchable) and becomes a giant flaming copy of his own head, which crashes where you aim 3 s later: 250 dmg (scales with Damage) in 8 m plus knockback. He reappears at the crash site, and the ground burns for 3 s, dealing 3% of max HP per second to goblins in a 7 m radius |
+| 1 | Inferno | 30 s | Ignites every goblin: 5% of max HP per second for 10 s. Burning goblins that die explode for 50% of their max HP within 2 yd (chains) |
 | 2 | Fire Shockwave | 45 s | Ring of fire expands from the floor under you to 9 m: 80 dmg, knocks enemies back 5 yd |
-| 3 | Inferno (ultimate) | 2 min | Ignites every enemy: 5% of max HP per second for 10 s. Burning enemies that die explode for 50% of their max HP within 2 yd (chains) |
+| 3 | **Meteor (ultimate)** | 2 min | The wizard vanishes (invulnerable, untouchable) and becomes a giant flaming copy of his own head, which crashes where you aim 3 s later: 250 dmg (scales with Damage) in 8 m plus knockback. He reappears at the crash site, and the ground burns for 3 s, dealing 3% of max HP per second to goblins in a 7 m radius |
 
 **Attacks:** his starting weapon hurls **Fireballs**. Each time it fires, he swings his staff down at the target and the fireballs launch from the staff tip.
 

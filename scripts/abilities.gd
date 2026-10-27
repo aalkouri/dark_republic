@@ -1,19 +1,25 @@
 class_name Abilities
 extends Node3D
 ## The fire wizard's three active abilities (keys 1 / 2 / 3).
-##   1  Meteor        30 s  The wizard vanishes (invulnerable) and becomes a giant flaming copy of
-##                          his own head, which crashes where you aim 3 s later; he reappears
-##                          there. Big AoE damage, then the ground burns for 3 s (3% max HP/s).
-##   2  Fire Shockwave 45 s  Expanding ring from the floor under you; knocks enemies back 5 yd.
-##   3  Inferno (ult) 120 s  Ignites every enemy: 5% max HP/s for 10 s. Burning enemies that
+##   1  Inferno        30 s  Ignites every enemy: 5% max HP/s for 10 s. Burning enemies that
 ##                           die explode for 50% of their max HP within 2 yd (chains).
+##   2  Fire Shockwave 45 s  Expanding ring from the floor under you; knocks enemies back 5 yd.
+##   3  Meteor (ult)  120 s  The wizard vanishes (invulnerable) and becomes a giant flaming copy of
+##                           his own head, which crashes where you aim 3 s later; he reappears
+##                           there. Big AoE damage, then the ground burns for 3 s (3% max HP/s).
+## Slot order lives in DEFS; refer to slots by INFERNO / SHOCKWAVE / METEOR, never by number.
 ## Cooldowns tick in the physics step, so they pause with the game.
 
 signal cast(index: int)
 
 const YARD := 0.9144
 
-const METEOR_COOLDOWN := 30.0
+# Ability slots (index into DEFS / cooldown; key = index + 1)
+const INFERNO := 0
+const SHOCKWAVE := 1
+const METEOR := 2
+
+const METEOR_COOLDOWN := 120.0       # ultimate
 const METEOR_FALL_TIME := 3.0
 const METEOR_RADIUS := 8.0
 const METEOR_DAMAGE := 250.0
@@ -54,16 +60,16 @@ const SHOCK_EXPAND_TIME := 0.45
 const SHOCK_DAMAGE := 80.0
 const SHOCK_KNOCKBACK := 5.0 * YARD
 
-const ULT_COOLDOWN := 120.0
-const ULT_BURN_TIME := 10.0
-const ULT_BURN_DPS := 0.05          # of max HP per second
-const ULT_EXPLODE_FRAC := 0.5       # of the dying enemy's max HP
-const ULT_EXPLODE_RADIUS := 2.0 * YARD
+const INFERNO_COOLDOWN := 30.0
+const INFERNO_BURN_TIME := 10.0
+const INFERNO_BURN_DPS := 0.05          # of max HP per second
+const INFERNO_EXPLODE_FRAC := 0.5       # of the dying enemy's max HP
+const INFERNO_EXPLODE_RADIUS := 2.0 * YARD
 
 const DEFS := [
-	{"name": "Meteor", "key": "1", "cooldown": METEOR_COOLDOWN, "ult": false},
+	{"name": "Inferno", "key": "1", "cooldown": INFERNO_COOLDOWN, "ult": false},
 	{"name": "Fire Shockwave", "key": "2", "cooldown": SHOCK_COOLDOWN, "ult": false},
-	{"name": "Inferno", "key": "3", "cooldown": ULT_COOLDOWN, "ult": true},
+	{"name": "Meteor", "key": "3", "cooldown": METEOR_COOLDOWN, "ult": true},
 ]
 
 var stats: Stats
@@ -85,9 +91,9 @@ func setup(p_stats: Stats, p_enemies: EnemyManager, p_player: Player, p_fx: FxMa
 	enemies = p_enemies
 	player = p_player
 	fx = p_fx
-	enemies.burn_dps_frac = ULT_BURN_DPS
-	enemies.burn_explode_frac = ULT_EXPLODE_FRAC
-	enemies.burn_explode_radius = ULT_EXPLODE_RADIUS
+	enemies.burn_dps_frac = INFERNO_BURN_DPS
+	enemies.burn_explode_frac = INFERNO_EXPLODE_FRAC
+	enemies.burn_explode_radius = INFERNO_EXPLODE_RADIUS
 
 
 func _ready() -> void:
@@ -116,12 +122,12 @@ func try_cast(i: int) -> bool:
 	if i < 0 or i >= DEFS.size() or not is_ready(i):
 		return false
 	match i:
-		0:
-			_cast_meteor()
-		1:
-			_cast_shockwave()
-		2:
+		INFERNO:
 			_cast_inferno()
+		SHOCKWAVE:
+			_cast_shockwave()
+		METEOR:
+			_cast_meteor()
 	cooldown[i] = DEFS[i]["cooldown"]
 	cast.emit(i)
 	return true
@@ -378,7 +384,7 @@ func _update_shocks(dt: float) -> void:
 # ------------------------------------------------------------------ 3: Inferno (ultimate)
 
 func _cast_inferno() -> void:
-	var n := enemies.ignite_all(ULT_BURN_TIME)
+	var n := enemies.ignite_all(INFERNO_BURN_TIME)
 	var at := player.global_position + Vector3(0, 1.0, 0)
 	fx.burst(at, 6.0, Color(1.0, 0.75, 0.25), 0.5)
 	fx.burst(at, 14.0, Color(1.0, 0.3, 0.05), 0.8)

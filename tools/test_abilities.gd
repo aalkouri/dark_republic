@@ -13,9 +13,9 @@ func _ready() -> void:
 	em.rng = rng
 	em.arena_half = 200.0
 	add_child(em)
-	em.burn_dps_frac = Abilities.ULT_BURN_DPS
-	em.burn_explode_frac = Abilities.ULT_EXPLODE_FRAC
-	em.burn_explode_radius = Abilities.ULT_EXPLODE_RADIUS
+	em.burn_dps_frac = Abilities.INFERNO_BURN_DPS
+	em.burn_explode_frac = Abilities.INFERNO_EXPLODE_FRAC
+	em.burn_explode_radius = Abilities.INFERNO_EXPLODE_RADIUS
 	var far := Vector3(0, 0, 50)   # "player" far away so steering is negligible during knockback
 	var dt := 1.0 / 60.0
 
@@ -33,7 +33,7 @@ func _ready() -> void:
 	em.count = 0
 	var j := em.spawn(EnemyManager.TANK, Vector3(0, 0, 0), 2.0)
 	var max_hp := em.hp_max[j]
-	em.ignite_all(Abilities.ULT_BURN_TIME)
+	em.ignite_all(Abilities.INFERNO_BURN_TIME)
 	for f in 60 * 12:
 		em.tick(dt, em.pos[j])   # standing on the player = no movement
 	var lost := (max_hp - em.hp[j]) / max_hp
@@ -97,6 +97,10 @@ func _ready() -> void:
 	_check("drop odds ~30/50/20", absf(tally[0] / 200.0 - 30.0) < 1.5 and absf(tally[1] / 200.0 - 50.0) < 1.5 and absf(tally[2] / 200.0 - 20.0) < 1.5,
 		"%.1f / %.1f / %.1f %%" % [tally[0] / 200.0, tally[1] / 200.0, tally[2] / 200.0])
 
+	var d_inf: Dictionary = Abilities.DEFS[Abilities.INFERNO]
+	var d_met: Dictionary = Abilities.DEFS[Abilities.METEOR]
+	_check("slot 1 is Inferno, 30 s", d_inf["key"] == "1" and d_inf["name"] == "Inferno" and d_inf["cooldown"] == 30.0 and not d_inf["ult"], str(d_inf))
+	_check("slot 3 is the Meteor ultimate, 2 min", d_met["key"] == "3" and d_met["name"] == "Meteor" and d_met["cooldown"] == 120.0 and d_met["ult"], str(d_met))
 	ab.cooldown = PackedFloat32Array([20.0, 40.0, 100.0])
 	pm._apply(PotionManager.PURPLE)
 	_check("purple cuts 30% of each full cooldown", is_equal_approx(ab.cooldown[0], 11.0) and is_equal_approx(ab.cooldown[1], 26.5) and is_equal_approx(ab.cooldown[2], 64.0),

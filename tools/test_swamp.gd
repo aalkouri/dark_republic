@@ -100,7 +100,7 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	for f in 5:
 		await get_tree().physics_frame
 	var cast_from := player.global_position
-	ab.try_cast(0)
+	ab.try_cast(Abilities.METEOR)
 	var target: Vector3 = ab._meteors[0]["target"]
 	_check("meteor: wizard vanishes", player.meteor_form and not player.model.visible, "form %s visible %s" % [player.meteor_form, player.model.visible])
 	player.invuln = 0.0
