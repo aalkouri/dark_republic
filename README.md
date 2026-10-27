@@ -24,6 +24,10 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 
 **Movement tech:** jump on the frame you land to keep momentum (bhop), and strafe and turn in the air to gain speed. Slide while running for a burst; sliding down ramps accelerates you, and slide-jumping keeps the speed.
 
+## Startup
+
+The game opens with the **AtomAI** studio logo (`video/atomai_logo.ogv`, converted to Ogg Theora for Godot). Any key, click or gamepad button skips it. Pass `-- --skip-intro` to skip it from the command line (tests and screenshots skip it automatically).
+
 ## Pause menu and settings
 
 **Esc** opens the pause menu: Resume, Settings, Restart run, Quit to desktop. Settings are saved to `user://settings.cfg` and applied on startup.
@@ -149,6 +153,7 @@ scripts/
   chest.gd           Bronze / Silver / Gold chest (placeholder: rewards TBD)
   powerup_manager.gd elite power-up drops and timed effects
   tree_fire.gd       trees set alight by the Meteor, charring over 15 s
+  splash.gd          startup logo video, skippable
   hud.gd             all UI, built in code
 data/upgrades.json   every weapon/tome/item and rarity, as data
 tools/               headless micro-benchmarks
