@@ -1,33 +1,51 @@
 class_name AbilitySlot
 extends Control
 ## One slot on the ability bar: procedural icon, key hint, draining cooldown shade + seconds,
-## yellow outline for the ultimate, and a flash when the ability comes off cooldown.
+## yellow outline for the ultimate, a flash when the ability comes off cooldown, and while it's
+## ready a repeating pulse: the slot brightens and grows slightly, then returns to normal.
 
 signal activated
+signal hovered(on: bool)
 
 enum Icon { METEOR, SHOCKWAVE, INFERNO }
 
 const SIZE := 78.0
+const PULSE_PERIOD := 1.3     # seconds per pulse
+const PULSE_SCALE := 0.08     # +8% size at the peak
+const PULSE_BRIGHT := 0.45    # extra brightness at the peak
 
 var icon := Icon.METEOR
 var key_text := "1"
 var is_ult := false
+var locked := false
+var unlock_level := 1
 var fraction := 0.0        # 0 = ready, 1 = just cast
 var seconds_left := 0.0
 var _ready_flash := 0.0
 var _was_ready := true
 var _time := 0.0
+var _pulse_t := 0.0         # time since this slot became ready
 
 
 func _init() -> void:
 	custom_minimum_size = Vector2(SIZE, SIZE)
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_entered.connect(func(): hovered.emit(true))
+	mouse_exited.connect(func(): hovered.emit(false))
+
+
+func set_locked(is_locked: bool) -> void:
+	if locked and not is_locked:
+		_ready_flash = 1.0   # celebrate the unlock
+		_pulse_t = 0.0
+	locked = is_locked
 
 
 func set_cooldown(frac: float, secs: float) -> void:
 	var ready := frac <= 0.0
 	if ready and not _was_ready:
 		_ready_flash = 1.0
+		_pulse_t = 0.0
 	_was_ready = ready
 	fraction = frac
 	seconds_left = secs
@@ -42,7 +60,24 @@ func _gui_input(event: InputEvent) -> void:
 func _process(dt: float) -> void:
 	_time += dt
 	_ready_flash = maxf(0.0, _ready_flash - dt * 2.0)
+	# Ready pulse: 0 -> 1 -> 0 over each period (smooth), driving size and brightness
+	var k := pulse_amount()
+	if k >= 0.0:
+		_pulse_t += dt
+	pivot_offset = size * 0.5
+	scale = Vector2.ONE * (1.0 + PULSE_SCALE * maxf(k, 0.0))
+	var b := 1.0 + PULSE_BRIGHT * maxf(k, 0.0)
+	modulate = Color(b, b, b, 1.0)
 	queue_redraw()
+
+
+## Current pulse strength 0..1 (0 at the start and end of each pulse), or -1 if not ready.
+func pulse_amount() -> float:
+	if locked or fraction > 0.0:
+		return -1.0
+	var p := fmod(_pulse_t, PULSE_PERIOD) / PULSE_PERIOD
+	var k := sin(p * PI)
+	return k * k
 
 
 func _draw() -> void:
@@ -64,6 +99,10 @@ func _draw() -> void:
 			_icon_shockwave(c)
 		Icon.INFERNO:
 			_icon_inferno(c)
+
+	if locked:
+		_draw_locked(r, c)
+		return
 
 	# Cooldown: dark fill that drains top-down, plus a radial "clock" edge and seconds
 	if not ready:
@@ -95,6 +134,16 @@ func _draw() -> void:
 		border.set_border_width_all(2)
 	draw_style_box(border, r)
 
+	# Pulse glow overlay
+	var pk := pulse_amount()
+	if pk > 0.0:
+		var glow_box := StyleBoxFlat.new()
+		glow_box.bg_color = Color(1.0, 0.85, 0.5, 0.18 * pk) if is_ult else Color(1.0, 0.6, 0.25, 0.16 * pk)
+		glow_box.set_corner_radius_all(10)
+		glow_box.shadow_color = Color(1.0, 0.75, 0.2, 0.5 * pk) if is_ult else Color(1.0, 0.5, 0.15, 0.4 * pk)
+		glow_box.shadow_size = int(10.0 * pk)
+		draw_style_box(glow_box, r)
+
 	# "Ready" flash
 	if _ready_flash > 0.0:
 		var f := StyleBoxFlat.new()
@@ -106,6 +155,34 @@ func _draw() -> void:
 	var font := get_theme_default_font()
 	draw_string_outline(font, Vector2(7, 19), key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, 4, Color.BLACK)
 	draw_string(font, Vector2(7, 19), key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.9))
+
+
+## Dimmed slot with a padlock and the level it unlocks at.
+func _draw_locked(r: Rect2, c: Vector2) -> void:
+	var shade := StyleBoxFlat.new()
+	shade.bg_color = Color(0.02, 0.02, 0.02, 0.78)
+	shade.set_corner_radius_all(10)
+	draw_style_box(shade, r)
+	var lock_col := Color(0.75, 0.72, 0.68)
+	draw_arc(c + Vector2(0, -8), 9.0, PI, TAU, 16, lock_col, 3.0)
+	draw_line(c + Vector2(-9, -8), c + Vector2(-9, -2), lock_col, 3.0)
+	draw_line(c + Vector2(9, -8), c + Vector2(9, -2), lock_col, 3.0)
+	draw_rect(Rect2(c + Vector2(-13, -2), Vector2(26, 19)), lock_col)
+	draw_circle(c + Vector2(0, 6), 2.5, Color(0.1, 0.1, 0.1))
+	var font := get_theme_default_font()
+	var txt := "Lv %d" % unlock_level
+	var tw := font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
+	draw_string_outline(font, Vector2(c.x - tw * 0.5, size.y - 7), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, 4, Color.BLACK)
+	draw_string(font, Vector2(c.x - tw * 0.5, size.y - 7), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(1.0, 0.85, 0.4))
+	var border := StyleBoxFlat.new()
+	border.draw_center = false
+	border.set_corner_radius_all(10)
+	border.set_border_width_all(4 if is_ult else 2)
+	border.border_color = Color(0.75, 0.62, 0.15, 0.5) if is_ult else Color(0.35, 0.32, 0.32, 0.9)
+	draw_style_box(border, r)
+	var f2 := get_theme_default_font()
+	draw_string_outline(f2, Vector2(7, 19), key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, 4, Color.BLACK)
+	draw_string(f2, Vector2(7, 19), key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.45))
 
 
 # ------------------------------------------------------------------ icons

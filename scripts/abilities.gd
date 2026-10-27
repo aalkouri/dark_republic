@@ -1,9 +1,10 @@
 class_name Abilities
 extends Node3D
 ## The fire wizard's three active abilities (keys 1 / 2 / 3).
+##   (unlock: Inferno from the start, Fire Nova at level 5, Meteor at level 10)
 ##   1  Inferno        30 s  Ignites every enemy: 5% max HP/s for 10 s. Burning enemies that
 ##                           die explode for 50% of their max HP within 2 yd (chains).
-##   2  Fire Shockwave 45 s  Expanding ring from the floor under you; knocks enemies back 5 yd.
+##   2  Fire Nova      45 s  Ring of fire expanding 18 m from the floor under you; knocks enemies back 5 yd.
 ##   3  Meteor (ult)  120 s  The wizard vanishes (invulnerable) and becomes a giant flaming copy of
 ##                           his own head, which crashes where you aim 3 s later; he reappears
 ##                           there. Big AoE damage, then the ground burns for 3 s (3% max HP/s).
@@ -55,8 +56,8 @@ void fragment() {
 """
 
 const SHOCK_COOLDOWN := 45.0
-const SHOCK_RADIUS := 9.0
-const SHOCK_EXPAND_TIME := 0.45
+const SHOCK_RADIUS := 18.0           # Fire Nova reach (doubled from 9 m)
+const SHOCK_EXPAND_TIME := 0.7      # same feel: the ring still sweeps out at ~26 m/s
 const SHOCK_DAMAGE := 80.0
 const SHOCK_KNOCKBACK := 5.0 * YARD
 
@@ -67,9 +68,9 @@ const INFERNO_EXPLODE_FRAC := 0.5       # of the dying enemy's max HP
 const INFERNO_EXPLODE_RADIUS := 2.0 * YARD
 
 const DEFS := [
-	{"name": "Inferno", "key": "1", "cooldown": INFERNO_COOLDOWN, "ult": false},
-	{"name": "Fire Shockwave", "key": "2", "cooldown": SHOCK_COOLDOWN, "ult": false},
-	{"name": "Meteor", "key": "3", "cooldown": METEOR_COOLDOWN, "ult": true},
+	{"name": "Inferno", "key": "1", "cooldown": INFERNO_COOLDOWN, "ult": false, "unlock_level": 1},
+	{"name": "Fire Nova", "key": "2", "cooldown": SHOCK_COOLDOWN, "ult": false, "unlock_level": 5},
+	{"name": "Meteor", "key": "3", "cooldown": METEOR_COOLDOWN, "ult": true, "unlock_level": 10},
 ]
 
 var stats: Stats
@@ -106,8 +107,61 @@ func _ready() -> void:
 
 
 
+## Player level, kept up to date by main; abilities unlock at DEFS[i].unlock_level.
+var level := 1
+
+
+## Tooltip text (BBCode) with the current numbers, including the Damage stat.
+func describe(i: int) -> String:
+	var d: Dictionary = DEFS[i]
+	var dmg_mult := stats.value("damage") if stats != null else 1.0
+	var bonus := "" if is_equal_approx(dmg_mult, 1.0) else "  [color=#9be37a](+%d%% from Damage)[/color]" % roundi((dmg_mult - 1.0) * 100.0)
+	var hot := "[color=#ffb347]%s[/color]"
+	var lines: Array[String] = []
+	var title := "[font_size=22][b]%s[/b][/font_size]" % d["name"]
+	if d["ult"]:
+		title += "  [color=#ffd23f][ULTIMATE][/color]"
+	lines.append(title)
+	lines.append("[color=#aaaaaa]Key %s  ·  Cooldown %s[/color]" % [d["key"], _fmt_cd(float(d["cooldown"]))])
+	lines.append("")
+	match i:
+		INFERNO:
+			lines.append("Sets [b]every goblin[/b] on fire.")
+			lines.append("• Burn: %s of max HP per second for %s (%s total)" % [hot % ("%d%%" % roundi(INFERNO_BURN_DPS * 100.0)), hot % ("%d s" % roundi(INFERNO_BURN_TIME)), hot % ("%d%%" % roundi(INFERNO_BURN_DPS * INFERNO_BURN_TIME * 100.0))])
+			lines.append("• Burning goblins that die explode for %s of their max HP to goblins within %s; explosions chain" % [hot % ("%d%%" % roundi(INFERNO_EXPLODE_FRAC * 100.0)), hot % "2 yd"])
+		SHOCKWAVE:
+			lines.append("A ring of fire bursts out from the ground under you.")
+			lines.append("• %s damage to every goblin within %s%s" % [hot % str(roundi(SHOCK_DAMAGE * dmg_mult)), hot % ("%d m" % roundi(SHOCK_RADIUS)), bonus])
+			lines.append("• Knocks them back %s" % (hot % "5 yd"))
+		METEOR:
+			lines.append("You vanish and become a giant flaming copy of your own head. [b]Invulnerable[/b] while falling.")
+			lines.append("• Crashes where you aim after %s: %s damage within %s%s, plus knockback" % [hot % ("%d s" % roundi(METEOR_FALL_TIME)), hot % str(roundi(METEOR_DAMAGE * dmg_mult)), hot % ("%d m" % roundi(METEOR_RADIUS)), bonus])
+			lines.append("• You reappear at the crash site")
+			lines.append("• The ground burns for %s: %s of max HP per second within %s" % [hot % ("%d s" % roundi(SCORCH_TIME)), hot % ("%d%%" % roundi(SCORCH_DPS * 100.0)), hot % ("%d m" % roundi(SCORCH_RADIUS))])
+	lines.append("")
+	if not is_unlocked(i):
+		lines.append("[color=#ff7060]Locked: unlocks at level %d[/color]" % int(d["unlock_level"]))
+	elif cooldown[i] > 0.0:
+		lines.append("[color=#cccccc]Ready in %s[/color]" % _fmt_cd(cooldown[i]))
+	else:
+		lines.append("[color=#7dff7d]Ready[/color]")
+	return "\n".join(lines)
+
+
+static func _fmt_cd(secs: float) -> String:
+	if secs >= 60.0:
+		var m := int(secs) / 60
+		var s := int(ceil(secs)) % 60
+		return "%d min" % m if s == 0 else "%d:%02d" % [m, s]
+	return "%d s" % ceili(secs)
+
+
+func is_unlocked(i: int) -> bool:
+	return level >= int(DEFS[i]["unlock_level"])
+
+
 func is_ready(i: int) -> bool:
-	return cooldown[i] <= 0.0
+	return is_unlocked(i) and cooldown[i] <= 0.0
 
 
 func fraction_remaining(i: int) -> float:
@@ -322,7 +376,7 @@ func scorch_count() -> int:
 	return _scorches.size()
 
 
-# ------------------------------------------------------------------ 2: Fire Shockwave
+# ------------------------------------------------------------------ 2: Fire Nova
 
 func _cast_shockwave() -> void:
 	var center := _floor_below(player.global_position + Vector3(0, 0.5, 0))

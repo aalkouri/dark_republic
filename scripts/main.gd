@@ -79,6 +79,8 @@ var shot_casts := {}   # time -> ability index
 var _shot_spawn := 0
 var _shot_front := false
 var _shot_pool := false
+var _shot_level := 0
+var _shot_inspect := -1
 var _shot_settings_tab := -1
 var _forced_seed := -1
 var _shot_pitch := -99.0
@@ -109,6 +111,10 @@ func _ready() -> void:
 			_forced_seed = int(a.split("=")[1])
 		elif a.begins_with("--shot-settings="):
 			_shot_settings_tab = int(a.split("=")[1])
+		elif a.begins_with("--shot-inspect="):
+			_shot_inspect = int(a.split("=")[1])
+		elif a.begins_with("--shot-level="):
+			_shot_level = int(a.split("=")[1])
 		elif a == "--shot-pool":
 			_shot_pool = true
 		elif a == "--shot-front":
@@ -206,6 +212,21 @@ func _exit_tree() -> void:
 
 
 # ------------------------------------------------------------------ main loop
+
+## Hold Alt: freeze the game and free the cursor to inspect abilities; release to resume.
+func _process(_dt: float) -> void:
+	if _shot_inspect >= 0:
+		return   # screenshot mode holds inspect open without a real key press
+	var held := Input.is_action_pressed("inspect")
+	if held and state == "playing":
+		state = "inspect"
+		get_tree().paused = true
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		hud.set_inspect(true)
+	elif not held and state == "inspect":
+		hud.set_inspect(false)
+		_resume()
+
 
 func _physics_process(dt: float) -> void:
 	if smoke:
@@ -371,6 +392,11 @@ func _add_xp(v: float) -> void:
 		xp_next = _xp_for(level)
 		pending_levels += 1
 		Events.level_up.emit(level)
+		abilities.level = level
+		for k in Abilities.DEFS.size():
+			var d: Dictionary = Abilities.DEFS[k]
+			if int(d["unlock_level"]) == level:
+				hud.flash_message("NEW ABILITY UNLOCKED: %s  [%s]" % [d["name"].to_upper(), d["key"]], 4.0)
 	if pending_levels > 0 and state == "playing":
 		_open_draft()
 
@@ -476,7 +502,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause") and hud.settings_open():
 		hud.settings_menu.handle_escape()
 	elif event.is_action_pressed("pause"):
-		if state == "playing":
+		if state == "playing" or state == "inspect":
+			hud.set_inspect(false)
 			state = "paused"
 			get_tree().paused = true
 			hud.set_paused(true)
@@ -523,6 +550,7 @@ static func setup_inputs() -> void:
 	_bind("debug_stats", [KEY_F1], [], [])
 	_bind("debug_spawn", [KEY_F2], [], [])
 	_bind("debug_cooldowns", [KEY_F3], [], [])
+	_bind("inspect", [KEY_ALT], [], [])
 
 
 static func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:
@@ -606,6 +634,8 @@ func _smoke_tick(dt: float) -> void:
 
 func _shot_tick() -> void:
 	player.god_mode = true
+	if _shot_level > 0:
+		abilities.level = _shot_level
 	if _shot_pool and run_time < 0.05:
 		var c: Vector2 = water.pools[0]["center"]
 		var r: float = water.pools[0]["r"]
@@ -627,6 +657,13 @@ func _shot_tick() -> void:
 			cast_ability(shot_casts[t])
 			shot_casts.erase(t)
 	if run_time >= shot_at:
+		if _shot_inspect >= 0:
+			state = "inspect"
+			get_tree().paused = true
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			hud.set_inspect(true)
+			hud._on_slot_hover(_shot_inspect, true)
+			hud._update_tooltip()
 		if _shot_settings_tab >= 0:
 			state = "paused"
 			get_tree().paused = true

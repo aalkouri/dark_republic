@@ -97,6 +97,43 @@ func _ready() -> void:
 	_check("drop odds ~30/50/20", absf(tally[0] / 200.0 - 30.0) < 1.5 and absf(tally[1] / 200.0 - 50.0) < 1.5 and absf(tally[2] / 200.0 - 20.0) < 1.5,
 		"%.1f / %.1f / %.1f %%" % [tally[0] / 200.0, tally[1] / 200.0, tally[2] / 200.0])
 
+	ab.level = 1
+	_check("level 1: only Inferno is usable", ab.is_unlocked(Abilities.INFERNO) and not ab.is_unlocked(Abilities.SHOCKWAVE) and not ab.is_unlocked(Abilities.METEOR), "")
+	_check("locked abilities can't be cast", not ab.try_cast(Abilities.SHOCKWAVE) and not ab.try_cast(Abilities.METEOR), "")
+	ab.level = 4
+	_check("level 4: Fire Nova still locked", not ab.is_unlocked(Abilities.SHOCKWAVE), "")
+	ab.level = 5
+	_check("level 5: Fire Nova unlocks", ab.is_unlocked(Abilities.SHOCKWAVE) and not ab.is_unlocked(Abilities.METEOR), "")
+	ab.level = 9
+	_check("level 9: Meteor still locked", not ab.is_unlocked(Abilities.METEOR), "")
+	ab.level = 10
+	_check("level 10: Meteor unlocks", ab.is_unlocked(Abilities.METEOR), "")
+	_check("ability 2 is named Fire Nova, reach doubled to 18 m", Abilities.DEFS[Abilities.SHOCKWAVE]["name"] == "Fire Nova" and is_equal_approx(Abilities.SHOCK_RADIUS, 18.0), "")
+	# Ready pulse on the ability bar: grows/brightens and returns to normal each pulse
+	var slot := AbilitySlot.new()
+	add_child(slot)
+	slot.size = Vector2(78, 78)
+	slot.set_locked(false)
+	slot.set_cooldown(0.0, 0.0)
+	var peak_scale := 1.0
+	var peak_bright := 1.0
+	var end_scale := 0.0
+	for f in int(AbilitySlot.PULSE_PERIOD * 60.0):
+		slot._process(1.0 / 60.0)
+		peak_scale = maxf(peak_scale, slot.scale.x)
+		peak_bright = maxf(peak_bright, slot.modulate.r)
+	end_scale = slot.scale.x
+	_check("ready slot pulses bigger and brighter", peak_scale > 1.07 and peak_bright > 1.4, "peak scale %.3f, brightness %.2f" % [peak_scale, peak_bright])
+	_check("pulse returns to normal size at the end", absf(end_scale - 1.0) < 0.01, "end scale %.3f" % end_scale)
+	slot.set_cooldown(0.5, 10.0)
+	slot._process(1.0 / 60.0)
+	_check("no pulse while on cooldown", is_equal_approx(slot.scale.x, 1.0) and is_equal_approx(slot.modulate.r, 1.0), "scale %.3f" % slot.scale.x)
+	slot.set_locked(true)
+	slot.set_cooldown(0.0, 0.0)
+	slot._process(1.0 / 60.0)
+	_check("no pulse while locked", is_equal_approx(slot.scale.x, 1.0), "scale %.3f" % slot.scale.x)
+	slot.queue_free()
+
 	var d_inf: Dictionary = Abilities.DEFS[Abilities.INFERNO]
 	var d_met: Dictionary = Abilities.DEFS[Abilities.METEOR]
 	_check("slot 1 is Inferno, 30 s", d_inf["key"] == "1" and d_inf["name"] == "Inferno" and d_inf["cooldown"] == 30.0 and not d_inf["ult"], str(d_inf))

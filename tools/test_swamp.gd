@@ -93,6 +93,7 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	root.add_child(fx)
 	var ab := Abilities.new()
 	ab.setup(player.stats, em, player, fx)
+	ab.level = 10
 	root.add_child(ab)
 	await _place(player, Vector3(0, 0.3, 0))
 	player.cam_yaw = 0.0
@@ -132,6 +133,25 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	burned = (start_hp - em.hp[g]) / em.hp_max[g]
 	_check("burning ground: ~3%/s while it lasts (3 s)", absf(burned - 0.09) < 0.01, "lost %.1f%% of max HP" % (burned * 100.0))
 	_check("burning ground goes out", ab.scorch_count() == 0, "zones %d" % ab.scorch_count())
+
+	# Fire Nova reaches 18 m (was 9 m): a goblin 16 m away is hit and knocked back
+	await _place(player, Vector3(0, 0.3, 0))
+	em.count = 0
+	var far_g := em.spawn(EnemyManager.TANK, player.global_position + Vector3(16, 0, 0), 100.0)
+	var beyond := em.spawn(EnemyManager.TANK, player.global_position + Vector3(0, 0, 21), 100.0)
+	em.tick(1.0 / 60.0, player.global_position)
+	var hp_far := em.hp[far_g]
+	var hp_beyond := em.hp[beyond]
+	ab.cooldown[Abilities.SHOCKWAVE] = 0.0
+	ab.try_cast(Abilities.SHOCKWAVE)
+	var pushed := false
+	for f in 60:
+		ab.tick(1.0 / 60.0)
+		em._build_grid(player.global_position)
+		if em.kb_t[far_g] > 0.0:
+			pushed = true
+	_check("Fire Nova hits a goblin 16 m away", em.hp[far_g] < hp_far and pushed, "hp %.0f -> %.0f, knocked %s" % [hp_far, em.hp[far_g], pushed])
+	_check("Fire Nova stops at 18 m", is_equal_approx(em.hp[beyond], hp_beyond), "21 m goblin hp %.0f -> %.0f" % [hp_beyond, em.hp[beyond]])
 
 
 func _place(player: Player, at: Vector3) -> void:

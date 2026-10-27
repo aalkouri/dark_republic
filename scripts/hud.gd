@@ -20,6 +20,10 @@ var draft_root: Control
 var draft_cards: Array = []   # [Button, rarity Label, title Label, body Label]
 var end_root: Control
 var ability_slots: Array = []   # AbilitySlot
+var tooltip: PanelContainer
+var tooltip_text: RichTextLabel
+var inspect_hint: Label
+var _hover_slot := -1
 var end_title: Label
 var end_stats: Label
 var show_debug := false
@@ -90,7 +94,7 @@ func setup(m) -> void:
 	inv_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	root.add_child(inv_label)
 
-	var hint := _label("WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns", 14)
+	var hint := _label("WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns", 14)
 	hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hint.offset_left = -800
@@ -244,16 +248,80 @@ func _build_ability_bar(root: Control) -> void:
 		slot.icon = icons[i]
 		slot.key_text = d["key"]
 		slot.is_ult = d["ult"]
+		slot.unlock_level = d["unlock_level"]
 		slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		slot.activated.connect(func(): main.cast_ability(i))
-		if d["ult"]:
-			slot.custom_minimum_size = Vector2(88, 88)
 		col.add_child(slot)
 		var name := _label(d["name"], 13)
 		name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		name.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if d["ult"] else Color(1, 1, 1, 0.85))
 		col.add_child(name)
 		ability_slots.append(slot)
+		slot.hovered.connect(func(on: bool): _on_slot_hover(i, on))
+	_build_tooltip(root)
+
+
+func _build_tooltip(root: Control) -> void:
+	tooltip = PanelContainer.new()
+	tooltip.visible = false
+	tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tooltip.custom_minimum_size = Vector2(380, 0)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.045, 0.04, 0.95)
+	sb.border_color = Color(1.0, 0.5, 0.18, 0.9)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(10)
+	sb.set_content_margin_all(14)
+	sb.shadow_color = Color(0, 0, 0, 0.5)
+	sb.shadow_size = 8
+	tooltip.add_theme_stylebox_override("panel", sb)
+	tooltip_text = RichTextLabel.new()
+	tooltip_text.bbcode_enabled = true
+	tooltip_text.fit_content = true
+	tooltip_text.scroll_active = false
+	tooltip_text.custom_minimum_size = Vector2(380, 0)
+	tooltip_text.add_theme_font_size_override("normal_font_size", 16)
+	tooltip_text.add_theme_font_size_override("bold_font_size", 16)
+	tooltip_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tooltip.add_child(tooltip_text)
+	root.add_child(tooltip)
+
+	inspect_hint = _label("PAUSED  ·  hover an ability for details  ·  release Alt to resume", 20)
+	inspect_hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	inspect_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	inspect_hint.offset_left = -500
+	inspect_hint.offset_right = 500
+	inspect_hint.offset_top = 92
+	inspect_hint.add_theme_color_override("font_color", Color(1.0, 0.85, 0.5))
+	inspect_hint.visible = false
+	root.add_child(inspect_hint)
+
+
+func _on_slot_hover(i: int, on: bool) -> void:
+	_hover_slot = i if on else (-1 if _hover_slot == i else _hover_slot)
+
+
+func set_inspect(on: bool) -> void:
+	inspect_hint.visible = on
+	if not on:
+		tooltip.visible = false
+
+
+func _update_tooltip() -> void:
+	var show := _hover_slot >= 0 and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE and not settings_menu.visible
+	if not show:
+		tooltip.visible = false
+		return
+	tooltip_text.text = main.abilities.describe(_hover_slot)
+	tooltip.visible = true
+	tooltip.reset_size()
+	var slot: Control = ability_slots[_hover_slot]
+	var r := slot.get_global_rect()
+	var vp := get_viewport().get_visible_rect().size
+	var pos := Vector2(r.position.x + r.size.x * 0.5 - tooltip.size.x * 0.5, r.position.y - tooltip.size.y - 34)
+	pos.x = clampf(pos.x, 10, vp.x - tooltip.size.x - 10)
+	pos.y = maxf(pos.y, 10)
+	tooltip.position = pos
 
 
 func _build_end(root: Control) -> void:
@@ -357,7 +425,9 @@ func _process(dt: float) -> void:
 		lines.append("Tomes ×%d" % tomes)
 	inv_label.text = "\n".join(lines)
 
+	_update_tooltip()
 	for i in ability_slots.size():
+		ability_slots[i].set_locked(not main.abilities.is_unlocked(i))
 		ability_slots[i].set_cooldown(main.abilities.fraction_remaining(i), main.abilities.cooldown[i])
 
 	if show_debug:

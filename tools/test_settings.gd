@@ -80,6 +80,45 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_check("Esc again resumes", main.state == "playing" and not get_tree().paused, "state %s" % main.state)
 
+	# Hold Alt: pause + cursor + ability tooltips with numbers
+	Input.action_press("inspect")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check("holding Alt pauses the game", main.state == "inspect" and get_tree().paused and hud.inspect_hint.visible, "state %s" % main.state)
+	_check("holding Alt frees the cursor", Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "mode %d" % Input.mouse_mode)
+	main.abilities.level = 10
+	var tips := []
+	for i in 3:
+		hud._on_slot_hover(i, true)
+		hud._update_tooltip()
+		tips.append(hud.tooltip_text.get_parsed_text())
+		_check("tooltip shows for ability %d" % (i + 1), hud.tooltip.visible, "")
+		hud._on_slot_hover(i, false)
+	_check("Inferno tooltip has its numbers", "5%" in tips[0] and "10 s" in tips[0] and "50%" in tips[0], tips[0].replace("\n", " | "))
+	_check("Fire Nova tooltip has damage + reach", "80 damage" in tips[1] and "18 m" in tips[1] and "5 yd" in tips[1], tips[1].replace("\n", " | "))
+	_check("Meteor tooltip has damage + burn", "250 damage" in tips[2] and "3%" in tips[2] and "ULTIMATE" in tips[2], tips[2].replace("\n", " | "))
+	main.stats.apply("damage", "add", 0.5)
+	hud._on_slot_hover(2, true)
+	hud._update_tooltip()
+	_check("tooltip damage follows the Damage stat", "375 damage" in hud.tooltip_text.get_parsed_text(), "")
+	hud._on_slot_hover(2, false)
+	hud._update_tooltip()
+	_check("tooltip hides when not hovering", not hud.tooltip.visible, "")
+	Input.action_release("inspect")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check("releasing Alt resumes", main.state == "playing" and not get_tree().paused and not hud.inspect_hint.visible, "state %s" % main.state)
+
+	# All ability slots the same size, names aligned
+	var sizes := []
+	var label_y := []
+	for slot in hud.ability_slots:
+		sizes.append((slot as Control).size)
+		var lbl: Label = (slot as Control).get_parent().get_child(1)
+		label_y.append(lbl.global_position.y)
+	_check("ability slots are the same size", sizes[0] == sizes[1] and sizes[1] == sizes[2], str(sizes))
+	_check("ability names are aligned", is_equal_approx(label_y[0], label_y[2]) and is_equal_approx(label_y[1], label_y[2]), str(label_y))
+
 	DirAccess.remove_absolute(saved_path)
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
