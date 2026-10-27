@@ -15,12 +15,35 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 | Move / look | WASD + mouse | Left / right stick |
 | Jump (buffered, coyote time) | Space | A |
 | Slide | Shift, Ctrl or C | B / LB |
-| Pick level-up card | 1 / 2 / 3 or click | X / Y / RB |
+| Abilities: Meteor / Fire Shockwave / Inferno | 1 / 2 / 3 (or click the slot) | X / Y / RB |
+| Pick level-up card | Mouse click | |
 | Pause | Esc | Start |
 | Restart (end screen) | R | Back |
-| Debug overlay / spawn 200 enemies | F1 / F2 | |
+| Debug overlay / spawn 200 enemies / reset cooldowns | F1 / F2 / F3 | |
 
 **Movement tech:** jump on the frame you land to keep momentum (bhop), and strafe and turn in the air to gain speed. Slide while running for a burst; sliding down ramps accelerates you, and slide-jumping keeps the speed.
+
+## The fire wizard
+
+**Abilities** (bottom-center bar; the ultimate has a yellow outline):
+
+| Key | Ability | Cooldown | Effect |
+|---|---|---|---|
+| 1 | Meteor | 30 s | Lands where you aim 3 s after casting: 250 dmg (scales with Damage) in 8 m, plus knockback |
+| 2 | Fire Shockwave | 45 s | Ring of fire expands from the floor under you to 9 m: 80 dmg, knocks enemies back 5 yd |
+| 3 | Inferno (ultimate) | 2 min | Ignites every enemy: 5% of max HP per second for 10 s. Burning enemies that die explode for 50% of their max HP within 2 yd (chains) |
+
+**Look:** red coat made of animated flames, a pointy crimson hat with a gold band, ember eyes, a fire staff, and ash footprints that fade within a second.
+
+**Collisions:** when an enemy touches you, you take its contact damage (shield first), become immune for 0.5 s (shown by dimming the character 50%), and you and the enemy are knocked apart. Enemies that run into you while you're immune bounce back opposite to the way they were heading.
+
+**Epic enemies:** each spawn has a 5% chance (+1% per Tome of Luck level) to be epic: 1.5x size, 4x HP and a purple tint. Each epic drops one potion:
+
+| Potion | Chance | Effect |
+|---|---|---|
+| Purple | 30% | Every ability's cooldown is reduced by 30% of its full duration |
+| Red | 50% | Heal 10% of max HP |
+| Blue | 20% | Shield worth 10% of max HP (absorbs damage first, stacks) |
 
 ## What's in the slice
 
@@ -44,6 +67,11 @@ scripts/
   stats.gd           stat pipeline: (base + flat) * (1 + add%) * mult
   events.gd          autoload event bus
   world_builder.gd   procedural arena, lighting, environment
+  abilities.gd       Meteor, Fire Shockwave, Inferno; cooldowns and VFX
+  wizard_model.gd    procedural fire wizard (flame-coat shader, hat, staff, dimming)
+  potion_manager.gd  epic drops: purple / red / blue potions
+  fx_manager.gd      pooled bursts and ash footprints (MultiMesh)
+  ability_slot.gd    one ability-bar slot (procedural icon, cooldown, ult outline)
   hud.gd             all UI, built in code
 data/upgrades.json   every weapon/tome/item and rarity, as data
 tools/               headless micro-benchmarks
@@ -62,6 +90,12 @@ tools/               headless micro-benchmarks
 ```bash
 # Full headless smoke test: bot plays, 1400-enemy stress phase, death screen, restart
 godot --headless --path . --fixed-fps 60 -- --smoketest --smoke-seconds=240
+
+# Gameplay spec tests (abilities, burn/explosions, epics, potions, shield, immunity)
+godot --headless --path . res://tools/test_abilities.tscn
+
+# Screenshot: cast Meteor at 1 s, capture at 4 s
+godot --path . -- --shot=/tmp/shot.png --shot-at=4 --shot-cast=0@1 --shot-spawn=120
 
 # Crowd simulation benchmark
 godot --headless --path . res://tools/bench_enemies.tscn
