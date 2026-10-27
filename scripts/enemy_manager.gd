@@ -17,7 +17,7 @@ const CELL := 2.0
 const GRID_N := 64                      # 64 * 2m = 128m window around the player
 const HALF := CELL * GRID_N * 0.5
 const RELOCATE_DIST := 58.0             # stragglers further than this teleport back near the player
-const STRIDE := 16                      # 12 floats transform + 4 floats color
+const STRIDE := 20                      # 12 floats transform + 4 color + 4 custom (tint, fx)
 const ACCEL := 25.0
 const SEPARATION_NEIGHBOURS := 8
 const BURN_COLOR := Color(1.0, 0.42, 0.08)
@@ -106,18 +106,21 @@ func _ready() -> void:
 	cell_start.resize(GRID_N * GRID_N)
 	cell_fill.resize(GRID_N * GRID_N)
 	buf.resize(MAX * STRIDE)
-	for i in MAX:   # constant entries: zero basis terms and alpha
-		buf[i * STRIDE + 15] = 1.0
+	for i in MAX:   # instance color stays white; per-instance look lives in custom data
+		for k in 4:
+			buf[i * STRIDE + 12 + k] = 1.0
 
-	_add_type("Grunt", 10.0, 4.2, 0.5, 1.0, 8.0, 1.0, Color(0.86, 0.32, 0.30))
-	_add_type("Runner", 6.0, 6.8, 0.4, 0.8, 6.0, 1.0, Color(0.95, 0.76, 0.25))
-	_add_type("Tank", 55.0, 3.0, 0.9, 1.8, 16.0, 5.0, Color(0.52, 0.32, 0.82))
-	_add_type("Big Bonker", 2500.0, 3.6, 2.2, 4.5, 35.0, 120.0, Color(0.18, 0.18, 0.24))
+	# Goblins. The color is the clothing; scale 1 is about half the wizard's height.
+	_add_type("Goblin", 10.0, 4.2, 0.45, 1.0, 8.0, 1.0, Color(0.5, 0.32, 0.17))
+	_add_type("Goblin Scamp", 6.0, 6.8, 0.36, 0.8, 6.0, 1.0, Color(0.9, 0.68, 0.18))
+	_add_type("Goblin Brute", 55.0, 3.0, 0.85, 1.8, 16.0, 5.0, Color(0.38, 0.4, 0.46))
+	_add_type("Big Bonker", 2500.0, 3.6, 2.0, 4.5, 35.0, 120.0, Color(0.55, 0.08, 0.1))
 
 	mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
-	mm.mesh = _make_mesh()
+	mm.use_custom_data = true
+	mm.mesh = GoblinMesh.build()
 	mm.instance_count = MAX
 	mm.visible_instance_count = 0
 	var mmi := MultiMeshInstance3D.new()
@@ -132,29 +135,10 @@ func _add_type(n: String, p_hp: float, speed: float, radius: float, scale: float
 	t_speed.append(speed)
 	t_radius.append(radius)
 	t_scale.append(scale)
-	t_height.append(1.6 * scale)
+	t_height.append(GoblinMesh.HEIGHT * scale)
 	t_damage.append(damage)
 	t_xp.append(xp)
 	t_color.append(color)
-
-
-func _make_mesh() -> Mesh:
-	var body := CapsuleMesh.new()
-	body.radius = 0.45
-	body.height = 1.6
-	body.radial_segments = 10
-	body.rings = 3
-	var snout := BoxMesh.new()
-	snout.size = Vector3(0.35, 0.25, 0.3)
-	var st := SurfaceTool.new()
-	st.append_from(body, 0, Transform3D.IDENTITY)
-	st.append_from(snout, 0, Transform3D(Basis.IDENTITY, Vector3(0, 0.25, 0.45)))
-	var mesh := st.commit()
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.roughness = 0.8
-	mesh.surface_set_material(0, mat)
-	return mesh
 
 
 # ---------------------------------------------------------------- spawning / damage
@@ -239,7 +223,7 @@ func ignite_all(duration: float) -> int:
 
 
 func center_of(i: int) -> Vector3:
-	return pos[i] + Vector3(0.0, 0.8 * t_scale[typ[i]] * sz[i], 0.0)
+	return pos[i] + Vector3(0.0, 0.5 * t_scale[typ[i]] * sz[i], 0.0)
 
 
 func alive_count() -> int:
@@ -316,7 +300,6 @@ func tick(dt: float, player_pos: Vector3) -> void:
 	var max_dv := ACCEL * dt
 	var lim := arena_half
 	var reloc2 := RELOCATE_DIST * RELOCATE_DIST
-	var wobble_t := _time * 11.0
 	for i in n:
 		var p := pos[i]
 		var t := typ[i]
@@ -425,8 +408,10 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			fx = v.x * inv_v
 			fz = v.z * inv_v
 
-		var sy := sc * (1.0 + 0.07 * sin(wobble_t + float(uid[i])))   # waddle
-		_write_xform(b, p, fx, fz, sc, sy)
+		# Short-legged waddle: side-to-side roll and a little hop, faster when running
+		var spd := sqrt(vl)
+		var phase := _time * (6.0 + spd * 2.2) + float(uid[i]) * 1.37
+		_write_xform(b, p, fx, fz, sc, sc, 0.16 * sin(phase) * minf(spd * 0.4, 1.0), absf(sin(phase)) * 0.09 * sc * minf(spd * 0.3, 1.0))
 		if flash[i] > 0.0:
 			flash[i] -= dt
 		_write_color(i, b, t, burning)
@@ -435,7 +420,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 	mm.visible_instance_count = n
 
 
-func _write_xform(b: int, p: Vector3, fx: float, fz: float, s: float, sy: float) -> void:
+func _write_xform(b: int, p: Vector3, fx: float, fz: float, s: float, sy: float, roll := 0.0, bob := 0.0) -> void:
 	var l := fx * fx + fz * fz
 	if l > 0.000001 and absf(l - 1.0) > 0.001:
 		l = 1.0 / sqrt(l)
@@ -444,31 +429,38 @@ func _write_xform(b: int, p: Vector3, fx: float, fz: float, s: float, sy: float)
 	elif l <= 0.000001:
 		fx = 0.0
 		fz = 1.0
-	buf[b] = fz * s
+	# Columns: X = right rolled, Y = up rolled, Z = forward. Rows are written out.
+	var c := cos(roll)
+	var sn := sin(roll)
+	buf[b] = fz * c * s
+	buf[b + 1] = -fz * sn * sy
 	buf[b + 2] = fx * s
 	buf[b + 3] = p.x
-	buf[b + 5] = sy
-	buf[b + 7] = 0.8 * sy
-	buf[b + 8] = -fx * s
+	buf[b + 4] = sn * s
+	buf[b + 5] = c * sy
+	buf[b + 6] = 0.0
+	buf[b + 7] = p.y + bob
+	buf[b + 8] = -fx * c * s
+	buf[b + 9] = fx * sn * sy
 	buf[b + 10] = fz * s
 	buf[b + 11] = p.z
 
 
+## Per-instance look goes into custom data: rgb = clothing tint, a = burn + 2*flash + 4*epic.
 func _write_color(i: int, b: int, t: int, burning: bool) -> void:
-	if flash[i] > 0.0:
-		buf[b + 12] = 1.0
-		buf[b + 13] = 1.0
-		buf[b + 14] = 1.0
-		return
 	var col: Color = t_color[t]
-	if epic[i]:
-		col = col.lerp(EPIC_TINT, 0.55 + 0.15 * sin(_time * 5.0 + float(uid[i])))
+	var fx := 0.0
 	if burning:
-		var f := 0.55 + 0.35 * sin(_time * 22.0 + float(uid[i]) * 1.7)
-		col = col.lerp(BURN_COLOR, f)
-	buf[b + 12] = col.r
-	buf[b + 13] = col.g
-	buf[b + 14] = col.b
+		fx += 0.55 + 0.45 * sin(_time * 22.0 + float(uid[i]) * 1.7)
+	if flash[i] > 0.0:
+		fx += 2.0
+	if epic[i]:
+		fx += 4.0
+		col = col.lerp(EPIC_TINT, 0.7)
+	buf[b + 16] = col.r
+	buf[b + 17] = col.g
+	buf[b + 18] = col.b
+	buf[b + 19] = fx
 
 
 ## Burn explosions are queued on death and resolved here (capped per tick), so chain

@@ -114,6 +114,36 @@ func _ready() -> void:
 	player.hurt(30.0)
 	_check("no damage while immune", is_equal_approx(player.hp, hp_before), "hp %.1f" % player.hp)
 
+	# 7) Goblin audio: all clips load; no ambient clip repeats within 5 s
+	em.count = 0
+	for k in 40:
+		em.spawn(EnemyManager.GRUNT, Vector3(rng.randf_range(-10, 10), 0, rng.randf_range(-10, 10)))
+	em.tick(dt, Vector3.ZERO)
+	var ga := GoblinAudio.new()
+	var anchor := Node3D.new()
+	add_child(anchor)
+	ga.setup(em, anchor, rng)
+	add_child(ga)
+	_check("all 5 ambient clips + collision clip load", ga.ambient_count() == 5 and ga._collision != null, "ambient %d" % ga.ambient_count())
+	var plays := {}
+	var total := [0]
+	var min_gap := [999.0]
+	ga.played.connect(func(clip: int, at: float):
+		if clip < 0:
+			return
+		total[0] += 1
+		if plays.has(clip):
+			min_gap[0] = minf(min_gap[0], at - plays[clip])
+		plays[clip] = at)
+	for f in 60 * 90:
+		ga.tick(dt)
+	_check("same clip never within 5 s", min_gap[0] >= 5.0 - 0.001, "min gap %.2f s over %d plays" % [min_gap[0], total[0]])
+	_check("every clip gets used", plays.size() == 5, "%d clips used" % plays.size())
+	var hits := [0]
+	ga.played.connect(func(clip: int, _at: float): if clip == -1: hits[0] += 1)
+	ga.play_collision()
+	_check("collision plays Ow", hits[0] == 1, "hits %d" % hits[0])
+
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
 

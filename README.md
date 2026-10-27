@@ -45,6 +45,15 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 | Red | 50% | Heal 10% of max HP |
 | Blue | 20% | Shield worth 10% of max HP (absorbs damage first, stacks) |
 
+## Goblins
+
+Every enemy is a goblin: about half the wizard's height, pot-bellied, with stubby legs (they waddle) and comically large ears. Types differ by size and clothing: Goblin (brown), Goblin Scamp (small, fast, yellow), Goblin Brute (big, grey) and the Big Bonker boss (huge, dark red).
+
+**Sounds** (`audio/goblin/`, generated in Higgsfield):
+- Ambient: a random nearby goblin voices one of five clips every 0.8–2.2 s. Each clip has its own 5 s cooldown, so the same sound never repeats within 5 s. Bigger goblins are pitched lower.
+- Collision: "Ow!" plays whenever a goblin runs into the player.
+- To swap or add clips, edit `AMBIENT_CLIPS` / `COLLISION_CLIP` in `scripts/goblin_audio.gd`.
+
 ## What's in the slice
 
 - **Run structure:** 10-minute run, spawn rate and enemy HP scale with time, a swarm ring every minute, and a boss (Big Bonker) at 5:00 whose death vacuums all XP.
@@ -72,6 +81,8 @@ scripts/
   potion_manager.gd  epic drops: purple / red / blue potions
   fx_manager.gd      pooled bursts and ash footprints (MultiMesh)
   ability_slot.gd    one ability-bar slot (procedural icon, cooldown, ult outline)
+  goblin_mesh.gd     procedural goblin mesh + shader (clothing tint, burn, epic, hit flash)
+  goblin_audio.gd    ambient goblin voices with per-clip cooldowns, collision sound
   hud.gd             all UI, built in code
 data/upgrades.json   every weapon/tome/item and rarity, as data
 tools/               headless micro-benchmarks
