@@ -39,6 +39,7 @@ var items: ItemEffects
 var hud: Hud
 var water: SwampWater
 var numbers: DamageNumbers
+var corpses: CorpseManager
 var music: AudioStreamPlayer
 var fx: FxManager
 var abilities: Abilities
@@ -156,6 +157,9 @@ func _ready() -> void:
 	numbers = DamageNumbers.new()
 	add_child(numbers)
 	enemies.numbers = numbers
+	corpses = CorpseManager.new()
+	add_child(corpses)
+	enemies.corpses = corpses
 
 	gems = GemManager.new()
 	add_child(gems)
@@ -187,7 +191,7 @@ func _ready() -> void:
 	add_child(hud)
 	hud.setup(self)
 	# Main runs while paused (menus, input); all gameplay nodes freeze with the pause.
-	for n in [fx, enemies, numbers, gems, weapons, abilities, potions, goblin_audio, items]:
+	for n in [fx, enemies, numbers, corpses, gems, weapons, abilities, potions, goblin_audio, items]:
 		(n as Node).process_mode = Node.PROCESS_MODE_PAUSABLE
 
 	Events.enemy_killed.connect(_on_enemy_killed)

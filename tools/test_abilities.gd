@@ -241,6 +241,36 @@ func _ready() -> void:
 		dn._process(dt)
 	_check("burn numbers ~2 per second", shown >= 2 and shown <= 3, "%d numbers in 1 s" % shown)
 
+	# 9) Corpses: fall over, stay, gone 3 s after death
+	var cm := CorpseManager.new()
+	add_child(cm)
+	em.corpses = cm
+	em.count = 0
+	var victim := em.spawn(EnemyManager.GRUNT, Vector3(2, 0, 2), 1.0)
+	em.vel[victim] = Vector3(0, 0, 3)
+	em.damage(victim, 1e6)
+	_check("dead goblin leaves a corpse", cm.active_count() == 1, "corpses %d" % cm.active_count())
+	for f in 30:
+		cm._process(dt)
+	var up := Vector3(cm._buf[1], cm._buf[5], cm._buf[9]).normalized()   # corpse's local up axis
+	_check("corpse has fallen over (lying down)", absf(up.y) < 0.2, "up.y %.2f" % up.y)
+	_check("corpse fell backwards (away from where it faced)", up.z < -0.8, "up %s" % str(up))
+	for f in 120:
+		cm._process(dt)
+	_check("corpse still there at 2.5 s", cm.active_count() == 1, "")
+	for f in 31:
+		cm._process(dt)
+	_check("corpse gone after 3 s", cm.active_count() == 0, "after %.2f s" % ((30 + 120 + 31) * dt))
+	# Mass kill: pool recycles instead of growing without bound
+	em.count = 0
+	for k in 700:
+		var e := em.spawn(EnemyManager.GRUNT, Vector3(k % 30, 0, k / 30), 1.0)
+		if e < 0:
+			break
+	for k in em.count:
+		em.damage(k, 1e6)
+	_check("mass kills stay within the corpse pool", cm._count <= CorpseManager.MAX, "%d" % cm._count)
+
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
 

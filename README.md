@@ -72,6 +72,8 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): about half the wizard's height, pot-bellied, with stubby legs (they waddle) and comically large ears. Types differ by size and clothing: Goblin (brown), Goblin Scamp (small, fast, yellow), Goblin Brute (big, grey) and the Big Bonker boss (huge, dark red).
 
+**Death:** killed goblins topple over backwards, lie on the ground (charred if they died burning), then sink away 3 s after death.
+
 **Sounds** (`audio/goblin/`, generated in Higgsfield):
 - Ambient: a random nearby goblin voices one of five clips every 0.8–2.2 s. Each clip has its own 5 s cooldown, so the same sound never repeats within 5 s. Bigger goblins are pitched lower.
 - Collision: "Ow!" plays whenever a goblin runs into the player.
@@ -115,6 +117,7 @@ scripts/
   swamp_water.gd     recessed pools: outline, bed, water shader, heightmap collision, slow zones
   mesh_builder.gd    merges primitives into vertex-colored meshes with wind sway
   damage_numbers.gd  pooled pop-and-fade damage numbers
+  corpse_manager.gd  fallen goblins (topple, linger, sink) in one MultiMesh
   settings.gd        autoload: audio buses, video/controls options, key remaps, save/load
   settings_menu.gd   Video / Sound / Controls settings screen
   hud.gd             all UI, built in code

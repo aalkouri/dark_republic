@@ -37,6 +37,7 @@ var rng: RandomNumberGenerator
 var water: SwampWater          # optional: goblins wade (and slow down) in swamp pools
 const WATER_SPEED_MULT := 0.5
 var numbers: DamageNumbers      # optional: floating damage numbers
+var corpses: CorpseManager      # optional: dead goblins fall over and linger for 3 s
 const BURN_NUMBER_INTERVAL := 0.5   # burn damage is totalled and shown twice a second
 const BAR_STRIDE := 16              # health bars: 12 transform + 4 custom (hp fraction, epic)
 const BAR_HIDE_DIST := 45.0
@@ -258,6 +259,13 @@ func damage(i: int, amount: float, knockback := Vector3.ZERO) -> bool:
 func _kill(i: int) -> void:
 	dead[i] = 1
 	_dead_count += 1
+	if corpses != null:
+		var t := typ[i]
+		var col: Color = t_color[t]
+		if epic[i]:
+			col = col.lerp(EPIC_TINT, 0.7)
+		var facing := Vector3(vel[i].x, 0.0, vel[i].z)
+		corpses.add(pos[i], facing, t_scale[t] * sz[i], col, epic[i] == 1, burn_t[i] > 0.0)
 	if epic[i]:
 		epic_killed.emit(pos[i])
 	if burn_t[i] > 0.0:
