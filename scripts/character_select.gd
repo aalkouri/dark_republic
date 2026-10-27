@@ -24,6 +24,8 @@ var _status: Label
 var _big_icon: CharacterIcon
 var _view_box: SubViewportContainer
 var _model_pivot: Node3D
+var _hero_preview: Node3D
+var _previews := {}          # character id -> RosterModel (built on first view)
 var _play_btn: Button
 var _back_btn: Button
 var _skills_btn: Button
@@ -362,7 +364,8 @@ func _build_model_stage(vp: SubViewport) -> void:
 	var disc := MeshInstance3D.new()
 	disc.mesh = mb.commit()
 	_model_pivot.add_child(disc)
-	_model_pivot.add_child(HeroModel.new())
+	_hero_preview = HeroModel.new()
+	_model_pivot.add_child(_hero_preview)
 
 
 func _build_footer() -> void:
@@ -449,8 +452,18 @@ func _show(k: int) -> void:
 		_status.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45) if afford else Color(0.85, 0.5, 0.45))
 		_play_btn.text = "UNLOCK"
 	# Playable characters get the live model; everyone else a big portrait
-	_view_box.visible = ready
-	_big_icon.visible = not ready
+	# 3D preview: the Fire Wizard's playable model, or a roster model if one has been made
+	var cid3: String = c["id"]
+	var model_3d := ready or RosterModel.has_model(cid3)
+	_hero_preview.visible = cid3 == "fire_wizard"
+	for pid in _previews:
+		(_previews[pid] as Node3D).visible = pid == cid3
+	if model_3d and cid3 != "fire_wizard" and not _previews.has(cid3):
+		var rm := RosterModel.create(cid3)
+		_model_pivot.add_child(rm)
+		_previews[cid3] = rm
+	_view_box.visible = model_3d
+	_big_icon.visible = not model_3d
 	_big_icon.locked = not unlocked and not mystery
 	_big_icon.set_icon(c["icon"])
 	for j in _tiles.size():
