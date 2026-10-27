@@ -166,6 +166,30 @@ func _head(kind: String) -> void:
 			_poly([Vector2(70, 70), Vector2(74, 70), Vector2(73, 60)], Color(0.95, 0.92, 0.8))
 			draw_line(Vector2(52, 47), Vector2(60, 50), skin.darkened(0.4), 3.0)
 			draw_line(Vector2(76, 47), Vector2(68, 50), skin.darkened(0.4), 3.0)
+		"gorilla":
+			var fur := skin
+			_ellipse(Vector2(64, 54), 24, 23, fur)                         # head
+			_ellipse(Vector2(64, 36), 15, 9, fur.lightened(0.05))          # sagittal crest
+			_ellipse(Vector2(41, 58), 5, 7, fur.darkened(0.2))             # ears
+			_ellipse(Vector2(87, 58), 5, 7, fur.darkened(0.2))
+			var face := Color(0.22, 0.2, 0.2)
+			_ellipse(Vector2(64, 60), 17, 16, face)                        # bare face
+			_poly([Vector2(46, 50), Vector2(82, 50), Vector2(80, 56), Vector2(48, 56)], face.darkened(0.4))   # heavy brow
+			_ellipse(Vector2(64, 69), 12, 8, face.lightened(0.12))         # muzzle
+			draw_circle(Vector2(60, 65), 1.8, Color(0.05, 0.05, 0.05))     # nostrils
+			draw_circle(Vector2(68, 65), 1.8, Color(0.05, 0.05, 0.05))
+			draw_line(Vector2(57, 73), Vector2(71, 73), Color(0.08, 0.06, 0.06), 2.0)
+		"troll":
+			_ellipse(Vector2(32, 52), 10, 6, skin)                          # big droopy ears
+			_ellipse(Vector2(96, 52), 10, 6, skin)
+			_ellipse(Vector2(64, 56), 25, 24, skin)
+			_poly([Vector2(42, 46), Vector2(86, 46), Vector2(84, 52), Vector2(44, 52)], skin.darkened(0.3))   # brow ridge
+			_poly([Vector2(60, 52), Vector2(68, 52), Vector2(74, 70), Vector2(54, 70)], skin.darkened(0.12))  # long nose
+			_ellipse(Vector2(64, 72), 14, 6, skin.darkened(0.35))                                          # wide mouth
+			_poly([Vector2(53, 73), Vector2(58, 73), Vector2(54, 62)], Color(0.96, 0.93, 0.8))              # tusks
+			_poly([Vector2(70, 73), Vector2(75, 73), Vector2(74, 62)], Color(0.96, 0.93, 0.8))
+			for k in 4:
+				draw_circle(Vector2(48 + k * 10.0, 40 + (k % 2) * 4.0), 2.0, skin.darkened(0.25))       # warts
 		"skull":
 			_ellipse(Vector2(64, 56), 17, 18, skin)
 			_poly([Vector2(54, 66), Vector2(74, 66), Vector2(72, 76), Vector2(56, 76)], skin)
@@ -312,6 +336,12 @@ func _eyes() -> void:
 		"ogre":
 			pts = [Vector2(55, 54), Vector2(73, 54)]
 			r = 3.5
+		"gorilla":
+			pts = [Vector2(57, 58), Vector2(71, 58)]
+			r = 2.6
+		"troll":
+			pts = [Vector2(55, 50), Vector2(73, 50)]
+			r = 2.4
 		"hooded":
 			pts = [Vector2(58, 60), Vector2(70, 60)]
 			r = 2.5

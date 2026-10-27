@@ -192,11 +192,32 @@ func _build_grid() -> void:
 		icon.clip_contents = true
 		b.add_child(icon)
 		b.set_meta("icon", icon)
+		# Character level, bottom-left of the tile; hidden at 0
+		var lvl := _label("", 17, Color(1.0, 0.9, 0.6), true)
+		lvl.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+		lvl.offset_left = 7
+		lvl.offset_top = -26
+		lvl.offset_bottom = -3
+		lvl.add_theme_constant_override("outline_size", 5)
+		lvl.add_theme_font_override("font", ThemeDB.fallback_font)   # plain lowercase "lvl"
+		lvl.add_theme_font_size_override("font_size", 18)
+		b.add_child(lvl)
+		b.set_meta("lvl", lvl)
 		b.focus_entered.connect(_show.bind(k))
 		b.mouse_entered.connect(func(): b.grab_focus())
 		b.pressed.connect(_choose.bind(k))
 		grid.add_child(b)
 		_tiles.append(b)
+	refresh_levels()
+
+
+## Show each character's "lvl N" (nothing when the level is 0).
+func refresh_levels() -> void:
+	for k in _tiles.size():
+		var lvl := Wallet.char_level(characters[k]["id"])
+		var l := _tiles[k].get_meta("lvl") as Label
+		l.text = "lvl %d" % lvl
+		l.visible = lvl > 0
 
 
 func _build_panel() -> void:
@@ -306,7 +327,7 @@ func _build_footer() -> void:
 	_play_btn = _footer_button("Play", _play)
 	row.add_child(_play_btn)
 	var hint := _label("Enter: choose   ·   Esc: back", 16, Color(0.75, 0.7, 0.62, 0.6))
-	hint.position = Vector2(66, 690)
+	hint.position = Vector2(66, 818)
 	add_child(hint)
 
 
@@ -435,6 +456,10 @@ func _shot_setup() -> void:
 			_shot_path = a.split("=")[1]
 		elif a.begins_with("--shot-at="):
 			_shot_at = float(a.split("=")[1])
+		elif a == "--shot-levels":   # demo levels (screenshot runs don't save)
+			for id in ["fire_wizard", "kong", "thog", "merlin"]:
+				Wallet.set_char_level(id, {"fire_wizard": 7, "kong": 2, "thog": 12, "merlin": 1}[id])
+			refresh_levels()
 		elif a.begins_with("--shot-char="):
 			var k := index_of(a.split("=")[1])
 			if k >= 0:

@@ -1,5 +1,5 @@
 extends Node
-## Character select checks: 23 unique characters (the 20 requested plus 3), only the Fire
+## Character select checks: 25 unique characters (the 20 requested, Kong, Thog plus 3), only the Fire
 ## Wizard unlocked; every portrait spec uses known parts; the title's Characters button opens
 ## the screen; locked characters can't be played; Play starts a run as the wizard; Esc/Back
 ## returns to the title.
@@ -7,9 +7,9 @@ extends Node
 
 const REQUESTED := ["Ice Wizard", "Merlin", "Thunder Wizard", "Dark Wizard", "Ogre", "Ghast",
 	"Vampire Hunter", "Vicki", "The Rogue", "Gaiden", "Dr. Croc", "The Arachnid", "Blob", "Death",
-	"Billy Bulldog", "Cowboy", "Loco Robotico", "Singe", "An Argyle Sock", "Sentient Platypus"]
+	"Billy Bulldog", "Cowboy", "Loco Robotico", "Singe", "An Argyle Sock", "Sentient Platypus", "Kong", "Thog the Troll"]
 const BODIES := ["robe", "bulky", "slim", "coat", "ghost", "spider", "blob", "box", "imp", "sock"]
-const HEADS := ["round", "hooded", "ogre", "skull", "croc", "dog", "robot", "platypus", "none"]
+const HEADS := ["round", "hooded", "ogre", "skull", "croc", "dog", "robot", "platypus", "gorilla", "troll", "none"]
 const HATS := ["wizard", "wizard_stars", "wizard_bent", "hood", "tricorn", "winged_helm", "headband",
 	"goggles", "collar", "cowboy", "sombrero", "flame_hair", "top_hat", "witch", "mushroom", "none"]
 const ITEMS := ["staff_fire", "staff_ice", "staff_wood", "staff_thunder", "staff_dark", "club", "chains",
@@ -22,10 +22,10 @@ var fails := 0
 
 func _ready() -> void:
 	var chars: Array = load("res://scripts/character_select.gd").load_characters()
-	_check("23 characters", chars.size() == 23, "%d" % chars.size())
+	_check("25 characters", chars.size() == 25, "%d" % chars.size())
 	var names := chars.map(func(c): return c["name"])
 	var missing := REQUESTED.filter(func(n): return n not in names)
-	_check("all 20 requested characters present", missing.is_empty(), str(missing))
+	_check("all 22 requested characters present", missing.is_empty(), str(missing))
 	var ids := {}
 	for c in chars:
 		ids[c["id"]] = true
@@ -62,7 +62,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	var cs: Node = get_tree().current_scene
 	_check("Characters opens the select screen", cs.name == "CharacterSelect", cs.name)
-	_check("23 tiles", cs._tiles.size() == 23, "%d" % cs._tiles.size())
+	_check("25 tiles", cs._tiles.size() == 25, "%d" % cs._tiles.size())
 	_check("wizard tile focused first", cs._tiles[0].has_focus() and cs._shown == 0, "")
 	_check("wizard previews as a live 3D model", cs._view_box.visible and not cs._big_icon.visible
 		and cs.find_children("*", "HeroModel", true, false).size() == 1, "")
@@ -70,7 +70,17 @@ func _ready() -> void:
 	for t in cs._tiles:
 		if (t.get_meta("icon") as CharacterIcon).locked:
 			locked_icons += 1
-	_check("22 tiles show the padlock", locked_icons == 22, "%d" % locked_icons)
+	_check("24 tiles show the padlock", locked_icons == 24, "%d" % locked_icons)
+	# Character level: hidden at 0, "lvl N" in the bottom-left when 1+
+	Wallet.persist = false
+	var lvl0 := cs._tiles[0].get_meta("lvl") as Label
+	_check("level 0 shows nothing", not lvl0.visible, lvl0.text)
+	Wallet.set_char_level("fire_wizard", 3)
+	cs.refresh_levels()
+	_check("level 3 shows 'lvl 3'", lvl0.visible and lvl0.text == "lvl 3", lvl0.text)
+	_check("label sits in the tile's bottom-left", lvl0.position.x < 20 and lvl0.position.y > cs.TILE * 0.6, str(lvl0.position))
+	Wallet.set_char_level("fire_wizard", 0)
+	cs.refresh_levels()
 
 	var k: int = cs.index_of("ogre")
 	cs._tiles[k].grab_focus()

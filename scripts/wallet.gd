@@ -1,6 +1,7 @@
 extends CanvasLayer
 ## Coins (autoload "Wallet"): the player's persistent currency, and the coin counter that is
 ## always on screen in the top-right corner (title, character select, in-game, pause, end).
+## Also stores each character's level ("lvl", shown on the character select tiles).
 ##
 ## Earning: 1 coin per second survived + 100 coins per 1,000 kills. A run's coins are only
 ## banked on the end-of-run summary, where payout() pours them out of the middle of the screen:
@@ -19,6 +20,7 @@ const JINGLE := "res://audio/coins/jingle_loop.wav"
 const DING := "res://audio/coins/coin_done.wav"
 
 var coins := 0                         # banked total
+var char_levels := {}                  # character id -> lvl (0 when missing)
 var displayed := 0.0                   # what the counter shows (lags during a payout)
 var persist := true                    # off for test/screenshot runs
 
@@ -46,6 +48,16 @@ func _ready() -> void:
 	displayed = coins
 	_build()
 	_build_audio()
+
+
+## A character's level ("lvl"), 0 if it has none.
+func char_level(id: String) -> int:
+	return int(char_levels.get(id, 0))
+
+
+func set_char_level(id: String, lvl: int) -> void:
+	char_levels[id] = maxi(0, lvl)
+	_save()
 
 
 ## Coins a run is worth: {time, bonus, total}.
@@ -267,6 +279,7 @@ func _load() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) == OK:
 		coins = int(cfg.get_value("wallet", "coins", 0))
+		char_levels = cfg.get_value("characters", "levels", {})
 
 
 func _save() -> void:
@@ -275,4 +288,5 @@ func _save() -> void:
 	var cfg := ConfigFile.new()
 	cfg.load(PATH)
 	cfg.set_value("wallet", "coins", coins)
+	cfg.set_value("characters", "levels", char_levels)
 	cfg.save(PATH)
