@@ -10,6 +10,8 @@ const ARENA_HALF := 110.0
 const RUN_LENGTH := 600.0
 const BOSS_TIME := 300.0
 const MAX_WEAPONS := 3
+const SWAMP_MUSIC := "res://audio/music/tension_drop.mp3"   # loops for the whole swamp run
+const MUSIC_VOLUME_DB := -6.0
 const EPIC_BASE_CHANCE := 0.05
 const EPIC_CHANCE_PER_LUCK := 0.01     # per Tome of Luck level
 const CONTACT_ENEMY_KNOCK := 2.5       # metres an enemy is shoved on collision
@@ -37,6 +39,7 @@ var items: ItemEffects
 var hud: Hud
 var water: SwampWater
 var numbers: DamageNumbers
+var music: AudioStreamPlayer
 var fx: FxManager
 var abilities: Abilities
 var potions: PotionManager
@@ -181,10 +184,13 @@ func _ready() -> void:
 	db.apply({"id": "weapon_orb", "rarity": 0}, stats)   # starting weapon
 	xp_next = _xp_for(level)
 
+	_start_music()
 	if smoke:
 		player.bot = true
 		player.god_mode = true
 		print("SMOKE start (restart #%d)" % smoke_restarts)
+		var ms: AudioStream = music.stream if music else null
+		print("SMOKE music %s loop=%s playing=%s" % [ms.resource_path if ms else "none", str(ms.get("loop")) if ms else "-", str(music.playing) if music else "-"])
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	hud.flash_message("Survive 10 minutes. A Big Bonker arrives at 5:00.", 4.0)
@@ -411,7 +417,35 @@ func _on_player_died() -> void:
 	_end_run(false)
 
 
+## Swamp music: starts with the level and repeats until the map ends.
+## Keeps playing through pause and level-up menus.
+func _start_music() -> void:
+	music = AudioStreamPlayer.new()
+	music.process_mode = Node.PROCESS_MODE_ALWAYS
+	music.volume_db = MUSIC_VOLUME_DB
+	add_child(music)
+	if not ResourceLoader.exists(SWAMP_MUSIC):
+		return
+	var stream: AudioStream = load(SWAMP_MUSIC)
+	if stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = true
+	elif stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = true
+	music.stream = stream
+	music.play()
+
+
+func _stop_music() -> void:
+	if music == null or not music.playing:
+		return
+	var tw := create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(music, "volume_db", -40.0, 1.5)
+	tw.tween_callback(music.stop)
+
+
 func _end_run(won: bool) -> void:
+	_stop_music()
 	state = "won" if won else "dead"
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -547,8 +581,7 @@ func _smoke_tick(dt: float) -> void:
 			if state == "dead" and hud.end_root.visible:
 				print("SMOKE death -> game over screen OK (level %d, kills %d)" % [level, kills])
 				_smoke_phase = 3
-				smoke_restarts += 1
-				restart.call_deferred()
+				_smoke_restart_after_music()
 			else:
 				_smoke_phase_t += dt
 				if _smoke_phase_t > 12.0:
@@ -588,6 +621,13 @@ func shot_path_save() -> void:
 	get_viewport().get_texture().get_image().save_png(shot_path)
 	print("SHOT saved ", shot_path)
 	get_tree().quit()
+
+
+func _smoke_restart_after_music() -> void:
+	await get_tree().create_timer(1.7, true).timeout
+	print("SMOKE music after run end: playing=%s" % str(music.playing))
+	smoke_restarts += 1
+	restart()
 
 
 func _drive_bot(_dt: float) -> void:

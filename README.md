@@ -57,6 +57,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **18 fallen trees:** mossy logs with root plates, slightly tilted, which you can climb and jump off.
 - **4 pools of swamp water:** irregular shapes up to 10 yd across, recessed into the ground with uneven beds, never deeper than the character. Reeds and cattails grow around the edges. **In water, move speed and jump height are halved** (goblins wade at half speed too).
 - **6 mossy stone ruins** as landmarks.
+- **Music:** "Tension Drop" (`audio/music/tension_drop.mp3`) starts with the level and loops until the run ends, then fades out. Change `SWAMP_MUSIC` / `MUSIC_VOLUME_DB` in `scripts/main.gd`.
 
 ## Goblins
 
