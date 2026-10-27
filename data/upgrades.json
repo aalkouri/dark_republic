@@ -11,7 +11,7 @@
     "damage": "Damage", "attack_speed": "Attack Speed", "area": "Area", "projectile_speed": "Projectile Speed",
     "projectile_count": "Projectiles", "pickup_range": "Pickup Range", "xp_gain": "XP Gain", "luck": "Luck",
     "extra_jumps": "Extra Jumps",
-    "orb_damage": "Orb Damage", "orb_cooldown": "Orb Cooldown", "orb_count": "Orbs", "orb_pierce": "Orb Pierce",
+    "orb_damage": "Fireball Damage", "orb_cooldown": "Fireball Cooldown", "orb_count": "Fireballs", "orb_pierce": "Fireball Pierce",
     "aura_damage": "Aura Damage", "aura_radius": "Aura Size", "aura_tick": "Aura Tick Rate",
     "slam_damage": "Slam Damage", "slam_radius": "Slam Size", "slam_cooldown": "Slam Cooldown",
     "bomb_chance": "Explode Chance", "bomb_damage": "Explosion Damage", "fang_chance": "Heal-on-Kill Chance"
@@ -19,8 +19,8 @@
   "percent_stats": ["luck", "bomb_chance", "fang_chance"],
 
   "upgrades": [
-    { "id": "weapon_orb", "kind": "weapon", "name": "Bonk Orbs", "weight": 10, "max_level": 8,
-      "desc": "Fires orbs at the nearest enemies.",
+    { "id": "weapon_orb", "kind": "weapon", "name": "Fireballs", "weight": 10, "max_level": 8,
+      "desc": "Hurls fireballs from your staff at the nearest goblins.",
       "per_level": [
         { "stat": "orb_damage", "op": "add", "value": 0.2 },
         { "stat": "orb_count", "op": "flat", "value": 0.5 },

@@ -80,7 +80,58 @@ func _check_movement(root: Node3D, water: SwampWater) -> void:
 	var land_jump: float = await _measure_jump(player, dry)
 
 	_check("water halves move speed", absf(pool_speed / land_speed - 0.5) < 0.05, "%.2f vs %.2f m/s (x%.2f)" % [pool_speed, land_speed, pool_speed / land_speed])
+	await _check_meteor(root, player, water)
 	_check("water halves jump height", absf(pool_jump / land_jump - 0.5) < 0.06, "%.2f vs %.2f m (x%.2f)" % [pool_jump, land_jump, pool_jump / land_jump])
+
+
+func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
+	var em := EnemyManager.new()
+	em.rng = RandomNumberGenerator.new()
+	em.water = water
+	root.add_child(em)
+	var fx := FxManager.new()
+	root.add_child(fx)
+	var ab := Abilities.new()
+	ab.setup(player.stats, em, player, fx)
+	root.add_child(ab)
+	await _place(player, Vector3(0, 0.3, 0))
+	player.cam_yaw = 0.0
+	player.cam_pitch = -0.6
+	for f in 5:
+		await get_tree().physics_frame
+	var cast_from := player.global_position
+	ab.try_cast(0)
+	var target: Vector3 = ab._meteors[0]["target"]
+	_check("meteor: wizard vanishes", player.meteor_form and not player.model.visible, "form %s visible %s" % [player.meteor_form, player.model.visible])
+	player.invuln = 0.0
+	var hp0 := player.hp
+	_check("meteor: invulnerable while falling", not player.hurt(50.0) and player.hp == hp0, "hp %.0f" % player.hp)
+	var head: Node3D = ab._meteors[0]["head"]
+	var has_hat := head.find_children("*", "MeshInstance3D", true, false).size() >= 8
+	_check("meteor: falling object is the giant wizard head", has_hat and is_equal_approx(head.get_child(0).scale.x, Abilities.HEAD_SCALE), "%d meshes" % head.find_children("*", "MeshInstance3D", true, false).size())
+	for f in int(60 * 1.5):
+		ab.tick(1.0 / 60.0)
+		await get_tree().physics_frame
+	_check("meteor: still hidden mid-fall", player.meteor_form, "")
+	for f in int(60 * 1.6):
+		ab.tick(1.0 / 60.0)
+		await get_tree().physics_frame
+	_check("meteor: wizard reappears at the crash site", not player.meteor_form and player.model.visible and Vector2(player.global_position.x - target.x, player.global_position.z - target.z).length() < 0.2,
+		"at %s target %s" % [str(player.global_position), str(target)])
+	_check("meteor: ground is burning", ab.scorch_count() == 1, "zones %d" % ab.scorch_count())
+	# Burning ground: 3% max HP per second for (the remaining) 3 s
+	var g := em.spawn(EnemyManager.TANK, target + Vector3(2, 0, 0), 100.0)
+	em.tick(1.0 / 60.0, target + Vector3(50, 0, 0))
+	var start_hp := em.hp[g]
+	var burned := 0.0
+	for f in 60 * 4:
+		ab.tick(1.0 / 60.0)
+		em.knock(g, Vector3.ZERO, 0.0)   # pin in place
+		em.pos[g] = target + Vector3(2, 0, 0)
+		em._build_grid(target)
+	burned = (start_hp - em.hp[g]) / em.hp_max[g]
+	_check("burning ground: ~3%/s while it lasts (3 s)", absf(burned - 0.09) < 0.01, "lost %.1f%% of max HP" % (burned * 100.0))
+	_check("burning ground goes out", ab.scorch_count() == 0, "zones %d" % ab.scorch_count())
 
 
 func _place(player: Player, at: Vector3) -> void:

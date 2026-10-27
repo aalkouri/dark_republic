@@ -47,6 +47,12 @@ var god_mode := false
 var shield := 0.0
 var water: SwampWater
 var in_water := false
+## While true the wizard has turned into the meteor: hidden, untouchable, no collision,
+## and Abilities drives his position along the meteor's path (the camera follows).
+var meteor_form := false
+var _collider: CollisionShape3D
+const SPRING_NORMAL := 6.5
+const SPRING_METEOR := 14.0
 var face_camera := false   # screenshot/portrait mode
 
 # Bot input (used by the headless smoke test)
@@ -91,6 +97,7 @@ func _ready() -> void:
 	col.shape = shape
 	col.position.y = 0.9
 	add_child(col)
+	_collider = col
 
 	_build_model()
 
@@ -132,6 +139,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(dt: float) -> void:
+	if meteor_form:
+		_follow_camera(dt)
+		return
 	var input: Vector2
 	var jump_pressed: bool
 	var slide_held: bool
@@ -311,8 +321,37 @@ func add_shake(amount: float) -> void:
 
 ## Applies contact damage and starts the immunity window. Returns false if already immune.
 ## Shield absorbs damage before HP.
+func enter_meteor_form() -> void:
+	meteor_form = true
+	model.visible = false
+	_collider.set_deferred("disabled", true)
+	velocity = Vector3.ZERO
+	sliding = false
+	spring.spring_length = SPRING_METEOR
+
+
+func exit_meteor_form(at: Vector3) -> void:
+	meteor_form = false
+	global_position = at + Vector3(0, 0.05, 0)
+	velocity = Vector3.ZERO
+	model.visible = true
+	_collider.set_deferred("disabled", false)
+	spring.spring_length = SPRING_NORMAL
+	invuln = maxf(invuln, 0.25)   # a moment to get bearings after landing
+
+
+func _follow_camera(dt: float) -> void:
+	var head := global_position + Vector3(0.0, 1.6, 0.0)
+	rig.global_position = rig.global_position.lerp(head, 1.0 - exp(-12.0 * dt))
+	rig.rotation = Vector3(cam_pitch, cam_yaw, 0.0)
+	_shake = maxf(0.0, _shake - dt * 1.8)
+	var sk := _shake * _shake
+	cam.h_offset = randf_range(-1.0, 1.0) * sk * 0.5
+	cam.v_offset = randf_range(-1.0, 1.0) * sk * 0.5
+
+
 func hurt(amount: float) -> bool:
-	if invuln > 0.0 or hp <= 0.0:
+	if meteor_form or invuln > 0.0 or hp <= 0.0:
 		return false
 	invuln = IFRAMES
 	if god_mode:

@@ -173,6 +173,9 @@ func _ready() -> void:
 	hud = Hud.new()
 	add_child(hud)
 	hud.setup(self)
+	# Main runs while paused (menus, input); all gameplay nodes freeze with the pause.
+	for n in [fx, enemies, numbers, gems, weapons, abilities, potions, goblin_audio, items]:
+		(n as Node).process_mode = Node.PROCESS_MODE_PAUSABLE
 
 	Events.enemy_killed.connect(_on_enemy_killed)
 	db.apply({"id": "weapon_orb", "rarity": 0}, stats)   # starting weapon
@@ -239,6 +242,8 @@ func _track_perf(e: float, w: float, g: float) -> void:
 ## knocks the player and the enemies apart. While immune, any enemy that runs into the player
 ## is knocked back opposite to the direction it was heading.
 func _contact_damage() -> void:
+	if player.meteor_form:
+		return   # untouchable while falling as the meteor
 	var me := player.global_position
 	var hits := enemies.query_radius(me + Vector3(0, 0.9, 0), 0.45)
 	if hits.is_empty():

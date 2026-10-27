@@ -111,13 +111,19 @@ func _draw() -> void:
 # ------------------------------------------------------------------ icons
 
 func _icon_meteor(c: Vector2) -> void:
-	var head := c + Vector2(8, 8)
-	for k in 4:   # fiery trail streaks
-		var off := Vector2(-6 + k * 4, 6 - k * 4)
-		draw_line(head + off, head + off + Vector2(-26, -26), Color(1.0, 0.45 + k * 0.1, 0.1, 0.5 + k * 0.1), 5.0 - k)
-	draw_circle(head, 14, Color(1.0, 0.4, 0.05))
-	draw_circle(head + Vector2(-2, -2), 10, Color(1.0, 0.7, 0.2))
-	draw_circle(head + Vector2(-4, -4), 5, Color(1.0, 0.95, 0.7))
+	# The wizard's own flaming head, diving down-right with a fire trail
+	var head := c + Vector2(9, 10)
+	for k in 4:
+		var off := Vector2(-7 + k * 4, 7 - k * 4)
+		draw_line(head + off, head + off + Vector2(-24, -24), Color(1.0, 0.4 + k * 0.1, 0.08, 0.45 + k * 0.12), 6.0 - k)
+	_flame(head + Vector2(-2, 2), 26, 16, Color(1.0, 0.35, 0.05, 0.85))
+	draw_circle(head, 10, Color(0.93, 0.72, 0.58))
+	draw_circle(head + Vector2(-4, -1), 2.2, Color(1.0, 0.55, 0.1))
+	draw_circle(head + Vector2(4, -1), 2.2, Color(1.0, 0.55, 0.1))
+	draw_colored_polygon(PackedVector2Array([head + Vector2(-5, 7), head + Vector2(5, 7), head + Vector2(0, 16)]), Color(0.2, 0.18, 0.18))
+	draw_colored_polygon(PackedVector2Array([head + Vector2(-15, -7), head + Vector2(15, -7), head + Vector2(13, -10), head + Vector2(-13, -10)]), Color(0.55, 0.04, 0.04))
+	draw_colored_polygon(PackedVector2Array([head + Vector2(-8, -9), head + Vector2(8, -9), head + Vector2(-3, -28)]), Color(0.6, 0.05, 0.04))
+	draw_line(head + Vector2(-7, -11), head + Vector2(7, -11), Color(1.0, 0.7, 0.2), 2.5)
 
 
 func _icon_shockwave(c: Vector2) -> void:

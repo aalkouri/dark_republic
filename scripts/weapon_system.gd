@@ -25,6 +25,8 @@ var aura_t := 0.0
 var slam_t := 1.5
 
 var mm: MultiMesh
+var tail_mm: MultiMesh
+var tail_buf := PackedFloat32Array()
 var buf := PackedFloat32Array()
 var aura_mesh: MeshInstance3D
 var aura_mat: StandardMaterial3D
@@ -49,17 +51,38 @@ func _ready() -> void:
 	p_hits.resize(P_MAX)
 	buf.resize(P_MAX * P_STRIDE)
 
+	# Fireballs: a hot core, plus a flame tail (second MultiMesh) stretched along the flight path
 	var orb := SphereMesh.new()
-	orb.radius = 0.28
-	orb.height = 0.56
-	orb.radial_segments = 8
-	orb.rings = 4
+	orb.radius = 0.24
+	orb.height = 0.48
+	orb.radial_segments = 10
+	orb.rings = 5
 	var orb_mat := StandardMaterial3D.new()
-	orb_mat.albedo_color = Color(0.6, 1.0, 1.0)
-	orb_mat.emission_enabled = true
-	orb_mat.emission = Color(0.3, 0.9, 1.0)
-	orb_mat.emission_energy_multiplier = 2.0
+	orb_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	orb_mat.albedo_color = Color(1.0, 0.78, 0.3)
 	orb.material = orb_mat
+	var tail := SphereMesh.new()
+	tail.radius = 0.5
+	tail.height = 1.0
+	tail.radial_segments = 10
+	tail.rings = 5
+	var tail_mat := StandardMaterial3D.new()
+	tail_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	tail_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	tail_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	tail_mat.albedo_color = Color(1.0, 0.32, 0.05, 0.75)
+	tail.material = tail_mat
+	tail_mm = MultiMesh.new()
+	tail_mm.transform_format = MultiMesh.TRANSFORM_3D
+	tail_mm.mesh = tail
+	tail_mm.instance_count = P_MAX
+	tail_mm.visible_instance_count = 0
+	tail_buf.resize(P_MAX * P_STRIDE)
+	var tmi := MultiMeshInstance3D.new()
+	tmi.multimesh = tail_mm
+	tmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	tmi.custom_aabb = AABB(Vector3(-500, -50, -500), Vector3(1000, 100, 1000))
+	add_child(tmi)
 	mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.mesh = orb
@@ -206,12 +229,29 @@ func _update_projectiles(dt: float) -> void:
 			pc -= 1
 			continue
 		var b := i * P_STRIDE
+		# Tail: a stretched glow trailing behind the core along -velocity
+		var v := p_vel[i]
+		var sp := v.length()
+		var fwd := v / sp if sp > 0.01 else Vector3.FORWARD
+		var side := fwd.cross(Vector3.UP)
+		if side.length_squared() < 0.001:
+			side = Vector3.RIGHT
+		side = side.normalized()
+		var up := side.cross(fwd)
+		var flick := 0.85 + 0.3 * sin(p_life[i] * 40.0 + float(i))
+		var tb := Basis(side * 0.55 * flick, up * 0.55 * flick, fwd * 1.6)
+		var tc := p - fwd * 0.55
+		tail_buf[b] = tb.x.x; tail_buf[b + 1] = tb.y.x; tail_buf[b + 2] = tb.z.x; tail_buf[b + 3] = tc.x
+		tail_buf[b + 4] = tb.x.y; tail_buf[b + 5] = tb.y.y; tail_buf[b + 6] = tb.z.y; tail_buf[b + 7] = tc.y
+		tail_buf[b + 8] = tb.x.z; tail_buf[b + 9] = tb.y.z; tail_buf[b + 10] = tb.z.z; tail_buf[b + 11] = tc.z
 		buf[b] = 1.0; buf[b + 1] = 0.0; buf[b + 2] = 0.0; buf[b + 3] = p.x
 		buf[b + 4] = 0.0; buf[b + 5] = 1.0; buf[b + 6] = 0.0; buf[b + 7] = p.y
 		buf[b + 8] = 0.0; buf[b + 9] = 0.0; buf[b + 10] = 1.0; buf[b + 11] = p.z
 		i += 1
 	mm.buffer = buf
 	mm.visible_instance_count = pc
+	tail_mm.buffer = tail_buf
+	tail_mm.visible_instance_count = pc
 
 
 func _spawn_ring(at: Vector3, radius: float) -> void:

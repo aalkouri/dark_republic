@@ -99,6 +99,7 @@ var sep_z := PackedFloat32Array()
 var burn_t := PackedFloat32Array()      # seconds of burn left
 var burn_acc := PackedFloat32Array()    # burn damage not yet shown as a number
 var burn_num_t := PackedFloat32Array()
+var dot_next := PackedFloat32Array()     # time the next DoT number may show
 var kb_vel := PackedVector3Array()      # knockback velocity while kb_t > 0
 var kb_t := PackedFloat32Array()
 var _explosions := PackedVector3Array() # queued burn explosions: x, z, damage packed in a Vector3
@@ -132,6 +133,7 @@ func _ready() -> void:
 	burn_t.resize(MAX)
 	burn_acc.resize(MAX)
 	burn_num_t.resize(MAX)
+	dot_next.resize(MAX)
 	kb_vel.resize(MAX)
 	kb_t.resize(MAX)
 	typ.resize(MAX)
@@ -224,6 +226,7 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	burn_t[i] = 0.0
 	burn_acc[i] = 0.0
 	burn_num_t[i] = 0.0
+	dot_next[i] = _time + BURN_NUMBER_INTERVAL
 	kb_t[i] = 0.0
 	typ[i] = t
 	flash[i] = 0.0
@@ -260,6 +263,21 @@ func _kill(i: int) -> void:
 	if burn_t[i] > 0.0:
 		_explosions.append(Vector3(pos[i].x, pos[i].z, hp_max[i] * burn_explode_frac))
 	Events.enemy_killed.emit(pos[i], typ[i])
+
+
+## Damage over time (burning ground etc.): no hit flash, numbers totalled twice a second.
+func dot_damage(i: int, amount: float) -> void:
+	if dead[i]:
+		return
+	hp[i] -= amount
+	burn_acc[i] += amount
+	if hp[i] <= 0.0 or _time >= dot_next[i]:
+		if numbers != null and burn_acc[i] >= 0.5:
+			numbers.add(_number_pos(i), burn_acc[i], DamageNumbers.BURN)
+			burn_acc[i] = 0.0
+		dot_next[i] = _time + BURN_NUMBER_INTERVAL
+	if hp[i] <= 0.0:
+		_kill(i)
 
 
 func _number_pos(i: int) -> Vector3:
@@ -669,6 +687,7 @@ func _compact() -> void:
 			burn_t[i] = burn_t[last]
 			burn_acc[i] = burn_acc[last]
 			burn_num_t[i] = burn_num_t[last]
+			dot_next[i] = dot_next[last]
 			kb_vel[i] = kb_vel[last]
 			kb_t[i] = kb_t[last]
 			typ[i] = typ[last]

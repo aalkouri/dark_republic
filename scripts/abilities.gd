@@ -1,7 +1,9 @@
 class_name Abilities
 extends Node3D
 ## The fire wizard's three active abilities (keys 1 / 2 / 3).
-##   1  Meteor        30 s  Lands where you aim, 3 s after casting. Big AoE damage.
+##   1  Meteor        30 s  The wizard vanishes (invulnerable) and becomes a giant flaming copy of
+##                          his own head, which crashes where you aim 3 s later; he reappears
+##                          there. Big AoE damage, then the ground burns for 3 s (3% max HP/s).
 ##   2  Fire Shockwave 45 s  Expanding ring from the floor under you; knocks enemies back 5 yd.
 ##   3  Inferno (ult) 120 s  Ignites every enemy: 5% max HP/s for 10 s. Burning enemies that
 ##                           die explode for 50% of their max HP within 2 yd (chains).
@@ -17,6 +19,34 @@ const METEOR_RADIUS := 8.0
 const METEOR_DAMAGE := 250.0
 const METEOR_RANGE := 45.0
 const METEOR_KNOCKBACK := 3.0
+const HEAD_SCALE := 8.0              # giant head: ~3 m across, hat towering above
+const SCORCH_RADIUS := 7.0
+const SCORCH_TIME := 3.0
+const SCORCH_DPS := 0.03             # of max HP per second while standing in the fire
+
+const SCORCH_SHADER := """
+shader_type spatial;
+render_mode unshaded, blend_add, cull_disabled, depth_draw_never, shadows_disabled;
+uniform float fade = 1.0;
+varying vec3 wpos;
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+	vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void fragment() {
+	vec2 c = UV * 2.0 - 1.0;
+	float d = length(c);
+	float n = noise(wpos.xz * 1.1 + vec2(0.0, TIME * 1.6)) * 0.6 + noise(wpos.xz * 3.1 - vec2(TIME * 2.2, 0.0)) * 0.4;
+	float edge = smoothstep(1.0, 0.72, d + (n - 0.5) * 0.45);
+	float hot = smoothstep(0.35, 0.85, n);
+	vec3 col = mix(vec3(0.55, 0.06, 0.0), vec3(1.0, 0.5, 0.08), hot);
+	col = mix(col, vec3(1.0, 0.88, 0.45), smoothstep(0.78, 0.95, n));
+	ALBEDO = col;
+	ALPHA = edge * (0.3 + 0.7 * hot) * fade;
+}
+"""
 
 const SHOCK_COOLDOWN := 45.0
 const SHOCK_RADIUS := 9.0
@@ -43,10 +73,11 @@ var fx: FxManager
 
 var cooldown := PackedFloat32Array([0.0, 0.0, 0.0])
 
-var _meteors: Array = []   # {target, t, rock, marker, fill, start}
+var _meteors: Array = []   # {target, t, head, marker, fill, start}
+var _scorches: Array = []  # {center, t, node, mat, light}
+var _scorch_shader: Shader
 var _shocks: Array = []    # {center, t, hit: Dictionary, ring, disc}
 var _fire_mat: StandardMaterial3D
-var _rock_mesh: SphereMesh
 
 
 func setup(p_stats: Stats, p_enemies: EnemyManager, p_player: Player, p_fx: FxManager) -> void:
@@ -67,17 +98,6 @@ func _ready() -> void:
 	_fire_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_fire_mat.albedo_color = Color(1.0, 0.45, 0.1, 0.9)
 
-	_rock_mesh = SphereMesh.new()
-	_rock_mesh.radius = 2.2
-	_rock_mesh.height = 4.4
-	_rock_mesh.radial_segments = 10
-	_rock_mesh.rings = 6
-	var rock_mat := StandardMaterial3D.new()
-	rock_mat.albedo_color = Color(0.25, 0.08, 0.04)
-	rock_mat.emission_enabled = true
-	rock_mat.emission = Color(1.0, 0.35, 0.05)
-	rock_mat.emission_energy_multiplier = 2.5
-	_rock_mesh.material = rock_mat
 
 
 func is_ready(i: int) -> bool:
@@ -111,6 +131,7 @@ func tick(dt: float) -> void:
 	for i in cooldown.size():
 		cooldown[i] = maxf(0.0, cooldown[i] - dt)
 	_update_meteors(dt)
+	_update_scorches(dt)
 	_update_shocks(dt)
 
 
@@ -124,25 +145,53 @@ func _cast_meteor() -> void:
 	fill.global_position = target + Vector3(0, 0.07, 0)
 	fill.scale = Vector3(0.01, 1, 0.01)
 
-	var rock := MeshInstance3D.new()
-	rock.mesh = _rock_mesh
-	rock.top_level = true
-	add_child(rock)
-	var trail := _flame_particles(3.0, 1.6, 220)
-	rock.add_child(trail)
-	var light := OmniLight3D.new()
-	light.light_color = Color(1.0, 0.5, 0.15)
-	light.light_energy = 4.0
-	light.omni_range = 18.0
-	rock.add_child(light)
-
 	# Comes in at an angle, from behind the caster.
 	var back := (target - player.global_position)
 	back.y = 0.0
 	back = back.normalized() if back.length() > 0.5 else Vector3(0, 0, 1)
 	var start := target - back * 35.0 + Vector3(0, 75.0, 0)
-	rock.global_position = start
-	_meteors.append({"target": target, "t": 0.0, "rock": rock, "marker": marker, "fill": fill, "start": start})
+
+	var head := _make_giant_head()
+	head.global_position = start
+	_face(head, target)
+	player.enter_meteor_form()
+	player.global_position = start - Vector3(0, 1.6, 0)
+	_meteors.append({"target": target, "t": 0.0, "head": head, "marker": marker, "fill": fill, "start": start})
+
+
+## A giant copy of the wizard's own head and hat, wreathed in fire.
+func _make_giant_head() -> Node3D:
+	var root := Node3D.new()
+	root.top_level = true
+	add_child(root)
+	var scaled := Node3D.new()
+	scaled.scale = Vector3.ONE * HEAD_SCALE
+	root.add_child(scaled)
+	var parts := Node3D.new()
+	parts.position = Vector3(0, -1.5, 0)   # head centre at the root's origin
+	scaled.add_child(parts)
+	WizardModel.build_head(parts)
+	# Fire: an engulfing blaze around the head plus a long trail behind it
+	var blaze := _flame_particles(3.2, 0.7, 160)
+	blaze.emission_sphere_radius = 2.2
+	root.add_child(blaze)
+	var trail := _flame_particles(3.6, 1.6, 220)
+	trail.emission_sphere_radius = 1.6
+	trail.gravity = Vector3(0, 6.0, 0)
+	root.add_child(trail)
+	var light := OmniLight3D.new()
+	light.light_color = Color(1.0, 0.5, 0.15)
+	light.light_energy = 5.0
+	light.omni_range = 22.0
+	root.add_child(light)
+	return root
+
+
+## Point the face (-Z) at the target.
+func _face(n: Node3D, target: Vector3) -> void:
+	var d := target - n.global_position
+	if d.length_squared() > 0.01:
+		n.basis = Basis.looking_at(d.normalized(), Vector3.UP if absf(d.normalized().y) < 0.99 else Vector3.FORWARD)
 
 
 func _aim_point() -> Vector3:
@@ -175,18 +224,20 @@ func _update_meteors(dt: float) -> void:
 		var target: Vector3 = m["target"]
 		var marker: MeshInstance3D = m["marker"]
 		var fill: MeshInstance3D = m["fill"]
-		var rock: MeshInstance3D = m["rock"]
+		var head: Node3D = m["head"]
 		if tt < 1.0:
 			var e := tt * tt   # accelerates as it falls
-			rock.global_position = (m["start"] as Vector3).lerp(target, e)
-			rock.rotate_x(dt * 3.0)
+			head.global_position = (m["start"] as Vector3).lerp(target + Vector3(0, 1.5, 0), e)
+			player.global_position = head.global_position - Vector3(0, 1.6, 0)   # camera rides along
 			fill.scale = Vector3(tt, 1, tt)
 			(marker.mesh.material as StandardMaterial3D).albedo_color.a = 0.18 + 0.12 * sin(m["t"] * 12.0)
 			continue
+		player.exit_meteor_form(target)
 		_meteor_impact(target)
+		_start_scorch(target)
 		marker.queue_free()
 		fill.queue_free()
-		rock.queue_free()
+		head.queue_free()
 		_meteors.remove_at(k)
 
 
@@ -206,13 +257,72 @@ func _meteor_impact(at: Vector3) -> void:
 	player.add_shake(clampf(1.2 - d / 40.0, 0.15, 1.0))
 
 
+## Burning ground left by the crash: SCORCH_DPS of max HP per second for SCORCH_TIME.
+func _start_scorch(at: Vector3) -> void:
+	if _scorch_shader == null:
+		_scorch_shader = Shader.new()
+		_scorch_shader.code = SCORCH_SHADER
+	var root := Node3D.new()
+	root.top_level = true
+	add_child(root)
+	root.global_position = at + Vector3(0, 0.06, 0)
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(SCORCH_RADIUS * 2.0, SCORCH_RADIUS * 2.0)
+	var mat := ShaderMaterial.new()
+	mat.shader = _scorch_shader
+	plane.material = mat
+	var mi := MeshInstance3D.new()
+	mi.mesh = plane
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+	var flames := _flame_particles(1.4, 0.8, 140)
+	flames.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+	flames.emission_ring_axis = Vector3.UP
+	flames.emission_ring_radius = SCORCH_RADIUS * 0.85
+	flames.emission_ring_inner_radius = 0.0
+	flames.emission_ring_height = 0.1
+	flames.initial_velocity_min = 1.0
+	flames.initial_velocity_max = 2.5
+	root.add_child(flames)
+	var light := OmniLight3D.new()
+	light.light_color = Color(1.0, 0.45, 0.1)
+	light.light_energy = 3.0
+	light.omni_range = SCORCH_RADIUS * 2.2
+	light.position.y = 1.5
+	root.add_child(light)
+	_scorches.append({"center": at, "t": 0.0, "node": root, "mat": mat, "light": light, "flames": flames})
+
+
+func _update_scorches(dt: float) -> void:
+	for k in range(_scorches.size() - 1, -1, -1):
+		var z: Dictionary = _scorches[k]
+		z["t"] += dt
+		var t: float = z["t"]
+		if t >= SCORCH_TIME + 0.6:   # fire is out; let the last flames die down
+			(z["node"] as Node3D).queue_free()
+			_scorches.remove_at(k)
+			continue
+		var fade := clampf((SCORCH_TIME - t) / 0.5, 0.0, 1.0)
+		(z["mat"] as ShaderMaterial).set_shader_parameter("fade", fade)
+		(z["light"] as OmniLight3D).light_energy = (2.6 + 0.8 * sin(t * 23.0) * sin(t * 9.0)) * fade
+		(z["flames"] as CPUParticles3D).emitting = t < SCORCH_TIME
+		if t <= SCORCH_TIME:
+			var c: Vector3 = z["center"]
+			for i in enemies.query_radius(Vector3(c.x, 0.8, c.z), SCORCH_RADIUS, false):
+				enemies.dot_damage(i, enemies.hp_max[i] * SCORCH_DPS * dt)
+
+
+func scorch_count() -> int:
+	return _scorches.size()
+
+
 # ------------------------------------------------------------------ 2: Fire Shockwave
 
 func _cast_shockwave() -> void:
 	var center := _floor_below(player.global_position + Vector3(0, 0.5, 0))
 	var ring := MeshInstance3D.new()
 	var torus := TorusMesh.new()
-	torus.inner_radius = 0.82
+	torus.inner_radius = 0.93
 	torus.outer_radius = 1.0
 	torus.rings = 48
 	torus.ring_segments = 8
@@ -222,7 +332,8 @@ func _cast_shockwave() -> void:
 	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(ring)
 	ring.global_position = center + Vector3(0, 0.3, 0)
-	var disc := _ground_disc(1.0, Color(1.0, 0.35, 0.05, 0.35))
+	var disc := _ground_disc(1.0, Color(1.0, 0.3, 0.04, 0.12))
+	(disc.mesh.material as StandardMaterial3D).blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	disc.global_position = center + Vector3(0, 0.06, 0)
 	_shocks.append({"center": center, "t": 0.0, "hit": {}, "ring": ring, "disc": disc})
 	player.add_shake(0.35)
@@ -251,10 +362,10 @@ func _update_shocks(dt: float) -> void:
 		# Visual: ring rides the front, then fades out
 		var fade := clampf(1.0 - (tt - 1.0) / 0.5, 0.0, 1.0)
 		var vr := maxf(r, 0.3)
-		ring.scale = Vector3(vr, 1.0 + 1.5 * fade, vr)
+		ring.scale = Vector3(vr, 0.6 + 0.8 * fade, vr)
 		disc.scale = Vector3(vr, 1, vr)
-		((ring.mesh as TorusMesh).material as StandardMaterial3D).albedo_color.a = 0.9 * fade
-		(disc.mesh.material as StandardMaterial3D).albedo_color.a = 0.3 * fade
+		((ring.mesh as TorusMesh).material as StandardMaterial3D).albedo_color.a = 0.75 * fade
+		(disc.mesh.material as StandardMaterial3D).albedo_color.a = 0.12 * fade
 		if tt > 1.0 and fade <= 0.0:
 			ring.queue_free()
 			disc.queue_free()

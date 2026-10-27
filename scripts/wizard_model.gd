@@ -102,77 +102,7 @@ func _ready() -> void:
 		var mi := _add(sleeve, Vector3(0.3 * side, 1.02, -0.05))
 		mi.rotation = Vector3(deg_to_rad(-25.0), 0, deg_to_rad(28.0 * side))
 
-	# Head
-	var skin := _mat(Color(0.93, 0.72, 0.58))
-	var head := SphereMesh.new()
-	head.radius = 0.2
-	head.height = 0.4
-	head.material = skin
-	_add(head, Vector3(0, 1.5, 0))
-
-	# Ember eyes
-	var eye_mat := _mat(Color(1.0, 0.6, 0.1))
-	eye_mat.emission_enabled = true
-	eye_mat.emission = Color(1.0, 0.45, 0.05)
-	eye_mat.emission_energy_multiplier = 4.0
-	for side in [-1.0, 1.0]:
-		var eye := SphereMesh.new()
-		eye.radius = 0.035
-		eye.height = 0.07
-		eye.material = eye_mat
-		_add(eye, Vector3(0.075 * side, 1.53, -0.18))
-
-	# Charcoal beard
-	var beard := CylinderMesh.new()
-	beard.top_radius = 0.17
-	beard.bottom_radius = 0.0
-	beard.height = 0.42
-	beard.radial_segments = 10
-	beard.material = _mat(Color(0.2, 0.18, 0.18))
-	var bmi := _add(beard, Vector3(0, 1.28, -0.12))
-	bmi.rotation.x = deg_to_rad(12.0)
-
-	# Hat: wide brim, gold band, cone in two segments with a tip bent backwards
-	var hat_mat := _mat(Color(0.5, 0.03, 0.03))
-	var brim := CylinderMesh.new()
-	brim.top_radius = 0.5
-	brim.bottom_radius = 0.52
-	brim.height = 0.04
-	brim.radial_segments = 28
-	brim.material = hat_mat
-	_add(brim, Vector3(0, 1.66, 0))
-	var band_mat := _mat(Color(1.0, 0.7, 0.2))
-	band_mat.emission_enabled = true
-	band_mat.emission = Color(1.0, 0.45, 0.05)
-	band_mat.emission_energy_multiplier = 1.5
-	var band := CylinderMesh.new()
-	band.top_radius = 0.255
-	band.bottom_radius = 0.275
-	band.height = 0.08
-	band.radial_segments = 24
-	band.material = band_mat
-	_add(band, Vector3(0, 1.72, 0))
-	var cone := CylinderMesh.new()
-	cone.top_radius = 0.12
-	cone.bottom_radius = 0.27
-	cone.height = 0.55
-	cone.radial_segments = 20
-	cone.material = hat_mat
-	_add(cone, Vector3(0, 1.955, 0))
-	var tip := CylinderMesh.new()
-	tip.top_radius = 0.0
-	tip.bottom_radius = 0.12
-	tip.height = 0.5
-	tip.radial_segments = 16
-	tip.material = hat_mat
-	var tip_pivot := Node3D.new()
-	tip_pivot.position = Vector3(0, 2.23, 0)
-	tip_pivot.rotation.x = deg_to_rad(28.0)   # bends backwards (+Z)
-	add_child(tip_pivot)
-	var tmi := MeshInstance3D.new()
-	tmi.mesh = tip
-	tmi.position.y = 0.25
-	tip_pivot.add_child(tmi)
+	build_head(self)
 
 	# Fire staff in the right hand
 	var staff := CylinderMesh.new()
@@ -218,6 +148,97 @@ func _ready() -> void:
 	hem_fire.emission_ring_height = 0.1
 	hem_fire.position.y = 0.15
 	add_child(hem_fire)
+
+
+## Head, ember eyes, beard and hat, at the same coordinates as on the full model
+## (head centre at y = 1.5). Also used for the giant flaming meteor head.
+static func build_head(parent: Node3D) -> void:
+	# Head
+	var skin := _smat(Color(0.93, 0.72, 0.58))
+	var head := SphereMesh.new()
+	head.radius = 0.2
+	head.height = 0.4
+	head.material = skin
+	_put(parent, head, Vector3(0, 1.5, 0))
+
+	# Ember eyes
+	var eye_mat := _smat(Color(1.0, 0.6, 0.1))
+	eye_mat.emission_enabled = true
+	eye_mat.emission = Color(1.0, 0.45, 0.05)
+	eye_mat.emission_energy_multiplier = 4.0
+	for side in [-1.0, 1.0]:
+		var eye := SphereMesh.new()
+		eye.radius = 0.035
+		eye.height = 0.07
+		eye.material = eye_mat
+		_put(parent, eye, Vector3(0.075 * side, 1.53, -0.18))
+
+	# Charcoal beard
+	var beard := CylinderMesh.new()
+	beard.top_radius = 0.17
+	beard.bottom_radius = 0.0
+	beard.height = 0.42
+	beard.radial_segments = 10
+	beard.material = _smat(Color(0.2, 0.18, 0.18))
+	var bmi := _put(parent, beard, Vector3(0, 1.28, -0.12))
+	bmi.rotation.x = deg_to_rad(12.0)
+
+	# Hat: wide brim, gold band, cone in two segments with a tip bent backwards
+	var hat_mat := _smat(Color(0.5, 0.03, 0.03))
+	var brim := CylinderMesh.new()
+	brim.top_radius = 0.5
+	brim.bottom_radius = 0.52
+	brim.height = 0.04
+	brim.radial_segments = 28
+	brim.material = hat_mat
+	_put(parent, brim, Vector3(0, 1.66, 0))
+	var band_mat := _smat(Color(1.0, 0.7, 0.2))
+	band_mat.emission_enabled = true
+	band_mat.emission = Color(1.0, 0.45, 0.05)
+	band_mat.emission_energy_multiplier = 1.5
+	var band := CylinderMesh.new()
+	band.top_radius = 0.255
+	band.bottom_radius = 0.275
+	band.height = 0.08
+	band.radial_segments = 24
+	band.material = band_mat
+	_put(parent, band, Vector3(0, 1.72, 0))
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.12
+	cone.bottom_radius = 0.27
+	cone.height = 0.55
+	cone.radial_segments = 20
+	cone.material = hat_mat
+	_put(parent, cone, Vector3(0, 1.955, 0))
+	var tip := CylinderMesh.new()
+	tip.top_radius = 0.0
+	tip.bottom_radius = 0.12
+	tip.height = 0.5
+	tip.radial_segments = 16
+	tip.material = hat_mat
+	var tip_pivot := Node3D.new()
+	tip_pivot.position = Vector3(0, 2.23, 0)
+	tip_pivot.rotation.x = deg_to_rad(28.0)   # bends backwards (+Z)
+	parent.add_child(tip_pivot)
+	var tmi := MeshInstance3D.new()
+	tmi.mesh = tip
+	tmi.position.y = 0.25
+	tip_pivot.add_child(tmi)
+
+
+static func _put(parent: Node3D, mesh: Mesh, at: Vector3) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.position = at
+	parent.add_child(mi)
+	return mi
+
+
+static func _smat(c: Color) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = c
+	m.roughness = 0.8
+	return m
 
 
 func _make_coat_mat(height: float) -> ShaderMaterial:
