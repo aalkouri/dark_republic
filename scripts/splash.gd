@@ -3,7 +3,7 @@ extends Control
 ## Any key, mouse click or gamepad button skips it. Test/screenshot runs skip it automatically.
 
 const LOGO := "res://video/atomai_logo.ogv"
-const NEXT_SCENE := "res://scenes/main.tscn"   # becomes the title screen once it exists
+const NEXT_SCENE := "res://scenes/title.tscn"
 const FADE_OUT := 0.35
 
 var _player: VideoStreamPlayer

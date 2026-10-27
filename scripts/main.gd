@@ -536,6 +536,15 @@ func _end_run(won: bool) -> void:
 	hud.show_end(won)
 
 
+const TITLE_SCENE := "res://scenes/title.tscn"
+
+
+func to_title() -> void:
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file(TITLE_SCENE)
+
+
 func restart() -> void:
 	get_tree().paused = false
 	get_tree().reload_current_scene()

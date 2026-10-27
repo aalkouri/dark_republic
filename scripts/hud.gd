@@ -170,6 +170,7 @@ func _build_pause(root: Control) -> void:
 	for item in [["Resume", func(): main.resume_from_pause()],
 			["Settings", func(): open_settings()],
 			["Restart run", func(): main.restart()],
+			["Main menu", func(): main.to_title()],
 			["Quit to desktop", func(): get_tree().quit()]]:
 		var b := Button.new()
 		b.text = item[0]
@@ -429,6 +430,11 @@ func _build_end(root: Control) -> void:
 	btn.add_theme_font_size_override("font_size", 24)
 	btn.pressed.connect(func(): main.restart())
 	vb.add_child(btn)
+	var menu_btn := Button.new()
+	menu_btn.text = "Main menu"
+	menu_btn.add_theme_font_size_override("font_size", 24)
+	menu_btn.pressed.connect(func(): main.to_title())
+	vb.add_child(menu_btn)
 
 
 # ------------------------------------------------------------------ public

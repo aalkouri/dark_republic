@@ -28,6 +28,8 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 
 The game opens with the **AtomAI** studio logo (`video/atomai_logo.ogv`, converted to Ogg Theora for Godot). Any key, click or gamepad button skips it. Pass `-- --skip-intro` to skip it from the command line (tests and screenshots skip it automatically).
 
+Then the **title screen**: a living swamp diorama at night. The camera slowly orbits the fire wizard on a mossy stone dais while goblin silhouettes with glowing eyes lurk, creep in and grunt in the fog. "DARK REPUBLIC" burns in Cinzel lettering (`fonts/Cinzel.ttf`, SIL Open Font License) over a Play / Settings / Quit menu (mouse, keyboard or gamepad). The pause menu and end screen have **Main menu** to return here.
+
 ## Pause menu and settings
 
 **Esc** opens the pause menu: Resume, Settings, Restart run, Quit to desktop. Settings are saved to `user://settings.cfg` and applied on startup.
@@ -154,6 +156,7 @@ scripts/
   powerup_manager.gd elite power-up drops and timed effects
   tree_fire.gd       trees set alight by the Meteor, charring over 15 s
   splash.gd          startup logo video, skippable
+  title.gd           title screen: swamp diorama, burning title, menu
   hud.gd             all UI, built in code
 data/upgrades.json   every weapon/tome/item and rarity, as data
 tools/               headless micro-benchmarks
@@ -187,6 +190,9 @@ godot --headless --path . res://tools/test_settings.tscn
 
 # Shrine tests (placement, zone timer/reset, chest tiers, chains, burn, storm rings, jumping)
 godot --headless --path . --fixed-fps 60 res://tools/test_shrines.tscn
+
+# Title flow (splash -> title -> settings -> play -> main menu)
+godot --headless --path . res://tools/test_title.tscn
 
 # Crowd simulation benchmark
 godot --headless --path . res://tools/bench_enemies.tscn
