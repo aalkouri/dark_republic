@@ -49,7 +49,7 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 - **Upper-body layers:** the fireball staff thrust, the hit flinch and the Inferno cast play on the spine and arms only, so the legs keep running.
 - **Full-body layers:** jump, the Fire Nova ground slam, and the Meteor overhead slam he does just before vanishing.
 - **Aiming:** a spine twist turns his torso toward each fireball's target.
-- **Staff:** built in code and attached to his right-hand bone; fireballs leave from its orb.
+- **Staff:** built in code and attached to his right-hand bone. A burning coal sits in its crown under a shader-drawn flame (`staff_flame.gd`): layered noise tongues, a white-hot core and wisps, with a flickering light. The flame stays upright and trails behind as the staff moves. Fireballs leave from the flame.
 
 To add a clip: generate it on the same rig in Higgsfield, then run `godot --headless --path . --script res://tools/import_wizard_anims.gd -- <folder with the .glb>`. Add the Meshy action name to `NAMES` in that script first.
 
@@ -102,12 +102,14 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 ## Shrines
 
-Each run places **1-8 shrines** on open ground, each marked by a tall beam of light in its tier colour. Stand inside the glowing **5-yard zone** for **10 seconds** to complete it (the ring fills up; leaving the zone resets the timer to 0) while dodging its damage pattern. Completing a shrine spawns a chest: **Difficulty 1 → Bronze, 2 → Silver, 3 → Gold** (chest rewards are placeholders for now).
+Each run places **1-8 shrines** on open ground, each marked by a tall beam of light in its tier colour. Stand inside the glowing **10-yard zone** for **10 seconds** to complete it (the ring fills up; leaving the zone resets the timer to 0) while dodging its damage pattern. Completing a shrine spawns a chest: **Difficulty 1 → Bronze, 2 → Silver, 3 → Gold** (chest rewards are placeholders for now).
 
 | Pattern | Difficulty 1 | Difficulty 2 | Difficulty 3 |
 |---|---|---|---|
-| **Chain Shrine:** chains swing around the shrine at shin height (jump over them) | 1 plain chain, 1 yd long (hit: 10% max HP) | 2 burning chains, 3 yd long | 3 burning chains spanning the whole zone, and the shrine itself is on fire |
-| **Storm Shrine:** rings of electricity crawl outward along the ground (jump over them; hit: 8% max HP) | 1 ring every 2 s | 2 rings 0.5 s apart every 2 s | A ring every 0.5 s |
+| **Chain Shrine:** chains reaching the zone edge swing around the shrine at shin height (jump over them) | 1 plain chain (hit: 10% max HP) | 2 burning chains | 3 burning chains, and the shrine itself is on fire |
+| **Storm Shrine:** rings of crackling lightning, floating a little off the ground, spread out to the zone edge (jump over them; hit: 8% max HP) | 1 ring every 2 s | 2 rings 0.5 s apart every 2 s | 1 ring every 1.5 s |
+
+**Shrine hits work like enemy hits:** you're knocked back and get 0.5 s of immunity to all shrine damage, burning chains included.
 
 **Burn** (burning chains / burning shrine): 5% of max HP per second for 2 s. Touching fire again restarts the 2 s but never stacks.
 

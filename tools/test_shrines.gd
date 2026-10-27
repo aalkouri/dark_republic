@@ -37,7 +37,7 @@ func _ready() -> void:
 	var hi: int = counts.max()
 	_check("1-8 shrines per run", lo >= 1 and hi <= 8 and hi > lo, str(counts))
 	_check("shrine zones are clear of pools and trees", clear, "")
-	_check("zone is 5 yards", is_equal_approx(Shrine.ZONE_RADIUS, 4.572), "%.3f m" % Shrine.ZONE_RADIUS)
+	_check("zone is 10 yards", is_equal_approx(Shrine.ZONE_RADIUS, 9.144), "%.3f m" % Shrine.ZONE_RADIUS)
 
 	# --- A test player
 	var stats := Stats.new()
@@ -57,7 +57,7 @@ func _ready() -> void:
 		_put(player, s, Vector2(3.0, 0.0), 5.0)   # inside, floating above the rings
 		_run(s, player, 6.0)
 		var mid := s.progress
-		_put(player, s, Vector2(7.0, 0.0), 5.0)    # step out
+		_put(player, s, Vector2(Shrine.ZONE_RADIUS + 2.0, 0.0), 5.0)    # step out
 		_run(s, player, DT)
 		var after_leave := s.progress
 		_put(player, s, Vector2(3.0, 0.0), 5.0)
@@ -75,7 +75,8 @@ func _ready() -> void:
 		s.queue_free()
 
 	# --- Chains
-	var expect_len := [0.9144, 2.7432, Shrine.ZONE_RADIUS - Shrine.PILLAR_RADIUS]
+	var full := Shrine.ZONE_RADIUS - Shrine.PILLAR_RADIUS
+	var expect_len := [full, full, full]   # every difficulty reaches the zone edge
 	for d in [1, 2, 3]:
 		var s := _shrine(Shrine.CHAINS, d)
 		_check("chains D%d: %d chain(s), %.2f m long" % [d, d, expect_len[d - 1]], s._chains.size() == d and is_equal_approx(Shrine.CHAIN_LENGTHS[d - 1], expect_len[d - 1]), "")
@@ -95,6 +96,9 @@ func _ready() -> void:
 		s._tick_chains(0.0, player, on_chain, 0.0)
 		if d == 1:
 			_check("chains D1: hit costs 10% HP, no burn", is_equal_approx(player.hp, 90.0) and player.burn_left == 0.0, "hp %.1f" % player.hp)
+			_check("chains: a hit starts 0.5 s immunity and knocks you back", is_equal_approx(player.invuln, Player.IFRAMES) and Vector2(player.velocity.x, player.velocity.z).length() > 5.0, "invuln %.2f" % player.invuln)
+			s._tick_chains(0.0, player, on_chain, 0.0)
+			_check("chains: no second hit while immune", is_equal_approx(player.hp, 90.0), "hp %.1f" % player.hp)
 		else:
 			_check("chains D%d: touch sets you on fire" % d, is_equal_approx(player.burn_left, Player.BURN_TIME) and is_equal_approx(player.hp, 100.0), "burn %.2f" % player.burn_left)
 		s.queue_free()
@@ -113,12 +117,14 @@ func _ready() -> void:
 	# D3 shrine itself burns
 	var s3 := _shrine(Shrine.CHAINS, 3)
 	player.burn_left = 0.0
+	player.invuln = 0.0
 	var a3 := s3.chain_angle(0) + PI / 3.0
 	var at_pillar := Vector2(cos(a3), sin(a3)) * (Shrine.PILLAR_RADIUS + 0.45)
 	s3._tick_chains(0.0, player, at_pillar, 0.5)
 	_check("chains D3: touching the burning shrine burns", player.burn_left > 0.0, "")
 	var s1 := _shrine(Shrine.CHAINS, 1)
 	player.burn_left = 0.0
+	player.invuln = 0.0
 	var a1 := s1.chain_angle(0) + PI
 	s1._tick_chains(0.0, player, Vector2(cos(a1), sin(a1)) * (Shrine.PILLAR_RADIUS + 0.45), 0.5)
 	_check("chains D1: shrine is not on fire", player.burn_left == 0.0, "")
@@ -126,7 +132,7 @@ func _ready() -> void:
 	s1.queue_free()
 
 	# --- Nova: pulses per 10 s, slow speed, hits and jumping
-	var expect_rings := [5, 10, 20]
+	var expect_rings := [5, 10, 7]   # D3: one ring every 1.5 s
 	for d in [1, 2, 3]:
 		var s := _shrine(Shrine.NOVA, d)
 		var emitted := [0]
@@ -150,6 +156,11 @@ func _ready() -> void:
 	_put(player, sn, Vector2(Shrine.PILLAR_RADIUS + 0.05, 0.0), 0.0)
 	sn.tick(DT, player)
 	_check("nova hit costs 8% HP", is_equal_approx(player.hp, 92.0), "hp %.1f" % player.hp)
+	_check("nova: hit gives 0.5 s immunity", is_equal_approx(player.invuln, Player.IFRAMES), "%.2f" % player.invuln)
+	_put(player, sn, Vector2(Shrine.PILLAR_RADIUS + 0.05, 0.0), 0.0)
+	sn.tick(DT, player)
+	_check("nova: no repeat damage while immune", is_equal_approx(player.hp, 92.0), "hp %.1f" % player.hp)
+	_check("nova: rings float off the ground", Shrine.NOVA_LIFT >= 0.2, "")
 	sn.queue_free()
 
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])

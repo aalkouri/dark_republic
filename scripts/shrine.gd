@@ -1,40 +1,47 @@
 class_name Shrine
 extends Node3D
-## A shrine challenge. Stand inside the 5-yard zone for 10 seconds (leaving resets the timer)
+## A shrine challenge. Stand inside the 10-yard zone for 10 seconds (leaving resets the timer)
 ## while dodging the shrine's damage pattern; completing it spawns a chest whose tier matches
 ## the difficulty (1 Bronze, 2 Silver, 3 Gold).
 ##
-## Pattern CHAINS - chains swing around the shrine at shin height (jump over them):
-##   D1  1 plain iron chain, 1 yd long          hit: 10% max HP
-##   D2  2 burning chains, 3 yd long            hit: burn (5% max HP/s for 2 s, doesn't stack)
-##   D3  3 burning chains, the full zone + the shrine itself is on fire (touching it burns)
-## Pattern NOVA - rings of electricity crawl outward along the ground (jump over them):
-##   D1  one ring every 2 s;  D2  two rings 0.5 s apart every 2 s;  D3  a ring every 0.5 s
+## Pattern CHAINS - chains reaching the zone edge swing around the shrine at shin height
+## (jump over them):
+##   D1  1 plain iron chain                     hit: 10% max HP
+##   D2  2 burning chains                       hit: burn (5% max HP/s for 2 s, doesn't stack)
+##   D3  3 burning chains + the shrine itself is on fire (touching it burns)
+## Pattern NOVA - rings of lightning crackle outward to the zone edge, floating a little off the
+## ground (jump over them):
+##   D1  one ring every 2 s;  D2  two rings 0.5 s apart every 2 s;  D3  a ring every 1.5 s
 ##   hit: 8% max HP
+## Every shrine hit works like an enemy hit: knockback and 0.5 s of immunity to all shrine
+## damage (burning chains included).
 
 signal completed(shrine: Shrine)
 
 enum { CHAINS, NOVA }
 
 const YARD := 0.9144
-const ZONE_RADIUS := 5.0 * YARD
+const ZONE_RADIUS := 10.0 * YARD
 const REQUIRED_TIME := 10.0
 const PILLAR_RADIUS := 0.55
 const TIER_NAMES := ["Bronze", "Silver", "Gold"]
 const TIER_COLORS := [Color(0.85, 0.5, 0.22), Color(0.82, 0.86, 0.95), Color(1.0, 0.82, 0.2)]
 
 # Chains
-const CHAIN_LENGTHS := [1.0 * YARD, 3.0 * YARD, ZONE_RADIUS - PILLAR_RADIUS]
-const CHAIN_SPEEDS := [1.2, 1.35, 1.5]      # rad/s
+const CHAIN_LENGTHS := [ZONE_RADIUS - PILLAR_RADIUS, ZONE_RADIUS - PILLAR_RADIUS, ZONE_RADIUS - PILLAR_RADIUS]
+const CHAIN_SPEEDS := [0.75, 0.85, 0.95]    # rad/s (tip ~7-8.5 m/s at the zone edge)
 const CHAIN_HEIGHT := 0.45                   # above the ground; jump over
 const CHAIN_HIT_RADIUS := 0.12               # chain thickness for hit tests
 const CHAIN_HIT_FRAC := 0.10
 const SHRINE_FIRE_REACH := 0.75              # D3: touching the burning shrine
 # Nova
-const NOVA_SPEED := 1.5                      # m/s - slow
-const NOVA_PERIOD := 2.0
+const NOVA_SPEED := 2.2                      # m/s - ~4 s to reach the edge
+const NOVA_PERIODS := [2.0, 2.0, 1.5]        # s, per difficulty
 const NOVA_HALF_WIDTH := 0.3
-const NOVA_HEIGHT := 0.35                    # hits feet below this; jump over
+const NOVA_LIFT := 0.35                      # the lightning floats this high off the ground
+const NOVA_BAND := 0.32                      # height of the crackling band
+const NOVA_HEIGHT := 0.6                     # hits feet below this; jump over
+const HIT_KNOCK := 1.0
 const NOVA_HIT_FRAC := 0.08
 const PLAYER_RADIUS := 0.4
 
@@ -56,6 +63,59 @@ var _zone_mat: ShaderMaterial
 var _label: Label3D
 var _fx_root: Node3D
 var _shrine_fire: CPUParticles3D
+var _nova_shader: Shader
+
+const LIGHTNING_SHADER := """
+shader_type spatial;
+render_mode unshaded, blend_add, depth_draw_never, cull_disabled, shadows_disabled, fog_disabled;
+
+uniform float radius = 1.0;
+uniform float seed = 0.0;
+uniform float fade = 1.0;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+	           mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// Jagged bolt path: sharp, mostly-linear segments plus fine crackle
+float bolt(float s, float strike, float k) {
+	float coarse = noise(vec2(s * 1.3, strike * 7.1 + k * 31.0));
+	float mid = noise(vec2(s * 4.0, strike * 3.3 + k * 17.0));
+	float fine = noise(vec2(s * 14.0, strike * 5.7 + k * 5.0));
+	return (coarse - 0.5) * 0.9 + (mid - 0.5) * 0.45 + (fine - 0.5) * 0.18;
+}
+
+void fragment() {
+	// Distance along the ring in metres, so bolts keep their size as the ring grows
+	float s = UV.x * 6.2831 * radius;
+	float v = UV.y * 2.0 - 1.0;               // -1 bottom .. 1 top of the band
+	float t = TIME + seed;
+	vec3 glow = vec3(0.0);
+	for (int k = 0; k < 3; k++) {
+		float fk = float(k);
+		// Each bolt re-strikes at its own rate (flicker), with a new path each time
+		float rate = 14.0 + fk * 5.0;
+		float strike = floor(t * rate);
+		float flash = 0.55 + 0.45 * hash(vec2(strike, fk + seed));
+		float path = bolt(s, strike, fk);
+		float d = abs(v - path);
+		float core = exp(-d * 70.0);
+		float halo = exp(-d * 16.0) * 0.12;
+		glow += (vec3(0.85, 0.93, 1.0) * core + vec3(0.25, 0.5, 1.0) * halo) * flash;
+		// Occasional bright branch forks
+		float fork = step(0.78, noise(vec2(s * 0.7, strike + fk * 11.0)));
+		float bpath = path + (noise(vec2(s * 9.0, strike * 2.0 + fk)) - 0.5) * 1.2;
+		glow += vec3(0.45, 0.7, 1.0) * exp(-abs(v - bpath) * 60.0) * fork * 0.5 * flash;
+	}
+	// Soft fade at the band's top and bottom edges
+	glow *= 1.0 - smoothstep(0.75, 1.0, abs(v));
+	ALBEDO = glow * 1.7 * fade;
+}
+"""
 
 const ZONE_SHADER := """
 shader_type spatial;
@@ -286,19 +346,38 @@ func _tick_chains(dt: float, player: Player, flat: Vector2, feet: float) -> void
 		_chains[k].rotation.y = -chain_angle(k)
 	if player.meteor_form:
 		return
-	if chain_hits(flat, feet):
-		if difficulty == 1:
-			player.hurt(player.max_hp * CHAIN_HIT_FRAC)
-		else:
-			player.ignite()
+	var hit := chain_hit_index(flat, feet)
+	if hit >= 0:
+		# Pushed along the way the chain sweeps (its angle grows: +X turning toward +Z)
+		var a := chain_angle(hit)
+		var sweep := Vector3(-sin(a), 0.0, cos(a))
+		_hit_player(player, player.max_hp * CHAIN_HIT_FRAC if difficulty == 1 else 0.0, difficulty >= 2, sweep)
 	if difficulty == 3 and flat.length() < PILLAR_RADIUS + PLAYER_RADIUS + SHRINE_FIRE_REACH * 0.5 and feet < 2.4:
+		_hit_player(player, 0.0, true, Vector3(flat.x, 0.0, flat.y))
+
+
+## A shrine hit, handled like an enemy hit: ignored during the 0.5 s immunity, otherwise
+## damage (and/or burn), immunity and a knockback along `push`.
+func _hit_player(player: Player, damage: float, burn: bool, push: Vector3) -> void:
+	if player.meteor_form or player.invuln > 0.0:
+		return
+	if not player.hurt(damage):
+		return
+	if burn:
 		player.ignite()
+	if push.length_squared() > 0.0001:
+		player.knockback(push * HIT_KNOCK)
 
 
 ## Is a player at `flat` (offset from the shrine, XZ) with feet at height `feet` touching a chain?
 func chain_hits(flat: Vector2, feet: float) -> bool:
+	return chain_hit_index(flat, feet) >= 0
+
+
+## Index of the chain touching the player, or -1.
+func chain_hit_index(flat: Vector2, feet: float) -> int:
 	if feet > CHAIN_HEIGHT + 0.15:   # jumped over
-		return false
+		return -1
 	var length: float = CHAIN_LENGTHS[difficulty - 1]
 	for k in difficulty:
 		var a := chain_angle(k)
@@ -308,19 +387,21 @@ func chain_hits(flat: Vector2, feet: float) -> bool:
 			continue
 		var perp := absf(flat.x * dir.y - flat.y * dir.x)
 		if perp < CHAIN_HIT_RADIUS + PLAYER_RADIUS:
-			return true
-	return false
+			return k
+	return -1
 
 
-## Pulse offsets within each 2 s period, per difficulty.
+## Pulse offsets within each period, per difficulty.
 func pulse_offsets() -> Array:
 	match difficulty:
-		1:
-			return [0.0]
 		2:
 			return [0.0, 0.5]
 		_:
-			return [0.0, 0.5, 1.0, 1.5]
+			return [0.0]
+
+
+func pulse_period() -> float:
+	return NOVA_PERIODS[difficulty - 1]
 
 
 func _tick_nova(dt: float, player: Player, flat: Vector2, feet: float) -> void:
@@ -332,7 +413,7 @@ func _tick_nova(dt: float, player: Player, flat: Vector2, feet: float) -> void:
 		if _pulse_idx >= offs.size():
 			_pulse_idx = 0
 			_pulse_cycle += 1
-		_next_pulse = NOVA_PERIOD * _pulse_cycle + float(offs[_pulse_idx])
+		_next_pulse = pulse_period() * _pulse_cycle + float(offs[_pulse_idx])
 	# Move rings outward; drop them at the zone edge
 	for k in range(_novas.size() - 1, -1, -1):
 		_novas[k] += NOVA_SPEED * dt
@@ -344,10 +425,11 @@ func _tick_nova(dt: float, player: Player, flat: Vector2, feet: float) -> void:
 			_nova_nodes.remove_at(k)
 			continue
 		node.scale = Vector3(r, 1.0, r)
-		var mat := (node.mesh as TorusMesh).material as StandardMaterial3D
-		mat.albedo_color.a = 0.65 + 0.35 * sin(_t * 40.0 + k)
-		if not player.meteor_form and nova_hits(r, flat, feet):
-			player.hurt(player.max_hp * NOVA_HIT_FRAC)
+		var mat := node.material_override as ShaderMaterial
+		mat.set_shader_parameter("radius", r)
+		mat.set_shader_parameter("fade", 1.0 - smoothstep(ZONE_RADIUS - 0.8, ZONE_RADIUS, r))
+		if nova_hits(r, flat, feet):
+			_hit_player(player, player.max_hp * NOVA_HIT_FRAC, false, Vector3(flat.x, 0.0, flat.y))
 
 
 func nova_hits(r: float, flat: Vector2, feet: float) -> bool:
@@ -357,21 +439,28 @@ func nova_hits(r: float, flat: Vector2, feet: float) -> bool:
 
 
 func _emit_nova() -> void:
-	var torus := TorusMesh.new()
-	torus.inner_radius = 0.94
-	torus.outer_radius = 1.0
-	torus.rings = 48
-	torus.ring_segments = 6
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	m.albedo_color = Color(0.45, 0.75, 1.0, 0.9)
-	torus.material = m
+	# An open band (cylinder wall) of radius 1 scaled out as the ring grows; the shader draws
+	# jagged, flickering bolts along it
+	var band := CylinderMesh.new()
+	band.top_radius = 1.0
+	band.bottom_radius = 1.0
+	band.height = NOVA_BAND
+	band.radial_segments = 96
+	band.rings = 1
+	band.cap_top = false
+	band.cap_bottom = false
+	if _nova_shader == null:
+		_nova_shader = Shader.new()
+		_nova_shader.code = LIGHTNING_SHADER
+	var m := ShaderMaterial.new()
+	m.shader = _nova_shader
+	m.set_shader_parameter("seed", randf() * 100.0)
 	var mi := MeshInstance3D.new()
-	mi.mesh = torus
-	mi.position.y = 0.15
+	mi.mesh = band
+	mi.material_override = m
+	mi.position.y = NOVA_LIFT + NOVA_BAND * 0.5
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.extra_cull_margin = ZONE_RADIUS
 	_fx_root.add_child(mi)
 	_novas.append(PILLAR_RADIUS)
 	_nova_nodes.append(mi)

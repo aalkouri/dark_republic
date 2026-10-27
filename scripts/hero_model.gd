@@ -34,7 +34,7 @@ const FIRE_SPEED := 1.25
 const WALK_SPEED := 2.5              # m/s where the walk clip looks right
 const RUN_SPEED := 6.5               # m/s where the run clip looks right
 const MAX_TWIST := deg_to_rad(80.0)
-const TIP := Vector3(0.0, 0.95, 0.0)   # top of the orb, in staff space (metres)
+const TIP := Vector3(0.0, 1.0, 0.0)    # in the flame above the coal, staff space (metres)
 const VANISH_TIME := 0.55            # slam lands ~(1.35 - 0.6) / 1.4 s in
 
 var tree: AnimationTree
@@ -42,8 +42,7 @@ var skeleton: Skeleton3D
 var staff: Node3D
 var twist: SpineTwist
 var _rig: Node3D
-var _orb: MeshInstance3D
-var _staff_light: OmniLight3D
+var flame: StaffFlame
 var _mats: Array[StandardMaterial3D] = []
 var _base_albedo: Array[Color] = []
 var _staff_mats: Array = []          # [material, albedo, emission energy]
@@ -204,7 +203,7 @@ func _build_staff() -> void:
 	shaft_mi.mesh = shaft
 	shaft_mi.position = Vector3(0, 0.05, 0)  # grip a bit below the middle
 	staff.add_child(shaft_mi)
-	# Gnarled crown cradling the orb
+	# Gnarled crown cradling the burning coal
 	for k in 3:
 		var prong := CylinderMesh.new()
 		prong.top_radius = 0.008
@@ -218,28 +217,10 @@ func _build_staff() -> void:
 		p.position = Vector3(cos(a) * 0.05, 0.86, sin(a) * 0.05)
 		p.rotation = Vector3(sin(a) * 0.45, 0.0, -cos(a) * 0.45)
 		staff.add_child(p)
-	var orb_mat := _std(Color(1.0, 0.6, 0.15))
-	orb_mat.emission_enabled = true
-	orb_mat.emission = Color(1.0, 0.4, 0.05)
-	orb_mat.emission_energy_multiplier = 3.0
-	var orb := SphereMesh.new()
-	orb.radius = 0.065
-	orb.height = 0.13
-	orb.material = orb_mat
-	_orb = MeshInstance3D.new()
-	_orb.mesh = orb
-	_orb.position = Vector3(0, 0.9, 0)
-	staff.add_child(_orb)
-	var orb_fire := Abilities._flame_particles(0.16, 0.45, 16)
-	orb_fire.emission_sphere_radius = 0.06
-	_orb.add_child(orb_fire)
-	_particles.append(orb_fire)
-	_staff_light = OmniLight3D.new()
-	_staff_light.light_color = Color(1.0, 0.5, 0.15)
-	_staff_light.light_energy = 1.6
-	_staff_light.omni_range = 6.0
-	_orb.add_child(_staff_light)
-	for m in [wood, orb_mat]:
+	flame = StaffFlame.new()
+	flame.position = Vector3(0, 0.9, 0)
+	staff.add_child(flame)
+	for m in [wood]:
 		_staff_mats.append([m, m.albedo_color, m.emission_energy_multiplier])
 
 
@@ -328,6 +309,7 @@ func set_dim(f: float) -> void:
 		m.emission_energy_multiplier = e[2] * f
 	for p in _particles:
 		p.color = Color(f, f, f, 1.0)
+	flame.set_dim(f)
 
 
 func set_hurt(amount: float) -> void:
@@ -349,4 +331,3 @@ func _process(dt: float) -> void:
 		_vanish_t -= dt
 		if _vanish_t < 0.0:
 			visible = false
-	_staff_light.light_energy = (1.4 + 0.4 * sin(_time * 17.0) * sin(_time * 7.3)) * _dim

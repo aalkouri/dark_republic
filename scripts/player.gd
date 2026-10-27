@@ -395,7 +395,8 @@ func hurt(amount: float) -> bool:
 	shield -= absorbed
 	amount -= absorbed
 	hp -= amount
-	Events.player_damaged.emit(amount)
+	if amount > 0.0:
+		Events.player_damaged.emit(amount)
 	if hp <= 0.0:
 		hp = 0.0
 		died.emit()
