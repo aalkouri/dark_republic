@@ -36,7 +36,9 @@ void fragment() {
 
 var _cam: Camera3D
 var _t := 0.0
-var _goblins: Array = []        # {node, base_angle, base_r, phase, creep_t, creep_dir}
+var _goblins: Array = []        # {node, a, r, phase, creep, creep_t, anim}
+var _goblin_vat: VatCrowd
+var _goblin_mm: MultiMesh
 var _voice: AudioStreamPlayer3D
 var _voice_gap := 2.5
 var _clip_last := {}
@@ -127,29 +129,29 @@ func _build_wizard() -> void:
 
 
 func _build_goblins() -> void:
-	var mesh := GoblinMesh.build()
-	var eye_mat := PowerupManager._glow(Color(1.0, 0.75, 0.15), 6.0)
-	var eye_mesh := SphereMesh.new()
-	eye_mesh.radius = 0.05
-	eye_mesh.height = 0.1
-	eye_mesh.material = eye_mat
+	# Same baked goblins as the game, in one MultiMesh; each entry keeps a Node3D that is moved
+	# around and copied into the MultiMesh every frame.
+	_goblin_vat = VatCrowd.load_bake(EnemyManager.GOBLIN_VAT)
+	_goblin_mm = MultiMesh.new()
+	_goblin_mm.transform_format = MultiMesh.TRANSFORM_3D
+	_goblin_mm.use_colors = true
+	_goblin_mm.use_custom_data = true
+	_goblin_mm.mesh = _goblin_vat.mesh
+	_goblin_mm.instance_count = GOBLINS
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = _goblin_mm
+	mmi.custom_aabb = AABB(Vector3(-30, -5, -30), Vector3(60, 15, 60))
+	add_child(mmi)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 99
 	for k in GOBLINS:
 		var g := Node3D.new()
-		var body := MeshInstance3D.new()
-		body.mesh = mesh   # no instance data: clothing renders black -> silhouettes
-		g.add_child(body)
-		for side in [-1.0, 1.0]:
-			var e := MeshInstance3D.new()
-			e.mesh = eye_mesh
-			e.position = Vector3(0.1 * side, GoblinMesh.HEIGHT * 0.78, 0.24)
-			g.add_child(e)
 		var s := rng.randf_range(0.85, 1.6)
 		g.scale = Vector3.ONE * s
 		add_child(g)
+		_goblin_mm.set_instance_custom_data(k, Color(0.25, 0.22, 0.2, 0.0))   # dim, unlit-looking
 		_goblins.append({"node": g, "a": TAU * k / GOBLINS + rng.randf_range(-0.25, 0.25), "r": rng.randf_range(10.5, 15.0),
-			"phase": rng.randf() * TAU, "creep": 0.0, "creep_t": rng.randf_range(2.0, 9.0)})
+			"phase": rng.randf() * TAU, "creep": 0.0, "creep_t": rng.randf_range(2.0, 9.0), "anim": rng.randf()})
 
 
 func _build_audio() -> void:
@@ -415,10 +417,14 @@ func _update_goblins(dt: float) -> void:
 		g["creep"] = move_toward(g["creep"], target, dt * 0.9)
 		var r: float = g["r"] + g["creep"]
 		var a: float = g["a"] + 0.05 * sin(_t * 0.3 + g["phase"])
-		var hop := absf(sin(_t * 3.0 + g["phase"])) * 0.06 * (1.0 if absf(g["creep"] - target) > 0.05 else 0.25)
-		node.position = Vector3(cos(a) * r, hop, sin(a) * r)
-		node.look_at(Vector3(0, node.position.y, 0), Vector3.UP, true)   # face the wizard (+Z)
-		node.rotation.z = 0.08 * sin(_t * 2.0 + g["phase"])
+		var moving := absf(g["creep"] - target) > 0.05
+		node.position = Vector3(cos(a) * r, 0.0, sin(a) * r)
+		node.look_at(Vector3(0, 0, 0), Vector3.UP, true)   # face the wizard (+Z)
+		# Creeping: slow run cycle; lurking: barely moving
+		g["anim"] = fmod(g["anim"] + dt * (0.9 if moving else 0.12), 1.0)
+		var k := _goblins.find(g)
+		_goblin_mm.set_instance_transform(k, node.transform)
+		_goblin_mm.set_instance_color(k, _goblin_vat.anim_color("run", g["anim"]))
 
 
 func _update_voices(dt: float) -> void:

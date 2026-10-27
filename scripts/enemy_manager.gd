@@ -26,6 +26,10 @@ const BOSS_KNOCKBACK_SCALE := 0.25
 const EPIC_SIZE := 1.5
 const EPIC_HP := 4.0
 const EPIC_TINT := Color(0.72, 0.25, 1.0)
+const GOBLIN_VAT := "res://models/goblin"   # baked vertex animation (tools/bake_vat.gd)
+const GOBLIN_HEIGHT := 0.95                 # model height at scale 1
+const STRIDE_LEN := 0.9                     # metres covered per run cycle at scale 1
+const ATTACK_REACH := 0.55                  # start swinging this close to the player (+ radius)
 
 # Burn tuning (set by the ultimate; % of max HP)
 var burn_dps_frac := 0.05
@@ -39,6 +43,11 @@ const WATER_SPEED_MULT := 0.5
 var numbers: DamageNumbers      # optional: floating damage numbers
 var corpses: CorpseManager      # optional: dead goblins fall over and linger for 3 s
 var damage_mult := 1.0          # all damage dealt to goblins (5x Damage power-up)
+var vat: VatCrowd               # the goblin mesh + baked animations
+var aph := PackedFloat32Array()  # animation phase (0..1) per goblin
+var _clip_run := 0.0
+var _clip_attack := 0.25
+var _attack_rate := 1.0
 var fear := false               # Fear Idol: goblins run away from the player
 const BURN_NUMBER_INTERVAL := 0.5   # burn damage is totalled and shown twice a second
 const BAR_STRIDE := 16              # health bars: 12 transform + 4 custom (hp fraction, epic)
@@ -152,6 +161,7 @@ func _ready() -> void:
 	cell_count.resize(GRID_N * GRID_N)
 	cell_start.resize(GRID_N * GRID_N)
 	cell_fill.resize(GRID_N * GRID_N)
+	aph.resize(MAX)
 	buf.resize(MAX * STRIDE)
 	for i in MAX:   # instance color stays white; per-instance look lives in custom data
 		for k in 4:
@@ -168,7 +178,11 @@ func _ready() -> void:
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
 	mm.use_custom_data = true
-	mm.mesh = GoblinMesh.build()
+	vat = VatCrowd.load_bake(GOBLIN_VAT)
+	_clip_run = float(vat.clip_index["run"]) / 4.0
+	_clip_attack = float(vat.clip_index["attack"]) / 4.0
+	_attack_rate = 1.0 / float(vat.clip_length["attack"])
+	mm.mesh = vat.mesh
 	mm.instance_count = MAX
 	mm.visible_instance_count = 0
 	var mmi := MultiMeshInstance3D.new()
@@ -207,7 +221,7 @@ func _add_type(n: String, p_hp: float, speed: float, radius: float, scale: float
 	t_speed.append(speed)
 	t_radius.append(radius)
 	t_scale.append(scale)
-	t_height.append(GoblinMesh.HEIGHT * scale)
+	t_height.append(GOBLIN_HEIGHT * scale)
 	t_damage.append(damage)
 	t_xp.append(xp)
 	t_color.append(color)
@@ -235,6 +249,7 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	flash[i] = 0.0
 	uid[i] = _next_uid
 	_next_uid += 1
+	aph[i] = rng.randf() if rng != null else 0.0
 	dead[i] = 0
 	sep_x[i] = 0.0
 	sep_z[i] = 0.0
@@ -454,6 +469,8 @@ func tick(dt: float, player_pos: Vector3) -> void:
 					p.y = water.ground_height(p.x, p.z)
 			pos[i] = p
 			_write_xform(b, p, -kv.x, -kv.z, sc, sc)
+			buf[b + 12] = _clip_run
+			buf[b + 13] = aph[i]
 			if flash[i] > 0.0:
 				flash[i] -= dt
 			_write_color(i, b, t, burning)
@@ -537,24 +554,33 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			fx = v.x / spd
 			fz = v.z / spd
 
-		# Short-legged waddle: side-to-side roll and a little hop, faster when running.
+		# Animation (baked vertex animation, played by the shader): swing at the player when
+		# in reach, otherwise run with the cycle rate matched to ground speed (no foot sliding).
 		# Written inline (no helper calls): this is the hottest loop in the game.
-		var sph := sin(_time * (6.0 + spd * 2.2) + float(uid[i]) * 1.37)
-		var roll := 0.16 * sph * minf(spd * 0.4, 1.0)
-		var rc := 1.0 - 0.5 * roll * roll          # small-angle cos/sin
-		var rs := roll
-		buf[b] = fz * rc * sc
-		buf[b + 1] = -fz * rs * sc
+		var reach := t_radius[t] * sz[i] + ATTACK_REACH
+		var ph := aph[i]
+		var clip := _clip_run
+		if d2 < reach * reach and not fear:
+			clip = _clip_attack
+			ph += dt * _attack_rate
+		else:
+			ph += dt * maxf(spd, 0.8) / (STRIDE_LEN * sc)
+		ph -= floorf(ph)
+		aph[i] = ph
+		buf[b] = fz * sc
+		buf[b + 1] = 0.0
 		buf[b + 2] = fx * sc
 		buf[b + 3] = p.x
-		buf[b + 4] = rs * sc
-		buf[b + 5] = rc * sc
+		buf[b + 4] = 0.0
+		buf[b + 5] = sc
 		buf[b + 6] = 0.0
-		buf[b + 7] = p.y + absf(sph) * 0.09 * sc * minf(spd * 0.3, 1.0)
-		buf[b + 8] = -fx * rc * sc
-		buf[b + 9] = fx * rs * sc
+		buf[b + 7] = p.y
+		buf[b + 8] = -fx * sc
+		buf[b + 9] = 0.0
 		buf[b + 10] = fz * sc
 		buf[b + 11] = p.z
+		buf[b + 12] = clip
+		buf[b + 13] = ph
 
 		# Per-instance look (custom data): clothing tint + burn/flash/epic code
 		var fxc := 0.0
@@ -707,6 +733,7 @@ func _compact() -> void:
 			typ[i] = typ[last]
 			flash[i] = flash[last]
 			uid[i] = uid[last]
+			aph[i] = aph[last]
 			dead[i] = dead[last]
 			epic[i] = epic[last]
 			sz[i] = sz[last]

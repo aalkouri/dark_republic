@@ -1,11 +1,12 @@
 class_name CorpseManager
 extends Node3D
-## Dead goblins: they topple over backwards, lie on the ground, then sink out of sight,
-## gone LIFETIME seconds after death. One MultiMesh with the shared goblin mesh; if the pool
-## fills (mass kills), the oldest corpse is recycled.
+## Dead goblins: they play the baked death animation (falling backwards), lie on the ground,
+## then sink out of sight, gone LIFETIME seconds after death. One MultiMesh with the shared
+## goblin mesh; if the pool fills (mass kills), the oldest corpse is recycled.
 
 const LIFETIME := 3.0
-const FALL_TIME := 0.35      # topple duration
+const FALL_TIME := 0.35      # (kept for tests) time until the body is mostly down
+const DEATH_SPEED := 1.6     # death clip playback speed
 const SINK_TIME := 0.45      # last part of the lifetime: sink into the ground
 const MAX := 600
 const STRIDE := 20           # 12 transform + 4 color + 4 custom (tint, fx)
@@ -22,6 +23,9 @@ var _count := 0
 var _next := 0
 var _buf := PackedFloat32Array()
 var _mm: MultiMesh
+var _vat: VatCrowd
+var _clip_death := 0.5
+var _death_len := 1.0
 
 
 func _ready() -> void:
@@ -40,7 +44,10 @@ func _ready() -> void:
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_mm.use_colors = true
 	_mm.use_custom_data = true
-	_mm.mesh = GoblinMesh.build()
+	_vat = VatCrowd.load_bake(EnemyManager.GOBLIN_VAT)
+	_clip_death = float(_vat.clip_index["death"]) / 4.0
+	_death_len = float(_vat.clip_length["death"]) / DEATH_SPEED
+	_mm.mesh = _vat.mesh
 	_mm.instance_count = MAX
 	_mm.visible_instance_count = 0
 	var mmi := MultiMeshInstance3D.new()
@@ -65,7 +72,7 @@ func add(at: Vector3, facing: Vector3, scale: float, tint: Color, epic: bool, bu
 	_tint[i] = CHAR if burned else tint
 	_fx[i] = 4.0 if epic and not burned else 0.0
 	_age[i] = 0.0
-	_side[i] = randf_range(-0.35, 0.35)
+	_side[i] = 0.0
 
 
 func _process(dt: float) -> void:
@@ -84,25 +91,18 @@ func _write(i: int) -> void:
 			_buf[b + k] = 0.0   # gone (scaled to nothing)
 		return
 	var s := _scale[i]
-	# Topple backwards with a little bounce at the end
-	var t := clampf(age / FALL_TIME, 0.0, 1.0)
-	var fall := t * t
-	if t >= 1.0:
-		fall = 1.0 + 0.06 * sin(minf((age - FALL_TIME) / 0.15, 1.0) * PI)
-	var angle := fall * PI * 0.5
 	var f := Vector3(_dir[i].x, 0.0, _dir[i].y)
-	var yaw := Basis(Vector3(f.z, 0, -f.x), Vector3.UP, f)   # local +Z = facing
-	var tip := Basis(Vector3.RIGHT, -angle)                  # fall back: top goes to -Z
-	var lean := Basis(Vector3.FORWARD, _side[i] * fall)
-	var basis := (yaw * tip * lean).scaled(Vector3.ONE * s)
-	# Lift as it falls so the body rests on the ground; sink at the end
-	var y := _pos[i].y + 0.22 * s * fall
+	var basis := Basis(Vector3(f.z, 0, -f.x), Vector3.UP, f).scaled(Vector3.ONE * s)   # local +Z = facing
+	# The death clip does the falling; sink into the ground at the end
+	var y := _pos[i].y
 	var sink_start := LIFETIME - SINK_TIME
 	if age > sink_start:
-		y -= ((age - sink_start) / SINK_TIME) * 0.75 * s
+		y -= ((age - sink_start) / SINK_TIME) * 0.6 * s
 	_buf[b] = basis.x.x; _buf[b + 1] = basis.y.x; _buf[b + 2] = basis.z.x; _buf[b + 3] = _pos[i].x
 	_buf[b + 4] = basis.x.y; _buf[b + 5] = basis.y.y; _buf[b + 6] = basis.z.y; _buf[b + 7] = y
 	_buf[b + 8] = basis.x.z; _buf[b + 9] = basis.y.z; _buf[b + 10] = basis.z.z; _buf[b + 11] = _pos[i].z
+	_buf[b + 12] = _clip_death
+	_buf[b + 13] = clampf(age / _death_len, 0.0, 1.0)
 	var c: Color = _tint[i]
 	_buf[b + 16] = c.r
 	_buf[b + 17] = c.g
@@ -126,5 +126,6 @@ func age_of_newest() -> float:
 	return best
 
 
+## How far through the death animation a corpse is (0..1).
 func fall_angle(i: int) -> float:
-	return clampf(_age[i] / FALL_TIME, 0.0, 1.0)
+	return clampf(_age[i] / _death_len, 0.0, 1.0)
