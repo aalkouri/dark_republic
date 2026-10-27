@@ -86,6 +86,8 @@ func _initialize() -> void:
 		var anim: Animation = clips[name]
 		var frames: int = spec[1]
 		var loop: bool = spec[2]
+		if loop:
+			anim = _lock_root_xz(anim)   # loops play in place; the game moves the goblin
 		table[spec[0]] = {"start": frame, "frames": frames, "length": anim.length, "loop": loop}
 		for fi in frames:
 			# Loops sample [0, length) so frame N wraps to frame 0; one-shots include the end
@@ -206,3 +208,14 @@ func _g(sk: Skeleton3D, b: int, cache: Array[Transform3D]) -> Transform3D:
 	var local := Transform3D(Basis(sk.get_bone_pose_rotation(b)) * Basis.from_scale(sk.get_bone_pose_scale(b)), sk.get_bone_pose_position(b))
 	var p := sk.get_bone_parent(b)
 	return local if p < 0 else _g(sk, p, cache) * local
+
+
+func _lock_root_xz(src: Animation) -> Animation:
+	var anim := src.duplicate(true) as Animation
+	for t in anim.get_track_count():
+		if anim.track_get_type(t) == Animation.TYPE_POSITION_3D and str(anim.track_get_path(t)).ends_with(":Hips"):
+			var first: Vector3 = anim.track_get_key_value(t, 0)
+			for k in anim.track_get_key_count(t):
+				var v: Vector3 = anim.track_get_key_value(t, k)
+				anim.track_set_key_value(t, k, Vector3(first.x, v.y, first.z))
+	return anim

@@ -115,9 +115,11 @@ Each run places **1-8 shrines** on open ground, each marked by a tall beam of li
 
 ## Goblins
 
-Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): about half the wizard's height, pot-bellied, with stubby legs (they waddle) and comically large ears. Types differ by size and clothing: Goblin (brown), Goblin Scamp (small, fast, yellow), Goblin Brute (big, grey) and the Big Bonker boss (huge, dark red).
+Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): about half the wizard's height. The model is a textured, rigged Higgsfield/Meshy goblin (`models/goblin/`): hunched, warty, with big ears and clawed hands. Types differ by size and colour grade: Goblin, Goblin Scamp (small, fast, yellowish), Goblin Brute (big, grey) and the Big Bonker boss (huge, dark red).
 
-**Death:** killed goblins topple over backwards, lie on the ground (charred if they died burning), then sink away 3 s after death.
+**Animation:** goblins charge head-down (run cycle speed matched to their ground speed) and throw punch combos when they reach the wizard. The crowd can reach 1,400, so instead of skeletons the clips are **baked into vertex-animation textures** (`tools/bake_vat.gd`). The goblin shader (`vat_crowd.gd`) replays them per instance from the MultiMesh, with each goblin's clip and phase in its instance colour. That keeps the whole crowd in one draw call.
+
+**Death:** killed goblins play a fall-backwards death animation, lie on the ground (charred if they died burning), then sink away 3 s after death.
 
 **Sounds** (`audio/goblin/`, generated in Higgsfield):
 - Ambient: a random nearby goblin voices one of five clips every 0.8–2.2 s. Each clip has its own 5 s cooldown, so the same sound never repeats within 5 s. Bigger goblins are pitched lower.
@@ -158,7 +160,8 @@ scripts/
   potion_manager.gd  epic drops: purple / red / blue potions
   fx_manager.gd      pooled bursts and ash footprints (MultiMesh)
   ability_slot.gd    one ability-bar slot (procedural icon, cooldown, ult outline)
-  goblin_mesh.gd     procedural goblin mesh + shader (clothing tint, burn, epic, hit flash)
+  vat_crowd.gd       baked vertex-animation playback for the goblin crowd (clip/phase per instance, tint, burn, epic, hit flash)
+  goblin_mesh.gd     old procedural goblin (unused)
   goblin_audio.gd    ambient goblin voices with per-clip cooldowns, collision sound
   swamp_props.gd     procedural swamp trees (4 variants), fallen trees, ruins
   swamp_water.gd     recessed pools: outline, bed, water shader, heightmap collision, slow zones
@@ -215,6 +218,9 @@ godot --headless --path . res://tools/test_title.tscn
 
 # Character select (roster data, locked/unlocked, preview, back, play)
 godot --headless --path . res://tools/test_character_select.tscn
+
+# Re-bake the goblin animations from Higgsfield GLBs
+godot --headless --path . --script res://tools/bake_vat.gd -- <glb dir> res://models/goblin "run=Male_Head_Down_Charge:16:loop,attack=Punch_Combo:50:loop,death=Shot_and_Fall_Backward:40:hold"
 
 # Crowd simulation benchmark
 godot --headless --path . res://tools/bench_enemies.tscn

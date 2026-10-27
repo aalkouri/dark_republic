@@ -257,9 +257,10 @@ func _ready() -> void:
 	_check("dead goblin leaves a corpse", cm.active_count() == 1, "corpses %d" % cm.active_count())
 	for f in 30:
 		cm._process(dt)
-	var up := Vector3(cm._buf[1], cm._buf[5], cm._buf[9]).normalized()   # corpse's local up axis
-	_check("corpse has fallen over (lying down)", absf(up.y) < 0.2, "up.y %.2f" % up.y)
-	_check("corpse fell backwards (away from where it faced)", up.z < -0.8, "up %s" % str(up))
+	# The fall is the baked death animation: clip = death, playing forward, facing kept
+	var fwd := Vector3(cm._buf[2], cm._buf[6], cm._buf[10]).normalized()   # corpse's local +Z
+	_check("corpse plays the death animation", is_equal_approx(cm._buf[12], cm._clip_death) and cm._buf[13] > 0.15, "clip %.2f phase %.2f" % [cm._buf[12], cm._buf[13]])
+	_check("corpse keeps facing where it ran (falls backwards from there)", fwd.z > 0.9, "fwd %s" % str(fwd))
 	for f in 120:
 		cm._process(dt)
 	_check("corpse still there at 2.5 s", cm.active_count() == 1, "")
