@@ -1,0 +1,76 @@
+{
+  "rarities": [
+    { "id": "common",    "name": "Common",    "weight": 60, "mult": 1.0, "color": "#d0d0d0" },
+    { "id": "rare",      "name": "Rare",      "weight": 25, "mult": 1.5, "color": "#4aa3ff" },
+    { "id": "epic",      "name": "Epic",      "weight": 11, "mult": 2.0, "color": "#c06cff" },
+    { "id": "legendary", "name": "Legendary", "weight": 4,  "mult": 3.0, "color": "#ffb020" }
+  ],
+
+  "stat_names": {
+    "max_hp": "Max HP", "regen": "HP Regen/s", "armor": "Armor", "move_speed": "Move Speed",
+    "damage": "Damage", "attack_speed": "Attack Speed", "area": "Area", "projectile_speed": "Projectile Speed",
+    "projectile_count": "Projectiles", "pickup_range": "Pickup Range", "xp_gain": "XP Gain", "luck": "Luck",
+    "extra_jumps": "Extra Jumps",
+    "orb_damage": "Orb Damage", "orb_cooldown": "Orb Cooldown", "orb_count": "Orbs", "orb_pierce": "Orb Pierce",
+    "aura_damage": "Aura Damage", "aura_radius": "Aura Size", "aura_tick": "Aura Tick Rate",
+    "slam_damage": "Slam Damage", "slam_radius": "Slam Size", "slam_cooldown": "Slam Cooldown",
+    "bomb_chance": "Explode Chance", "bomb_damage": "Explosion Damage", "fang_chance": "Heal-on-Kill Chance"
+  },
+  "percent_stats": ["luck", "bomb_chance", "fang_chance"],
+
+  "upgrades": [
+    { "id": "weapon_orb", "kind": "weapon", "name": "Bonk Orbs", "weight": 10, "max_level": 8,
+      "desc": "Fires orbs at the nearest enemies.",
+      "per_level": [
+        { "stat": "orb_damage", "op": "add", "value": 0.2 },
+        { "stat": "orb_count", "op": "flat", "value": 0.5 },
+        { "stat": "orb_pierce", "op": "flat", "value": 0.34 } ] },
+
+    { "id": "weapon_aura", "kind": "weapon", "name": "Stink Aura", "weight": 8, "max_level": 8,
+      "desc": "Constantly damages enemies around you.",
+      "per_level": [
+        { "stat": "aura_damage", "op": "add", "value": 0.25 },
+        { "stat": "aura_radius", "op": "add", "value": 0.1 } ] },
+
+    { "id": "weapon_slam", "kind": "weapon", "name": "Ground Slam", "weight": 8, "max_level": 8,
+      "desc": "Periodically slams the ground, knocking enemies back.",
+      "per_level": [
+        { "stat": "slam_damage", "op": "add", "value": 0.25 },
+        { "stat": "slam_cooldown", "op": "mult", "value": 0.92 } ] },
+
+    { "id": "tome_damage", "kind": "tome", "name": "Tome of Damage", "weight": 10, "max_level": 99,
+      "desc": "Hit harder.", "per_level": [ { "stat": "damage", "op": "add", "value": 0.12 } ] },
+    { "id": "tome_haste", "kind": "tome", "name": "Tome of Haste", "weight": 10, "max_level": 99,
+      "desc": "Attack faster.", "per_level": [ { "stat": "attack_speed", "op": "add", "value": 0.1 } ] },
+    { "id": "tome_swift", "kind": "tome", "name": "Tome of Swiftness", "weight": 8, "max_level": 99,
+      "desc": "Run faster.", "per_level": [ { "stat": "move_speed", "op": "add", "value": 0.08 } ] },
+    { "id": "tome_vitality", "kind": "tome", "name": "Tome of Vitality", "weight": 8, "max_level": 99,
+      "desc": "More health.", "per_level": [ { "stat": "max_hp", "op": "flat", "value": 20 } ] },
+    { "id": "tome_area", "kind": "tome", "name": "Tome of Size", "weight": 7, "max_level": 99,
+      "desc": "Bigger everything.", "per_level": [ { "stat": "area", "op": "add", "value": 0.12 } ] },
+    { "id": "tome_velocity", "kind": "tome", "name": "Tome of Velocity", "weight": 5, "max_level": 99,
+      "desc": "Faster projectiles.", "per_level": [ { "stat": "projectile_speed", "op": "add", "value": 0.15 } ] },
+    { "id": "tome_magnet", "kind": "tome", "name": "Tome of Attraction", "weight": 6, "max_level": 99,
+      "desc": "Pick up XP from further away.", "per_level": [ { "stat": "pickup_range", "op": "add", "value": 0.3 } ] },
+    { "id": "tome_xp", "kind": "tome", "name": "Tome of Knowledge", "weight": 6, "max_level": 99,
+      "desc": "Gain more XP.", "per_level": [ { "stat": "xp_gain", "op": "add", "value": 0.1 } ] },
+    { "id": "tome_armor", "kind": "tome", "name": "Tome of Armor", "weight": 6, "max_level": 99,
+      "desc": "Take less damage.", "per_level": [ { "stat": "armor", "op": "flat", "value": 3 } ] },
+    { "id": "tome_regen", "kind": "tome", "name": "Tome of Regeneration", "weight": 6, "max_level": 99,
+      "desc": "Slowly heal over time.", "per_level": [ { "stat": "regen", "op": "flat", "value": 0.4 } ] },
+    { "id": "tome_luck", "kind": "tome", "name": "Tome of Luck", "weight": 5, "max_level": 99,
+      "desc": "Better rarity rolls.", "per_level": [ { "stat": "luck", "op": "flat", "value": 0.1 } ] },
+    { "id": "tome_quantity", "kind": "tome", "name": "Tome of Quantity", "weight": 3, "max_level": 3, "fixed": true,
+      "desc": "+1 projectile for every projectile weapon.", "per_level": [ { "stat": "projectile_count", "op": "flat", "value": 1 } ] },
+
+    { "id": "item_bomb", "kind": "item", "name": "Bonk Bomb", "weight": 5, "max_level": 5,
+      "desc": "Enemies have a chance to explode on death.",
+      "per_level": [ { "stat": "bomb_chance", "op": "flat", "value": 0.06 }, { "stat": "bomb_damage", "op": "add", "value": 0.15 } ] },
+    { "id": "item_fang", "kind": "item", "name": "Vampire Fang", "weight": 5, "max_level": 5,
+      "desc": "Chance to heal when you kill an enemy.",
+      "per_level": [ { "stat": "fang_chance", "op": "flat", "value": 0.04 } ] },
+    { "id": "item_feather", "kind": "item", "name": "Feather", "weight": 4, "max_level": 2, "fixed": true,
+      "desc": "Jump again in mid-air.",
+      "per_level": [ { "stat": "extra_jumps", "op": "flat", "value": 1 } ] }
+  ]
+}

@@ -1,0 +1,31 @@
+; Engine configuration file.
+; Dark Republic — a 3D survivors-like roguelite prototype.
+
+config_version=5
+
+[application]
+
+config/name="Dark Republic"
+config/description="3D survivors-like roguelite with movement tech."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[autoload]
+
+Events="*res://scripts/events.gd"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[physics]
+
+common/physics_ticks_per_second=60
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+anti_aliasing/quality/msaa_3d=1

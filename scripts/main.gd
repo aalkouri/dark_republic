@@ -1,0 +1,445 @@
+extends Node3D
+## Run orchestration: builds the world, owns run state (time, XP, level), drives the
+## spawn director, and ticks the simulation systems in a fixed order each physics frame:
+##   spawn -> enemies (move + grid) -> weapons (use grid) -> items -> gems -> contact damage
+##
+## Headless smoke test:
+##   godot --headless --path . --fixed-fps 60 -- --smoketest --smoke-seconds=240
+
+const ARENA_HALF := 110.0
+const RUN_LENGTH := 600.0
+const BOSS_TIME := 300.0
+const MAX_WEAPONS := 3
+
+const BASE_STATS := {
+	"max_hp": 100.0, "regen": 0.0, "armor": 0.0, "move_speed": 8.0,
+	"damage": 1.0, "attack_speed": 1.0, "area": 1.0, "projectile_speed": 1.0,
+	"projectile_count": 0.0, "pickup_range": 4.0, "xp_gain": 1.0, "luck": 0.0, "extra_jumps": 0.0,
+	"orb_damage": 12.0, "orb_cooldown": 0.9, "orb_count": 1.0, "orb_pierce": 0.0, "orb_speed": 24.0,
+	"aura_damage": 5.0, "aura_radius": 3.2, "aura_tick": 0.45,
+	"slam_damage": 18.0, "slam_radius": 5.5, "slam_cooldown": 2.6,
+	"bomb_chance": 0.0, "bomb_damage": 25.0, "fang_chance": 0.0,
+}
+
+static var smoke_restarts := 0
+
+var rng := RandomNumberGenerator.new()
+var stats: Stats
+var db: UpgradeDB
+var player: Player
+var enemies: EnemyManager
+var weapons: WeaponSystem
+var gems: GemManager
+var items: ItemEffects
+var hud: Hud
+
+var state := "playing"   # playing | paused | levelup | dead | won
+var run_time := 0.0
+var level := 1
+var xp := 0.0
+var xp_next := 0.0
+var kills := 0
+var pending_levels := 0
+var current_draft: Array = []
+var _spawn_budget := 0.0
+var _boss_spawned := false
+var _next_swarm := 60.0
+
+var perf := {"enemies": 0.0, "weapons": 0.0, "gems": 0.0}
+
+# Smoke test
+var smoke := false
+var smoke_seconds := 240.0
+var _smoke_acc := {"enemies": 0.0, "weapons": 0.0, "gems": 0.0, "frames": 0}
+var _smoke_log_t := 0.0
+var _smoke_phase := 0
+var _smoke_phase_t := 0.0
+var _smoke_wall_start := 0
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	setup_inputs()
+
+	var args := OS.get_cmdline_user_args()
+	smoke = args.has("--smoketest")
+	for a in args:
+		if a.begins_with("--smoke-seconds="):
+			smoke_seconds = float(a.split("=")[1])
+	if smoke:
+		rng.seed = 1337
+		_smoke_wall_start = Time.get_ticks_msec()
+	else:
+		rng.randomize()
+
+	stats = Stats.new()
+	for k in BASE_STATS:
+		stats.define(k, BASE_STATS[k])
+	db = UpgradeDB.new("res://data/upgrades.json", rng)
+
+	WorldBuilder.build(self, rng, ARENA_HALF)
+
+	player = Player.new()
+	player.stats = stats
+	player.process_mode = Node.PROCESS_MODE_PAUSABLE
+	add_child(player)
+	player.global_position = Vector3(0, 0.5, 0)
+	player.died.connect(_on_player_died)
+
+	enemies = EnemyManager.new()
+	enemies.arena_half = ARENA_HALF
+	enemies.rng = rng
+	add_child(enemies)
+
+	gems = GemManager.new()
+	add_child(gems)
+
+	weapons = WeaponSystem.new()
+	weapons.setup(stats, db, enemies, player)
+	add_child(weapons)
+
+	items = ItemEffects.new()
+	items.setup(stats, enemies, player, rng)
+	add_child(items)
+
+	hud = Hud.new()
+	add_child(hud)
+	hud.setup(self)
+
+	Events.enemy_killed.connect(_on_enemy_killed)
+	db.apply({"id": "weapon_orb", "rarity": 0}, stats)   # starting weapon
+	xp_next = _xp_for(level)
+
+	if smoke:
+		player.bot = true
+		player.god_mode = true
+		print("SMOKE start (restart #%d)" % smoke_restarts)
+	else:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	hud.flash_message("Survive 10 minutes. A Big Bonker arrives at 5:00.", 4.0)
+
+
+func _exit_tree() -> void:
+	if Events.enemy_killed.is_connected(_on_enemy_killed):
+		Events.enemy_killed.disconnect(_on_enemy_killed)
+
+
+# ------------------------------------------------------------------ main loop
+
+func _physics_process(dt: float) -> void:
+	if smoke:
+		_smoke_tick(dt)
+	if state != "playing":
+		return
+	run_time += dt
+	_spawn_director(dt)
+
+	var t0 := Time.get_ticks_usec()
+	enemies.tick(dt, player.global_position)
+	var t1 := Time.get_ticks_usec()
+	weapons.tick(dt)
+	items.tick(dt)
+	var t2 := Time.get_ticks_usec()
+	var gained := gems.tick(dt, player.global_position + Vector3(0, 0.9, 0), stats.value("pickup_range"))
+	var t3 := Time.get_ticks_usec()
+	_track_perf((t1 - t0) / 1000.0, (t2 - t1) / 1000.0, (t3 - t2) / 1000.0)
+
+	_contact_damage()
+	if gained > 0.0:
+		_add_xp(gained * stats.value("xp_gain"))
+	if run_time >= RUN_LENGTH and state == "playing":
+		_end_run(true)
+
+
+func _track_perf(e: float, w: float, g: float) -> void:
+	var k := 0.05
+	perf["enemies"] = lerpf(perf["enemies"], e, k)
+	perf["weapons"] = lerpf(perf["weapons"], w, k)
+	perf["gems"] = lerpf(perf["gems"], g, k)
+	_smoke_acc["enemies"] += e
+	_smoke_acc["weapons"] += w
+	_smoke_acc["gems"] += g
+	_smoke_acc["frames"] += 1
+
+
+func _contact_damage() -> void:
+	var hits := enemies.query_radius(player.global_position + Vector3(0, 0.9, 0), 0.45)
+	if hits.is_empty():
+		return
+	var dmg := 0.0
+	for i in hits:
+		dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]])
+	player.hurt(dmg)
+
+
+# ------------------------------------------------------------------ spawning
+
+func hp_mult() -> float:
+	var m := run_time / 60.0
+	return 1.0 + m * 0.35 + m * m * 0.04
+
+
+func _spawn_director(dt: float) -> void:
+	var m := run_time / 60.0
+	_spawn_budget += (1.6 + m * 2.2 + m * m * 0.5) * dt
+	var hpm := hp_mult()
+	while _spawn_budget >= 1.0:
+		_spawn_budget -= 1.0
+		if enemies.count >= EnemyManager.MAX - 60:
+			_spawn_budget = 0.0
+			break
+		enemies.spawn(_pick_type(m), _spawn_point(26.0, 36.0), hpm)
+
+	# Swarm ring every minute
+	if run_time >= _next_swarm:
+		_next_swarm += 60.0
+		var n := 24 + int(m) * 6
+		for k in n:
+			var a := TAU * float(k) / float(n)
+			var p := player.global_position + Vector3(cos(a), 0, sin(a)) * 22.0
+			enemies.spawn(EnemyManager.RUNNER, p, hpm)
+		hud.flash_message("SWARM!", 2.0)
+
+	if not _boss_spawned and run_time >= BOSS_TIME:
+		_boss_spawned = true
+		enemies.spawn(EnemyManager.BOSS, _spawn_point(30.0, 32.0), hpm)
+		hud.flash_message("A BIG BONKER APPROACHES", 4.0)
+
+
+func _pick_type(m: float) -> int:
+	var w_grunt := 10.0
+	var w_runner := 4.0 * minf(m, 3.0) if m >= 1.0 else 0.0
+	var w_tank := 1.5 * (m - 1.0) if m >= 2.0 else 0.0
+	var r := rng.randf() * (w_grunt + w_runner + w_tank)
+	if r < w_grunt:
+		return EnemyManager.GRUNT
+	if r < w_grunt + w_runner:
+		return EnemyManager.RUNNER
+	return EnemyManager.TANK
+
+
+func _spawn_point(min_d: float, max_d: float) -> Vector3:
+	var a := rng.randf() * TAU
+	var p := player.global_position + Vector3(cos(a), 0, sin(a)) * rng.randf_range(min_d, max_d)
+	return Vector3(clampf(p.x, -ARENA_HALF + 2, ARENA_HALF - 2), 0, clampf(p.z, -ARENA_HALF + 2, ARENA_HALF - 2))
+
+
+func _on_enemy_killed(p: Vector3, type_id: int) -> void:
+	kills += 1
+	gems.spawn(p + Vector3(0, 0.5, 0), enemies.t_xp[type_id])
+	if type_id == EnemyManager.BOSS:
+		gems.magnetise_all()
+		hud.flash_message("BIG BONKER BONKED!", 4.0)
+
+
+# ------------------------------------------------------------------ progression
+
+func _xp_for(lv: int) -> float:
+	return roundf(4.0 + pow(float(lv), 1.55) * 4.0)
+
+
+func _add_xp(v: float) -> void:
+	xp += v
+	while xp >= xp_next:
+		xp -= xp_next
+		level += 1
+		xp_next = _xp_for(level)
+		pending_levels += 1
+		Events.level_up.emit(level)
+	if pending_levels > 0 and state == "playing":
+		_open_draft()
+
+
+func _open_draft() -> void:
+	current_draft = db.draft(3, stats.value("luck"), MAX_WEAPONS)
+	if current_draft.is_empty():   # everything maxed: just heal
+		pending_levels = 0
+		player.heal(player.max_hp)
+		return
+	state = "levelup"
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	hud.show_draft(current_draft)
+	if smoke:
+		choose_upgrade.call_deferred(rng.randi() % current_draft.size())
+
+
+func choose_upgrade(i: int) -> void:
+	if state != "levelup" or i < 0 or i >= current_draft.size():
+		return
+	db.apply(current_draft[i], stats)
+	pending_levels -= 1
+	if pending_levels > 0:
+		state = "playing"
+		_open_draft()
+		return
+	hud.hide_draft()
+	_resume()
+
+
+func _resume() -> void:
+	state = "playing"
+	get_tree().paused = false
+	hud.set_paused(false)
+	if not smoke:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _on_player_died() -> void:
+	_end_run(false)
+
+
+func _end_run(won: bool) -> void:
+	state = "won" if won else "dead"
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	hud.show_end(won)
+
+
+func restart() -> void:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
+# ------------------------------------------------------------------ input
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause"):
+		if state == "playing":
+			state = "paused"
+			get_tree().paused = true
+			hud.set_paused(true)
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		elif state == "paused":
+			_resume()
+	elif state == "levelup":
+		for k in 3:
+			if event.is_action_pressed("pick_%d" % (k + 1)):
+				choose_upgrade(k)
+	elif (state == "dead" or state == "won") and event.is_action_pressed("restart"):
+		restart()
+	elif state == "playing":
+		if event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		elif event.is_action_pressed("debug_stats"):
+			hud.toggle_debug()
+		elif event.is_action_pressed("debug_spawn"):
+			for k in 200:
+				enemies.spawn(EnemyManager.GRUNT, _spawn_point(15.0, 40.0), hp_mult())
+
+
+static func setup_inputs() -> void:
+	_bind("move_forward", [KEY_W, KEY_UP], [], [[JOY_AXIS_LEFT_Y, -1.0]])
+	_bind("move_back", [KEY_S, KEY_DOWN], [], [[JOY_AXIS_LEFT_Y, 1.0]])
+	_bind("move_left", [KEY_A, KEY_LEFT], [], [[JOY_AXIS_LEFT_X, -1.0]])
+	_bind("move_right", [KEY_D, KEY_RIGHT], [], [[JOY_AXIS_LEFT_X, 1.0]])
+	_bind("look_left", [], [], [[JOY_AXIS_RIGHT_X, -1.0]])
+	_bind("look_right", [], [], [[JOY_AXIS_RIGHT_X, 1.0]])
+	_bind("look_up", [], [], [[JOY_AXIS_RIGHT_Y, -1.0]])
+	_bind("look_down", [], [], [[JOY_AXIS_RIGHT_Y, 1.0]])
+	_bind("jump", [KEY_SPACE], [JOY_BUTTON_A], [])
+	_bind("slide", [KEY_SHIFT, KEY_CTRL, KEY_C], [JOY_BUTTON_B, JOY_BUTTON_LEFT_SHOULDER], [])
+	_bind("pause", [KEY_ESCAPE, KEY_P], [JOY_BUTTON_START], [])
+	_bind("pick_1", [KEY_1], [JOY_BUTTON_X], [])
+	_bind("pick_2", [KEY_2], [JOY_BUTTON_Y], [])
+	_bind("pick_3", [KEY_3], [JOY_BUTTON_RIGHT_SHOULDER], [])
+	_bind("restart", [KEY_R], [JOY_BUTTON_BACK], [])
+	_bind("debug_stats", [KEY_F1], [], [])
+	_bind("debug_spawn", [KEY_F2], [], [])
+
+
+static func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:
+	if InputMap.has_action(action):
+		return
+	InputMap.add_action(action, 0.2)
+	for k in keys:
+		var ev := InputEventKey.new()
+		ev.physical_keycode = k
+		InputMap.action_add_event(action, ev)
+	for b in buttons:
+		var ev := InputEventJoypadButton.new()
+		ev.button_index = b
+		InputMap.action_add_event(action, ev)
+	for a in axes:
+		var ev := InputEventJoypadMotion.new()
+		ev.axis = a[0]
+		ev.axis_value = a[1]
+		InputMap.action_add_event(action, ev)
+
+
+# ------------------------------------------------------------------ smoke test
+
+func _smoke_tick(dt: float) -> void:
+	if Time.get_ticks_msec() - _smoke_wall_start > 600000:
+		print("SMOKE FAIL: wall-clock timeout")
+		get_tree().quit(1)
+		return
+
+	if smoke_restarts > 0:
+		# Second instance after reload: verify the fresh run simulates, then exit.
+		if run_time > 3.0:
+			print("SMOKE restart OK: run_time=%.1f enemies=%d" % [run_time, enemies.alive_count()])
+			print("SMOKE PASS")
+			get_tree().quit(0)
+		_drive_bot(dt)
+		return
+
+	match _smoke_phase:
+		0:  # normal play with the bot
+			_drive_bot(dt)
+			_smoke_log_t += dt
+			if _smoke_log_t >= 20.0:
+				_smoke_log_t = 0.0
+				_smoke_report("t=%5.1f" % run_time)
+			if run_time >= smoke_seconds:
+				_smoke_phase = 1
+				_smoke_phase_t = 0.0
+				var added := 0
+				while enemies.count < 1400:
+					enemies.spawn(EnemyManager.GRUNT, _spawn_point(8.0, 50.0), hp_mult() * 50.0)
+					added += 1
+				print("SMOKE stress: added %d enemies, total %d" % [added, enemies.count])
+				_reset_acc()
+		1:  # stress at ~1400 enemies
+			_drive_bot(dt)
+			_smoke_phase_t += dt
+			if _smoke_phase_t >= 8.0:
+				_smoke_report("STRESS")
+				_smoke_phase = 2
+				player.god_mode = false
+				player.invuln = 0.0
+				player.hurt(1.0e9)
+		2:
+			if state == "dead" and hud.end_root.visible:
+				print("SMOKE death -> game over screen OK (level %d, kills %d)" % [level, kills])
+				_smoke_phase = 3
+				smoke_restarts += 1
+				restart.call_deferred()
+			else:
+				_smoke_phase_t += dt
+				if _smoke_phase_t > 12.0:
+					print("SMOKE FAIL: player did not die / no end screen (state=%s)" % state)
+					get_tree().quit(1)
+
+
+func _drive_bot(_dt: float) -> void:
+	if state != "playing":
+		return
+	player.cam_yaw += 0.9 / 60.0
+	player.bot_move = Vector2(0.35, -1.0)
+	player.bot_jump = fmod(run_time, 1.1) < 1.0 / 60.0
+	player.bot_slide = fmod(run_time, 5.0) > 4.0
+
+
+func _smoke_report(tag: String) -> void:
+	var f: float = maxf(1.0, _smoke_acc["frames"])
+	print("SMOKE %s | lv %2d kills %5d enemies %4d proj %3d gems %3d | hp %.0f/%.0f speed %.1f | ms/frame enemies %.2f weapons %.2f gems %.2f | weapons %s" % [
+		tag, level, kills, enemies.alive_count(), weapons.pc, gems.count, player.hp, player.max_hp,
+		player.horizontal_speed(),
+		_smoke_acc["enemies"] / f, _smoke_acc["weapons"] / f, _smoke_acc["gems"] / f,
+		str(db.levels)])
+	_reset_acc()
+
+
+func _reset_acc() -> void:
+	_smoke_acc = {"enemies": 0.0, "weapons": 0.0, "gems": 0.0, "frames": 0}
