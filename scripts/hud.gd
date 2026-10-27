@@ -15,6 +15,7 @@ var inv_label: Label
 var debug_label: Label
 var msg_label: Label
 var pause_root: Control
+var settings_menu: SettingsMenu
 var draft_root: Control
 var draft_cards: Array = []   # [Button, rarity Label, title Label, body Label]
 var end_root: Control
@@ -147,12 +148,40 @@ func _dim(root: Control) -> Control:
 
 func _build_pause(root: Control) -> void:
 	pause_root = _dim(root)
-	pause_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var l := _label("PAUSED\n\nEsc to resume", 44)
-	l.set_anchors_preset(Control.PRESET_FULL_RECT)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	pause_root.add_child(l)
+	pause_root.mouse_filter = Control.MOUSE_FILTER_STOP
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	pause_root.add_child(center)
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 14)
+	center.add_child(vb)
+	var title := _label("PAUSED", 52)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(title)
+	for item in [["Resume", func(): main.resume_from_pause()],
+			["Settings", func(): open_settings()],
+			["Restart run", func(): main.restart()],
+			["Quit to desktop", func(): get_tree().quit()]]:
+		var b := Button.new()
+		b.text = item[0]
+		b.custom_minimum_size = Vector2(300, 52)
+		b.add_theme_font_size_override("font_size", 22)
+		b.pressed.connect(item[1])
+		vb.add_child(b)
+
+	settings_menu = SettingsMenu.new()
+	settings_menu.visible = false
+	settings_menu.closed.connect(func(): pause_root.visible = main.state == "paused")
+	root.add_child(settings_menu)
+
+
+func open_settings() -> void:
+	pause_root.visible = false
+	settings_menu.open()
+
+
+func settings_open() -> bool:
+	return settings_menu.visible
 
 
 func _build_draft(root: Control) -> void:
@@ -311,8 +340,9 @@ func _process(dt: float) -> void:
 	xp_bar.value = main.xp
 	level_label.text = "LV %d" % main.level
 	timer_label.text = _fmt_time(main.run_time)
-	info_label.text = "Kills %d\nEnemies %d\nSpeed %.1f m/s\nFPS %d" % [
-		main.kills, main.enemies.alive_count(), p.horizontal_speed(), Engine.get_frames_per_second()]
+	info_label.text = "Kills %d\nEnemies %d\nSpeed %.1f m/s" % [main.kills, main.enemies.alive_count(), p.horizontal_speed()]
+	if Settings.show_fps:
+		info_label.text += "\nFPS %d" % Engine.get_frames_per_second()
 
 	var lines := []
 	for id in main.db.order:

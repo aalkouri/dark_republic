@@ -113,7 +113,7 @@ func _ready() -> void:
 	spring.add_excluded_object(get_rid())
 	rig.add_child(spring)
 	cam = Camera3D.new()
-	cam.fov = 75.0
+	cam.fov = Settings.fov
 	cam.far = 400.0
 	spring.add_child(cam)
 	cam.current = true
@@ -134,8 +134,10 @@ func _on_stat_changed(stat: String) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		cam_yaw -= event.relative.x * MOUSE_SENS
-		cam_pitch = clampf(cam_pitch - event.relative.y * MOUSE_SENS, -1.25, 0.4)
+		var sens := MOUSE_SENS * Settings.mouse_sensitivity
+		var dy: float = event.relative.y * (-1.0 if Settings.invert_y else 1.0)
+		cam_yaw -= event.relative.x * sens
+		cam_pitch = clampf(cam_pitch - dy * sens, -1.25, 0.4)
 
 
 func _physics_process(dt: float) -> void:
@@ -288,7 +290,7 @@ func _update_visuals(dt: float) -> void:
 	var head := global_position + Vector3(0.0, 1.0 if sliding else 1.6, 0.0)
 	rig.global_position = rig.global_position.lerp(head, 1.0 - exp(-20.0 * dt))
 	rig.rotation = Vector3(cam_pitch, cam_yaw, 0.0)
-	var fov_target := 75.0 + clampf((hv.length() - 9.0) * 0.9, 0.0, 22.0)
+	var fov_target := Settings.fov + clampf((hv.length() - 9.0) * 0.9, 0.0, 22.0)
 	cam.fov = lerpf(cam.fov, fov_target, 1.0 - exp(-6.0 * dt))
 	_shake = maxf(0.0, _shake - dt * 1.8)
 	var sk := _shake * _shake

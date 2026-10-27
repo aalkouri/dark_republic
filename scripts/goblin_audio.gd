@@ -62,10 +62,12 @@ func _ready() -> void:
 		v.max_distance = HEAR_RADIUS * 1.6
 		v.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 		v.volume_db = -2.0
+		v.bus = Settings.SFX_BUS
 		add_child(v)
 		_voices.append(v)
 	_hit_player = AudioStreamPlayer.new()
 	_hit_player.volume_db = 0.0
+	_hit_player.bus = Settings.SFX_BUS
 	add_child(_hit_player)
 
 

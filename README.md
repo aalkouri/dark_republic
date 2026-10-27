@@ -23,6 +23,14 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 
 **Movement tech:** jump on the frame you land to keep momentum (bhop), and strafe and turn in the air to gain speed. Slide while running for a burst; sliding down ramps accelerates you, and slide-jumping keeps the speed.
 
+## Pause menu and settings
+
+**Esc** opens the pause menu: Resume, Settings, Restart run, Quit to desktop. Settings are saved to `user://settings.cfg` and applied on startup.
+
+- **Video:** display mode (windowed / fullscreen / borderless), VSync, render scale, field of view, FPS limit, show FPS.
+- **Sound:** Music volume and All other audio volume (goblin voices, hits, effects), each with its own Mute checkbox. They use separate audio buses, `Music` and `SFX`.
+- **Controls:** mouse sensitivity, invert Y, and rebindable keys for movement, jump, slide, the three abilities and pause (click a key, press the new one; Esc cancels).
+
 ## The fire wizard
 
 **Abilities** (bottom-center bar; the ultimate has a yellow outline):
@@ -106,6 +114,8 @@ scripts/
   swamp_water.gd     recessed pools: outline, bed, water shader, heightmap collision, slow zones
   mesh_builder.gd    merges primitives into vertex-colored meshes with wind sway
   damage_numbers.gd  pooled pop-and-fade damage numbers
+  settings.gd        autoload: audio buses, video/controls options, key remaps, save/load
+  settings_menu.gd   Video / Sound / Controls settings screen
   hud.gd             all UI, built in code
 data/upgrades.json   every weapon/tome/item and rarity, as data
 tools/               headless micro-benchmarks
@@ -133,6 +143,9 @@ godot --path . -- --shot=/tmp/shot.png --shot-at=4 --shot-cast=0@1 --shot-spawn=
 
 # Swamp tests (pool size/depth, recessed collision, 50% speed and jump in water)
 godot --headless --path . --fixed-fps 60 res://tools/test_swamp.tscn
+
+# Pause menu / settings tests (tabs, independent music + SFX volume and mute, saving, rebinding)
+godot --headless --path . res://tools/test_settings.tscn
 
 # Crowd simulation benchmark
 godot --headless --path . res://tools/bench_enemies.tscn

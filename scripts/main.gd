@@ -79,6 +79,7 @@ var shot_casts := {}   # time -> ability index
 var _shot_spawn := 0
 var _shot_front := false
 var _shot_pool := false
+var _shot_settings_tab := -1
 var _forced_seed := -1
 var _shot_pitch := -99.0
 
@@ -86,6 +87,7 @@ var _shot_pitch := -99.0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	setup_inputs()
+	Settings.apply_bindings()
 
 	var args := OS.get_cmdline_user_args()
 	smoke = args.has("--smoketest")
@@ -105,6 +107,8 @@ func _ready() -> void:
 			_shot_spawn = int(a.split("=")[1])
 		elif a.begins_with("--seed="):
 			_forced_seed = int(a.split("=")[1])
+		elif a.begins_with("--shot-settings="):
+			_shot_settings_tab = int(a.split("=")[1])
 		elif a == "--shot-pool":
 			_shot_pool = true
 		elif a == "--shot-front":
@@ -405,6 +409,11 @@ func cast_ability(i: int) -> void:
 		hud.flash_message("INFERNO!", 2.0)
 
 
+func resume_from_pause() -> void:
+	if state == "paused":
+		_resume()
+
+
 func _resume() -> void:
 	state = "playing"
 	get_tree().paused = false
@@ -421,6 +430,7 @@ func _on_player_died() -> void:
 ## Keeps playing through pause and level-up menus.
 func _start_music() -> void:
 	music = AudioStreamPlayer.new()
+	music.bus = Settings.MUSIC_BUS
 	music.process_mode = Node.PROCESS_MODE_ALWAYS
 	music.volume_db = MUSIC_VOLUME_DB
 	add_child(music)
@@ -460,7 +470,9 @@ func restart() -> void:
 # ------------------------------------------------------------------ input
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause"):
+	if event.is_action_pressed("pause") and hud.settings_open():
+		hud.settings_menu.handle_escape()
+	elif event.is_action_pressed("pause"):
 		if state == "playing":
 			state = "paused"
 			get_tree().paused = true
@@ -612,11 +624,18 @@ func _shot_tick() -> void:
 			cast_ability(shot_casts[t])
 			shot_casts.erase(t)
 	if run_time >= shot_at:
+		if _shot_settings_tab >= 0:
+			state = "paused"
+			get_tree().paused = true
+			hud.set_paused(true)
+			hud.open_settings()
+			hud.settings_menu._tabs.current_tab = _shot_settings_tab
 		shot_path_save.call_deferred()
 		set_physics_process(false)
 
 
 func shot_path_save() -> void:
+	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(shot_path)
 	print("SHOT saved ", shot_path)
