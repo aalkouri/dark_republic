@@ -1,106 +1,322 @@
 class_name WorldBuilder
 extends RefCounted
-## Builds the arena procedurally from a seed: lighting, ground, platforms, ramps, walls.
+## Builds the dark swamp arena from a seed:
+##   sky (50% sun behind dense clouds / 50% moon with few clouds), lighting and fog,
+##   ground with random mud and swamp-grass patches, swaying grass tufts and reeds,
+##   4 recessed pools of swamp water, 45 swamp trees (4 variants), 18 fallen trees,
+##   6 mossy ruins and stone walls.
+## Returns the SwampWater so gameplay can query water and ground height.
 
-const GROUND_SHADER := """
-shader_type spatial;
-uniform vec3 col_a : source_color = vec3(0.30, 0.42, 0.26);
-uniform vec3 col_b : source_color = vec3(0.26, 0.37, 0.23);
-varying vec3 wpos;
-void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
-void fragment() {
-	vec2 c = floor(wpos.xz / 4.0);
-	float k = mod(c.x + c.y, 2.0);
-	ALBEDO = mix(col_a, col_b, k);
-	ROUGHNESS = 0.95;
+const TREES := 45
+const FALLEN := 18
+const RUINS := 6
+const POOLS := 4
+
+const SKY_SHADER := """
+shader_type sky;
+uniform vec3 top_color : source_color;
+uniform vec3 horizon_color : source_color;
+uniform vec3 ground_color : source_color;
+uniform vec3 cloud_dark : source_color;
+uniform vec3 cloud_light : source_color;
+uniform vec3 body_color : source_color;
+uniform float body_size = 0.045;       // angular radius of the sun/moon (radians)
+uniform float coverage = 0.85;         // 0 = clear, 1 = overcast
+uniform float night = 0.0;
+uniform float seed = 0.0;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+	vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+float fbm(vec2 p) {
+	float v = 0.0; float a = 0.5;
+	for (int i = 0; i < 6; i++) { v += a * noise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; }
+	return v;
+}
+
+void sky() {
+	vec3 d = EYEDIR;
+	float h = d.y;
+	vec3 col = mix(horizon_color, top_color, smoothstep(0.0, 0.55, h));
+	if (h < 0.0) { col = mix(horizon_color, ground_color, smoothstep(0.0, -0.25, h)); }
+
+	vec3 L = LIGHT0_DIRECTION;
+	float cosang = dot(d, L);
+	float ang = acos(clamp(cosang, -1.0, 1.0));
+	float disc = 1.0 - smoothstep(body_size * 0.9, body_size, ang);
+	float halo = exp(-(ang * ang) / (body_size * body_size * 18.0));
+	float wide = pow(max(cosang, 0.0), 6.0);
+
+	// Stars (night only)
+	if (night > 0.5 && h > 0.0) {
+		vec2 sp = vec2(atan(d.z, d.x), asin(h)) * 180.0;
+		float s = hash(floor(sp));
+		float star = step(0.9965, s) * smoothstep(0.0, 0.2, h);
+		col += vec3(star) * (0.5 + 0.5 * hash(floor(sp) + 3.1));
+	}
+
+	// Sun / moon disc (the moon gets some mottling)
+	vec3 body = body_color;
+	if (night > 0.5) {
+		vec3 t = d - L * cosang;
+		body *= 0.82 + 0.18 * noise(t.xz * 260.0 + t.y * 90.0);
+	}
+	col = mix(col, body, disc);
+	col += body_color * (halo * mix(0.55, 0.28, night) + wide * mix(0.12, 0.03, night));
+
+	// Clouds on a virtual plane
+	if (h > 0.0) {
+		vec2 uv = d.xz / (h + 0.1) * 0.55 + vec2(seed, seed * 0.37);
+		float n = fbm(uv);
+		float dens = smoothstep(1.0 - coverage - 0.08, 1.0 - coverage + 0.32, n);
+		dens *= smoothstep(0.0, 0.12, h);
+		float n2 = fbm(uv + L.xz * 0.06);
+		float lit = clamp(0.55 + (n - n2) * 5.0, 0.0, 1.0);
+		vec3 cc = mix(cloud_dark, cloud_light, lit);
+		cc += body_color * (wide * mix(0.35, 0.08, night) + halo * mix(0.5, 0.2, night));  // silver lining
+		col = mix(col, cc, dens);
+		// The sun still glows through the overcast
+		col += body_color * halo * dens * mix(0.35, 0.05, night);
+	}
+	COLOR = col;
 }
 """
 
-const PALETTE := [
-	Color(0.85, 0.78, 0.62), Color(0.62, 0.72, 0.85), Color(0.86, 0.62, 0.55),
-	Color(0.66, 0.82, 0.62), Color(0.78, 0.66, 0.86), Color(0.9, 0.84, 0.5),
-]
+const GROUND_SHADER := """
+shader_type spatial;
+uniform sampler2D patch_map : filter_linear, repeat_disable;
+uniform float extent = 120.0;
+uniform vec4 pools[4];
+uniform vec4 pool_amps[4];
+uniform vec4 pool_phases[4];
+uniform vec3 base_col : source_color = vec3(0.17, 0.16, 0.1);
+uniform vec3 grass_col : source_color = vec3(0.15, 0.21, 0.08);
+uniform vec3 mud_col : source_color = vec3(0.12, 0.085, 0.055);
+varying vec3 wpos;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+	vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+
+void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+
+void fragment() {
+	// Cut holes where the pools are (the pool bed mesh fills them) and darken their wet banks
+	float bank = 0.0;
+	for (int i = 0; i < 4; i++) {
+		vec4 p = pools[i];
+		if (p.w < 0.5) { continue; }
+		vec2 d = wpos.xz - p.xy;
+		float th = atan(d.y, d.x);
+		vec4 a = pool_amps[i];
+		vec4 ph = pool_phases[i];
+		float r = p.z * (1.0 + a.x * sin(2.0 * th + ph.x) + a.y * sin(3.0 * th + ph.y) + a.z * sin(4.0 * th + ph.z) + a.w * sin(5.0 * th + ph.w));
+		float dist = length(d);
+		if (dist < r * 0.985) { discard; }
+		bank = max(bank, 1.0 - smoothstep(r, r + 2.5, dist));
+	}
+	vec2 uv = (wpos.xz + extent) / (2.0 * extent);
+	vec4 m = texture(patch_map, uv);
+	float n = noise(wpos.xz * 1.7) * 0.6 + noise(wpos.xz * 7.0) * 0.4;
+	float mud = smoothstep(0.57, 0.64, m.r + (n - 0.5) * 0.06);
+	float grass = smoothstep(0.55, 0.63, m.g + (n - 0.5) * 0.06) * (1.0 - mud);
+	vec3 col = base_col * (0.8 + 0.4 * n);
+	col = mix(col, grass_col * (0.75 + 0.5 * n), grass);
+	col = mix(col, mud_col * (0.85 + 0.3 * n), mud);
+	float wet = max(mud * (0.6 + 0.4 * n), bank);
+	col *= 1.0 - 0.35 * wet;
+	ALBEDO = col;
+	ROUGHNESS = mix(0.95, 0.28, wet);
+	SPECULAR = mix(0.3, 0.6, wet);
+}
+"""
 
 
-static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> void:
-	_environment(parent)
-	_ground(parent, half)
+static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> SwampWater:
+	var is_night := rng.randf() < 0.5
+	_environment(parent, rng, is_night)
+
+	var water := SwampWater.generate(rng, POOLS, half, 18.0)
+	var patches := _patch_map(rng, half + 10.0)
+	_ground(parent, half, water, patches)
+	water.build_meshes(parent)
+	_grass(parent, rng, half, water, patches)
+	_reeds(parent, rng, water)
 	_walls(parent, half)
 
-	# Platforms (avoid the spawn area)
-	for i in 45:
-		var p := _random_point(rng, half - 8.0, 12.0)
-		var size := Vector3(rng.randf_range(3.0, 9.0), rng.randf_range(1.0, 4.5), rng.randf_range(3.0, 9.0))
-		_box(parent, Vector3(p.x, size.y * 0.5, p.z), size, Vector3(0, rng.randf() * TAU, 0), PALETTE[rng.randi() % PALETTE.size()])
+	var placed: Array[Vector3] = []   # trunk positions, to keep trees apart
+	for i in TREES:
+		var p := _free_point(rng, half - 6.0, 12.0, water, 3.0, placed, 4.5)
+		var t := SwampProps.tree(i % SwampProps.VARIANTS, rng)
+		_prop(parent, t, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p))
+		placed.append(p)
 
-	# Ramps: great for slide-boosting and launching
-	for i in 18:
-		var p := _random_point(rng, half - 10.0, 14.0)
-		var tilt := deg_to_rad(rng.randf_range(12.0, 22.0))
-		var length := rng.randf_range(8.0, 14.0)
-		var size := Vector3(rng.randf_range(4.0, 7.0), 0.6, length)
-		var y := sin(tilt) * length * 0.5 - 0.3 * cos(tilt)
-		_box(parent, Vector3(p.x, y, p.z), size, Vector3(tilt, rng.randf() * TAU, 0), Color(0.75, 0.75, 0.78))
+	for i in FALLEN:
+		var fallen := SwampProps.fallen_log(rng)
+		var length: float = fallen["length"]
+		var r: float = fallen["radius"]
+		var p := _free_point(rng, half - length * 0.5 - 4.0, 14.0, water, length * 0.5 + 2.0, placed, length * 0.5 + 1.0)
+		# Lie on the ground, partly sunk in the mud, root end lifted a little
+		var tilt := deg_to_rad(rng.randf_range(2.0, 8.0))
+		var basis := Basis(Vector3.UP, rng.randf() * TAU) * Basis(Vector3(0, 0, 1), -tilt)
+		var y := r * 0.8 + sin(tilt) * length * 0.5
+		_prop(parent, fallen, Transform3D(basis, p + Vector3(0, y, 0)))
+		placed.append(p)
 
-	# A few tall pillars as landmarks
-	for i in 6:
-		var p := _random_point(rng, half - 15.0, 25.0)
-		var h := rng.randf_range(10.0, 18.0)
-		_box(parent, Vector3(p.x, h * 0.5, p.z), Vector3(3, h, 3), Vector3.ZERO, Color(0.5, 0.45, 0.55))
+	for i in RUINS:
+		var p := _free_point(rng, half - 15.0, 25.0, water, 4.0, placed, 6.0)
+		_prop(parent, SwampProps.ruin(rng), Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p))
+		placed.append(p)
+	return water
 
 
-static func _random_point(rng: RandomNumberGenerator, extent: float, keep_out: float) -> Vector3:
-	while true:
+static func _free_point(rng: RandomNumberGenerator, extent: float, keep_out: float, water: SwampWater, pool_margin: float, placed: Array[Vector3], spacing: float) -> Vector3:
+	for attempt in 300:
 		var p := Vector3(rng.randf_range(-extent, extent), 0.0, rng.randf_range(-extent, extent))
-		if p.length() > keep_out:
+		if p.length() < keep_out or water.near_pool(p.x, p.z, pool_margin):
+			continue
+		var ok := true
+		for q in placed:
+			if p.distance_to(q) < spacing:
+				ok = false
+				break
+		if ok:
 			return p
-	return Vector3.ZERO
+	return Vector3(rng.randf_range(-extent, extent), 0.0, rng.randf_range(-extent, extent))
 
 
-static func _environment(parent: Node3D) -> void:
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.3, 0.5, 0.85)
-	sky_mat.sky_horizon_color = Color(0.78, 0.84, 0.92)
-	sky_mat.ground_horizon_color = Color(0.78, 0.84, 0.92)
-	sky_mat.ground_bottom_color = Color(0.3, 0.35, 0.3)
+static func _prop(parent: Node3D, data: Dictionary, xf: Transform3D) -> void:
+	var body := StaticBody3D.new()
+	body.transform = xf
+	var mi := MeshInstance3D.new()
+	mi.mesh = data["mesh"]
+	body.add_child(mi)
+	for c in data["colliders"]:
+		var cs := CollisionShape3D.new()
+		cs.shape = c[0]
+		cs.transform = c[1]
+		body.add_child(cs)
+	parent.add_child(body)
+
+
+# ------------------------------------------------------------------ sky, light, fog
+
+static func _environment(parent: Node3D, rng: RandomNumberGenerator, night: bool) -> void:
+	var sh := Shader.new()
+	sh.code = SKY_SHADER
+	var sky_mat := ShaderMaterial.new()
+	sky_mat.shader = sh
+	sky_mat.set_shader_parameter("night", 1.0 if night else 0.0)
+	sky_mat.set_shader_parameter("seed", rng.randf() * 50.0)
+	if night:
+		# Moon, very few clouds
+		sky_mat.set_shader_parameter("top_color", Color(0.012, 0.018, 0.045))
+		sky_mat.set_shader_parameter("horizon_color", Color(0.05, 0.075, 0.11))
+		sky_mat.set_shader_parameter("ground_color", Color(0.02, 0.025, 0.03))
+		sky_mat.set_shader_parameter("cloud_dark", Color(0.04, 0.05, 0.08))
+		sky_mat.set_shader_parameter("cloud_light", Color(0.22, 0.26, 0.34))
+		sky_mat.set_shader_parameter("body_color", Color(0.86, 0.9, 1.0))
+		sky_mat.set_shader_parameter("body_size", 0.04)
+		sky_mat.set_shader_parameter("coverage", 0.14)
+	else:
+		# Sun hidden behind dense, gloomy clouds
+		sky_mat.set_shader_parameter("top_color", Color(0.3, 0.33, 0.33))
+		sky_mat.set_shader_parameter("horizon_color", Color(0.44, 0.47, 0.42))
+		sky_mat.set_shader_parameter("ground_color", Color(0.15, 0.16, 0.13))
+		sky_mat.set_shader_parameter("cloud_dark", Color(0.24, 0.26, 0.25))
+		sky_mat.set_shader_parameter("cloud_light", Color(0.5, 0.51, 0.48))
+		sky_mat.set_shader_parameter("body_color", Color(1.0, 0.9, 0.7))
+		sky_mat.set_shader_parameter("body_size", 0.05)
+		sky_mat.set_shader_parameter("coverage", 0.9)
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
+
 	var env := Environment.new()
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.8
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.fog_enabled = true
-	env.fog_light_color = Color(0.75, 0.82, 0.9)
-	env.fog_density = 0.006
 	env.glow_enabled = true
+	env.fog_enabled = true
+	env.fog_sky_affect = 0.12
+	if night:
+		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		env.ambient_light_color = Color(0.13, 0.17, 0.28)
+		env.ambient_light_energy = 1.0
+		env.fog_light_color = Color(0.05, 0.07, 0.11)
+		env.fog_density = 0.014
+	else:
+		env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+		env.ambient_light_energy = 0.75
+		env.fog_light_color = Color(0.32, 0.36, 0.3)
+		env.fog_density = 0.016
 	var we := WorldEnvironment.new()
 	we.environment = env
 	parent.add_child(we)
 
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-55.0, -35.0, 0.0)
-	sun.light_energy = 1.1
-	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 90.0
-	parent.add_child(sun)
+	# Sun or moon: random direction, 28-50 degrees above the horizon
+	var az := rng.randf() * TAU
+	var el := deg_to_rad(rng.randf_range(28.0, 50.0))
+	var to_light := Vector3(cos(az) * cos(el), sin(el), sin(az) * cos(el))
+	var light := DirectionalLight3D.new()
+	light.basis = Basis.looking_at(-to_light, Vector3.UP)
+	light.shadow_enabled = true
+	light.directional_shadow_max_distance = 80.0
+	if night:
+		light.light_color = Color(0.6, 0.7, 1.0)
+		light.light_energy = 0.45
+	else:
+		light.light_color = Color(0.9, 0.86, 0.74)
+		light.light_energy = 0.55   # dimmed by the overcast
+		light.shadow_opacity = 0.6
+	parent.add_child(light)
 
 
-static func _ground(parent: Node3D, half: float) -> void:
-	var body := StaticBody3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = Vector3(half * 2.0 + 20.0, 1.0, half * 2.0 + 20.0)
-	var col := CollisionShape3D.new()
-	col.shape = shape
-	col.position.y = -0.5
-	body.add_child(col)
+# ------------------------------------------------------------------ ground
+
+## R = mud noise, G = swamp-grass noise, sampled over the whole ground.
+static func _patch_map(rng: RandomNumberGenerator, extent: float) -> Image:
+	var mud := FastNoiseLite.new()
+	mud.seed = rng.randi()
+	mud.frequency = 0.035
+	mud.fractal_octaves = 3
+	var grass := FastNoiseLite.new()
+	grass.seed = rng.randi()
+	grass.frequency = 0.045
+	grass.fractal_octaves = 3
+	var n := 256
+	var img := Image.create(n, n, false, Image.FORMAT_RGB8)
+	for y in n:
+		for x in n:
+			var wx := -extent + (x + 0.5) / n * extent * 2.0
+			var wz := -extent + (y + 0.5) / n * extent * 2.0
+			img.set_pixel(x, y, Color(mud.get_noise_2d(wx, wz) * 0.5 + 0.5, grass.get_noise_2d(wx, wz) * 0.5 + 0.5, 0.0))
+	return img
+
+
+static func _sample(img: Image, extent: float, x: float, z: float) -> Color:
+	var n := img.get_width()
+	var px := clampi(int((x + extent) / (extent * 2.0) * n), 0, n - 1)
+	var py := clampi(int((z + extent) / (extent * 2.0) * n), 0, n - 1)
+	return img.get_pixel(px, py)
+
+
+static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Image) -> void:
+	var body := water.heightmap_body(half)
 	var mesh := PlaneMesh.new()
 	mesh.size = Vector2(half * 2.0 + 20.0, half * 2.0 + 20.0)
-	var sm := ShaderMaterial.new()
 	var sh := Shader.new()
 	sh.code = GROUND_SHADER
+	var sm := ShaderMaterial.new()
 	sm.shader = sh
+	sm.set_shader_parameter("patch_map", ImageTexture.create_from_image(patches))
+	sm.set_shader_parameter("extent", half + 10.0)
+	var sp := water.shader_params()
+	for k in sp:
+		sm.set_shader_parameter(k, sp[k])
 	mesh.material = sm
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
@@ -108,18 +324,98 @@ static func _ground(parent: Node3D, half: float) -> void:
 	parent.add_child(body)
 
 
+## Swaying swamp-grass tufts wherever the patch map says grass (not in mud or water).
+static func _grass(parent: Node3D, rng: RandomNumberGenerator, half: float, water: SwampWater, patches: Image) -> void:
+	var xforms: Array[Transform3D] = []
+	var step := 1.35
+	var extent := half + 10.0
+	var z := -half
+	while z < half:
+		var x := -half
+		while x < half:
+			var px := x + rng.randf_range(-0.6, 0.6)
+			var pz := z + rng.randf_range(-0.6, 0.6)
+			var m := _sample(patches, extent, px, pz)
+			if m.g > 0.6 and m.r < 0.57 and not water.near_pool(px, pz, 0.8) and Vector2(px, pz).length() > 3.0:
+				var s := rng.randf_range(0.7, 1.35)
+				xforms.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.3), s)), Vector3(px, 0, pz)))
+			x += step
+		z += step
+	_multimesh(parent, _tuft_mesh(rng), xforms)
+
+
+static func _tuft_mesh(rng: RandomNumberGenerator) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for k in 7:
+		var a := TAU * k / 7.0 + rng.randf() * 0.5
+		var out := Vector3(cos(a), 0, sin(a))
+		var side := Vector3(-out.z, 0, out.x)
+		var h := rng.randf_range(0.35, 0.8)
+		var base := out * rng.randf_range(0.0, 0.12)
+		var tip := base + out * rng.randf_range(0.12, 0.35) + Vector3(0, h, 0)
+		var w := 0.035
+		var base_col := Color(0.12, 0.16, 0.06, 0.0)
+		var tip_col := Color(0.38, 0.4, 0.17, 1.0) if k % 3 else Color(0.3, 0.36, 0.12, 1.0)
+		st.set_normal(Vector3.UP)
+		st.set_color(base_col)
+		st.add_vertex(base - side * w)
+		st.set_color(base_col)
+		st.add_vertex(base + side * w)
+		st.set_color(tip_col)
+		st.add_vertex(tip)
+	var mesh := st.commit()
+	mesh.surface_set_material(0, MeshBuilder.prop_material())
+	return mesh
+
+
+## Reeds and cattails ringing the pools.
+static func _reeds(parent: Node3D, rng: RandomNumberGenerator, water: SwampWater) -> void:
+	var xforms: Array[Transform3D] = []
+	for p in water.pools:
+		var c: Vector2 = p["center"]
+		for k in rng.randi_range(18, 30):
+			var th := rng.randf() * TAU
+			var r := water.outline_radius(p, th) * rng.randf_range(0.85, 1.15)
+			var pos := Vector3(c.x + cos(th) * r, 0, c.y + sin(th) * r)
+			pos.y = water.ground_height(pos.x, pos.z)
+			var s := rng.randf_range(0.8, 1.25)
+			xforms.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * s), pos))
+	var mb := MeshBuilder.new()
+	for k in 5:
+		var a := TAU * k / 5.0 + rng.randf()
+		var top := Vector3(cos(a) * 0.15, rng.randf_range(1.1, 1.7), sin(a) * 0.15)
+		mb.limb(Vector3.ZERO, top, 0.02, 0.008, Color(0.3, 0.36, 0.14, 0.0).lerp(Color(0.3, 0.36, 0.14, 1.0), 0.5), 4)
+		if k % 2 == 0:
+			mb.add(MeshBuilder.cyl(0.045, 0.045, 0.22, 6), Transform3D(Basis(), top + Vector3(0, -0.15, 0)), Color(0.3, 0.18, 0.09, 1.0))
+	_multimesh(parent, mb.commit(), xforms)
+
+
+static func _multimesh(parent: Node3D, mesh: Mesh, xforms: Array[Transform3D]) -> void:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = mesh
+	mm.instance_count = xforms.size()
+	for k in xforms.size():
+		mm.set_instance_transform(k, xforms[k])
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mmi)
+
+
 static func _walls(parent: Node3D, half: float) -> void:
-	var c := Color(0.4, 0.38, 0.45)
+	var c := Color(0.2, 0.21, 0.19)
 	var h := 6.0
 	var t := 2.0
 	var l := half * 2.0 + t * 2.0
-	_box(parent, Vector3(0, h * 0.5, -half - t * 0.5), Vector3(l, h, t), Vector3.ZERO, c)
-	_box(parent, Vector3(0, h * 0.5, half + t * 0.5), Vector3(l, h, t), Vector3.ZERO, c)
-	_box(parent, Vector3(-half - t * 0.5, h * 0.5, 0), Vector3(t, h, l), Vector3.ZERO, c)
-	_box(parent, Vector3(half + t * 0.5, h * 0.5, 0), Vector3(t, h, l), Vector3.ZERO, c)
+	_box(parent, Vector3(0, h * 0.5, -half - t * 0.5), Vector3(l, h, t), c)
+	_box(parent, Vector3(0, h * 0.5, half + t * 0.5), Vector3(l, h, t), c)
+	_box(parent, Vector3(-half - t * 0.5, h * 0.5, 0), Vector3(t, h, l), c)
+	_box(parent, Vector3(half + t * 0.5, h * 0.5, 0), Vector3(t, h, l), c)
 
 
-static func _box(parent: Node3D, at: Vector3, size: Vector3, rot: Vector3, color: Color) -> void:
+static func _box(parent: Node3D, at: Vector3, size: Vector3, color: Color) -> void:
 	var body := StaticBody3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = size
@@ -130,11 +426,10 @@ static func _box(parent: Node3D, at: Vector3, size: Vector3, rot: Vector3, color
 	mesh.size = size
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.roughness = 0.9
+	mat.roughness = 0.95
 	mesh.material = mat
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
 	body.add_child(mi)
 	body.position = at
-	body.rotation = rot
 	parent.add_child(body)

@@ -150,6 +150,9 @@ func _fire_orbs(origin: Vector3, dmg_mult: float) -> bool:
 	var speed := stats.value("orb_speed") * stats.value("projectile_speed")
 	var dmg := stats.value("orb_damage") * dmg_mult
 	var pierce := int(stats.value("orb_pierce"))
+	# The wizard swings his staff at the first target; every orb leaves from the staff tip.
+	if player.model != null and player.model.has_method("attack"):
+		origin = player.model.attack(enemies.center_of(targets[0]))
 	for k in n:
 		var ti := targets[k % targets.size()]
 		var dir := (enemies.center_of(ti) - origin).normalized()

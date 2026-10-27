@@ -144,6 +144,62 @@ func _ready() -> void:
 	ga.play_collision()
 	_check("collision plays Ow", hits[0] == 1, "hits %d" % hits[0])
 
+	# 7b) Staff attack: projectiles leave from the staff tip, staff points at the target, then recovers
+	var wiz: WizardModel = player.model
+	var target := player.global_position + Vector3(6, 0.5, -4)
+	var tip := wiz.attack(target)
+	var hand := wiz.global_transform * WizardModel.HAND
+	var aim_err := rad_to_deg((tip - hand).angle_to(target - hand))
+	_check("staff points at the target", aim_err < 2.0, "off by %.2f deg" % aim_err)
+	_check("tip is a staff-length from the hand", absf(tip.distance_to(hand) - WizardModel.TIP.length()) < 0.01, "%.2f m" % tip.distance_to(hand))
+	_check("staff is lowered (tip below resting height)", tip.y < (wiz.global_transform * (WizardModel.HAND + WizardModel.TIP)).y - 0.3, "tip y %.2f" % tip.y)
+	var ws := WeaponSystem.new()
+	var wstats := Stats.new()
+	for k in ["damage", "attack_speed", "area", "projectile_speed", "projectile_count", "orb_damage", "orb_cooldown", "orb_count", "orb_pierce", "orb_speed"]:
+		wstats.define(k, {"damage": 1.0, "attack_speed": 1.0, "area": 1.0, "projectile_speed": 1.0, "orb_damage": 10.0, "orb_cooldown": 1.0, "orb_count": 3.0, "orb_speed": 20.0}.get(k, 0.0))
+	em.count = 0
+	for k in 3:
+		em.spawn(EnemyManager.GRUNT, player.global_position + Vector3(4 + k, 0, -3 + k * 3))
+	em.tick(dt, player.global_position)
+	ws.setup(wstats, null, em, player)
+	add_child(ws)
+	ws._fire_orbs(player.global_position + Vector3(0, 0.9, 0), 1.0)
+	var spawn_err := 0.0
+	for k in ws.pc:
+		spawn_err = maxf(spawn_err, ws.p_pos[k].distance_to(wiz.staff_tip()))
+	_check("every orb spawns at the staff tip", ws.pc == 3 and spawn_err < 0.01, "%d orbs, max offset %.3f m" % [ws.pc, spawn_err])
+	for f in 30:
+		wiz._process(dt)
+	_check("staff returns upright", wiz.staff_pivot.quaternion.is_equal_approx(Quaternion.IDENTITY), "q %s" % str(wiz.staff_pivot.quaternion))
+
+	# 8) Damage numbers + health bars
+	var dn := DamageNumbers.new()
+	add_child(dn)
+	em.numbers = dn
+	em.count = 0
+	var g := em.spawn(EnemyManager.TANK, Vector3(0, 0, 0), 10.0)
+	em.tick(dt, Vector3(0, 0, 30))
+	em.damage(g, 50.0)
+	_check("a hit spawns a damage number", dn.active_count() == 1, "active %d" % dn.active_count())
+	for f in 50:
+		dn._process(dt)
+	_check("number gone in under 1 s", dn.active_count() == 0, "active %d after %.2f s" % [dn.active_count(), 50 * dt])
+	_check("number lifetime < 1 s", DamageNumbers.LIFE < 1.0, "%.2f s" % DamageNumbers.LIFE)
+	em.tick(dt, Vector3(0, 0, 30))
+	var frac := em.bar_buf[12]
+	_check("health bar shows hp fraction", absf(frac - (550.0 - 50.0) / 550.0) < 0.01, "bar %.3f" % frac)
+	# Burn: totalled and shown about twice a second, not every frame
+	em.ignite_all(10.0)
+	var shown := 0
+	for f in 62:
+		var a0 := dn.active_count()
+		dn._new_this_frame = 0
+		em.tick(dt, Vector3(0, 0, 30))
+		if dn.active_count() > a0:
+			shown += dn.active_count() - a0
+		dn._process(dt)
+	_check("burn numbers ~2 per second", shown >= 2 and shown <= 3, "%d numbers in 1 s" % shown)
+
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
 

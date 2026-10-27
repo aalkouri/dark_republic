@@ -35,6 +35,8 @@ var weapons: WeaponSystem
 var gems: GemManager
 var items: ItemEffects
 var hud: Hud
+var water: SwampWater
+var numbers: DamageNumbers
 var fx: FxManager
 var abilities: Abilities
 var potions: PotionManager
@@ -73,6 +75,8 @@ var shot_at := 5.0
 var shot_casts := {}   # time -> ability index
 var _shot_spawn := 0
 var _shot_front := false
+var _shot_pool := false
+var _forced_seed := -1
 var _shot_pitch := -99.0
 
 
@@ -96,6 +100,10 @@ func _ready() -> void:
 				shot_casts[float(parts[1])] = int(parts[0])
 		elif a.begins_with("--shot-spawn="):
 			_shot_spawn = int(a.split("=")[1])
+		elif a.begins_with("--seed="):
+			_forced_seed = int(a.split("=")[1])
+		elif a == "--shot-pool":
+			_shot_pool = true
 		elif a == "--shot-front":
 			_shot_front = true
 		elif a.begins_with("--shot-pitch="):
@@ -105,19 +113,22 @@ func _ready() -> void:
 		_smoke_wall_start = Time.get_ticks_msec()
 	else:
 		rng.randomize()
+	if _forced_seed >= 0:
+		rng.seed = _forced_seed
 
 	stats = Stats.new()
 	for k in BASE_STATS:
 		stats.define(k, BASE_STATS[k])
 	db = UpgradeDB.new("res://data/upgrades.json", rng)
 
-	WorldBuilder.build(self, rng, ARENA_HALF)
+	water = WorldBuilder.build(self, rng, ARENA_HALF)
 
 	fx = FxManager.new()
 	add_child(fx)
 
 	player = Player.new()
 	player.fx = fx
+	player.water = water
 	player.stats = stats
 	player.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(player)
@@ -127,7 +138,11 @@ func _ready() -> void:
 	enemies = EnemyManager.new()
 	enemies.arena_half = ARENA_HALF
 	enemies.rng = rng
+	enemies.water = water
 	add_child(enemies)
+	numbers = DamageNumbers.new()
+	add_child(numbers)
+	enemies.numbers = numbers
 
 	gems = GemManager.new()
 	add_child(gems)
@@ -538,6 +553,13 @@ func _smoke_tick(dt: float) -> void:
 
 func _shot_tick() -> void:
 	player.god_mode = true
+	if _shot_pool and run_time < 0.05:
+		var c: Vector2 = water.pools[0]["center"]
+		var r: float = water.pools[0]["r"]
+		player.global_position = Vector3(c.x + r + 6.0, 0.5, c.y + 1.0)
+		player.cam_yaw = atan2(-(c.x - player.global_position.x), -(c.y - player.global_position.z)) * -1.0
+		var to := Vector3(c.x, 0, c.y) - player.global_position
+		player.cam_yaw = atan2(-to.x, -to.z)
 	player.face_camera = _shot_front
 	if _shot_pitch > -90.0:
 		player.cam_pitch = _shot_pitch

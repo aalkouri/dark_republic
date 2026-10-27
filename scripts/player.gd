@@ -35,6 +35,9 @@ const IFRAMES := 0.5             # immunity after an enemy collision
 const IMMUNE_DIM := 0.5           # character brightness while immune
 const KNOCK_SPEED := 11.0
 const KNOCK_POP := 4.0
+const WATER_SPEED_MULT := 0.5
+const WATER_JUMP_HEIGHT_MULT := 0.5   # jump height scales with v^2, so velocity * sqrt(0.5)
+const WATER_DRAG := 6.0               # how fast extra momentum bleeds off in water
 
 var stats: Stats
 var hp := 100.0
@@ -42,6 +45,8 @@ var max_hp := 100.0
 var invuln := 0.0
 var god_mode := false
 var shield := 0.0
+var water: SwampWater
+var in_water := false
 var face_camera := false   # screenshot/portrait mode
 
 # Bot input (used by the headless smoke test)
@@ -148,6 +153,9 @@ func _physics_process(dt: float) -> void:
 	var wish_len := minf(wish.length(), 1.0)
 	var wishdir := wish.normalized() if wish_len > 0.01 else Vector3.ZERO
 	var move_speed := stats.value("move_speed")
+	in_water = water != null and water.in_water(global_position)
+	if in_water:
+		move_speed *= WATER_SPEED_MULT
 
 	if jump_pressed:
 		_jump_buf = JUMP_BUFFER
@@ -179,14 +187,14 @@ func _physics_process(dt: float) -> void:
 			if wish_len > 0.1:  # air jumps let you redirect without losing speed
 				hv = wishdir * maxf(hspeed, move_speed * 0.8)
 	if jumped:
-		velocity.y = JUMP_VELOCITY
+		velocity.y = JUMP_VELOCITY * (sqrt(WATER_JUMP_HEIGHT_MULT) if in_water else 1.0)
 		_jump_buf = 0.0
 		_coyote = 0.0
 		on_floor = false
 		sliding = false
 
 	# --- Slide state
-	if on_floor and slide_held and hspeed > SLIDE_MIN_SPEED:
+	if on_floor and slide_held and hspeed > SLIDE_MIN_SPEED and not in_water:
 		if not sliding:
 			sliding = true
 			if _slide_cd <= 0.0:
@@ -218,6 +226,9 @@ func _physics_process(dt: float) -> void:
 			hv = _accelerate(hv, wishdir, AIR_CAP, AIR_ACCEL, dt)
 		velocity.y -= GRAVITY * dt
 
+	# Water: bleed off any speed above the (halved) move speed
+	if in_water and hv.length() > move_speed:
+		hv = hv.normalized() * maxf(move_speed, hv.length() - WATER_DRAG * move_speed * dt)
 	if hv.length() > MAX_HSPEED:
 		hv = hv.normalized() * MAX_HSPEED
 	velocity.x = hv.x
@@ -277,7 +288,7 @@ func _update_visuals(dt: float) -> void:
 
 ## Ash footprints: a flake every ~0.45 m travelled on the ground, alternating feet.
 func _update_ash(dt: float) -> void:
-	if fx == null or not is_on_floor():
+	if fx == null or not is_on_floor() or in_water:
 		return
 	var hv := Vector3(velocity.x, 0.0, velocity.z)
 	var sp := hv.length()

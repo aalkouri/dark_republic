@@ -33,6 +33,8 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 | 2 | Fire Shockwave | 45 s | Ring of fire expands from the floor under you to 9 m: 80 dmg, knocks enemies back 5 yd |
 | 3 | Inferno (ultimate) | 2 min | Ignites every enemy: 5% of max HP per second for 10 s. Burning enemies that die explode for 50% of their max HP within 2 yd (chains) |
 
+**Attacks:** each time Bonk Orbs fire, he swings his staff down at the target and the orbs launch from the staff tip.
+
 **Look:** red coat made of animated flames, a pointy crimson hat with a gold band, ember eyes, a fire staff, and ash footprints that fade within a second.
 
 **Collisions:** when an enemy touches you, you take its contact damage (shield first), become immune for 0.5 s (shown by dimming the character 50%), and you and the enemy are knocked apart. Enemies that run into you while you're immune bounce back opposite to the way they were heading.
@@ -45,14 +47,30 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 | Red | 50% | Heal 10% of max HP |
 | Blue | 20% | Shield worth 10% of max HP (absorbs damage first, stacks) |
 
+## The swamp
+
+Every run generates a new dark swamp (`scripts/world_builder.gd`):
+
+- **Sky:** 50% chance of a gloomy day with the sun glowing through dense clouds, 50% chance of a moonlit night with very few clouds and stars. Lighting, ambient light and fog follow.
+- **Ground:** random patches of wet mud and swamp grass, with swaying grass tufts.
+- **45 swamp trees** in 4 variants: bald cypress (flared trunk, knees, hanging moss), dead snag, swamp willow (drooping curtains) and mangrove (stilt roots). All collide with the player.
+- **18 fallen trees:** mossy logs with root plates, slightly tilted, which you can climb and jump off.
+- **4 pools of swamp water:** irregular shapes up to 10 yd across, recessed into the ground with uneven beds, never deeper than the character. Reeds and cattails grow around the edges. **In water, move speed and jump height are halved** (goblins wade at half speed too).
+- **6 mossy stone ruins** as landmarks.
+
 ## Goblins
 
-Every enemy is a goblin: about half the wizard's height, pot-bellied, with stubby legs (they waddle) and comically large ears. Types differ by size and clothing: Goblin (brown), Goblin Scamp (small, fast, yellow), Goblin Brute (big, grey) and the Big Bonker boss (huge, dark red).
+Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): about half the wizard's height, pot-bellied, with stubby legs (they waddle) and comically large ears. Types differ by size and clothing: Goblin (brown), Goblin Scamp (small, fast, yellow), Goblin Brute (big, grey) and the Big Bonker boss (huge, dark red).
 
 **Sounds** (`audio/goblin/`, generated in Higgsfield):
 - Ambient: a random nearby goblin voices one of five clips every 0.8–2.2 s. Each clip has its own 5 s cooldown, so the same sound never repeats within 5 s. Bigger goblins are pitched lower.
 - Collision: "Ow!" plays whenever a goblin runs into the player.
 - To swap or add clips, edit `AMBIENT_CLIPS` / `COLLISION_CLIP` in `scripts/goblin_audio.gd`.
+
+## Combat feedback
+
+- **Health bars** over every goblin (green → yellow → red; purple border on epics), hidden beyond 45 m.
+- **Damage numbers** for every hit: they pop in small, swell big, settle, then float up and fade, all within 0.75 s. Burn damage is totalled and shown in orange twice a second.
 
 ## What's in the slice
 
@@ -83,6 +101,10 @@ scripts/
   ability_slot.gd    one ability-bar slot (procedural icon, cooldown, ult outline)
   goblin_mesh.gd     procedural goblin mesh + shader (clothing tint, burn, epic, hit flash)
   goblin_audio.gd    ambient goblin voices with per-clip cooldowns, collision sound
+  swamp_props.gd     procedural swamp trees (4 variants), fallen trees, ruins
+  swamp_water.gd     recessed pools: outline, bed, water shader, heightmap collision, slow zones
+  mesh_builder.gd    merges primitives into vertex-colored meshes with wind sway
+  damage_numbers.gd  pooled pop-and-fade damage numbers
   hud.gd             all UI, built in code
 data/upgrades.json   every weapon/tome/item and rarity, as data
 tools/               headless micro-benchmarks
@@ -108,6 +130,9 @@ godot --headless --path . res://tools/test_abilities.tscn
 # Screenshot: cast Meteor at 1 s, capture at 4 s
 godot --path . -- --shot=/tmp/shot.png --shot-at=4 --shot-cast=0@1 --shot-spawn=120
 
+# Swamp tests (pool size/depth, recessed collision, 50% speed and jump in water)
+godot --headless --path . --fixed-fps 60 res://tools/test_swamp.tscn
+
 # Crowd simulation benchmark
 godot --headless --path . res://tools/bench_enemies.tscn
 ```
@@ -116,7 +141,7 @@ Measured on a 2-vCPU cloud VM, simulation only: about 1.6 ms at 500 enemies, 3.2
 
 ## Known limitations and next steps
 
-- Enemies walk *through* platforms (they only collide with each other). A flow field over a coarse nav grid would fix that and also scale better.
+- Goblins walk *through* trees and logs (they only collide with each other and wade through water). A flow field over a coarse nav grid would fix that and also scale better.
 - The crowd sim is GDScript. Porting `EnemyManager.tick` to C# or a GDExtension is the path to 5,000+ enemies.
 - There's no meta-progression, character select, chests, shrines, audio or damage numbers yet.
-- Placeholder art: primitives plus a checker ground.
+- All art is procedural (built from primitives in code).

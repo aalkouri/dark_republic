@@ -34,6 +34,42 @@ var burn_explode_radius := 1.83     # 2 yards
 
 var arena_half := 110.0
 var rng: RandomNumberGenerator
+var water: SwampWater          # optional: goblins wade (and slow down) in swamp pools
+const WATER_SPEED_MULT := 0.5
+var numbers: DamageNumbers      # optional: floating damage numbers
+const BURN_NUMBER_INTERVAL := 0.5   # burn damage is totalled and shown twice a second
+const BAR_STRIDE := 16              # health bars: 12 transform + 4 custom (hp fraction, epic)
+const BAR_HIDE_DIST := 45.0
+const BAR_SHADER := """
+shader_type spatial;
+render_mode unshaded, cull_disabled, shadows_disabled;
+uniform float hide_dist = 45.0;
+varying float hp;
+varying float epic;
+void vertex() {
+	hp = INSTANCE_CUSTOM.x;
+	epic = INSTANCE_CUSTOM.y;
+	float s = length(MODEL_MATRIX[0].xyz);
+	// Billboard: face the camera, keep the instance's scale
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0] * s, INV_VIEW_MATRIX[1] * s, INV_VIEW_MATRIX[2] * s, MODEL_MATRIX[3]);
+	float dist = length((MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz);
+	if (dist > hide_dist) { VERTEX *= 0.0; }
+}
+void fragment() {
+	vec2 uv = UV;
+	float bx = 0.035;
+	float by = 0.22;
+	vec3 border = mix(vec3(0.02), vec3(0.65, 0.25, 1.0), epic);
+	vec3 col = border;
+	if (uv.x > bx && uv.x < 1.0 - bx && uv.y > by && uv.y < 1.0 - by) {
+		float x = (uv.x - bx) / (1.0 - 2.0 * bx);
+		vec3 fill = hp > 0.5 ? mix(vec3(1.0, 0.85, 0.1), vec3(0.2, 0.85, 0.2), (hp - 0.5) * 2.0)
+		                     : mix(vec3(0.9, 0.12, 0.08), vec3(1.0, 0.85, 0.1), hp * 2.0);
+		col = x < hp ? fill : vec3(0.18, 0.05, 0.05);
+	}
+	ALBEDO = col;
+}
+"""
 
 # Type table (index = type id)
 var type_names := PackedStringArray()
@@ -61,6 +97,8 @@ var sz := PackedFloat32Array()          # per-enemy size multiplier (epic = 1.5)
 var sep_x := PackedFloat32Array()
 var sep_z := PackedFloat32Array()
 var burn_t := PackedFloat32Array()      # seconds of burn left
+var burn_acc := PackedFloat32Array()    # burn damage not yet shown as a number
+var burn_num_t := PackedFloat32Array()
 var kb_vel := PackedVector3Array()      # knockback velocity while kb_t > 0
 var kb_t := PackedFloat32Array()
 var _explosions := PackedVector3Array() # queued burn explosions: x, z, damage packed in a Vector3
@@ -80,6 +118,8 @@ var gz0 := 0.0
 
 var mm: MultiMesh
 var buf := PackedFloat32Array()
+var bar_mm: MultiMesh
+var bar_buf := PackedFloat32Array()
 
 enum { GRUNT, RUNNER, TANK, BOSS }
 
@@ -90,6 +130,8 @@ func _ready() -> void:
 	hp.resize(MAX)
 	hp_max.resize(MAX)
 	burn_t.resize(MAX)
+	burn_acc.resize(MAX)
+	burn_num_t.resize(MAX)
 	kb_vel.resize(MAX)
 	kb_t.resize(MAX)
 	typ.resize(MAX)
@@ -111,10 +153,11 @@ func _ready() -> void:
 			buf[i * STRIDE + 12 + k] = 1.0
 
 	# Goblins. The color is the clothing; scale 1 is about half the wizard's height.
-	_add_type("Goblin", 10.0, 4.2, 0.45, 1.0, 8.0, 1.0, Color(0.5, 0.32, 0.17))
-	_add_type("Goblin Scamp", 6.0, 6.8, 0.36, 0.8, 6.0, 1.0, Color(0.9, 0.68, 0.18))
-	_add_type("Goblin Brute", 55.0, 3.0, 0.85, 1.8, 16.0, 5.0, Color(0.38, 0.4, 0.46))
-	_add_type("Big Bonker", 2500.0, 3.6, 2.0, 4.5, 35.0, 120.0, Color(0.55, 0.08, 0.1))
+	#            name            hp      speed radius scale  dmg   xp     clothing
+	_add_type("Goblin", 10.0, 4.2, 0.45, 1.0, 16.0, 1.0, Color(0.5, 0.32, 0.17))
+	_add_type("Goblin Scamp", 6.0, 6.8, 0.36, 0.8, 12.0, 1.0, Color(0.9, 0.68, 0.18))
+	_add_type("Goblin Brute", 55.0, 3.0, 0.85, 1.8, 32.0, 5.0, Color(0.38, 0.4, 0.46))
+	_add_type("Big Bonker", 2500.0, 3.6, 2.0, 4.5, 70.0, 120.0, Color(0.55, 0.08, 0.1))
 
 	mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -127,6 +170,30 @@ func _ready() -> void:
 	mmi.multimesh = mm
 	mmi.custom_aabb = AABB(Vector3(-500, -50, -500), Vector3(1000, 100, 1000))
 	add_child(mmi)
+	_make_bars()
+
+
+func _make_bars() -> void:
+	bar_buf.resize(MAX * BAR_STRIDE)
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.9, 0.12)
+	var sh := Shader.new()
+	sh.code = BAR_SHADER
+	var mat := ShaderMaterial.new()
+	mat.shader = sh
+	mat.set_shader_parameter("hide_dist", BAR_HIDE_DIST)
+	quad.material = mat
+	bar_mm = MultiMesh.new()
+	bar_mm.transform_format = MultiMesh.TRANSFORM_3D
+	bar_mm.use_custom_data = true
+	bar_mm.mesh = quad
+	bar_mm.instance_count = MAX
+	bar_mm.visible_instance_count = 0
+	var bi := MultiMeshInstance3D.new()
+	bi.multimesh = bar_mm
+	bi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	bi.custom_aabb = AABB(Vector3(-500, -50, -500), Vector3(1000, 100, 1000))
+	add_child(bi)
 
 
 func _add_type(n: String, p_hp: float, speed: float, radius: float, scale: float, damage: float, xp: float, color: Color) -> void:
@@ -155,6 +222,8 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	sz[i] = EPIC_SIZE if is_epic else 1.0
 	hp_max[i] = hp[i]
 	burn_t[i] = 0.0
+	burn_acc[i] = 0.0
+	burn_num_t[i] = 0.0
 	kb_t[i] = 0.0
 	typ[i] = t
 	flash[i] = 0.0
@@ -173,6 +242,8 @@ func damage(i: int, amount: float, knockback := Vector3.ZERO) -> bool:
 		return false
 	hp[i] -= amount
 	flash[i] = 0.08
+	if numbers != null:
+		numbers.add(_number_pos(i), amount)
 	if knockback != Vector3.ZERO:
 		vel[i] += knockback / (t_scale[typ[i]] * sz[i])
 	if hp[i] <= 0.0:
@@ -189,6 +260,10 @@ func _kill(i: int) -> void:
 	if burn_t[i] > 0.0:
 		_explosions.append(Vector3(pos[i].x, pos[i].z, hp_max[i] * burn_explode_frac))
 	Events.enemy_killed.emit(pos[i], typ[i])
+
+
+func _number_pos(i: int) -> Vector3:
+	return pos[i] + Vector3(0.0, (t_height[typ[i]] + 0.35) * sz[i], 0.0)
 
 
 ## Push an enemy a fixed distance away over `duration` seconds (overrides steering).
@@ -218,6 +293,8 @@ func ignite_all(duration: float) -> int:
 	for i in count:
 		if not dead[i]:
 			burn_t[i] = duration
+			burn_acc[i] = 0.0
+			burn_num_t[i] = BURN_NUMBER_INTERVAL
 			n += 1
 	return n
 
@@ -300,6 +377,8 @@ func tick(dt: float, player_pos: Vector3) -> void:
 	var max_dv := ACCEL * dt
 	var lim := arena_half
 	var reloc2 := RELOCATE_DIST * RELOCATE_DIST
+	var wmask_on := water != null
+	var wmask: PackedByteArray = water.mask if wmask_on else PackedByteArray()
 	for i in n:
 		var p := pos[i]
 		var t := typ[i]
@@ -321,7 +400,14 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		var burning := burn_t[i] > 0.0
 		if burning and not dead[i]:
 			burn_t[i] -= dt
-			hp[i] -= hp_max[i] * burn_dps_frac * dt
+			var bd := hp_max[i] * burn_dps_frac * dt
+			hp[i] -= bd
+			burn_acc[i] += bd
+			burn_num_t[i] -= dt
+			if numbers != null and (burn_num_t[i] <= 0.0 or hp[i] <= 0.0 or burn_t[i] <= 0.0):
+				numbers.add(_number_pos(i), burn_acc[i], DamageNumbers.BURN)
+				burn_acc[i] = 0.0
+				burn_num_t[i] = BURN_NUMBER_INTERVAL
 			if hp[i] <= 0.0:
 				_kill(i)
 
@@ -331,6 +417,11 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			var kv := kb_vel[i]
 			p.x = clampf(p.x + kv.x * dt, -lim, lim)
 			p.z = clampf(p.z + kv.z * dt, -lim, lim)
+			p.y = 0.0
+			if wmask_on:
+				var mi := (clampi(int(p.z + 128.0), 0, 255) << 8) + clampi(int(p.x + 128.0), 0, 255)
+				if wmask[mi]:
+					p.y = water.ground_height(p.x, p.z)
 			pos[i] = p
 			_write_xform(b, p, -kv.x, -kv.z, sc, sc)
 			if flash[i] > 0.0:
@@ -386,7 +477,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			var inv := 1.0 / sqrt(d2)
 			fx = tx * inv
 			fz = tz * inv
-			var sp := t_speed[t]
+			var sp := t_speed[t] * (WATER_SPEED_MULT if p.y < -0.15 else 1.0)
 			dvx += fx * sp
 			dvz += fz * sp
 		var dl := sqrt(dvx * dvx + dvz * dvz)
@@ -398,26 +489,78 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		v.y = 0.0
 		p.x = clampf(p.x + v.x * dt + sep_x[i] * corr, -lim, lim)
 		p.z = clampf(p.z + v.z * dt + sep_z[i] * corr, -lim, lim)
+		p.y = 0.0
+		if wmask_on:
+			var mi := (clampi(int(p.z + 128.0), 0, 255) << 8) + clampi(int(p.x + 128.0), 0, 255)
+			if wmask[mi]:
+				p.y = water.ground_height(p.x, p.z)
 		pos[i] = p
 		vel[i] = v
 
 		# Face movement direction (or the player when nearly stopped)
 		var vl := v.x * v.x + v.z * v.z
+		var spd := 0.0
 		if vl > 0.04:
-			var inv_v := 1.0 / sqrt(vl)
-			fx = v.x * inv_v
-			fz = v.z * inv_v
+			spd = sqrt(vl)
+			fx = v.x / spd
+			fz = v.z / spd
 
-		# Short-legged waddle: side-to-side roll and a little hop, faster when running
-		var spd := sqrt(vl)
-		var phase := _time * (6.0 + spd * 2.2) + float(uid[i]) * 1.37
-		_write_xform(b, p, fx, fz, sc, sc, 0.16 * sin(phase) * minf(spd * 0.4, 1.0), absf(sin(phase)) * 0.09 * sc * minf(spd * 0.3, 1.0))
+		# Short-legged waddle: side-to-side roll and a little hop, faster when running.
+		# Written inline (no helper calls): this is the hottest loop in the game.
+		var sph := sin(_time * (6.0 + spd * 2.2) + float(uid[i]) * 1.37)
+		var roll := 0.16 * sph * minf(spd * 0.4, 1.0)
+		var rc := 1.0 - 0.5 * roll * roll          # small-angle cos/sin
+		var rs := roll
+		buf[b] = fz * rc * sc
+		buf[b + 1] = -fz * rs * sc
+		buf[b + 2] = fx * sc
+		buf[b + 3] = p.x
+		buf[b + 4] = rs * sc
+		buf[b + 5] = rc * sc
+		buf[b + 6] = 0.0
+		buf[b + 7] = p.y + absf(sph) * 0.09 * sc * minf(spd * 0.3, 1.0)
+		buf[b + 8] = -fx * rc * sc
+		buf[b + 9] = fx * rs * sc
+		buf[b + 10] = fz * sc
+		buf[b + 11] = p.z
+
+		# Per-instance look (custom data): clothing tint + burn/flash/epic code
+		var fxc := 0.0
+		var col: Color = t_color[t]
+		if burning:
+			fxc = 0.55 + 0.45 * sin(_time * 22.0 + float(uid[i]) * 1.7)
 		if flash[i] > 0.0:
 			flash[i] -= dt
-		_write_color(i, b, t, burning)
+			fxc += 2.0
+		if epic[i]:
+			fxc += 4.0
+			col = col.lerp(EPIC_TINT, 0.7)
+		buf[b + 16] = col.r
+		buf[b + 17] = col.g
+		buf[b + 18] = col.b
+		buf[b + 19] = fxc
 
 	mm.buffer = buf
 	mm.visible_instance_count = n
+	_write_bars(n)
+
+
+## Health bars: one billboard per enemy above its head (basis = uniform scale; shader billboards).
+func _write_bars(n: int) -> void:
+	for i in n:
+		var b := i * BAR_STRIDE
+		var s := clampf(t_scale[typ[i]] * sz[i], 1.0, 3.0)
+		var p := pos[i]
+		bar_buf[b] = s
+		bar_buf[b + 3] = p.x
+		bar_buf[b + 5] = s
+		bar_buf[b + 7] = p.y + (t_height[typ[i]] + 0.15) * t_scale[typ[i]] * sz[i] * 1.0 + 0.1
+		bar_buf[b + 10] = s
+		bar_buf[b + 11] = p.z
+		bar_buf[b + 12] = clampf(hp[i] / hp_max[i], 0.0, 1.0) if not dead[i] else 0.0
+		bar_buf[b + 13] = float(epic[i])
+	bar_mm.buffer = bar_buf
+	bar_mm.visible_instance_count = n
 
 
 func _write_xform(b: int, p: Vector3, fx: float, fz: float, s: float, sy: float, roll := 0.0, bob := 0.0) -> void:
@@ -524,6 +667,8 @@ func _compact() -> void:
 			hp[i] = hp[last]
 			hp_max[i] = hp_max[last]
 			burn_t[i] = burn_t[last]
+			burn_acc[i] = burn_acc[last]
+			burn_num_t[i] = burn_num_t[last]
 			kb_vel[i] = kb_vel[last]
 			kb_t[i] = kb_t[last]
 			typ[i] = typ[last]

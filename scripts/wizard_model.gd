@@ -56,6 +56,16 @@ var _coat_mat: ShaderMaterial
 var _sleeve_mat: ShaderMaterial
 var _staff_light: OmniLight3D
 var _orb: MeshInstance3D
+
+# Staff attack: the staff pivots at the hand, swings down to point at the target,
+# holds briefly, then eases back upright.
+const HAND := Vector3(0.52, 1.0, -0.2)
+const TIP := Vector3(0.0, 1.07, 0.0)       # top of the orb, in pivot space
+const ATTACK_HOLD := 0.08
+const ATTACK_RETURN := 0.22
+var staff_pivot: Node3D
+var _aim := Quaternion.IDENTITY
+var _attack_t := 0.0
 var _time := 0.0
 var _dim := 1.0
 var _std_mats: Array = []   # [material, albedo, emission energy]
@@ -171,7 +181,13 @@ func _ready() -> void:
 	staff.height = 1.9
 	staff.radial_segments = 8
 	staff.material = _mat(Color(0.25, 0.14, 0.08))
-	_add(staff, Vector3(0.52, 0.95, -0.2))
+	staff_pivot = Node3D.new()
+	staff_pivot.position = HAND
+	add_child(staff_pivot)
+	var staff_mi := MeshInstance3D.new()
+	staff_mi.mesh = staff
+	staff_mi.position = Vector3(0, -0.05, 0)
+	staff_pivot.add_child(staff_mi)
 	var orb_mat := _mat(Color(1.0, 0.6, 0.15))
 	orb_mat.emission_enabled = true
 	orb_mat.emission = Color(1.0, 0.4, 0.05)
@@ -180,7 +196,10 @@ func _ready() -> void:
 	orb.radius = 0.12
 	orb.height = 0.24
 	orb.material = orb_mat
-	_orb = _add(orb, Vector3(0.52, 1.95, -0.2))
+	_orb = MeshInstance3D.new()
+	_orb.mesh = orb
+	_orb.position = Vector3(0, 0.95, 0)
+	staff_pivot.add_child(_orb)
 	var orb_fire := Abilities._flame_particles(0.35, 0.6, 24)
 	orb_fire.emission_sphere_radius = 0.08
 	_orb.add_child(orb_fire)
@@ -260,6 +279,24 @@ func _collect(n: Node) -> void:
 		_collect(c)
 
 
+## Swing the staff down to point at `target` (world space) and return the world position
+## of the staff tip, where projectiles should spawn.
+func attack(target: Vector3) -> Vector3:
+	var hand_world := global_transform * HAND
+	var dir := target - hand_world
+	if dir.length_squared() < 0.0001:
+		dir = -global_transform.basis.z
+	var local_dir := (global_transform.basis.orthonormalized().inverse() * dir).normalized()
+	_aim = Quaternion(Vector3.UP, local_dir)
+	staff_pivot.quaternion = _aim
+	_attack_t = ATTACK_HOLD + ATTACK_RETURN
+	return staff_pivot.global_transform * TIP
+
+
+func staff_tip() -> Vector3:
+	return staff_pivot.global_transform * TIP
+
+
 func set_hurt(amount: float) -> void:
 	_coat_mat.set_shader_parameter("hurt", amount)
 	_sleeve_mat.set_shader_parameter("hurt", amount)
@@ -267,4 +304,8 @@ func set_hurt(amount: float) -> void:
 
 func _process(dt: float) -> void:
 	_time += dt
+	if _attack_t > 0.0:
+		_attack_t = maxf(0.0, _attack_t - dt)
+		var w := clampf(_attack_t / ATTACK_RETURN, 0.0, 1.0)   # 1 while holding, eases to 0
+		staff_pivot.quaternion = Quaternion.IDENTITY.slerp(_aim, w * w * (3.0 - 2.0 * w))
 	_staff_light.light_energy = (_light_base + 0.4 * sin(_time * 17.0) * sin(_time * 7.3)) * _dim
