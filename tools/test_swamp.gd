@@ -103,7 +103,10 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	var cast_from := player.global_position
 	ab.try_cast(Abilities.METEOR)
 	var target: Vector3 = ab._meteors[0]["target"]
-	_check("meteor: wizard vanishes", player.meteor_form and not player.model.visible, "form %s visible %s" % [player.meteor_form, player.model.visible])
+	await get_tree().process_frame
+	_check("meteor: wizard is invulnerable at once and plays the slam", player.meteor_form and player.model.is_playing("meteor"), "form %s" % player.meteor_form)
+	await get_tree().create_timer(HeroModel.VANISH_TIME + 0.1).timeout
+	_check("meteor: wizard vanishes after the slam", player.meteor_form and not player.model.visible, "form %s visible %s" % [player.meteor_form, player.model.visible])
 	player.invuln = 0.0
 	var hp0 := player.hp
 	_check("meteor: invulnerable while falling", not player.hurt(50.0) and player.hp == hp0, "hp %.0f" % player.hp)

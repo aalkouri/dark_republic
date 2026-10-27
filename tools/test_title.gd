@@ -27,7 +27,7 @@ func _ready() -> void:
 	_check("menu: Play / Characters / Settings / Quit", labels == ["PLAY", "CHARACTERS", "SETTINGS", "QUIT"], str(labels))
 	_check("Play has keyboard/gamepad focus", (title._menu.get_child(0) as Button).has_focus(), "")
 	_check("title text", title._title.text == "DARK REPUBLIC", title._title.text)
-	_check("wizard on the dais", title.find_children("*", "WizardModel", true, false).size() == 1, "")
+	_check("wizard on the dais", title.find_children("*", "HeroModel", true, false).size() == 1, "")
 	_check("goblins lurk around him", title._goblins.size() == title.GOBLINS, "%d" % title._goblins.size())
 	var m: AudioStreamPlayer = title._music
 	_check("title music plays on the Music bus, looping", m.playing and m.bus == Settings.MUSIC_BUS and m.stream.get("loop") == true, m.bus)

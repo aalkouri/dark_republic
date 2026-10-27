@@ -185,15 +185,20 @@ func _ready() -> void:
 	ga.play_collision()
 	_check("collision plays the grunt", hits[0] == 1, "hits %d" % hits[0])
 
-	# 7b) Staff attack: projectiles leave from the staff tip, staff points at the target, then recovers
-	var wiz: WizardModel = player.model
-	var target := player.global_position + Vector3(6, 0.5, -4)
+	# 7b) Staff attack: the cast plays on the upper body, the torso turns toward the target and
+	#     the projectile leaves from the staff tip in his hand
+	var wiz: HeroModel = player.model
+	var target := player.global_position + wiz.global_transform.basis.x * 6.0 + Vector3(0, 0.5, 0)
 	var tip := wiz.attack(target)
-	var hand := wiz.global_transform * WizardModel.HAND
-	var aim_err := rad_to_deg((tip - hand).angle_to(target - hand))
-	_check("staff points at the target", aim_err < 2.0, "off by %.2f deg" % aim_err)
-	_check("tip is a staff-length from the hand", absf(tip.distance_to(hand) - WizardModel.TIP.length()) < 0.01, "%.2f m" % tip.distance_to(hand))
-	_check("staff is lowered (tip below resting height)", tip.y < (wiz.global_transform * (WizardModel.HAND + WizardModel.TIP)).y - 0.3, "tip y %.2f" % tip.y)
+	await get_tree().process_frame
+	var hand_pos := wiz.skeleton.global_transform * wiz.skeleton.get_bone_global_pose(wiz.skeleton.find_bone("RightHand")).origin
+	_check("fireball cast plays (upper-body one-shot)", wiz.is_playing("fire"), "")
+	_check("tip is on the staff in his hand", tip.distance_to(hand_pos) < 1.3 and tip.y > hand_pos.y - 0.4, "%.2f m from the hand" % tip.distance_to(hand_pos))
+	_check("torso turns toward a target on his right", wiz.twist.target_angle < -0.5, "%.2f rad" % wiz.twist.target_angle)
+	_check("staff_tip() matches", wiz.staff_tip().distance_to(tip) < 0.5, "")
+	wiz.play_ability(Abilities.SHOCKWAVE)
+	await get_tree().process_frame
+	_check("Fire Nova plays the ground slam", wiz.is_playing("nova"), "")
 	var ws := WeaponSystem.new()
 	var wstats := Stats.new()
 	for k in ["damage", "attack_speed", "area", "projectile_speed", "projectile_count", "orb_damage", "orb_cooldown", "orb_count", "orb_pierce", "orb_speed"]:
@@ -209,9 +214,9 @@ func _ready() -> void:
 	for k in ws.pc:
 		spawn_err = maxf(spawn_err, ws.p_pos[k].distance_to(wiz.staff_tip()))
 	_check("every orb spawns at the staff tip", ws.pc == 3 and spawn_err < 0.01, "%d orbs, max offset %.3f m" % [ws.pc, spawn_err])
-	for f in 30:
+	for f in 40:
 		wiz._process(dt)
-	_check("staff returns upright", wiz.staff_pivot.quaternion.is_equal_approx(Quaternion.IDENTITY), "q %s" % str(wiz.staff_pivot.quaternion))
+	_check("torso turns back to facing after the cast", wiz.twist.target_angle == 0.0, "%.2f rad" % wiz.twist.target_angle)
 
 	# 8) Damage numbers + health bars
 	var dn := DamageNumbers.new()

@@ -44,6 +44,15 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 
 ## The fire wizard
 
+**Model and animation.** The wizard is a rigged, textured 3D model generated with Higgsfield (Meshy image-to-3D, auto-rigged) from a concept image: `models/wizard/wizard.glb`. Nine animation clips (idle, walk, run, jump, hit reaction, fireball cast, Fire Nova slam, Inferno cast, Meteor cast) were generated on the same rig and merged into `models/wizard/wizard_anims.res` by `tools/import_wizard_anims.gd`. `hero_model.gd` drives them with an AnimationTree:
+- **Movement:** idle, walk and run blend by ground speed.
+- **Upper-body layers:** the fireball staff thrust, the hit flinch and the Inferno cast play on the spine and arms only, so the legs keep running.
+- **Full-body layers:** jump, the Fire Nova ground slam, and the Meteor overhead slam he does just before vanishing.
+- **Aiming:** a spine twist turns his torso toward each fireball's target.
+- **Staff:** built in code and attached to his right-hand bone; fireballs leave from its orb.
+
+To add a clip: generate it on the same rig in Higgsfield, then run `godot --headless --path . --script res://tools/import_wizard_anims.gd -- <folder with the .glb>`. Add the Meshy action name to `NAMES` in that script first.
+
 **Abilities** (bottom-center bar; the ultimate, Meteor, has a yellow outline). Inferno is available from the start, Fire Nova unlocks at **level 5** and Meteor at **level 10**; locked slots show a padlock. Ready abilities pulse (brighter and slightly bigger, then back). **Hold Alt** to pause and hover a slot for a description with its current damage numbers.
 
 | Key | Ability | Cooldown | Effect |
@@ -141,7 +150,9 @@ scripts/
   events.gd          autoload event bus
   world_builder.gd   procedural arena, lighting, environment
   abilities.gd       Meteor, Fire Nova, Inferno; cooldowns and VFX
-  wizard_model.gd    procedural fire wizard (flame-coat shader, hat, staff, dimming)
+  hero_model.gd      rigged fire wizard: AnimationTree layers, staff, dimming, hit flash
+  spine_twist.gd     SkeletonModifier3D that turns the torso toward a fireball's target
+  wizard_model.gd    old procedural wizard (its head is still the giant Meteor head)
   potion_manager.gd  epic drops: purple / red / blue potions
   fx_manager.gd      pooled bursts and ash footprints (MultiMesh)
   ability_slot.gd    one ability-bar slot (procedural icon, cooldown, ult outline)

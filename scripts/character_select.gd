@@ -278,8 +278,8 @@ func _build_model_stage(vp: SubViewport) -> void:
 	root.add_child(warm)
 	var cam := Camera3D.new()
 	cam.fov = 30.0
-	cam.position = Vector3(0, 1.6, 7.4)
-	cam.look_at_from_position(cam.position, Vector3(0, 1.3, 0))
+	cam.position = Vector3(0, 1.3, 5.6)
+	cam.look_at_from_position(cam.position, Vector3(0, 1.05, 0))
 	root.add_child(cam)
 	cam.current = true
 	_model_pivot = Node3D.new()
@@ -290,7 +290,7 @@ func _build_model_stage(vp: SubViewport) -> void:
 	var disc := MeshInstance3D.new()
 	disc.mesh = mb.commit()
 	_model_pivot.add_child(disc)
-	_model_pivot.add_child(WizardModel.new())
+	_model_pivot.add_child(HeroModel.new())
 
 
 func _build_footer() -> void:

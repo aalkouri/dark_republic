@@ -194,6 +194,9 @@ func _ready() -> void:
 	abilities = Abilities.new()
 	abilities.setup(stats, enemies, player, fx)
 	add_child(abilities)
+	abilities.cast.connect(func(i: int):
+		if i != Abilities.METEOR:      # the Meteor plays its own arms-up as he vanishes
+			player.model.play_ability(i))
 	goblin_audio = GoblinAudio.new()
 	goblin_audio.setup(enemies, player, rng)
 	add_child(goblin_audio)

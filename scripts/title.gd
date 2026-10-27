@@ -101,7 +101,7 @@ func _build_wizard() -> void:
 	dais.mesh = mb.commit()
 	add_child(dais)
 
-	var wizard := WizardModel.new()
+	var wizard := HeroModel.new()
 	wizard.position = Vector3(0, DAIS_HEIGHT + 0.06, 0)
 	add_child(wizard)
 	wizard.rotation.y = PI * 0.15

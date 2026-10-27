@@ -81,7 +81,7 @@ var _slide_cd := 0.0
 var rig: Node3D
 var spring: SpringArm3D
 var cam: Camera3D
-var model: WizardModel
+var model: HeroModel
 var fx: FxManager          # set by main; used for the ash trail
 var _ash_dist := 0.0
 var _ash_side := 1.0
@@ -127,7 +127,7 @@ func _ready() -> void:
 
 
 func _build_model() -> void:
-	model = WizardModel.new()
+	model = HeroModel.new()
 	add_child(model)
 
 
@@ -288,10 +288,11 @@ func _update_visuals(dt: float) -> void:
 	elif hv.length() > 0.5:
 		target_yaw = atan2(-hv.x, -hv.z)
 	model.rotation.y = lerp_angle(model.rotation.y, target_yaw, 1.0 - exp(-15.0 * dt))
-	var squash := Vector3(1.15, 0.55, 1.15) if sliding else Vector3.ONE
+	var squash := Vector3(1.05, 0.82, 1.05) if sliding else Vector3.ONE
 	model.scale = model.scale.lerp(squash, 1.0 - exp(-20.0 * dt))
 
 	model.set_dim(IMMUNE_DIM if invuln > 0.0 else 1.0)
+	model.set_motion(hv.length(), not is_on_floor())
 	_update_ash(dt)
 
 	var head := global_position + Vector3(0.0, 1.0 if sliding else 1.6, 0.0)
@@ -354,7 +355,7 @@ func _tick_burn(dt: float) -> void:
 
 func enter_meteor_form() -> void:
 	meteor_form = true
-	model.visible = false
+	model.vanish()
 	_collider.set_deferred("disabled", true)
 	velocity = Vector3.ZERO
 	sliding = false
@@ -365,7 +366,7 @@ func exit_meteor_form(at: Vector3) -> void:
 	meteor_form = false
 	global_position = at + Vector3(0, 0.05, 0)
 	velocity = Vector3.ZERO
-	model.visible = true
+	model.reappear()
 	_collider.set_deferred("disabled", false)
 	spring.spring_length = SPRING_NORMAL
 	invuln = maxf(invuln, 0.25)   # a moment to get bearings after landing
@@ -385,6 +386,7 @@ func hurt(amount: float) -> bool:
 	if meteor_form or invuln > 0.0 or hp <= 0.0:
 		return false
 	invuln = IFRAMES
+	model.play_hit()
 	if god_mode:
 		return true
 	var armor := stats.value("armor")

@@ -65,7 +65,7 @@ func _ready() -> void:
 	_check("23 tiles", cs._tiles.size() == 23, "%d" % cs._tiles.size())
 	_check("wizard tile focused first", cs._tiles[0].has_focus() and cs._shown == 0, "")
 	_check("wizard previews as a live 3D model", cs._view_box.visible and not cs._big_icon.visible
-		and cs.find_children("*", "WizardModel", true, false).size() == 1, "")
+		and cs.find_children("*", "HeroModel", true, false).size() == 1, "")
 	var locked_icons := 0
 	for t in cs._tiles:
 		if (t.get_meta("icon") as CharacterIcon).locked:
