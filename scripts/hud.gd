@@ -23,6 +23,7 @@ var ability_slots: Array = []   # AbilitySlot
 var tooltip: PanelContainer
 var tooltip_text: RichTextLabel
 var inspect_hint: Label
+var buff_label: RichTextLabel
 var _hover_slot := -1
 var end_title: Label
 var end_stats: Label
@@ -286,6 +287,21 @@ func _build_tooltip(root: Control) -> void:
 	tooltip.add_child(tooltip_text)
 	root.add_child(tooltip)
 
+	buff_label = RichTextLabel.new()
+	buff_label.bbcode_enabled = true
+	buff_label.fit_content = true
+	buff_label.scroll_active = false
+	buff_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	buff_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	buff_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	buff_label.offset_left = -400
+	buff_label.offset_right = 400
+	buff_label.offset_top = 64
+	buff_label.add_theme_font_size_override("normal_font_size", 20)
+	buff_label.add_theme_constant_override("outline_size", 5)
+	buff_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	root.add_child(buff_label)
+
 	inspect_hint = _label("PAUSED  ·  hover an ability for details  ·  release Alt to resume", 20)
 	inspect_hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	inspect_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -426,6 +442,7 @@ func _process(dt: float) -> void:
 	inv_label.text = "\n".join(lines)
 
 	_update_tooltip()
+	buff_label.text = "[center]%s[/center]" % main.powerups.status_text()
 	for i in ability_slots.size():
 		ability_slots[i].set_locked(not main.abilities.is_unlocked(i))
 		ability_slots[i].set_cooldown(main.abilities.fraction_remaining(i), main.abilities.cooldown[i])

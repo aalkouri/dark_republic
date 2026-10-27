@@ -54,6 +54,7 @@ var _collider: CollisionShape3D
 const SPRING_NORMAL := 6.5
 const SPRING_METEOR := 14.0
 var face_camera := false   # screenshot/portrait mode
+var face_offset := 0.0     # extra yaw for portraits (3/4 views)
 
 # Bot input (used by the headless smoke test)
 var bot := false
@@ -277,7 +278,7 @@ func _update_visuals(dt: float) -> void:
 	var hv := Vector3(velocity.x, 0.0, velocity.z)
 	var target_yaw := cam_yaw
 	if face_camera:
-		target_yaw = cam_yaw + PI
+		target_yaw = cam_yaw + PI + face_offset
 	elif hv.length() > 0.5:
 		target_yaw = atan2(-hv.x, -hv.z)
 	model.rotation.y = lerp_angle(model.rotation.y, target_yaw, 1.0 - exp(-15.0 * dt))

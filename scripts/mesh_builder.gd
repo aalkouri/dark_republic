@@ -7,7 +7,17 @@ const PROP_SHADER := """
 shader_type spatial;
 render_mode cull_disabled;
 uniform float wind = 1.0;
+uniform float char_amount = 0.0;   // 0 = normal, 1 = burnt black
+uniform float burning = 0.0;       // ember glow while on fire
+varying vec3 lpos;
+float hash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float noise(vec3 p) {
+	vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+	           mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+}
 void vertex() {
+	lpos = VERTEX;
 	float w = COLOR.a;
 	vec3 wp = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	float t = TIME * 1.1 + wp.x * 0.13 + wp.z * 0.09;
@@ -17,8 +27,17 @@ void vertex() {
 }
 void fragment() {
 	// Vertex colors are authored in sRGB
-	ALBEDO = pow(COLOR.rgb, vec3(2.2));
+	vec3 col = pow(COLOR.rgb, vec3(2.2));
+	// Charring creeps in patchily, then covers everything
+	float patch = noise(lpos * 2.3);
+	float c = smoothstep(patch * 0.6, patch * 0.6 + 0.4, char_amount);
+	col = mix(col, vec3(0.03, 0.026, 0.022), c);
+	ALBEDO = col;
 	ROUGHNESS = 0.92;
+	if (burning > 0.0) {
+		float e = noise(lpos * 4.0 + vec3(0.0, -TIME * 2.0, 0.0)) * 0.7 + noise(lpos * 11.0 - vec3(TIME)) * 0.3;
+		EMISSION = vec3(1.0, 0.32, 0.04) * smoothstep(0.45, 0.85, e) * burning * 2.2;
+	}
 }
 """
 

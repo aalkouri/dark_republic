@@ -152,7 +152,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	for i in TREES:
 		var p := _free_point(rng, half - 6.0, 12.0, water, 3.0, placed, 4.5)
 		var t := SwampProps.tree(i % SwampProps.VARIANTS, rng)
-		_prop(parent, t, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p))
+		_prop(parent, t, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p), true)
 		placed.append(p)
 
 	for i in FALLEN:
@@ -164,7 +164,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 		var tilt := deg_to_rad(rng.randf_range(2.0, 8.0))
 		var basis := Basis(Vector3.UP, rng.randf() * TAU) * Basis(Vector3(0, 0, 1), -tilt)
 		var y := r * 0.8 + sin(tilt) * length * 0.5
-		_prop(parent, fallen, Transform3D(basis, p + Vector3(0, y, 0)))
+		_prop(parent, fallen, Transform3D(basis, p + Vector3(0, y, 0)), true)
 		placed.append(p)
 
 	for i in RUINS:
@@ -189,12 +189,16 @@ static func _free_point(rng: RandomNumberGenerator, extent: float, keep_out: flo
 	return Vector3(rng.randf_range(-extent, extent), 0.0, rng.randf_range(-extent, extent))
 
 
-static func _prop(parent: Node3D, data: Dictionary, xf: Transform3D) -> void:
+static func _prop(parent: Node3D, data: Dictionary, xf: Transform3D, burnable := false) -> void:
 	var body := StaticBody3D.new()
 	body.transform = xf
 	var mi := MeshInstance3D.new()
 	mi.mesh = data["mesh"]
 	body.add_child(mi)
+	if burnable:
+		body.add_to_group(TreeFire.GROUP)
+		body.set_meta("mesh_instance", mi)
+		body.set_meta("reach", data.get("length", 3.0) * 0.5)   # how far from its origin the prop extends
 	for c in data["colliders"]:
 		var cs := CollisionShape3D.new()
 		cs.shape = c[0]

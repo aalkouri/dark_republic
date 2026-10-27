@@ -38,6 +38,8 @@ var water: SwampWater          # optional: goblins wade (and slow down) in swamp
 const WATER_SPEED_MULT := 0.5
 var numbers: DamageNumbers      # optional: floating damage numbers
 var corpses: CorpseManager      # optional: dead goblins fall over and linger for 3 s
+var damage_mult := 1.0          # all damage dealt to goblins (5x Damage power-up)
+var fear := false               # Fear Idol: goblins run away from the player
 const BURN_NUMBER_INTERVAL := 0.5   # burn damage is totalled and shown twice a second
 const BAR_STRIDE := 16              # health bars: 12 transform + 4 custom (hp fraction, epic)
 const BAR_HIDE_DIST := 45.0
@@ -244,6 +246,7 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 func damage(i: int, amount: float, knockback := Vector3.ZERO) -> bool:
 	if dead[i]:
 		return false
+	amount *= damage_mult
 	hp[i] -= amount
 	flash[i] = 0.08
 	if numbers != null:
@@ -277,6 +280,7 @@ func _kill(i: int) -> void:
 func dot_damage(i: int, amount: float) -> void:
 	if dead[i]:
 		return
+	amount *= damage_mult
 	hp[i] -= amount
 	burn_acc[i] += amount
 	if hp[i] <= 0.0 or _time >= dot_next[i]:
@@ -412,7 +416,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		var tz := player_pos.z - p.z
 		var d2 := tx * tx + tz * tz
 
-		if d2 > reloc2 and t != BOSS:
+		if d2 > reloc2 and t != BOSS and not fear:
 			var a := rng.randf() * TAU
 			var r := rng.randf_range(28.0, 36.0)
 			pos[i] = Vector3(player_pos.x + cos(a) * r, 0.0, player_pos.z + sin(a) * r)
@@ -426,7 +430,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		var burning := burn_t[i] > 0.0
 		if burning and not dead[i]:
 			burn_t[i] -= dt
-			var bd := hp_max[i] * burn_dps_frac * dt
+			var bd := hp_max[i] * burn_dps_frac * dt * damage_mult
 			hp[i] -= bd
 			burn_acc[i] += bd
 			burn_num_t[i] -= dt
@@ -504,6 +508,8 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			fx = tx * inv
 			fz = tz * inv
 			var sp := t_speed[t] * (WATER_SPEED_MULT if p.y < -0.15 else 1.0)
+			if fear:
+				sp = -sp   # run away from the player
 			dvx += fx * sp
 			dvz += fz * sp
 		var dl := sqrt(dvx * dvx + dvz * dvz)

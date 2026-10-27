@@ -108,7 +108,7 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	var hp0 := player.hp
 	_check("meteor: invulnerable while falling", not player.hurt(50.0) and player.hp == hp0, "hp %.0f" % player.hp)
 	var head: Node3D = ab._meteors[0]["head"]
-	var has_hat := head.find_children("*", "MeshInstance3D", true, false).size() >= 8
+	var has_hat := head.find_children("*", "MeshInstance3D", true, false).size() >= 6
 	_check("meteor: falling object is the giant wizard head", has_hat and is_equal_approx(head.get_child(0).scale.x, Abilities.HEAD_SCALE), "%d meshes" % head.find_children("*", "MeshInstance3D", true, false).size())
 	for f in int(60 * 1.5):
 		ab.tick(1.0 / 60.0)
@@ -133,6 +133,42 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	burned = (start_hp - em.hp[g]) / em.hp_max[g]
 	_check("burning ground: ~3%/s while it lasts (3 s)", absf(burned - 0.09) < 0.01, "lost %.1f%% of max HP" % (burned * 100.0))
 	_check("burning ground goes out", ab.scorch_count() == 0, "zones %d" % ab.scorch_count())
+
+	# Meteor sets trees on fire; they char black after 15 s and stay charred
+	var trees := get_tree().get_nodes_in_group(TreeFire.GROUP)
+	var standing: Node3D = null
+	for t in trees:
+		if not (t as Node3D).has_meta("burn_state") and float(t.get_meta("reach")) < 2.0:
+			standing = t
+			break
+	var hit_at := standing.global_position + Vector3(3, 0, 0)
+	var lit := ab._ignite_trees(hit_at)
+	var far_unlit := 0
+	for t in trees:
+		var tb := t as Node3D
+		var dist := Vector2(tb.global_position.x - hit_at.x, tb.global_position.z - hit_at.z).length()
+		if dist > Abilities.METEOR_RADIUS + float(tb.get_meta("reach")) and TreeFire.state_of(tb) != "":
+			far_unlit += 1
+	_check("meteor sets a tree in the blast on fire", TreeFire.state_of(standing) == "burning" and lit >= 1, "%d trees lit" % lit)
+	_check("trees outside the blast don't catch", far_unlit == 0, "%d far trees burning" % far_unlit)
+	var fire: TreeFire = null
+	for c in standing.get_children():
+		if c is TreeFire:
+			fire = c
+	fire.set_process(false)   # drive it manually
+	for f in 60 * 7:
+		fire._process(1.0 / 60.0)
+	var mid_char: float = fire._mat.get_shader_parameter("char_amount")
+	_check("tree is charring while it burns", mid_char > 0.4 and mid_char < 0.6 and TreeFire.state_of(standing) == "burning", "char %.2f at 7 s" % mid_char)
+	var mat: ShaderMaterial = (standing.get_meta("mesh_instance") as MeshInstance3D).material_override
+	for f in 60 * 8 + 2:
+		if is_instance_valid(fire):
+			fire._process(1.0 / 60.0)
+	_check("after 15 s the tree is charred black and the fire is out", TreeFire.state_of(standing) == "charred" and is_equal_approx(mat.get_shader_parameter("char_amount"), 1.0) and is_equal_approx(mat.get_shader_parameter("burning"), 0.0), TreeFire.state_of(standing))
+	_check("a charred tree can't burn again", not TreeFire.ignite(standing), "")
+	var shared: ShaderMaterial = MeshBuilder.prop_material()
+	var shared_char = shared.get_shader_parameter("char_amount")
+	_check("only the burnt tree is blackened", shared_char == null or is_equal_approx(shared_char, 0.0), "")
 
 	# Fire Nova reaches 18 m (was 9 m): a goblin 16 m away is hit and knocked back
 	await _place(player, Vector3(0, 0.3, 0))

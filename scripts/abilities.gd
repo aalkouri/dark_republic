@@ -301,7 +301,19 @@ func _update_meteors(dt: float) -> void:
 		_meteors.remove_at(k)
 
 
+## Trees (and fallen trees) caught in the blast catch fire and char over 15 s.
+func _ignite_trees(at: Vector3) -> int:
+	var n := 0
+	for b in get_tree().get_nodes_in_group(TreeFire.GROUP):
+		var body := b as Node3D
+		var d := Vector2(body.global_position.x - at.x, body.global_position.z - at.z).length()
+		if d <= METEOR_RADIUS + float(body.get_meta("reach", 1.5)) and TreeFire.ignite(body):
+			n += 1
+	return n
+
+
 func _meteor_impact(at: Vector3) -> void:
+	_ignite_trees(at)
 	var dmg := METEOR_DAMAGE * stats.value("damage")
 	for i in enemies.query_radius(Vector3(at.x, 0.8, at.z), METEOR_RADIUS, false):
 		var away := enemies.pos[i] - at

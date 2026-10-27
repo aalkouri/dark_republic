@@ -295,6 +295,71 @@ func _ready() -> void:
 		t += 0.01
 	_check("blinks every 0.3 s for the last 5 s", blinks >= 16 and blinks <= 17, "%d blinks" % blinks)
 
+	# 11) Power-ups from elites
+	var gm := GemManager.new()
+	add_child(gm)
+	var pdb := UpgradeDB.new("res://data/upgrades.json", rng)
+	var pstats := Stats.new()
+	for k in ["max_hp", "regen", "armor", "move_speed", "extra_jumps", "damage"]:
+		pstats.define(k, {"max_hp": 100.0, "move_speed": 8.0, "damage": 1.0}.get(k, 0.0))
+	var pu := PowerupManager.new()
+	pu.setup(player, pstats, em, gm, pdb, rng)
+	add_child(pu)
+	_check("power-up chance 2% base", is_equal_approx(pu.drop_chance(), 0.02), "%.3f" % pu.drop_chance())
+	pdb.levels["tome_luck"] = 3
+	_check("+1% per Luck level", is_equal_approx(pu.drop_chance(), 0.05), "%.3f at Luck 3" % pu.drop_chance())
+	pdb.levels.erase("tome_luck")
+	var drops := 0
+	var kinds := {}
+	for n in 20000:
+		var before_n := pu.count()
+		pu.on_elite_killed(Vector3(500, 0, 500))
+		if pu.count() > before_n:
+			drops += 1
+			kinds[pu._pickups[pu._pickups.size() - 1]["kind"]] = true
+	_check("elite drop rate ~2%", absf(drops / 20000.0 - 0.02) < 0.004, "%.2f%%" % (drops / 200.0))
+	_check("all four power-ups can drop", kinds.size() == 4, "%d kinds" % kinds.size())
+	# Magnet: every gem on the map heads to the player
+	for k in 30:
+		gm.spawn(Vector3(rng.randf_range(-80, 80), 0.5, rng.randf_range(-80, 80)), 1.0)
+	pu.activate(PowerupManager.MAGNET)
+	var all_pulled := true
+	for k in gm.count:
+		if gm.att[k] < 0.0:
+			all_pulled = false
+	var got_xp := 0.0
+	for f in 60 * 6:
+		got_xp += gm.tick(dt, player.global_position + Vector3(0, 0.9, 0), 0.1)
+	_check("Magnet pulls every orb onto the player", all_pulled and gm.count == 0 and got_xp >= 30.0, "%d left, %.0f xp collected" % [gm.count, got_xp])
+	# Fear: goblins run away
+	em.count = 0
+	var fg := em.spawn(EnemyManager.GRUNT, Vector3(10, 0, 0), 1.0)
+	pu.activate(PowerupManager.FEAR)
+	for f in 30:
+		em.tick(dt, Vector3.ZERO)
+	_check("Fear Idol: goblins move away from you", em.vel[fg].x > 2.0 and em.pos[fg].x > 10.0, "vel %s" % str(em.vel[fg]))
+	for f in 60 * 15 + 2:
+		pu.tick(dt, 0.1)
+	_check("Fear lasts 15 s", not em.fear, "")
+	# 5x damage for 10 s
+	pu.activate(PowerupManager.DAMAGE)
+	var dg := em.spawn(EnemyManager.TANK, Vector3(5, 0, 0), 100.0)
+	var dh := em.hp[dg]
+	em.damage(dg, 10.0)
+	_check("5x Damage multiplies damage", is_equal_approx(dh - em.hp[dg], 50.0), "dealt %.0f" % (dh - em.hp[dg]))
+	for f in 60 * 10 + 2:
+		pu.tick(dt, 0.1)
+	dh = em.hp[dg]
+	em.damage(dg, 10.0)
+	_check("5x Damage ends after 10 s", is_equal_approx(dh - em.hp[dg], 10.0), "dealt %.0f" % (dh - em.hp[dg]))
+	# Movement +80% for 15 s, refresh doesn't stack
+	pu.activate(PowerupManager.SPEED)
+	pu.activate(PowerupManager.SPEED)
+	_check("Movement Enhancer +80%", is_equal_approx(pstats.value("move_speed"), 8.0 * 1.8), "%.2f" % pstats.value("move_speed"))
+	for f in 60 * 15 + 2:
+		pu.tick(dt, 0.1)
+	_check("Movement Enhancer ends after 15 s", is_equal_approx(pstats.value("move_speed"), 8.0), "%.2f" % pstats.value("move_speed"))
+
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
 

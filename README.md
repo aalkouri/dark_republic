@@ -40,11 +40,11 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 |---|---|---|---|
 | 1 | Inferno | 30 s | Ignites every goblin: 5% of max HP per second for 10 s. Burning goblins that die explode for 50% of their max HP within 2 yd (chains) |
 | 2 | Fire Nova | 45 s | Ring of fire expands from the floor under you to 18 m: 80 dmg, knocks enemies back 5 yd |
-| 3 | **Meteor (ultimate)** | 2 min | The wizard vanishes (invulnerable, untouchable) and becomes a giant flaming copy of his own head, which crashes where you aim 3 s later: 250 dmg (scales with Damage) in 8 m plus knockback. He reappears at the crash site, and the ground burns for 3 s, dealing 3% of max HP per second to goblins in a 7 m radius |
+| 3 | **Meteor (ultimate)** | 2 min | Trees and fallen trees in the blast catch fire and burn for 15 s, leaving them charred black. The wizard vanishes (invulnerable, untouchable) and becomes a giant flaming copy of his own head, which crashes where you aim 3 s later: 250 dmg (scales with Damage) in 8 m plus knockback. He reappears at the crash site, and the ground burns for 3 s, dealing 3% of max HP per second to goblins in a 7 m radius |
 
 **Attacks:** his starting weapon hurls **Fireballs**. Each time it fires, he swings his staff down at the target and the fireballs launch from the staff tip.
 
-**Look:** red coat made of animated flames, a pointy crimson hat with a gold band, ember eyes, a fire staff, and ash footprints that fade within a second.
+**Look:** red coat made of animated flames whose back trails along the ground as a train, a two-handed grip on his fire staff, a wrinkled, grimy crimson hat with a wavy brim and a tip that flops to the right, a tarnished gold band, ember eyes, a fire staff, and ash footprints that fade within a second.
 
 **Collisions:** when an enemy touches you, you take its contact damage (shield first), become immune for 0.5 s (shown by dimming the character 50%), and you and the enemy are knocked apart. Enemies that run into you while you're immune bounce back opposite to the way they were heading.
 
@@ -57,6 +57,17 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 | Blue | 20% | Shield worth 10% of max HP (absorbs damage first, stacks) |
 
 Potions lean and spin slowly so they're easy to spot, last 45 s, and blink every 0.3 s during their final 5 s.
+
+**Power-ups:** each elite kill also has a 2% chance (+1% per Tome of Luck level) to drop one of:
+
+| Power-up | Effect |
+|---|---|
+| Magnet | Every XP orb on the map flies to you |
+| Fear Idol | All goblins run away from you for 15 s |
+| 5x Damage | All damage you deal is multiplied by 5 for 10 s |
+| Movement Enhancer | +80% move speed for 15 s |
+
+Picking one up while it's active refreshes its timer; active power-ups and their timers show under the run timer.
 
 ## The swamp
 

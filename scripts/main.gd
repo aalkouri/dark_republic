@@ -44,6 +44,7 @@ var music: AudioStreamPlayer
 var fx: FxManager
 var abilities: Abilities
 var potions: PotionManager
+var powerups: PowerupManager
 var goblin_audio: GoblinAudio
 
 var state := "playing"   # playing | paused | levelup | dead | won
@@ -81,6 +82,10 @@ var _shot_spawn := 0
 var _shot_front := false
 var _shot_pool := false
 var _shot_potions := false
+var _shot_powerups := false
+var _shot_ignite := false
+var _shot_zoom := 0.0
+var _shot_turn := 0.0
 var _shot_level := 0
 var _shot_inspect := -1
 var _shot_settings_tab := -1
@@ -117,6 +122,16 @@ func _ready() -> void:
 			_shot_inspect = int(a.split("=")[1])
 		elif a.begins_with("--shot-level="):
 			_shot_level = int(a.split("=")[1])
+		elif a.begins_with("--shot-zoom="):
+			_shot_zoom = float(a.split("=")[1])
+		elif a.begins_with("--shot-turn="):
+			_shot_turn = deg_to_rad(float(a.split("=")[1]))
+		elif a == "--shot-ignite":
+			_shot_ignite = true
+		elif a.begins_with("--shot-timescale="):
+			Engine.time_scale = float(a.split("=")[1])
+		elif a == "--shot-powerups":
+			_shot_powerups = true
 		elif a == "--shot-potions":
 			_shot_potions = true
 		elif a == "--shot-pool":
@@ -183,6 +198,11 @@ func _ready() -> void:
 	add_child(potions)
 	potions.collected.connect(func(k: int): hud.flash_message(PotionManager.NAMES[k], 1.5))
 	enemies.epic_killed.connect(func(p: Vector3): potions.drop(p))
+	powerups = PowerupManager.new()
+	powerups.setup(player, stats, enemies, gems, db, rng)
+	add_child(powerups)
+	powerups.collected.connect(func(k: int): hud.flash_message(PowerupManager.PICKUP_TEXT[k], 2.5))
+	enemies.epic_killed.connect(func(p: Vector3): powerups.on_elite_killed(p))
 
 	enemies.exploded.connect(func(p: Vector3, r: float): fx.burst(p, r * 1.4, Color(1.0, 0.4, 0.08), 0.35))
 
@@ -194,7 +214,7 @@ func _ready() -> void:
 	add_child(hud)
 	hud.setup(self)
 	# Main runs while paused (menus, input); all gameplay nodes freeze with the pause.
-	for n in [fx, enemies, numbers, corpses, gems, weapons, abilities, potions, goblin_audio, items]:
+	for n in [fx, enemies, numbers, corpses, powerups, gems, weapons, abilities, potions, goblin_audio, items]:
 		(n as Node).process_mode = Node.PROCESS_MODE_PAUSABLE
 
 	Events.enemy_killed.connect(_on_enemy_killed)
@@ -254,6 +274,7 @@ func _physics_process(dt: float) -> void:
 	var t2 := Time.get_ticks_usec()
 	var gained := gems.tick(dt, player.global_position + Vector3(0, 0.9, 0), stats.value("pickup_range"))
 	potions.tick(dt, stats.value("pickup_range"))
+	powerups.tick(dt, stats.value("pickup_range"))
 	goblin_audio.tick(dt)
 	var t3 := Time.get_ticks_usec()
 	_track_perf((t1 - t0) / 1000.0, (t2 - t1) / 1000.0, (t3 - t2) / 1000.0)
@@ -641,6 +662,27 @@ func _smoke_tick(dt: float) -> void:
 
 func _shot_tick() -> void:
 	player.god_mode = true
+	player.face_offset = _shot_turn
+	if _shot_zoom > 0.0:
+		player.spring.spring_length = _shot_zoom
+	if _shot_ignite and run_time < 0.05:
+		# Stand 11 m from the nearest standing tree, look at it, and set it on fire
+		var best: Node3D = null
+		for t in get_tree().get_nodes_in_group(TreeFire.GROUP):
+			var tb := t as Node3D
+			if float(tb.get_meta("reach")) < 2.0 and (best == null or tb.global_position.length() < best.global_position.length()):
+				best = tb
+		var tp := best.global_position
+		var away := Vector3(tp.x, 0, tp.z).normalized()
+		player.global_position = tp - away * 11.0 + Vector3(0, 0.5, 0)
+		var to := tp - player.global_position
+		player.cam_yaw = atan2(-to.x, -to.z)
+		TreeFire.ignite(best)
+	if _shot_powerups and run_time < 0.05:
+		var f2 := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
+		var r2 := Vector3(cos(player.cam_yaw), 0, -sin(player.cam_yaw))
+		for k in 4:
+			powerups.drop(player.global_position + f2 * 6.0 + r2 * (k - 1.5) * 1.9, k)
 	if _shot_potions and run_time < 0.05:
 		var fwd := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
 		var right := Vector3(cos(player.cam_yaw), 0, -sin(player.cam_yaw))
