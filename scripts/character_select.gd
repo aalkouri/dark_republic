@@ -28,6 +28,7 @@ var _play_btn: Button
 var _back_btn: Button
 var _skills_btn: Button
 var skills: SkillScreen
+var _count_label: Label
 var _music: AudioStreamPlayer
 var _fade: ColorRect
 var _leaving := false
@@ -76,7 +77,20 @@ func index_of(id: String) -> int:
 
 
 func is_unlocked(k: int) -> bool:
-	return bool(characters[k].get("unlocked", false))
+	return bool(characters[k].get("unlocked", false)) or Wallet.is_char_unlocked(characters[k]["id"])
+
+
+func is_mystery(k: int) -> bool:
+	return bool(characters[k].get("mystery", false))
+
+
+## Has a model and abilities, so it can actually be played (only the Fire Wizard so far).
+func is_ready(k: int) -> bool:
+	return characters[k].has("kit")
+
+
+func price_of(k: int) -> int:
+	return int(characters[k].get("price", 0))
 
 
 # ------------------------------------------------------------------ building
@@ -152,11 +166,8 @@ void fragment() {
 	heading.add_theme_constant_override("shadow_offset_y", 0)
 	heading.position = Vector2(64, 36)
 	add_child(heading)
-	var count := 0
-	for c in characters:
-		if c.get("unlocked", false):
-			count += 1
-	var sub := _label("%d of %d unlocked" % [count, characters.size()], 20, Color(0.8, 0.74, 0.64, 0.8))
+	var sub := _label("", 20, Color(0.8, 0.74, 0.64, 0.8))
+	_count_label = sub
 	sub.position = Vector2(68, 98)
 	add_child(sub)
 
@@ -183,9 +194,6 @@ func _build_grid() -> void:
 		b.custom_minimum_size = Vector2(TILE, TILE)
 		b.focus_mode = Control.FOCUS_ALL
 		b.tooltip_text = ""
-		var unlocked := is_unlocked(k)
-		var rim := Color(0.95, 0.6, 0.2) if unlocked else Color(0.3, 0.28, 0.26)
-		b.add_theme_stylebox_override("normal", _tile_style(rim.darkened(0.2), 2, Color(0, 0, 0, 0.5)))
 		b.add_theme_stylebox_override("hover", _tile_style(Color(1.0, 0.75, 0.35), 3, Color(0, 0, 0, 0.5)))
 		b.add_theme_stylebox_override("focus", _tile_style(Color(1.0, 0.8, 0.4), 4, Color(0, 0, 0, 0)))
 		b.add_theme_stylebox_override("pressed", _tile_style(Color(1.0, 0.9, 0.6), 4, Color(0, 0, 0, 0.5)))
@@ -195,7 +203,6 @@ func _build_grid() -> void:
 		icon.offset_top = 4
 		icon.offset_right = -4
 		icon.offset_bottom = -4
-		icon.locked = not unlocked
 		icon.animate = false
 		icon.set_icon(c["icon"])
 		icon.clip_contents = true
@@ -212,6 +219,28 @@ func _build_grid() -> void:
 		lvl.add_theme_font_size_override("font_size", 18)
 		b.add_child(lvl)
 		b.set_meta("lvl", lvl)
+		# Unlock price, bottom-left of locked tiles (coin + amount)
+		var price := HBoxContainer.new()
+		price.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+		price.offset_left = 6
+		price.offset_top = -27
+		price.offset_bottom = -4
+		price.add_theme_constant_override("separation", 3)
+		price.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var coin := CoinIcon.new()
+		coin.custom_minimum_size = Vector2(18, 18)
+		coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		price.add_child(coin)
+		var amount := Label.new()
+		amount.text = Wallet.fmt(price_of(k))
+		amount.add_theme_font_override("font", ThemeDB.fallback_font)
+		amount.add_theme_font_size_override("font_size", 16)
+		amount.add_theme_color_override("font_color", Color(1.0, 0.86, 0.4))
+		amount.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		amount.add_theme_constant_override("outline_size", 5)
+		price.add_child(amount)
+		b.add_child(price)
+		b.set_meta("price", price)
 		b.focus_entered.connect(_show.bind(k))
 		b.mouse_entered.connect(func(): b.grab_focus())
 		b.pressed.connect(_choose.bind(k))
@@ -220,13 +249,25 @@ func _build_grid() -> void:
 	refresh_levels()
 
 
-## Show each character's "lvl N" (nothing when the level is 0).
+## Refresh every tile: rim, padlock, unlock price (locked) or "lvl N" (unlocked, 1+).
 func refresh_levels() -> void:
+	var count := 0
 	for k in _tiles.size():
+		var b := _tiles[k]
+		var unlocked := is_unlocked(k)
+		var mystery := is_mystery(k)
+		if unlocked:
+			count += 1
+		var rim := Color(0.95, 0.6, 0.2) if unlocked else Color(0.3, 0.28, 0.26)
+		b.add_theme_stylebox_override("normal", _tile_style(rim.darkened(0.2), 2, Color(0, 0, 0, 0.5)))
+		(b.get_meta("icon") as CharacterIcon).locked = not unlocked and not mystery
 		var lvl := Wallet.char_level(characters[k]["id"])
-		var l := _tiles[k].get_meta("lvl") as Label
+		var l := b.get_meta("lvl") as Label
 		l.text = "lvl %d" % lvl
-		l.visible = lvl > 0
+		l.visible = unlocked and lvl > 0
+		(b.get_meta("price") as Control).visible = not unlocked and not mystery and price_of(k) > 0
+	if _count_label:
+		_count_label.text = "%d of %d unlocked" % [count, characters.size()]
 
 
 func _build_panel() -> void:
@@ -383,36 +424,69 @@ func _show(k: int) -> void:
 	_shown = k
 	var c: Dictionary = characters[k]
 	var unlocked := is_unlocked(k)
+	var mystery := is_mystery(k)
+	var ready := unlocked and is_ready(k)
 	_name.text = c["name"]
 	_epithet.text = c.get("epithet", "")
 	_bio.text = c.get("bio", "")
 	var kit: Array = c.get("kit", [])
-	_kit.text = "  ·  ".join(kit) if unlocked else ""
-	_kit.visible = unlocked
-	if unlocked:
-		_status.text = "SELECTED" if Settings.selected_character == c["id"] else "Press Enter to choose"
+	_kit.text = "  ·  ".join(kit) if ready else ""
+	_kit.visible = ready
+	_play_btn.text = "PLAY"
+	_status.visible = not mystery
+	if mystery:
+		_status.text = ""
+	elif unlocked:
 		var cid: String = c["id"]
 		var next := Wallet.next_level_exp(cid)
-		_status.text += "   ·   lvl %d   ·   %s" % [Wallet.char_level(cid),
+		var head := ("SELECTED" if Settings.selected_character == cid else "Press Enter to choose") if ready else "UNLOCKED  ·  playable soon"
+		_status.text = head + "   ·   lvl %d   ·   %s" % [Wallet.char_level(cid),
 			("%s / %s EXP" % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else "max level"]
 		_status.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
 	else:
-		_status.text = "LOCKED  -  coming soon"
-		_status.add_theme_color_override("font_color", Color(0.65, 0.62, 0.58))
-	# Playable characters get the live model; locked ones a big portrait
-	_view_box.visible = unlocked
-	_big_icon.visible = not unlocked
-	_big_icon.locked = not unlocked
+		var afford := Wallet.coins >= price_of(k)
+		_status.text = "LOCKED  ·  Unlock for %s coins%s" % [Wallet.fmt(price_of(k)), "" if afford else "  (not enough coins)"]
+		_status.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45) if afford else Color(0.85, 0.5, 0.45))
+		_play_btn.text = "UNLOCK"
+	# Playable characters get the live model; everyone else a big portrait
+	_view_box.visible = ready
+	_big_icon.visible = not ready
+	_big_icon.locked = not unlocked and not mystery
 	_big_icon.set_icon(c["icon"])
 	for j in _tiles.size():
 		(_tiles[j].get_meta("icon") as CharacterIcon).animate = j == k
-	_play_btn.disabled = not unlocked
-	_skills_btn.disabled = not unlocked   # skill trees for playable characters only
+	if mystery:
+		_play_btn.disabled = true
+	elif not unlocked:
+		_play_btn.disabled = Wallet.coins < price_of(k)
+	else:
+		_play_btn.disabled = not ready
+	_skills_btn.disabled = not unlocked or mystery
+
+
+## Buy a locked character with coins.
+func unlock(k: int) -> bool:
+	if is_unlocked(k) or is_mystery(k) or not Wallet.spend(price_of(k)):
+		return false
+	Wallet.unlock_char(characters[k]["id"])
+	refresh_levels()
+	_shown = -1
+	_show(k)
+	var b := _tiles[k]
+	b.pivot_offset = b.size * 0.5
+	var tw := create_tween()
+	tw.tween_property(b, "scale", Vector2(1.12, 1.12), 0.1)
+	tw.tween_property(b, "scale", Vector2.ONE, 0.18)
+	_skills_btn.grab_focus()
+	return true
 
 
 func _choose(k: int) -> void:
 	_show(k)
-	if not is_unlocked(k):
+	if not is_unlocked(k) and not is_mystery(k) and Wallet.coins >= price_of(k):
+		_play_btn.grab_focus()   # "Unlock" is ready to press
+		return
+	if not is_unlocked(k) or not is_ready(k):
 		var tile := _tiles[k]
 		var tw := create_tween()   # "nope" shake
 		var x := tile.position.x
@@ -426,7 +500,12 @@ func _choose(k: int) -> void:
 
 
 func _play() -> void:
-	if _leaving or _shown < 0 or not is_unlocked(_shown):
+	if _leaving or _shown < 0:
+		return
+	if not is_unlocked(_shown):
+		unlock(_shown)
+		return
+	if not is_ready(_shown):
 		return
 	Settings.selected_character = characters[_shown]["id"]
 	_leave(GAME_SCENE)
@@ -496,6 +575,9 @@ func _shot_setup() -> void:
 				SkillTree.learn("fire_wizard", sk)
 			refresh_levels()
 			_open_skills.call_deferred()
+		elif a.begins_with("--shot-coins="):
+			Wallet.coins = int(a.split("=")[1])
+			Wallet.displayed = Wallet.coins
 		elif a.begins_with("--shot-char="):
 			var k := index_of(a.split("=")[1])
 			if k >= 0:

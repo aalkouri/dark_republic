@@ -21,19 +21,32 @@ var fails := 0
 
 
 func _ready() -> void:
-	var chars: Array = load("res://scripts/character_select.gd").load_characters()
+	Wallet.persist = false
+	Wallet.coins = 0
+	Wallet.unlocked_chars = []
+	Wallet.char_exp = {}
+	var all: Array = load("res://scripts/character_select.gd").load_characters()
+	_check("30 slots", all.size() == 30, "%d" % all.size())
+	var mysteries := all.filter(func(c): return c.get("mystery", false))
+	_check("5 mystery slots, no info", mysteries.size() == 5 and mysteries.all(func(c): return c["name"] == "???" and not c.has("bio") and not c.has("price")), "%d" % mysteries.size())
+	var chars := all.filter(func(c): return not c.get("mystery", false))
 	_check("25 characters", chars.size() == 25, "%d" % chars.size())
+	var price_ok := true
+	for c in chars:
+		var want := 0 if c["id"] == "fire_wizard" else (2000 if c["id"] in ["ice_wizard", "thunder_wizard", "dark_wizard"] else (7000 if c["id"] == "merlin" else 10000))
+		price_ok = price_ok and int(c.get("price", 0)) == want
+	_check("prices: wizards 2,000, Merlin 7,000, the rest 10,000", price_ok, "")
 	var names := chars.map(func(c): return c["name"])
 	var missing := REQUESTED.filter(func(n): return n not in names)
 	_check("all 22 requested characters present", missing.is_empty(), str(missing))
 	var ids := {}
-	for c in chars:
+	for c in all:
 		ids[c["id"]] = true
-	_check("ids unique", ids.size() == chars.size(), "")
+	_check("ids unique", ids.size() == all.size(), "")
 	var unlocked := chars.filter(func(c): return c.get("unlocked", false))
 	_check("only the Fire Wizard is unlocked", unlocked.size() == 1 and unlocked[0]["id"] == "fire_wizard", str(unlocked.size()))
 	var bad := []
-	for c in chars:
+	for c in chars:   # (mystery slots have no portrait parts)
 		var i: Dictionary = c["icon"]
 		if i["body"] not in BODIES or i["head"] not in HEADS or i["hat"] not in HATS \
 				or i.get("item", "none") not in ITEMS or i.get("fx", "none") not in FX or i["bg"].size() != 2:
@@ -62,7 +75,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	var cs: Node = get_tree().current_scene
 	_check("Characters opens the select screen", cs.name == "CharacterSelect", cs.name)
-	_check("25 tiles", cs._tiles.size() == 25, "%d" % cs._tiles.size())
+	_check("30 tiles", cs._tiles.size() == 30, "%d" % cs._tiles.size())
 	_check("wizard tile focused first", cs._tiles[0].has_focus() and cs._shown == 0, "")
 	_check("wizard previews as a live 3D model", cs._view_box.visible and not cs._big_icon.visible
 		and cs.find_children("*", "HeroModel", true, false).size() == 1, "")
@@ -71,6 +84,34 @@ func _ready() -> void:
 		if (t.get_meta("icon") as CharacterIcon).locked:
 			locked_icons += 1
 	_check("24 tiles show the padlock", locked_icons == 24, "%d" % locked_icons)
+	var priced := 0
+	for t in cs._tiles:
+		if (t.get_meta("price") as Control).visible:
+			priced += 1
+	_check("24 locked tiles show their price", priced == 24, "%d" % priced)
+	var m: int = cs.index_of("mystery_1")
+	cs._tiles[m].grab_focus()
+	await get_tree().process_frame
+	_check("mystery: ??? and nothing else", cs._name.text == "???" and cs._bio.text == "" and cs._epithet.text == "" and not cs._status.visible
+		and not (cs._tiles[m].get_meta("price") as Control).visible and cs._play_btn.disabled and cs._skills_btn.disabled, cs._name.text)
+	# Unlocking with coins
+	var iw: int = cs.index_of("ice_wizard")
+	cs._tiles[iw].grab_focus()
+	await get_tree().process_frame
+	_check("locked: Play becomes Unlock, disabled without coins", cs._play_btn.text == "UNLOCK" and cs._play_btn.disabled and "2,000" in cs._status.text, cs._status.text)
+	Wallet.coins = 2500
+	cs._shown = -1
+	cs._show(iw)
+	_check("Unlock enabled with enough coins", not cs._play_btn.disabled, "")
+	cs._play_btn.pressed.emit()
+	await get_tree().process_frame
+	_check("unlocking spends the price", Wallet.coins == 500 and Wallet.is_char_unlocked("ice_wizard"), "%d" % Wallet.coins)
+	_check("unlocked tile: no padlock or price", not (cs._tiles[iw].get_meta("icon") as CharacterIcon).locked and not (cs._tiles[iw].get_meta("price") as Control).visible, "")
+	_check("unlocked: Skills open, Play waits for the model", not cs._skills_btn.disabled and cs._play_btn.disabled and "playable soon" in cs._status.text, cs._status.text)
+	_check("unlock count updates", cs._count_label.text == "2 of 30 unlocked", cs._count_label.text)
+	Wallet.unlocked_chars = []
+	Wallet.coins = 0
+	cs.refresh_levels()
 	# Character level: hidden at 0, "lvl N" in the bottom-left when 1+
 	Wallet.persist = false
 	var lvl0 := cs._tiles[0].get_meta("lvl") as Label

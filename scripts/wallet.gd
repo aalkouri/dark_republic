@@ -23,6 +23,7 @@ const DING := "res://audio/coins/coin_done.wav"
 var coins := 0                         # banked total
 var char_exp := {}                     # character id -> total EXP (1 per kill)
 var char_skills := {}                  # character id -> Array of learned skill ids
+var unlocked_chars: Array = []         # character ids bought with coins
 var displayed := 0.0                   # what the counter shows (lags during a payout)
 var persist := true                    # off for test/screenshot runs
 
@@ -101,6 +102,16 @@ func skill_points_total(id: String) -> int:
 
 func skill_points_free(id: String) -> int:
 	return maxi(0, char_level(id) - skills_of(id).size())
+
+
+func is_char_unlocked(id: String) -> bool:
+	return id in unlocked_chars
+
+
+func unlock_char(id: String) -> void:
+	if not id in unlocked_chars:
+		unlocked_chars.append(id)
+	_save()
 
 
 func has_skill(id: String, skill: String) -> bool:
@@ -354,6 +365,7 @@ func _load() -> void:
 		coins = int(cfg.get_value("wallet", "coins", 0))
 		char_exp = cfg.get_value("characters", "exp", {})
 		char_skills = cfg.get_value("characters", "skills", {})
+		unlocked_chars = cfg.get_value("characters", "unlocked", [])
 
 
 func _save() -> void:
@@ -364,4 +376,5 @@ func _save() -> void:
 	cfg.set_value("wallet", "coins", coins)
 	cfg.set_value("characters", "exp", char_exp)
 	cfg.set_value("characters", "skills", char_skills)
+	cfg.set_value("characters", "unlocked", unlocked_chars)
 	cfg.save(PATH)

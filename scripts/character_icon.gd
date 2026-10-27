@@ -34,6 +34,10 @@ func _draw() -> void:
 		return
 	var s := minf(size.x, size.y) / 128.0
 	draw_set_transform(Vector2((size.x - 128.0 * s) * 0.5, (size.y - 128.0 * s) * 0.5), 0.0, Vector2(s, s))
+	if data.get("mystery", false):
+		_mystery()
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	var bg: Array = data.get("bg", ["#222222", "#000000"])
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(128, 0), Vector2(128, 128), Vector2(0, 128)]),
 		PackedColorArray([Color.html(bg[0]), Color.html(bg[0]), Color.html(bg[1]), Color.html(bg[1])]))
@@ -531,3 +535,15 @@ func _padlock() -> void:
 	draw_rect(Rect2(c + Vector2(-10, -6), Vector2(20, 16)), Color(0.85, 0.7, 0.3))
 	draw_rect(Rect2(c + Vector2(-10, -6), Vector2(20, 16)), Color(0.3, 0.2, 0.05), false, 1.5)
 	draw_circle(c + Vector2(0, 1), 2.5, Color(0.2, 0.12, 0.03))
+
+
+## Unknown character: dark card with a big question mark.
+func _mystery() -> void:
+	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(128, 0), Vector2(128, 128), Vector2(0, 128)]),
+		PackedColorArray([Color(0.1, 0.09, 0.11), Color(0.1, 0.09, 0.11), Color(0.03, 0.03, 0.04), Color(0.03, 0.03, 0.04)]))
+	var f := ThemeDB.fallback_font
+	var fs := 84
+	var w := f.get_string_size("?", HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var at := Vector2(64 - w * 0.5, 92 + 2.0 * sin(_t * 2.0))
+	draw_string_outline(f, at, "?", HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 8, Color(0, 0, 0, 0.9))
+	draw_string(f, at, "?", HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.62, 0.58, 0.55))
