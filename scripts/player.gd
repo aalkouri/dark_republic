@@ -31,13 +31,18 @@ const JUMP_BUFFER := 0.12
 const BHOP_GRACE := 0.06
 const MOUSE_SENS := 0.0025
 const PAD_LOOK_SPEED := 3.0
-const IFRAMES := 0.45
+const IFRAMES := 0.5             # immunity after an enemy collision
+const IMMUNE_DIM := 0.5           # character brightness while immune
+const KNOCK_SPEED := 11.0
+const KNOCK_POP := 4.0
 
 var stats: Stats
 var hp := 100.0
 var max_hp := 100.0
 var invuln := 0.0
 var god_mode := false
+var shield := 0.0
+var face_camera := false   # screenshot/portrait mode
 
 # Bot input (used by the headless smoke test)
 var bot := false
@@ -55,13 +60,15 @@ var _air_jumps := 0
 var _land_grace := 0.0
 var _prev_floor := false
 var _slide_cd := 0.0
-var _hurt_flash := 0.0
 
 var rig: Node3D
 var spring: SpringArm3D
 var cam: Camera3D
-var model: Node3D
-var _body_mat: StandardMaterial3D
+var model: WizardModel
+var fx: FxManager          # set by main; used for the ash trail
+var _ash_dist := 0.0
+var _ash_side := 1.0
+var _shake := 0.0
 
 
 func _ready() -> void:
@@ -102,44 +109,8 @@ func _ready() -> void:
 
 
 func _build_model() -> void:
-	model = Node3D.new()
+	model = WizardModel.new()
 	add_child(model)
-	_body_mat = StandardMaterial3D.new()
-	_body_mat.albedo_color = Color(0.45, 0.75, 1.0)
-	_body_mat.emission_enabled = true
-	_body_mat.emission = Color(1, 0.1, 0.1)
-	_body_mat.emission_energy_multiplier = 0.0
-	var body := MeshInstance3D.new()
-	var cap := CapsuleMesh.new()
-	cap.radius = 0.4
-	cap.height = 1.8
-	cap.material = _body_mat
-	body.mesh = cap
-	body.position.y = 0.9
-	model.add_child(body)
-
-	var eye_mat := StandardMaterial3D.new()
-	eye_mat.albedo_color = Color(0.05, 0.05, 0.08)
-	for side in [-1.0, 1.0]:
-		var eye := MeshInstance3D.new()
-		var em := SphereMesh.new()
-		em.radius = 0.07
-		em.height = 0.14
-		em.material = eye_mat
-		eye.mesh = em
-		eye.position = Vector3(0.14 * side, 1.45, -0.36)
-		model.add_child(eye)
-
-	var club := MeshInstance3D.new()
-	var cm := BoxMesh.new()
-	cm.size = Vector3(0.16, 0.16, 1.1)
-	var club_mat := StandardMaterial3D.new()
-	club_mat.albedo_color = Color(0.55, 0.36, 0.2)
-	cm.material = club_mat
-	club.mesh = cm
-	club.position = Vector3(0.55, 1.0, -0.35)
-	club.rotation = Vector3(deg_to_rad(-30.0), 0.0, 0.0)
-	model.add_child(club)
 
 
 func _on_stat_changed(stat: String) -> void:
@@ -282,34 +253,87 @@ func _friction(hv: Vector3, friction: float, dt: float) -> Vector3:
 func _update_visuals(dt: float) -> void:
 	var hv := Vector3(velocity.x, 0.0, velocity.z)
 	var target_yaw := cam_yaw
-	if hv.length() > 0.5:
+	if face_camera:
+		target_yaw = cam_yaw + PI
+	elif hv.length() > 0.5:
 		target_yaw = atan2(-hv.x, -hv.z)
 	model.rotation.y = lerp_angle(model.rotation.y, target_yaw, 1.0 - exp(-15.0 * dt))
 	var squash := Vector3(1.15, 0.55, 1.15) if sliding else Vector3.ONE
 	model.scale = model.scale.lerp(squash, 1.0 - exp(-20.0 * dt))
 
-	_hurt_flash = maxf(0.0, _hurt_flash - dt * 4.0)
-	_body_mat.emission_energy_multiplier = _hurt_flash * 3.0
+	model.set_dim(IMMUNE_DIM if invuln > 0.0 else 1.0)
+	_update_ash(dt)
 
 	var head := global_position + Vector3(0.0, 1.0 if sliding else 1.6, 0.0)
 	rig.global_position = rig.global_position.lerp(head, 1.0 - exp(-20.0 * dt))
 	rig.rotation = Vector3(cam_pitch, cam_yaw, 0.0)
 	var fov_target := 75.0 + clampf((hv.length() - 9.0) * 0.9, 0.0, 22.0)
 	cam.fov = lerpf(cam.fov, fov_target, 1.0 - exp(-6.0 * dt))
+	_shake = maxf(0.0, _shake - dt * 1.8)
+	var sk := _shake * _shake
+	cam.h_offset = randf_range(-1.0, 1.0) * sk * 0.5
+	cam.v_offset = randf_range(-1.0, 1.0) * sk * 0.5
 
 
-func hurt(amount: float) -> void:
-	if god_mode or invuln > 0.0 or hp <= 0.0:
+## Ash footprints: a flake every ~0.45 m travelled on the ground, alternating feet.
+func _update_ash(dt: float) -> void:
+	if fx == null or not is_on_floor():
 		return
+	var hv := Vector3(velocity.x, 0.0, velocity.z)
+	var sp := hv.length()
+	if sp < 1.0:
+		return
+	_ash_dist += sp * dt
+	var step := 0.3 if sliding else 0.45
+	while _ash_dist >= step:
+		_ash_dist -= step
+		var side := Vector3(-hv.z, 0.0, hv.x) / sp
+		var jitter := Vector3(randf_range(-0.06, 0.06), 0.0, randf_range(-0.06, 0.06))
+		var off := side * (0.0 if sliding else 0.17 * _ash_side)
+		fx.ash(global_position + off + jitter + Vector3(0, 0.03, 0))
+		_ash_side = -_ash_side
+
+
+func add_shake(amount: float) -> void:
+	_shake = clampf(maxf(_shake, amount), 0.0, 1.0)
+
+
+## Applies contact damage and starts the immunity window. Returns false if already immune.
+## Shield absorbs damage before HP.
+func hurt(amount: float) -> bool:
+	if invuln > 0.0 or hp <= 0.0:
+		return false
+	invuln = IFRAMES
+	if god_mode:
+		return true
 	var armor := stats.value("armor")
 	amount *= 20.0 / (20.0 + armor)
+	var absorbed := minf(shield, amount)
+	shield -= absorbed
+	amount -= absorbed
 	hp -= amount
-	invuln = IFRAMES
-	_hurt_flash = 1.0
 	Events.player_damaged.emit(amount)
 	if hp <= 0.0:
 		hp = 0.0
 		died.emit()
+	return true
+
+
+## Shove the player along `dir` (horizontal) with a small hop.
+func knockback(dir: Vector3) -> void:
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		return
+	dir = dir.normalized()
+	velocity.x = dir.x * KNOCK_SPEED
+	velocity.z = dir.z * KNOCK_SPEED
+	if is_on_floor():
+		velocity.y = KNOCK_POP
+	sliding = false
+
+
+func add_shield(amount: float) -> void:
+	shield += amount
 
 
 func heal(amount: float) -> void:

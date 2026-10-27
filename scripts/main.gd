@@ -10,6 +10,9 @@ const ARENA_HALF := 110.0
 const RUN_LENGTH := 600.0
 const BOSS_TIME := 300.0
 const MAX_WEAPONS := 3
+const EPIC_BASE_CHANCE := 0.05
+const EPIC_CHANCE_PER_LUCK := 0.01     # per Tome of Luck level
+const CONTACT_ENEMY_KNOCK := 2.5       # metres an enemy is shoved on collision
 
 const BASE_STATS := {
 	"max_hp": 100.0, "regen": 0.0, "armor": 0.0, "move_speed": 8.0,
@@ -32,6 +35,9 @@ var weapons: WeaponSystem
 var gems: GemManager
 var items: ItemEffects
 var hud: Hud
+var fx: FxManager
+var abilities: Abilities
+var potions: PotionManager
 
 var state := "playing"   # playing | paused | levelup | dead | won
 var run_time := 0.0
@@ -55,6 +61,18 @@ var _smoke_log_t := 0.0
 var _smoke_phase := 0
 var _smoke_phase_t := 0.0
 var _smoke_wall_start := 0
+var _smoke_casts := [0, 0, 0]
+var _smoke_contacts := 0
+var _smoke_immune_knocks := 0
+var _smoke_epics := 0
+
+# Screenshot mode (for checking visuals): -- --shot=/path/out.png --shot-at=6 --shot-cast=0@2,1@5
+var shot_path := ""
+var shot_at := 5.0
+var shot_casts := {}   # time -> ability index
+var _shot_spawn := 0
+var _shot_front := false
+var _shot_pitch := -99.0
 
 
 func _ready() -> void:
@@ -66,6 +84,21 @@ func _ready() -> void:
 	for a in args:
 		if a.begins_with("--smoke-seconds="):
 			smoke_seconds = float(a.split("=")[1])
+	for a in args:
+		if a.begins_with("--shot="):
+			shot_path = a.split("=")[1]
+		elif a.begins_with("--shot-at="):
+			shot_at = float(a.split("=")[1])
+		elif a.begins_with("--shot-cast="):
+			for c in a.split("=")[1].split(","):
+				var parts := c.split("@")
+				shot_casts[float(parts[1])] = int(parts[0])
+		elif a.begins_with("--shot-spawn="):
+			_shot_spawn = int(a.split("=")[1])
+		elif a == "--shot-front":
+			_shot_front = true
+		elif a.begins_with("--shot-pitch="):
+			_shot_pitch = float(a.split("=")[1])
 	if smoke:
 		rng.seed = 1337
 		_smoke_wall_start = Time.get_ticks_msec()
@@ -79,7 +112,11 @@ func _ready() -> void:
 
 	WorldBuilder.build(self, rng, ARENA_HALF)
 
+	fx = FxManager.new()
+	add_child(fx)
+
 	player = Player.new()
+	player.fx = fx
 	player.stats = stats
 	player.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(player)
@@ -97,6 +134,17 @@ func _ready() -> void:
 	weapons = WeaponSystem.new()
 	weapons.setup(stats, db, enemies, player)
 	add_child(weapons)
+
+	abilities = Abilities.new()
+	abilities.setup(stats, enemies, player, fx)
+	add_child(abilities)
+	potions = PotionManager.new()
+	potions.setup(player, abilities, rng)
+	add_child(potions)
+	potions.collected.connect(func(k: int): hud.flash_message(PotionManager.NAMES[k], 1.5))
+	enemies.epic_killed.connect(func(p: Vector3): potions.drop(p))
+
+	enemies.exploded.connect(func(p: Vector3, r: float): fx.burst(p, r * 1.4, Color(1.0, 0.4, 0.08), 0.35))
 
 	items = ItemEffects.new()
 	items.setup(stats, enemies, player, rng)
@@ -129,6 +177,8 @@ func _exit_tree() -> void:
 func _physics_process(dt: float) -> void:
 	if smoke:
 		_smoke_tick(dt)
+	if shot_path != "":
+		_shot_tick()
 	if state != "playing":
 		return
 	run_time += dt
@@ -138,9 +188,11 @@ func _physics_process(dt: float) -> void:
 	enemies.tick(dt, player.global_position)
 	var t1 := Time.get_ticks_usec()
 	weapons.tick(dt)
+	abilities.tick(dt)
 	items.tick(dt)
 	var t2 := Time.get_ticks_usec()
 	var gained := gems.tick(dt, player.global_position + Vector3(0, 0.9, 0), stats.value("pickup_range"))
+	potions.tick(dt, stats.value("pickup_range"))
 	var t3 := Time.get_ticks_usec()
 	_track_perf((t1 - t0) / 1000.0, (t2 - t1) / 1000.0, (t3 - t2) / 1000.0)
 
@@ -162,14 +214,49 @@ func _track_perf(e: float, w: float, g: float) -> void:
 	_smoke_acc["frames"] += 1
 
 
+## Enemy collisions. The first contact damages the player, starts 0.5 s of immunity and
+## knocks the player and the enemies apart. While immune, any enemy that runs into the player
+## is knocked back opposite to the direction it was heading.
 func _contact_damage() -> void:
-	var hits := enemies.query_radius(player.global_position + Vector3(0, 0.9, 0), 0.45)
+	var me := player.global_position
+	var hits := enemies.query_radius(me + Vector3(0, 0.9, 0), 0.45)
 	if hits.is_empty():
 		return
-	var dmg := 0.0
-	for i in hits:
-		dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]])
-	player.hurt(dmg)
+	if player.invuln <= 0.0:
+		var dmg := 0.0
+		var push := Vector3.ZERO
+		for i in hits:
+			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]])
+			var away := enemies.pos[i] - me
+			away.y = 0.0
+			push -= away.normalized() if away.length_squared() > 0.0001 else Vector3.ZERO
+		player.hurt(dmg)
+		_smoke_contacts += 1
+		if push.length_squared() < 0.0001:
+			push = -player.velocity
+		player.knockback(push)
+		for i in hits:
+			enemies.knock(i, enemies.pos[i] - me, CONTACT_ENEMY_KNOCK, 0.2)
+	else:
+		for i in hits:
+			if enemies.kb_t[i] > 0.0:
+				continue   # already being knocked back
+			var back := -enemies.heading(i)
+			if back.length_squared() < 0.01:
+				back = enemies.pos[i] - me
+			enemies.knock(i, back, CONTACT_ENEMY_KNOCK, 0.2)
+			_smoke_immune_knocks += 1
+
+
+func epic_chance() -> float:
+	return EPIC_BASE_CHANCE + EPIC_CHANCE_PER_LUCK * db.level_of("tome_luck")
+
+
+func _spawn_enemy(t: int, p: Vector3, hpm: float) -> int:
+	var is_epic := rng.randf() < epic_chance()
+	if is_epic:
+		_smoke_epics += 1
+	return enemies.spawn(t, p, hpm, is_epic)
 
 
 # ------------------------------------------------------------------ spawning
@@ -188,7 +275,7 @@ func _spawn_director(dt: float) -> void:
 		if enemies.count >= EnemyManager.MAX - 60:
 			_spawn_budget = 0.0
 			break
-		enemies.spawn(_pick_type(m), _spawn_point(26.0, 36.0), hpm)
+		_spawn_enemy(_pick_type(m), _spawn_point(26.0, 36.0), hpm)
 
 	# Swarm ring every minute
 	if run_time >= _next_swarm:
@@ -197,7 +284,7 @@ func _spawn_director(dt: float) -> void:
 		for k in n:
 			var a := TAU * float(k) / float(n)
 			var p := player.global_position + Vector3(cos(a), 0, sin(a)) * 22.0
-			enemies.spawn(EnemyManager.RUNNER, p, hpm)
+			_spawn_enemy(EnemyManager.RUNNER, p, hpm)
 		hud.flash_message("SWARM!", 2.0)
 
 	if not _boss_spawned and run_time >= BOSS_TIME:
@@ -277,6 +364,13 @@ func choose_upgrade(i: int) -> void:
 	_resume()
 
 
+func cast_ability(i: int) -> void:
+	if state != "playing":
+		return
+	if abilities.try_cast(i) and i == 2:
+		hud.flash_message("INFERNO!", 2.0)
+
+
 func _resume() -> void:
 	state = "playing"
 	get_tree().paused = false
@@ -312,20 +406,25 @@ func _unhandled_input(event: InputEvent) -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		elif state == "paused":
 			_resume()
-	elif state == "levelup":
-		for k in 3:
-			if event.is_action_pressed("pick_%d" % (k + 1)):
-				choose_upgrade(k)
 	elif (state == "dead" or state == "won") and event.is_action_pressed("restart"):
 		restart()
 	elif state == "playing":
 		if event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		elif event.is_action_pressed("ability_1"):
+			cast_ability(0)
+		elif event.is_action_pressed("ability_2"):
+			cast_ability(1)
+		elif event.is_action_pressed("ability_3"):
+			cast_ability(2)
+		elif event.is_action_pressed("debug_cooldowns"):
+			abilities.reset_cooldowns()
+			hud.flash_message("Cooldowns reset", 1.0)
 		elif event.is_action_pressed("debug_stats"):
 			hud.toggle_debug()
 		elif event.is_action_pressed("debug_spawn"):
 			for k in 200:
-				enemies.spawn(EnemyManager.GRUNT, _spawn_point(15.0, 40.0), hp_mult())
+				_spawn_enemy(EnemyManager.GRUNT, _spawn_point(15.0, 40.0), hp_mult())
 
 
 static func setup_inputs() -> void:
@@ -340,12 +439,13 @@ static func setup_inputs() -> void:
 	_bind("jump", [KEY_SPACE], [JOY_BUTTON_A], [])
 	_bind("slide", [KEY_SHIFT, KEY_CTRL, KEY_C], [JOY_BUTTON_B, JOY_BUTTON_LEFT_SHOULDER], [])
 	_bind("pause", [KEY_ESCAPE, KEY_P], [JOY_BUTTON_START], [])
-	_bind("pick_1", [KEY_1], [JOY_BUTTON_X], [])
-	_bind("pick_2", [KEY_2], [JOY_BUTTON_Y], [])
-	_bind("pick_3", [KEY_3], [JOY_BUTTON_RIGHT_SHOULDER], [])
+	_bind("ability_1", [KEY_1], [JOY_BUTTON_X], [])
+	_bind("ability_2", [KEY_2], [JOY_BUTTON_Y], [])
+	_bind("ability_3", [KEY_3], [JOY_BUTTON_RIGHT_SHOULDER], [])
 	_bind("restart", [KEY_R], [JOY_BUTTON_BACK], [])
 	_bind("debug_stats", [KEY_F1], [], [])
 	_bind("debug_spawn", [KEY_F2], [], [])
+	_bind("debug_cooldowns", [KEY_F3], [], [])
 
 
 static func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:
@@ -399,11 +499,17 @@ func _smoke_tick(dt: float) -> void:
 					enemies.spawn(EnemyManager.GRUNT, _spawn_point(8.0, 50.0), hp_mult() * 50.0)
 					added += 1
 				print("SMOKE stress: added %d enemies, total %d" % [added, enemies.count])
+				abilities.reset_cooldowns()
+				cast_ability(2)
+				print("SMOKE inferno: burning %d" % enemies.burning_count())
 				_reset_acc()
 		1:  # stress at ~1400 enemies
 			_drive_bot(dt)
 			_smoke_phase_t += dt
-			if _smoke_phase_t >= 8.0:
+			if absf(_smoke_phase_t - 5.0) < 0.5 * dt:
+				print("SMOKE inferno +5s: burning %d alive %d kills %d" % [enemies.burning_count(), enemies.alive_count(), kills])
+			if _smoke_phase_t >= 11.0:
+				print("SMOKE inferno done: burning %d alive %d kills %d" % [enemies.burning_count(), enemies.alive_count(), kills])
 				_smoke_report("STRESS")
 				_smoke_phase = 2
 				player.god_mode = false
@@ -422,6 +528,33 @@ func _smoke_tick(dt: float) -> void:
 					get_tree().quit(1)
 
 
+func _shot_tick() -> void:
+	player.god_mode = true
+	player.face_camera = _shot_front
+	if _shot_pitch > -90.0:
+		player.cam_pitch = _shot_pitch
+	if _shot_spawn > 0:
+		for k in _shot_spawn:
+			var t := EnemyManager.TANK if k % 9 == 0 else (EnemyManager.RUNNER if k % 3 == 0 else EnemyManager.GRUNT)
+			_spawn_enemy(t, _spawn_point(14.0, 30.0), 3.0)
+		_shot_spawn = 0
+	for t in shot_casts.keys():
+		if run_time >= t:
+			abilities.reset_cooldowns()
+			cast_ability(shot_casts[t])
+			shot_casts.erase(t)
+	if run_time >= shot_at:
+		shot_path_save.call_deferred()
+		set_physics_process(false)
+
+
+func shot_path_save() -> void:
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(shot_path)
+	print("SHOT saved ", shot_path)
+	get_tree().quit()
+
+
 func _drive_bot(_dt: float) -> void:
 	if state != "playing":
 		return
@@ -429,10 +562,16 @@ func _drive_bot(_dt: float) -> void:
 	player.bot_move = Vector2(0.35, -1.0)
 	player.bot_jump = fmod(run_time, 1.1) < 1.0 / 60.0
 	player.bot_slide = fmod(run_time, 5.0) > 4.0
+	for k in 3:
+		if abilities.is_ready(k) and run_time > 5.0:
+			cast_ability(k)
+			_smoke_casts[k] += 1
 
 
 func _smoke_report(tag: String) -> void:
 	var f: float = maxf(1.0, _smoke_acc["frames"])
+	print("SMOKE casts meteor/shock/inferno %s | contacts %d immune-knocks %d | epics spawned %d potions on map %d shield %.0f" % [
+		str(_smoke_casts), _smoke_contacts, _smoke_immune_knocks, _smoke_epics, potions.count(), player.shield])
 	print("SMOKE %s | lv %2d kills %5d enemies %4d proj %3d gems %3d | hp %.0f/%.0f speed %.1f | ms/frame enemies %.2f weapons %.2f gems %.2f | weapons %s" % [
 		tag, level, kills, enemies.alive_count(), weapons.pc, gems.count, player.hp, player.max_hp,
 		player.horizontal_speed(),

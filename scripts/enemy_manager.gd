@@ -6,6 +6,11 @@ extends Node3D
 ##   (no per-cell allocations), used for separation, weapon hits and contact damage.
 ## - Removal: kills are flagged and swap-removed at the start of the next tick, so indices
 ##   stay stable for the rest of the frame.
+## - Status effects live in the same rows: burn (DoT; dying while burning explodes) and
+##   knockback (a fixed displacement over a short time that overrides steering).
+
+signal exploded(pos: Vector3, radius: float)
+signal epic_killed(pos: Vector3)
 
 const MAX := 1500
 const CELL := 2.0
@@ -15,6 +20,17 @@ const RELOCATE_DIST := 58.0             # stragglers further than this teleport 
 const STRIDE := 16                      # 12 floats transform + 4 floats color
 const ACCEL := 25.0
 const SEPARATION_NEIGHBOURS := 8
+const BURN_COLOR := Color(1.0, 0.42, 0.08)
+const MAX_EXPLOSIONS_PER_TICK := 60
+const BOSS_KNOCKBACK_SCALE := 0.25
+const EPIC_SIZE := 1.5
+const EPIC_HP := 4.0
+const EPIC_TINT := Color(0.72, 0.25, 1.0)
+
+# Burn tuning (set by the ultimate; % of max HP)
+var burn_dps_frac := 0.05
+var burn_explode_frac := 0.5
+var burn_explode_radius := 1.83     # 2 yards
 
 var arena_half := 110.0
 var rng: RandomNumberGenerator
@@ -35,12 +51,19 @@ var count := 0
 var pos := PackedVector3Array()
 var vel := PackedVector3Array()
 var hp := PackedFloat32Array()
+var hp_max := PackedFloat32Array()
 var typ := PackedInt32Array()
 var flash := PackedFloat32Array()
 var uid := PackedInt32Array()
 var dead := PackedByteArray()
+var epic := PackedByteArray()
+var sz := PackedFloat32Array()          # per-enemy size multiplier (epic = 1.5)
 var sep_x := PackedFloat32Array()
 var sep_z := PackedFloat32Array()
+var burn_t := PackedFloat32Array()      # seconds of burn left
+var kb_vel := PackedVector3Array()      # knockback velocity while kb_t > 0
+var kb_t := PackedFloat32Array()
+var _explosions := PackedVector3Array() # queued burn explosions: x, z, damage packed in a Vector3
 var _next_uid := 1
 var _dead_count := 0
 var _time := 0.0
@@ -65,10 +88,16 @@ func _ready() -> void:
 	pos.resize(MAX)
 	vel.resize(MAX)
 	hp.resize(MAX)
+	hp_max.resize(MAX)
+	burn_t.resize(MAX)
+	kb_vel.resize(MAX)
+	kb_t.resize(MAX)
 	typ.resize(MAX)
 	flash.resize(MAX)
 	uid.resize(MAX)
 	dead.resize(MAX)
+	epic.resize(MAX)
+	sz.resize(MAX)
 	sep_x.resize(MAX)
 	sep_z.resize(MAX)
 	cell_of.resize(MAX)
@@ -130,14 +159,19 @@ func _make_mesh() -> Mesh:
 
 # ---------------------------------------------------------------- spawning / damage
 
-func spawn(t: int, p: Vector3, hp_mult := 1.0) -> int:
+func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	if count >= MAX:
 		return -1
 	var i := count
 	count += 1
 	pos[i] = Vector3(clampf(p.x, -arena_half, arena_half), 0.0, clampf(p.z, -arena_half, arena_half))
 	vel[i] = Vector3.ZERO
-	hp[i] = t_hp[t] * hp_mult
+	hp[i] = t_hp[t] * hp_mult * (EPIC_HP if is_epic else 1.0)
+	epic[i] = 1 if is_epic else 0
+	sz[i] = EPIC_SIZE if is_epic else 1.0
+	hp_max[i] = hp[i]
+	burn_t[i] = 0.0
+	kb_t[i] = 0.0
 	typ[i] = t
 	flash[i] = 0.0
 	uid[i] = _next_uid
@@ -156,17 +190,56 @@ func damage(i: int, amount: float, knockback := Vector3.ZERO) -> bool:
 	hp[i] -= amount
 	flash[i] = 0.08
 	if knockback != Vector3.ZERO:
-		vel[i] += knockback / t_scale[typ[i]]
+		vel[i] += knockback / (t_scale[typ[i]] * sz[i])
 	if hp[i] <= 0.0:
-		dead[i] = 1
-		_dead_count += 1
-		Events.enemy_killed.emit(pos[i], typ[i])
+		_kill(i)
 		return true
 	return false
 
 
+func _kill(i: int) -> void:
+	dead[i] = 1
+	_dead_count += 1
+	if epic[i]:
+		epic_killed.emit(pos[i])
+	if burn_t[i] > 0.0:
+		_explosions.append(Vector3(pos[i].x, pos[i].z, hp_max[i] * burn_explode_frac))
+	Events.enemy_killed.emit(pos[i], typ[i])
+
+
+## Push an enemy a fixed distance away over `duration` seconds (overrides steering).
+func knock(i: int, dir: Vector3, distance: float, duration := 0.25) -> void:
+	if dead[i]:
+		return
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		dir = Vector3(rng.randf() - 0.5, 0.0, rng.randf() - 0.5)
+	if typ[i] == BOSS:
+		distance *= BOSS_KNOCKBACK_SCALE
+	kb_vel[i] = dir.normalized() * (distance / duration)
+	kb_t[i] = duration
+	vel[i] = Vector3.ZERO
+
+
+## Direction the enemy is currently heading (velocity, or knockback while being knocked).
+func heading(i: int) -> Vector3:
+	var v := kb_vel[i] if kb_t[i] > 0.0 else vel[i]
+	v.y = 0.0
+	return v
+
+
+## Set every live enemy on fire.
+func ignite_all(duration: float) -> int:
+	var n := 0
+	for i in count:
+		if not dead[i]:
+			burn_t[i] = duration
+			n += 1
+	return n
+
+
 func center_of(i: int) -> Vector3:
-	return pos[i] + Vector3(0.0, 0.8 * t_scale[typ[i]], 0.0)
+	return pos[i] + Vector3(0.0, 0.8 * t_scale[typ[i]] * sz[i], 0.0)
 
 
 func alive_count() -> int:
@@ -195,12 +268,12 @@ func query_radius(c: Vector3, r: float, vertical := true) -> PackedInt32Array:
 					continue
 				var p := pos[i]
 				var t := typ[i]
-				var rr := r + t_radius[t]
+				var rr := r + t_radius[t] * sz[i]
 				var dx := p.x - c.x
 				var dz := p.z - c.z
 				if dx * dx + dz * dz > rr * rr:
 					continue
-				if vertical and (c.y < p.y - 0.5 or c.y > p.y + t_height[t] + 0.5):
+				if vertical and (c.y < p.y - 0.5 or c.y > p.y + t_height[t] * sz[i] + 0.5):
 					continue
 				res.append(i)
 	return res
@@ -235,6 +308,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 	_frame += 1
 	_compact()
 	_build_grid(player_pos)
+	_resolve_explosions()
 
 	var n := count
 	var parity := _frame & 1
@@ -257,15 +331,39 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			vel[i] = Vector3.ZERO
 			continue
 
+		var sc := t_scale[t] * sz[i]
+		var b := i * STRIDE
+
+		# Burn DoT (% of max HP per second)
+		var burning := burn_t[i] > 0.0
+		if burning and not dead[i]:
+			burn_t[i] -= dt
+			hp[i] -= hp_max[i] * burn_dps_frac * dt
+			if hp[i] <= 0.0:
+				_kill(i)
+
+		# Knockback: fixed displacement, no steering or separation
+		if kb_t[i] > 0.0:
+			kb_t[i] -= dt
+			var kv := kb_vel[i]
+			p.x = clampf(p.x + kv.x * dt, -lim, lim)
+			p.z = clampf(p.z + kv.z * dt, -lim, lim)
+			pos[i] = p
+			_write_xform(b, p, -kv.x, -kv.z, sc, sc)
+			if flash[i] > 0.0:
+				flash[i] -= dt
+			_write_color(i, b, t, burning)
+			continue
+
 		# Separation is expensive, so each enemy recomputes it every other frame (cached between).
 		if (i & 1) == parity:
-			var sx := 0.0
-			var sz := 0.0
+			var ax := 0.0
+			var az := 0.0
 			var c := cell_of[i]
 			if c >= 0:
 				var cx := c % GRID_N
 				var cz := c / GRID_N
-				var ri := t_radius[t]
+				var ri := t_radius[t] * sz[i]
 				var checked := 0
 				for oz in range(maxi(cz - 1, 0), mini(cz + 2, GRID_N)):
 					if checked >= SEPARATION_NEIGHBOURS:
@@ -283,17 +381,17 @@ func tick(dt: float, player_pos: Vector3) -> void:
 							var dx := p.x - q.x
 							var dz := p.z - q.z
 							var dd := dx * dx + dz * dz
-							var minr := ri + t_radius[typ[j]]
+							var minr := ri + t_radius[typ[j]] * sz[j]
 							if dd < minr * minr and dd > 0.000001:
 								var dist := sqrt(dd)
 								var push := (minr - dist) / dist
-								sx += dx * push
-								sz += dz * push
+								ax += dx * push
+								az += dz * push
 							checked += 1
 							if checked >= SEPARATION_NEIGHBOURS:
 								break
-			sep_x[i] = sx
-			sep_z[i] = sz
+			sep_x[i] = ax
+			sep_z[i] = az
 
 		# Steering: accelerate toward the player at the type's speed
 		var v := vel[i]
@@ -327,31 +425,73 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			fx = v.x * inv_v
 			fz = v.z * inv_v
 
-		var s := t_scale[t]
-		var sy := s * (1.0 + 0.07 * sin(wobble_t + float(uid[i])))   # waddle
-		var b := i * STRIDE
-		buf[b] = fz * s
-		buf[b + 2] = fx * s
-		buf[b + 3] = p.x
-		buf[b + 5] = sy
-		buf[b + 7] = 0.8 * sy
-		buf[b + 8] = -fx * s
-		buf[b + 10] = fz * s
-		buf[b + 11] = p.z
-		var fl := flash[i]
-		if fl > 0.0:
-			flash[i] = fl - dt
-			buf[b + 12] = 1.0
-			buf[b + 13] = 1.0
-			buf[b + 14] = 1.0
-		else:
-			var col: Color = t_color[t]
-			buf[b + 12] = col.r
-			buf[b + 13] = col.g
-			buf[b + 14] = col.b
+		var sy := sc * (1.0 + 0.07 * sin(wobble_t + float(uid[i])))   # waddle
+		_write_xform(b, p, fx, fz, sc, sy)
+		if flash[i] > 0.0:
+			flash[i] -= dt
+		_write_color(i, b, t, burning)
 
 	mm.buffer = buf
 	mm.visible_instance_count = n
+
+
+func _write_xform(b: int, p: Vector3, fx: float, fz: float, s: float, sy: float) -> void:
+	var l := fx * fx + fz * fz
+	if l > 0.000001 and absf(l - 1.0) > 0.001:
+		l = 1.0 / sqrt(l)
+		fx *= l
+		fz *= l
+	elif l <= 0.000001:
+		fx = 0.0
+		fz = 1.0
+	buf[b] = fz * s
+	buf[b + 2] = fx * s
+	buf[b + 3] = p.x
+	buf[b + 5] = sy
+	buf[b + 7] = 0.8 * sy
+	buf[b + 8] = -fx * s
+	buf[b + 10] = fz * s
+	buf[b + 11] = p.z
+
+
+func _write_color(i: int, b: int, t: int, burning: bool) -> void:
+	if flash[i] > 0.0:
+		buf[b + 12] = 1.0
+		buf[b + 13] = 1.0
+		buf[b + 14] = 1.0
+		return
+	var col: Color = t_color[t]
+	if epic[i]:
+		col = col.lerp(EPIC_TINT, 0.55 + 0.15 * sin(_time * 5.0 + float(uid[i])))
+	if burning:
+		var f := 0.55 + 0.35 * sin(_time * 22.0 + float(uid[i]) * 1.7)
+		col = col.lerp(BURN_COLOR, f)
+	buf[b + 12] = col.r
+	buf[b + 13] = col.g
+	buf[b + 14] = col.b
+
+
+## Burn explosions are queued on death and resolved here (capped per tick), so chain
+## reactions spread over frames instead of recursing.
+func _resolve_explosions() -> void:
+	if _explosions.is_empty():
+		return
+	var n := mini(_explosions.size(), MAX_EXPLOSIONS_PER_TICK)
+	var now := _explosions.slice(0, n)
+	_explosions = _explosions.slice(n)
+	for e in now:
+		var c := Vector3(e.x, 0.8, e.y)
+		for j in query_radius(c, burn_explode_radius, false):
+			damage(j, e.z)
+		exploded.emit(Vector3(e.x, 0.6, e.y), burn_explode_radius)
+
+
+func burning_count() -> int:
+	var n := 0
+	for i in count:
+		if burn_t[i] > 0.0 and not dead[i]:
+			n += 1
+	return n
 
 
 func _build_grid(center: Vector3) -> void:
@@ -390,10 +530,16 @@ func _compact() -> void:
 			pos[i] = pos[last]
 			vel[i] = vel[last]
 			hp[i] = hp[last]
+			hp_max[i] = hp_max[last]
+			burn_t[i] = burn_t[last]
+			kb_vel[i] = kb_vel[last]
+			kb_t[i] = kb_t[last]
 			typ[i] = typ[last]
 			flash[i] = flash[last]
 			uid[i] = uid[last]
 			dead[i] = dead[last]
+			epic[i] = epic[last]
+			sz[i] = sz[last]
 			sep_x[i] = sep_x[last]
 			sep_z[i] = sep_z[last]
 			count -= 1

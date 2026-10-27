@@ -6,6 +6,7 @@ var main  # main.gd (untyped to avoid a cyclic class reference)
 
 var hp_bar: ProgressBar
 var hp_label: Label
+var shield_bar: ProgressBar
 var xp_bar: ProgressBar
 var level_label: Label
 var timer_label: Label
@@ -17,6 +18,7 @@ var pause_root: Control
 var draft_root: Control
 var draft_cards: Array = []   # [Button, rarity Label, title Label, body Label]
 var end_root: Control
+var ability_slots: Array = []   # AbilitySlot
 var end_title: Label
 var end_stats: Label
 var show_debug := false
@@ -44,6 +46,11 @@ func setup(m) -> void:
 	hp_bar.position = Vector2(20, 52)
 	hp_bar.size = Vector2(320, 24)
 	root.add_child(hp_bar)
+	shield_bar = _bar(Color(0.3, 0.65, 1.0))
+	shield_bar.position = Vector2(20, 78)
+	shield_bar.size = Vector2(320, 8)
+	shield_bar.visible = false
+	root.add_child(shield_bar)
 	hp_label = _label("", 16)
 	hp_label.position = Vector2(30, 53)
 	root.add_child(hp_label)
@@ -82,12 +89,12 @@ func setup(m) -> void:
 	inv_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	root.add_child(inv_label)
 
-	var hint := _label("WASD move · Space jump · Shift/Ctrl slide · Esc pause · F1 debug · F2 spawn 200", 14)
+	var hint := _label("WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns", 14)
 	hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hint.offset_left = -800
 	hint.offset_right = -20
-	hint.offset_top = -40
+	hint.offset_top = -60
 	hint.modulate.a = 0.6
 	root.add_child(hint)
 
@@ -100,6 +107,7 @@ func setup(m) -> void:
 	msg_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	root.add_child(msg_label)
 
+	_build_ability_bar(root)
 	_build_pause(root)
 	_build_draft(root)
 	_build_end(root)
@@ -182,11 +190,41 @@ func _build_draft(root: Control) -> void:
 		var body := _label("", 17)
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		var key := _label("[%d]" % (i + 1), 15)
-		key.modulate.a = 0.6
-		for l in [rar, ttl, body, key]:
+		for l in [rar, ttl, body]:
 			box.add_child(l)
 		draft_cards.append([btn, rar, ttl, body])
+
+
+func _build_ability_bar(root: Control) -> void:
+	var bar := HBoxContainer.new()
+	bar.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	bar.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	bar.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	bar.offset_bottom = -26
+	bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	bar.add_theme_constant_override("separation", 14)
+	root.add_child(bar)
+	var icons := [AbilitySlot.Icon.METEOR, AbilitySlot.Icon.SHOCKWAVE, AbilitySlot.Icon.INFERNO]
+	for i in Abilities.DEFS.size():
+		var d: Dictionary = Abilities.DEFS[i]
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 4)
+		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bar.add_child(col)
+		var slot := AbilitySlot.new()
+		slot.icon = icons[i]
+		slot.key_text = d["key"]
+		slot.is_ult = d["ult"]
+		slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		slot.activated.connect(func(): main.cast_ability(i))
+		if d["ult"]:
+			slot.custom_minimum_size = Vector2(88, 88)
+		col.add_child(slot)
+		var name := _label(d["name"], 13)
+		name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if d["ult"] else Color(1, 1, 1, 0.85))
+		col.add_child(name)
+		ability_slots.append(slot)
 
 
 func _build_end(root: Control) -> void:
@@ -264,6 +302,11 @@ func _process(dt: float) -> void:
 	hp_bar.max_value = p.max_hp
 	hp_bar.value = p.hp
 	hp_label.text = "%d / %d" % [ceili(p.hp), roundi(p.max_hp)]
+	shield_bar.visible = p.shield > 0.5
+	if shield_bar.visible:
+		hp_label.text += "   +%d shield" % ceili(p.shield)
+		shield_bar.max_value = p.max_hp
+		shield_bar.value = minf(p.shield, p.max_hp)
 	xp_bar.max_value = main.xp_next
 	xp_bar.value = main.xp
 	level_label.text = "LV %d" % main.level
@@ -284,10 +327,13 @@ func _process(dt: float) -> void:
 		lines.append("Tomes ×%d" % tomes)
 	inv_label.text = "\n".join(lines)
 
+	for i in ability_slots.size():
+		ability_slots[i].set_cooldown(main.abilities.fraction_remaining(i), main.abilities.cooldown[i])
+
 	if show_debug:
 		var pf: Dictionary = main.perf
-		debug_label.text = "sim ms  enemies %.2f  weapons %.2f  gems %.2f\nprojectiles %d  gems %d  hp mult %.2f" % [
-			pf["enemies"], pf["weapons"], pf["gems"], main.weapons.pc, main.gems.count, main.hp_mult()]
+		debug_label.text = "sim ms  enemies %.2f  weapons %.2f  gems %.2f\nprojectiles %d  gems %d  burning %d  potions %d\nhp mult %.2f  epic chance %d%%" % [
+			pf["enemies"], pf["weapons"], pf["gems"], main.weapons.pc, main.gems.count, main.enemies.burning_count(), main.potions.count(), main.hp_mult(), roundi(main.epic_chance() * 100.0)]
 
 	if _msg_t > 0.0:
 		_msg_t -= dt
