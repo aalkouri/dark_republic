@@ -21,6 +21,9 @@ const REBINDABLE := [
 	["inspect", "Inspect abilities (hold)"],
 ]
 
+## Character picked on the character select screen (session only, not saved).
+var selected_character := "fire_wizard"
+
 # Sound
 var music_volume := 0.8      # 0..1 (linear)
 var music_muted := false

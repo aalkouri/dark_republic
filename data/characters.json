@@ -1,0 +1,119 @@
+{
+  "characters": [
+    { "id": "fire_wizard", "name": "The Fire Wizard", "epithet": "Keeper of the Ember Staff", "unlocked": true,
+      "bio": "A grumpy old pyromancer who wandered into the swamp to dry his socks and never left. Hurls fireballs, sets goblins ablaze and occasionally becomes a giant flaming version of his own head.",
+      "kit": ["Fireballs (weapon)", "Inferno (1)", "Fire Nova (2) - Lv 5", "Meteor ultimate (3) - Lv 10"],
+      "icon": { "bg": ["#3a0b06", "#0d0303"], "body": "robe", "body_col": "#a3221a", "skin": "#eab894", "head": "round",
+                "hat": "wizard", "hat_col": "#7a1410", "beard": "#8d8580", "eyes": "#ffb030", "item": "staff_fire", "fx": "embers" } },
+
+    { "id": "ice_wizard", "name": "Ice Wizard", "epithet": "Warden of the Frozen Fen",
+      "bio": "Freezes the swamp solid and skates circles around the horde.",
+      "icon": { "bg": ["#0b2a44", "#04101c"], "body": "robe", "body_col": "#5aa7d8", "skin": "#e9cdbf", "head": "round",
+                "hat": "wizard", "hat_col": "#bfe6ff", "beard": "#f2f8ff", "eyes": "#9fe8ff", "item": "staff_ice", "fx": "snow" } },
+
+    { "id": "merlin", "name": "Merlin", "epithet": "The Old Enchanter",
+      "bio": "Has seen this whole goblin business before. Several times. Mostly in reverse.",
+      "icon": { "bg": ["#1b1c55", "#07071c"], "body": "robe", "body_col": "#2c3a9e", "skin": "#efcfb5", "head": "round",
+                "hat": "wizard_stars", "hat_col": "#2c3a9e", "beard": "#ffffff", "beard_long": true, "eyes": "#cfe3ff", "item": "staff_wood", "fx": "stars" } },
+
+    { "id": "thunder_wizard", "name": "Thunder Wizard", "epithet": "Caller of the Storm",
+      "bio": "Never stands still. Neither does anything near him.",
+      "icon": { "bg": ["#2a1f4f", "#0b0718"], "body": "robe", "body_col": "#5b3fa8", "skin": "#e8c7a6", "head": "round",
+                "hat": "wizard_bent", "hat_col": "#f2c230", "beard": "#c9c9c9", "eyes": "#fff27a", "item": "staff_thunder", "fx": "sparks" } },
+
+    { "id": "dark_wizard", "name": "Dark Wizard", "epithet": "Whisperer in the Reeds",
+      "bio": "Nobody has seen his face. The goblins say that's a mercy.",
+      "icon": { "bg": ["#1d0a26", "#050208"], "body": "robe", "body_col": "#1c1024", "skin": "#2a1a33", "head": "hooded",
+                "hat": "hood", "hat_col": "#2b1636", "eyes": "#c45bff", "eyes_glow": true, "item": "staff_dark", "fx": "shadow" } },
+
+    { "id": "ogre", "name": "Ogre", "epithet": "Big Swamp Grumbo",
+      "bio": "Lives in a bog, hates visitors, swings a tree trunk like a toothpick.",
+      "icon": { "bg": ["#2d3a14", "#0c1004"], "body": "bulky", "body_col": "#6b4a2a", "skin": "#7f9a3a", "head": "ogre",
+                "hat": "none", "eyes": "#ffde59", "item": "club", "fx": "none" } },
+
+    { "id": "ghast", "name": "Ghast", "epithet": "The Wailing Mist",
+      "bio": "Drifts through walls, goblins and occasionally its own sentences.",
+      "icon": { "bg": ["#1d3138", "#060c10"], "body": "ghost", "body_col": "#cfe9ea", "skin": "#cfe9ea", "head": "none",
+                "hat": "none", "eyes": "#0a1a1c", "eyes_hollow": true, "item": "chains", "fx": "wisps" } },
+
+    { "id": "vampire_hunter", "name": "Vampire Hunter", "epithet": "Stake & Silver",
+      "bio": "Came for the vampires. Settled for goblins. Is not happy about it.",
+      "icon": { "bg": ["#3a0f12", "#0e0405"], "body": "coat", "body_col": "#4a2d1c", "skin": "#e2b48e", "head": "round",
+                "hat": "tricorn", "hat_col": "#241812", "eyes": "#d9e2ff", "scarf": "#8a1820", "item": "crossbow", "fx": "none" } },
+
+    { "id": "vicki", "name": "Vicki", "epithet": "Valkyrie of the Marsh",
+      "bio": "Rode a winged horse into the swamp. The horse refused to come back.",
+      "icon": { "bg": ["#203a52", "#08111a"], "body": "slim", "body_col": "#9aa8b8", "skin": "#f0c9a8", "head": "round",
+                "hat": "winged_helm", "hat_col": "#c9d3dd", "hair": "#e3a33a", "eyes": "#5cc8ff", "item": "spear", "fx": "none" } },
+
+    { "id": "rogue", "name": "The Rogue", "epithet": "Light Fingers, Sharp Knives",
+      "bio": "Has already stolen something from you. You just haven't noticed yet.",
+      "icon": { "bg": ["#17301d", "#050c07"], "body": "slim", "body_col": "#2f4a2a", "skin": "#d8a984", "head": "hooded",
+                "hat": "hood", "hat_col": "#2a4a26", "scarf": "#1a1a1a", "eyes": "#e9f5c8", "item": "daggers", "fx": "none" } },
+
+    { "id": "gaiden", "name": "Gaiden", "epithet": "Shadow of the Reeds",
+      "bio": "A silent swamp ninja. The splash you didn't hear was him.",
+      "icon": { "bg": ["#2a0d0d", "#080202"], "body": "slim", "body_col": "#1e1e26", "skin": "#c99a78", "head": "round",
+                "hat": "headband", "hat_col": "#b5121b", "mask": "#1e1e26", "eyes": "#ffffff", "item": "katana", "fx": "none" } },
+
+    { "id": "dr_croc", "name": "Dr. Croc", "epithet": "Swamp Scientist",
+      "bio": "A crocodile with a PhD, a lab coat and absolutely no bedside manner.",
+      "icon": { "bg": ["#163a33", "#04100d"], "body": "coat", "body_col": "#e9ecef", "skin": "#4f8a3a", "head": "croc",
+                "hat": "goggles", "hat_col": "#c08a2a", "eyes": "#ffe05a", "item": "flask", "fx": "bubbles" } },
+
+    { "id": "arachnid", "name": "The Arachnid", "epithet": "Eight-Legged Nightmare",
+      "bio": "Spins webs between the cypress trees and eats goblins for breakfast. And lunch.",
+      "icon": { "bg": ["#2a1430", "#09040b"], "body": "spider", "body_col": "#2a2230", "skin": "#2a2230", "head": "none",
+                "hat": "none", "eyes": "#ff3040", "eyes_many": true, "item": "web", "fx": "none" } },
+
+    { "id": "blob", "name": "Blob", "epithet": "The Hungry Puddle",
+      "bio": "Absorbs goblins. Doesn't digest them very well. They're still in there, waving.",
+      "icon": { "bg": ["#1e3a12", "#060f03"], "body": "blob", "body_col": "#7ad13a", "skin": "#7ad13a", "head": "none",
+                "hat": "none", "eyes": "#ffffff", "item": "none", "fx": "bubbles" } },
+
+    { "id": "death", "name": "Death", "epithet": "The Inevitable",
+      "bio": "Was just passing through. Decided to stay for the overtime.",
+      "icon": { "bg": ["#151515", "#000000"], "body": "robe", "body_col": "#121214", "skin": "#e9e4d6", "head": "skull",
+                "hat": "hood", "hat_col": "#0d0d10", "eyes": "#5ae0ff", "eyes_glow": true, "item": "scythe", "fx": "shadow" } },
+
+    { "id": "billy_bulldog", "name": "Billy Bulldog", "epithet": "The Good Boy",
+      "bio": "Stubby legs, spiked collar, unbreakable will. Will fetch goblins on command.",
+      "icon": { "bg": ["#4a2f12", "#140c04"], "body": "bulky", "body_col": "#c79a63", "skin": "#c79a63", "head": "dog",
+                "hat": "collar", "hat_col": "#2a2a2a", "eyes": "#2a1608", "item": "bone", "fx": "none" } },
+
+    { "id": "cowboy", "name": "Cowboy", "epithet": "Fastest Gun in the Bayou",
+      "bio": "Lost his horse in the swamp. Kept his hat. Priorities.",
+      "icon": { "bg": ["#5a2e0e", "#180b03"], "body": "slim", "body_col": "#7a4f2a", "skin": "#e2b48e", "head": "round",
+                "hat": "cowboy", "hat_col": "#8b5a2b", "scarf": "#c0392b", "eyes": "#2a1608", "item": "revolver", "fx": "none" } },
+
+    { "id": "loco_robotico", "name": "Loco Robotico", "epithet": "Fiesta-Grade Machine",
+      "bio": "A malfunctioning party robot. Its only settings are DANCE and DESTROY.",
+      "icon": { "bg": ["#0e3b4a", "#031116"], "body": "box", "body_col": "#9aa4ad", "skin": "#9aa4ad", "head": "robot",
+                "hat": "sombrero", "hat_col": "#e0a12a", "eyes": "#3cff8a", "eyes_glow": true, "item": "maracas", "fx": "sparks" } },
+
+    { "id": "singe", "name": "Singe", "epithet": "The Living Cinder",
+      "bio": "A little imp made of hot coals. Leaves scorch marks on everything, especially furniture.",
+      "icon": { "bg": ["#401206", "#120402"], "body": "imp", "body_col": "#2a1410", "skin": "#3a1a12", "head": "round",
+                "hat": "flame_hair", "hat_col": "#ff7a1a", "eyes": "#ffe14a", "eyes_glow": true, "item": "none", "fx": "embers" } },
+
+    { "id": "argyle_sock", "name": "An Argyle Sock", "epithet": "Lost in the Wash",
+      "bio": "Nobody knows how it got here. Nobody knows why it fights. It just does.",
+      "icon": { "bg": ["#33224a", "#0d0814"], "body": "sock", "body_col": "#7a3e9e", "skin": "#7a3e9e", "head": "none",
+                "hat": "none", "eyes": "#ffffff", "eyes_googly": true, "item": "none", "fx": "none" } },
+
+    { "id": "platypus", "name": "Sentient Platypus", "epithet": "A Monotreme of Distinction",
+      "bio": "Venomous, egg-laying, bill-having and extremely well-read.",
+      "icon": { "bg": ["#2c3d2a", "#0a1009"], "body": "slim", "body_col": "#7a5236", "skin": "#7a5236", "head": "platypus",
+                "hat": "top_hat", "hat_col": "#1a1a1a", "eyes": "#111111", "monocle": true, "item": "none", "fx": "none" } },
+
+    { "id": "bog_witch", "name": "Bog Witch", "epithet": "Brewer of Foul Things",
+      "bio": "Has lived in this swamp for three hundred years and is furious about the noise.",
+      "icon": { "bg": ["#22381a", "#070d05"], "body": "robe", "body_col": "#2a3a22", "skin": "#8db36a", "head": "round",
+                "hat": "witch", "hat_col": "#1b2216", "hair": "#4a4a4a", "eyes": "#ffd84a", "item": "ladle", "fx": "bubbles" } },
+
+    { "id": "toadstool_knight", "name": "Toadstool Knight", "epithet": "Sworn Shield of the Fungus Court",
+      "bio": "Small. Brave. Slightly poisonous. Do not lick.",
+      "icon": { "bg": ["#3a1a14", "#0f0605"], "body": "slim", "body_col": "#9da4ad", "skin": "#e7d8c0", "head": "round",
+                "hat": "mushroom", "hat_col": "#c0261c", "eyes": "#1a1a1a", "item": "sword", "fx": "spores" } }
+  ]
+}

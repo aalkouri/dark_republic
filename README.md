@@ -28,7 +28,11 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 
 The game opens with the **AtomAI** studio logo (`video/atomai_logo.ogv`, converted to Ogg Theora for Godot). Any key, click or gamepad button skips it. Pass `-- --skip-intro` to skip it from the command line (tests and screenshots skip it automatically).
 
-Then the **title screen**: a living swamp diorama at night. The camera slowly orbits the fire wizard on a mossy stone dais while goblin silhouettes with glowing eyes lurk, creep in and grunt in the fog. "DARK REPUBLIC" burns in Cinzel lettering (`fonts/Cinzel.ttf`, SIL Open Font License) over a Play / Settings / Quit menu (mouse, keyboard or gamepad). The pause menu and end screen have **Main menu** to return here.
+Then the **title screen**: a living swamp diorama at night. The camera slowly orbits the fire wizard on a mossy stone dais while goblin silhouettes with glowing eyes lurk, creep in and grunt in the fog. "DARK REPUBLIC" burns in Cinzel lettering (`fonts/Cinzel.ttf`, SIL Open Font License) over a Play / Characters / Settings / Quit menu (mouse, keyboard or gamepad). The pause menu and end screen have **Main menu** to return here.
+
+## Character select
+
+**Characters** on the title opens a roster of 23 champions: a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. Only **The Fire Wizard** is playable for now; he previews as his live 3D model, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. Mouse, keyboard and gamepad all work; Esc goes back.
 
 ## Pause menu and settings
 
@@ -157,6 +161,8 @@ scripts/
   tree_fire.gd       trees set alight by the Meteor, charring over 15 s
   splash.gd          startup logo video, skippable
   title.gd           title screen: swamp diorama, burning title, menu
+  character_select.gd  roster grid + preview panel (data/characters.json)
+  character_icon.gd  procedural character portraits
   hud.gd             all UI, built in code
 data/upgrades.json   every weapon/tome/item and rarity, as data
 tools/               headless micro-benchmarks
@@ -193,6 +199,9 @@ godot --headless --path . --fixed-fps 60 res://tools/test_shrines.tscn
 
 # Title flow (splash -> title -> settings -> play -> main menu)
 godot --headless --path . res://tools/test_title.tscn
+
+# Character select (roster data, locked/unlocked, preview, back, play)
+godot --headless --path . res://tools/test_character_select.tscn
 
 # Crowd simulation benchmark
 godot --headless --path . res://tools/bench_enemies.tscn
