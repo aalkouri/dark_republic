@@ -271,6 +271,30 @@ func _ready() -> void:
 		em.damage(k, 1e6)
 	_check("mass kills stay within the corpse pool", cm._count <= CorpseManager.MAX, "%d" % cm._count)
 
+	# 10) Potions: slow spin, leaning bottle, blink every 0.3 s in the last 5 s
+	pm.drop(Vector3(50, 0, 50), PotionManager.RED)
+	var pot: Dictionary = pm._potions[pm._potions.size() - 1]
+	var spinner: Node3D = pot["bottle"]
+	var tilt_node: Node3D = spinner.get_child(0)
+	_check("potion leans", rad_to_deg(absf(tilt_node.rotation.z)) > 15.0, "%.0f deg" % rad_to_deg(tilt_node.rotation.z))
+	var y0 := spinner.rotation.y
+	for f in 60:
+		pm.tick(dt, 0.1)
+	var turned := angle_difference(y0, spinner.rotation.y)
+	_check("potion spins slowly (< 1 turn per 5 s)", absf(turned) > 0.5 and absf(turned) < TAU / 5.0, "%.2f rad in 1 s" % turned)
+	var blinks := 0
+	var prev := true
+	var t := 0.0
+	while t < PotionManager.LIFETIME:
+		var v := PotionManager.is_visible_at(t)
+		if t < PotionManager.LIFETIME - 5.0:
+			_check("no blinking before the last 5 s", v, "t %.2f" % t) if not v else null
+		if prev and not v:
+			blinks += 1
+		prev = v
+		t += 0.01
+	_check("blinks every 0.3 s for the last 5 s", blinks >= 16 and blinks <= 17, "%d blinks" % blinks)
+
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
 

@@ -17,6 +17,11 @@ const COOLDOWN_CUT := 0.30
 const HEAL_FRAC := 0.10
 const SHIELD_FRAC := 0.10
 const LIFETIME := 45.0
+const BLINK_WINDOW := 5.0      # start blinking this many seconds before disappearing
+const BLINK_PERIOD := 0.3      # one blink every 0.3 s
+const BLINK_ON := 0.6          # visible for 60% of each blink period
+const SPIN_SPEED := 0.9        # rad/s - a slow turn
+const LEAN := deg_to_rad(22.0) # tilt so the spin is easy to see
 const PICKUP_DIST := 1.2
 
 var player: Player
@@ -69,10 +74,17 @@ func drop(at: Vector3, kind := -1) -> void:
 	add_child(root)
 	root.global_position = Vector3(at.x, 0.0, at.z)
 
+	# spinner (turns around vertical, bobs) -> tilt (leans the bottle) -> bottle mesh
+	var spinner := Node3D.new()
+	spinner.position.y = 0.55
+	spinner.rotation.y = rng.randf() * TAU
+	root.add_child(spinner)
+	var tilt := Node3D.new()
+	tilt.rotation.z = LEAN
+	spinner.add_child(tilt)
 	var bottle := MeshInstance3D.new()
 	bottle.mesh = _meshes[kind]
-	bottle.position.y = 0.55
-	root.add_child(bottle)
+	tilt.add_child(bottle)
 	var glass := StandardMaterial3D.new()
 	glass.albedo_color = Color(0.9, 0.95, 1.0, 0.35)
 	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -122,7 +134,7 @@ func drop(at: Vector3, kind := -1) -> void:
 	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(ring)
 
-	_potions.append({"node": root, "bottle": bottle, "kind": kind, "age": 0.0, "pulled": false})
+	_potions.append({"node": root, "bottle": spinner, "kind": kind, "age": 0.0, "pulled": false})
 
 
 func tick(dt: float, pickup_range: float) -> void:
@@ -130,11 +142,11 @@ func tick(dt: float, pickup_range: float) -> void:
 	for k in range(_potions.size() - 1, -1, -1):
 		var p: Dictionary = _potions[k]
 		var root: Node3D = p["node"]
-		var bottle: MeshInstance3D = p["bottle"]
+		var bottle: Node3D = p["bottle"]
 		p["age"] += dt
 		var age: float = p["age"]
-		bottle.position.y = 0.55 + 0.12 * sin(age * 3.0)
-		bottle.rotation.y = age * 2.0
+		bottle.position.y = 0.55 + 0.12 * sin(age * 2.2)
+		bottle.rotation.y += SPIN_SPEED * dt
 		var to := target - (root.global_position + Vector3(0, 0.6, 0))
 		var d := to.length()
 		if d < pickup_range:
@@ -149,8 +161,15 @@ func tick(dt: float, pickup_range: float) -> void:
 		if age > LIFETIME:
 			root.queue_free()
 			_potions.remove_at(k)
-		elif age > LIFETIME - 5.0:
-			root.visible = fmod(age, 0.3) < 0.18   # blink before expiring
+		else:
+			root.visible = is_visible_at(age)
+
+
+## Blink in the last BLINK_WINDOW seconds: on for 60% of every BLINK_PERIOD.
+static func is_visible_at(age: float) -> bool:
+	if age < LIFETIME - BLINK_WINDOW:
+		return true
+	return fmod(age - (LIFETIME - BLINK_WINDOW), BLINK_PERIOD) < BLINK_PERIOD * BLINK_ON
 
 
 func _apply(kind: int) -> void:

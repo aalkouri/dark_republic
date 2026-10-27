@@ -56,6 +56,8 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 | Red | 50% | Heal 10% of max HP |
 | Blue | 20% | Shield worth 10% of max HP (absorbs damage first, stacks) |
 
+Potions lean and spin slowly so they're easy to spot, last 45 s, and blink every 0.3 s during their final 5 s.
+
 ## The swamp
 
 Every run generates a new dark swamp (`scripts/world_builder.gd`):

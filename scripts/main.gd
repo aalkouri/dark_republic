@@ -80,6 +80,7 @@ var shot_casts := {}   # time -> ability index
 var _shot_spawn := 0
 var _shot_front := false
 var _shot_pool := false
+var _shot_potions := false
 var _shot_level := 0
 var _shot_inspect := -1
 var _shot_settings_tab := -1
@@ -116,6 +117,8 @@ func _ready() -> void:
 			_shot_inspect = int(a.split("=")[1])
 		elif a.begins_with("--shot-level="):
 			_shot_level = int(a.split("=")[1])
+		elif a == "--shot-potions":
+			_shot_potions = true
 		elif a == "--shot-pool":
 			_shot_pool = true
 		elif a == "--shot-front":
@@ -638,6 +641,11 @@ func _smoke_tick(dt: float) -> void:
 
 func _shot_tick() -> void:
 	player.god_mode = true
+	if _shot_potions and run_time < 0.05:
+		var fwd := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
+		var right := Vector3(cos(player.cam_yaw), 0, -sin(player.cam_yaw))
+		for k in 3:
+			potions.drop(player.global_position + fwd * 6.5 + right * (k - 1) * 1.8, k)
 	if _shot_level > 0:
 		abilities.level = _shot_level
 	if _shot_pool and run_time < 0.05:
