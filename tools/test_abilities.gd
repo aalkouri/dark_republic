@@ -183,7 +183,7 @@ func _ready() -> void:
 	var hits := [0]
 	ga.played.connect(func(clip: int, _at: float): if clip == -1: hits[0] += 1)
 	ga.play_collision()
-	_check("collision plays Ow", hits[0] == 1, "hits %d" % hits[0])
+	_check("collision plays the grunt", hits[0] == 1, "hits %d" % hits[0])
 
 	# 7b) Staff attack: projectiles leave from the staff tip, staff points at the target, then recovers
 	var wiz: WizardModel = player.model

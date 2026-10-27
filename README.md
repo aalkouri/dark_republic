@@ -81,6 +81,17 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **6 mossy stone ruins** as landmarks.
 - **Music:** "Tension Drop" (`audio/music/tension_drop.mp3`) starts with the level and loops until the run ends, then fades out. Change `SWAMP_MUSIC` / `MUSIC_VOLUME_DB` in `scripts/main.gd`.
 
+## Shrines
+
+Each run places **1-8 shrines** on open ground, each marked by a tall beam of light in its tier colour. Stand inside the glowing **5-yard zone** for **10 seconds** to complete it (the ring fills up; leaving the zone resets the timer to 0) while dodging its damage pattern. Completing a shrine spawns a chest: **Difficulty 1 → Bronze, 2 → Silver, 3 → Gold** (chest rewards are placeholders for now).
+
+| Pattern | Difficulty 1 | Difficulty 2 | Difficulty 3 |
+|---|---|---|---|
+| **Chain Shrine:** chains swing around the shrine at shin height (jump over them) | 1 plain chain, 1 yd long (hit: 10% max HP) | 2 burning chains, 3 yd long | 3 burning chains spanning the whole zone, and the shrine itself is on fire |
+| **Storm Shrine:** rings of electricity crawl outward along the ground (jump over them; hit: 8% max HP) | 1 ring every 2 s | 2 rings 0.5 s apart every 2 s | A ring every 0.5 s |
+
+**Burn** (burning chains / burning shrine): 5% of max HP per second for 2 s. Touching fire again restarts the 2 s but never stacks.
+
 ## Goblins
 
 Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): about half the wizard's height, pot-bellied, with stubby legs (they waddle) and comically large ears. Types differ by size and clothing: Goblin (brown), Goblin Scamp (small, fast, yellow), Goblin Brute (big, grey) and the Big Bonker boss (huge, dark red).
@@ -89,7 +100,7 @@ Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): abo
 
 **Sounds** (`audio/goblin/`, generated in Higgsfield):
 - Ambient: a random nearby goblin voices one of five clips every 0.8–2.2 s. Each clip has its own 5 s cooldown, so the same sound never repeats within 5 s. Bigger goblins are pitched lower.
-- Collision: "Ow!" plays whenever a goblin runs into the player.
+- Collision: a grunt (`hit_grunt.wav`) plays whenever a goblin runs into the player.
 - To swap or add clips, edit `AMBIENT_CLIPS` / `COLLISION_CLIP` in `scripts/goblin_audio.gd`.
 
 ## Combat feedback
@@ -133,6 +144,11 @@ scripts/
   corpse_manager.gd  fallen goblins (topple, linger, sink) in one MultiMesh
   settings.gd        autoload: audio buses, video/controls options, key remaps, save/load
   settings_menu.gd   Video / Sound / Controls settings screen
+  shrine.gd          shrine challenge: zone timer, chain + storm patterns, completion
+  shrine_manager.gd  places 1-8 shrines per run, spawns chests
+  chest.gd           Bronze / Silver / Gold chest (placeholder: rewards TBD)
+  powerup_manager.gd elite power-up drops and timed effects
+  tree_fire.gd       trees set alight by the Meteor, charring over 15 s
   hud.gd             all UI, built in code
 data/upgrades.json   every weapon/tome/item and rarity, as data
 tools/               headless micro-benchmarks
@@ -163,6 +179,9 @@ godot --headless --path . --fixed-fps 60 res://tools/test_swamp.tscn
 
 # Pause menu / settings tests (tabs, independent music + SFX volume and mute, saving, rebinding)
 godot --headless --path . res://tools/test_settings.tscn
+
+# Shrine tests (placement, zone timer/reset, chest tiers, chains, burn, storm rings, jumping)
+godot --headless --path . --fixed-fps 60 res://tools/test_shrines.tscn
 
 # Crowd simulation benchmark
 godot --headless --path . res://tools/bench_enemies.tscn

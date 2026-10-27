@@ -170,6 +170,9 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	for i in RUINS:
 		var p := _free_point(rng, half - 15.0, 25.0, water, 4.0, placed, 6.0)
 		_prop(parent, SwampProps.ruin(rng), Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p))
+		var ruin_body := parent.get_child(parent.get_child_count() - 1)
+		ruin_body.add_to_group("obstacle")
+		ruin_body.set_meta("reach", 3.0)
 		placed.append(p)
 	return water
 

@@ -45,6 +45,7 @@ var fx: FxManager
 var abilities: Abilities
 var potions: PotionManager
 var powerups: PowerupManager
+var shrines: ShrineManager
 var goblin_audio: GoblinAudio
 
 var state := "playing"   # playing | paused | levelup | dead | won
@@ -83,6 +84,7 @@ var _shot_front := false
 var _shot_pool := false
 var _shot_potions := false
 var _shot_powerups := false
+var _shot_shrine := Vector2i(-1, 0)
 var _shot_ignite := false
 var _shot_zoom := 0.0
 var _shot_turn := 0.0
@@ -130,6 +132,9 @@ func _ready() -> void:
 			_shot_ignite = true
 		elif a.begins_with("--shot-timescale="):
 			Engine.time_scale = float(a.split("=")[1])
+		elif a.begins_with("--shot-shrine="):
+			var sp := a.split("=")[1].split(":")
+			_shot_shrine = Vector2i(int(sp[0]), int(sp[1]))
 		elif a == "--shot-powerups":
 			_shot_powerups = true
 		elif a == "--shot-potions":
@@ -202,6 +207,13 @@ func _ready() -> void:
 		numbers.add(player.global_position + Vector3(0, 2.6, 0), amount, DamageNumbers.HEAL))
 	potions.cooldowns_cut.connect(func(cuts: PackedFloat32Array): hud.show_cooldown_cuts(cuts))
 	enemies.epic_killed.connect(func(p: Vector3): potions.drop(p))
+	shrines = ShrineManager.new()
+	shrines.setup(player, water, rng)
+	add_child(shrines)
+	shrines.spawn_all(ARENA_HALF)
+	shrines.shrine_completed.connect(func(s: Shrine, _c: Chest):
+		hud.flash_message("SHRINE COMPLETE!  %s chest" % s.tier_name(), 3.0))
+
 	powerups = PowerupManager.new()
 	powerups.setup(player, stats, enemies, gems, db, rng)
 	add_child(powerups)
@@ -218,7 +230,7 @@ func _ready() -> void:
 	add_child(hud)
 	hud.setup(self)
 	# Main runs while paused (menus, input); all gameplay nodes freeze with the pause.
-	for n in [fx, enemies, numbers, corpses, powerups, gems, weapons, abilities, potions, goblin_audio, items]:
+	for n in [fx, enemies, numbers, corpses, powerups, shrines, gems, weapons, abilities, potions, goblin_audio, items]:
 		(n as Node).process_mode = Node.PROCESS_MODE_PAUSABLE
 
 	Events.enemy_killed.connect(_on_enemy_killed)
@@ -279,6 +291,7 @@ func _physics_process(dt: float) -> void:
 	var gained := gems.tick(dt, player.global_position + Vector3(0, 0.9, 0), stats.value("pickup_range"))
 	potions.tick(dt, stats.value("pickup_range"))
 	powerups.tick(dt, stats.value("pickup_range"))
+	shrines.tick(dt)
 	goblin_audio.tick(dt)
 	var t3 := Time.get_ticks_usec()
 	_track_perf((t1 - t0) / 1000.0, (t2 - t1) / 1000.0, (t3 - t2) / 1000.0)
@@ -682,6 +695,14 @@ func _shot_tick() -> void:
 		var to := tp - player.global_position
 		player.cam_yaw = atan2(-to.x, -to.z)
 		TreeFire.ignite(best)
+	if _shot_shrine.x >= 0 and run_time < 0.05:
+		var fwd3 := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
+		var sh := Shrine.new()
+		sh.setup(_shot_shrine.x, _shot_shrine.y)
+		sh.position = player.global_position + fwd3 * 8.5
+		sh.position.y = 0.0
+		shrines.add_child(sh)
+		shrines.shrines.append(sh)
 	if _shot_powerups and run_time < 0.05:
 		var f2 := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
 		var r2 := Vector3(cos(player.cam_yaw), 0, -sin(player.cam_yaw))

@@ -24,6 +24,8 @@ var tooltip: PanelContainer
 var tooltip_text: RichTextLabel
 var inspect_hint: Label
 var buff_label: RichTextLabel
+var shrine_bar: ProgressBar
+var shrine_label: Label
 var _popups: Array = []   # [Label, age, base_pos]
 const POPUP_LIFE := 0.9
 var _hover_slot := -1
@@ -304,6 +306,24 @@ func _build_tooltip(root: Control) -> void:
 	buff_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	root.add_child(buff_label)
 
+	shrine_label = _label("", 22)
+	shrine_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	shrine_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	shrine_label.offset_left = -300
+	shrine_label.offset_right = 300
+	shrine_label.offset_top = 196
+	shrine_label.visible = false
+	root.add_child(shrine_label)
+	shrine_bar = _bar(Color(1.0, 0.8, 0.25))
+	shrine_bar.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	shrine_bar.offset_left = -170
+	shrine_bar.offset_right = 170
+	shrine_bar.offset_top = 228
+	shrine_bar.offset_bottom = 242
+	shrine_bar.max_value = Shrine.REQUIRED_TIME
+	shrine_bar.visible = false
+	root.add_child(shrine_bar)
+
 	inspect_hint = _label("PAUSED  ·  hover an ability for details  ·  release Alt to resume", 20)
 	inspect_hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	inspect_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -493,6 +513,18 @@ func _process(dt: float) -> void:
 
 	_update_tooltip()
 	_update_popups(dt)
+	var sh: Shrine = main.shrines.active
+	shrine_label.visible = sh != null
+	shrine_bar.visible = sh != null
+	if sh != null:
+		shrine_label.text = "%s  ·  %.1f / %d s" % [sh.describe(), sh.progress, int(Shrine.REQUIRED_TIME)]
+		shrine_bar.value = sh.progress
+		(shrine_bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color = Shrine.TIER_COLORS[sh.difficulty - 1]
+	if p.burn_left > 0.0:
+		hp_label.text += "   BURNING"
+		hp_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
+	else:
+		hp_label.remove_theme_color_override("font_color")
 	buff_label.text = "[center]%s[/center]" % main.powerups.status_text()
 	for i in ability_slots.size():
 		ability_slots[i].set_locked(not main.abilities.is_unlocked(i))

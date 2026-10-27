@@ -50,6 +50,11 @@ var in_water := false
 ## While true the wizard has turned into the meteor: hidden, untouchable, no collision,
 ## and Abilities drives his position along the meteor's path (the camera follows).
 var meteor_form := false
+## Burning (shrine fire): BURN_FRAC of max HP per second for BURN_TIME; touching fire again
+## restarts the timer but never stacks.
+const BURN_TIME := 2.0
+const BURN_FRAC := 0.05
+var burn_left := 0.0
 var _collider: CollisionShape3D
 const SPRING_NORMAL := 6.5
 const SPRING_METEOR := 14.0
@@ -145,6 +150,7 @@ func _physics_process(dt: float) -> void:
 	if meteor_form:
 		_follow_camera(dt)
 		return
+	_tick_burn(dt)
 	var input: Vector2
 	var jump_pressed: bool
 	var slide_held: bool
@@ -324,6 +330,28 @@ func add_shake(amount: float) -> void:
 
 ## Applies contact damage and starts the immunity window. Returns false if already immune.
 ## Shield absorbs damage before HP.
+## Set the player on fire (refreshes, doesn't stack). Returns true if newly ignited.
+func ignite() -> bool:
+	var fresh := burn_left <= 0.0
+	burn_left = BURN_TIME
+	return fresh
+
+
+func _tick_burn(dt: float) -> void:
+	if burn_left <= 0.0:
+		return
+	burn_left = maxf(0.0, burn_left - dt)
+	if god_mode or hp <= 0.0:
+		return
+	var dmg := max_hp * BURN_FRAC * dt
+	var absorbed := minf(shield, dmg)
+	shield -= absorbed
+	hp -= dmg - absorbed
+	if hp <= 0.0:
+		hp = 0.0
+		died.emit()
+
+
 func enter_meteor_form() -> void:
 	meteor_form = true
 	model.visible = false

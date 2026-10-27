@@ -3,7 +3,7 @@ extends Node3D
 ## Goblin voices.
 ##  - Ambient: every so often a random goblin near the player grunts. Each clip has its own
 ##    5 s cooldown, so the same sound never plays twice within 5 s.
-##  - Collision: whenever a goblin runs into the player, play the collision clip.
+##  - Collision: whenever a goblin runs into the player, play the grunt clip.
 ## Clips live in res://audio/goblin/. Missing files are skipped, so the game runs without them.
 
 const AMBIENT_CLIPS := [
@@ -15,7 +15,7 @@ const AMBIENT_CLIPS := [
 ]
 signal played(clip: int, at: float)   # clip -1 = collision
 
-const COLLISION_CLIP := "res://audio/goblin/hit_ow.wav"   # "Ow!"
+const COLLISION_CLIP := "res://audio/goblin/hit_grunt.wav"   # grunt when a goblin runs into you
 
 const CLIP_COOLDOWN := 5.0          # per clip
 const AMBIENT_GAP := Vector2(0.8, 2.2)   # seconds between ambient attempts
