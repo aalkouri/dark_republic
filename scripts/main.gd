@@ -24,9 +24,11 @@ const BASE_STATS := {
 	"aura_damage": 5.0, "aura_radius": 3.2, "aura_tick": 0.45,
 	"slam_damage": 18.0, "slam_radius": 5.5, "slam_cooldown": 2.6,
 	"bomb_chance": 0.0, "bomb_damage": 25.0, "fang_chance": 0.0,
+	"coin_gain": 1.0, "ability_cdr": 1.0, "start_shield": 0.0,   # from character skills
 }
 
 static var smoke_restarts := 0
+var skills_applied: Array = []   # skill ids active this run
 
 var rng := RandomNumberGenerator.new()
 var stats: Stats
@@ -157,6 +159,7 @@ func _ready() -> void:
 	stats = Stats.new()
 	for k in BASE_STATS:
 		stats.define(k, BASE_STATS[k])
+	skills_applied = SkillTree.apply(Settings.selected_character, stats)   # skill tree bonuses
 	db = UpgradeDB.new("res://data/upgrades.json", rng)
 
 	water = WorldBuilder.build(self, rng, ARENA_HALF)
@@ -172,6 +175,8 @@ func _ready() -> void:
 	add_child(player)
 	player.global_position = Vector3(0, 0.5, 0)
 	player.died.connect(_on_player_died)
+	if stats.value("start_shield") > 0.0:
+		player.add_shield(stats.value("max_hp") * stats.value("start_shield"))
 
 	enemies = EnemyManager.new()
 	enemies.arena_half = ARENA_HALF

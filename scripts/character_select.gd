@@ -26,6 +26,8 @@ var _view_box: SubViewportContainer
 var _model_pivot: Node3D
 var _play_btn: Button
 var _back_btn: Button
+var _skills_btn: Button
+var skills: SkillScreen
 var _music: AudioStreamPlayer
 var _fade: ColorRect
 var _leaving := false
@@ -41,6 +43,13 @@ func _ready() -> void:
 	_build_panel()
 	_build_footer()
 	_build_music()
+	skills = SkillScreen.new()
+	skills.setup(_font, _font_bold)
+	skills.visible = false
+	skills.closed.connect(func():
+		refresh_levels()
+		_skills_btn.grab_focus())
+	add_child(skills)
 	_fade = ColorRect.new()
 	_fade.color = Color(0, 0, 0, 1)
 	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -317,13 +326,15 @@ func _build_model_stage(vp: SubViewport) -> void:
 
 func _build_footer() -> void:
 	var row := HBoxContainer.new()
-	row.position = Vector2(860, 800)
+	row.position = Vector2(860, 816)
 	row.custom_minimum_size = Vector2(690, 70)
 	row.add_theme_constant_override("separation", 20)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(row)
 	_back_btn = _footer_button("Back", _back)
 	row.add_child(_back_btn)
+	_skills_btn = _footer_button("Skills", _open_skills)
+	row.add_child(_skills_btn)
 	_play_btn = _footer_button("Play", _play)
 	row.add_child(_play_btn)
 	var hint := _label("Enter: choose   ·   Esc: back", 16, Color(0.75, 0.7, 0.62, 0.6))
@@ -334,7 +345,7 @@ func _build_footer() -> void:
 func _footer_button(text: String, cb: Callable) -> Button:
 	var b := Button.new()
 	b.text = text.to_upper()
-	b.custom_minimum_size = Vector2(240, 60)
+	b.custom_minimum_size = Vector2(210, 60)
 	b.focus_mode = Control.FOCUS_ALL
 	b.add_theme_font_override("font", _font_bold)
 	b.add_theme_font_size_override("font_size", 30)
@@ -392,6 +403,7 @@ func _show(k: int) -> void:
 	for j in _tiles.size():
 		(_tiles[j].get_meta("icon") as CharacterIcon).animate = j == k
 	_play_btn.disabled = not unlocked
+	_skills_btn.disabled = not unlocked   # skill trees for playable characters only
 
 
 func _choose(k: int) -> void:
@@ -431,7 +443,15 @@ func _leave(scene: String) -> void:
 	tw.chain().tween_callback(func(): get_tree().change_scene_to_file(scene))
 
 
+func _open_skills() -> void:
+	if _shown < 0 or not is_unlocked(_shown):
+		return
+	skills.open(characters[_shown]["id"], characters[_shown]["name"])
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if skills.visible:
+		return   # the skill screen handles its own Esc
 	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		_back()
 		get_viewport().set_input_as_handled()
@@ -460,6 +480,13 @@ func _shot_setup() -> void:
 			for id in ["fire_wizard", "kong", "thog", "merlin"]:
 				Wallet.set_char_level(id, {"fire_wizard": 7, "kong": 2, "thog": 12, "merlin": 1}[id])
 			refresh_levels()
+		elif a == "--shot-skills":   # demo tree with a few skills learned (not saved)
+			Wallet.coins = 2000
+			for sk in ["kindling", "wildfire", "ember_hide", "fleet"]:
+				SkillTree.learn("fire_wizard", sk)
+			refresh_levels()
+			_open_skills.call_deferred()
+			(func(): skills._select("searing")).call_deferred()
 		elif a.begins_with("--shot-char="):
 			var k := index_of(a.split("=")[1])
 			if k >= 0:

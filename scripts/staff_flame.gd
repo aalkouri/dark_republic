@@ -73,8 +73,8 @@ void fragment() {
 	float blue = (1.0 - smoothstep(0.0, 0.14, uv.y)) * body * 0.55;
 	col += vec3(0.05, 0.15, 0.6) * blue;
 	float a = smoothstep(0.02, 0.25, heat) * smoothstep(0.0, 0.05, uv.y) * (1.0 - smoothstep(0.9, 1.0, abs(uv.x)));
-	ALBEDO = col * a * intensity * 2.2;
-	ALPHA = 1.0;
+	ALBEDO = col * intensity * 2.2;
+	ALPHA = a;   // additive: only the flame adds light (also keeps transparent viewports clear)
 }
 """
 

@@ -34,6 +34,15 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 
 **Characters** on the title opens a roster of 25 champions: a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. Only **The Fire Wizard** is playable for now; he previews as his live 3D model, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. Each character has a saved level (`lvl`, kept with the coins in `user://progress.cfg`). Tiles show **lvl N** in the bottom-left corner when it's 1 or more, and nothing at 0. Mouse, keyboard and gamepad all work; Esc goes back.
 
+## Skills
+
+Playable characters have a **Skills** button on character select, between Back and Play. It opens the character's skill tree:
+- **Layout:** three columns, Defense, Offense and Special, each with two rows of three skill squares (`skill_tree.gd`, `skill_screen.gd`).
+- **Learning:** select a square to see what it does, then press **Learn**. First-row skills cost 150 coins and second-row skills 400. A column's second row opens once you've learned any skill in its first row.
+- **Levels:** every skill learned raises the character's `lvl` by 1, as shown on the tile.
+- **In runs:** learned skills apply to every run with that character. They cover max HP, armor, regen, a starting shield, damage, attack speed, fireball count and pierce, area, move speed, air jumps, pickup range, luck, XP, faster ability recharge and bonus coins.
+- **Which skills:** the Fire Wizard has a hand-made fire-themed tree. Every other character gets its own fixed random draw from a shared pool.
+
 ## Coins
 
 Coins are saved between sessions (`user://progress.cfg`, autoload `Wallet`), and the counter is always in the top-right corner: title, character select, in-game, pause and the end screen. A run earns **1 coin per second survived** plus **100 coins per 1,000 kills**, but they're only banked on the end-of-run summary.
@@ -230,6 +239,9 @@ godot --headless --path . res://tools/test_character_select.tscn
 
 # Re-bake the goblin animations from Higgsfield GLBs
 godot --headless --path . --script res://tools/bake_vat.gd -- <glb dir> res://models/goblin "run=Male_Head_Down_Charge:16:loop,attack=Punch_Combo:50:loop,death=Shot_and_Fall_Backward:40:hold"
+
+# Skill trees (structure, learning rules, effects in a run, character select Skills screen)
+godot --headless --path . res://tools/test_skills.tscn
 
 # Coins (reward maths, banked only at the end, payout animation, counter on every screen)
 godot --headless --path . res://tools/test_wallet.tscn

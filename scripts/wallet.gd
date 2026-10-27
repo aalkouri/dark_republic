@@ -21,6 +21,7 @@ const DING := "res://audio/coins/coin_done.wav"
 
 var coins := 0                         # banked total
 var char_levels := {}                  # character id -> lvl (0 when missing)
+var char_skills := {}                  # character id -> Array of learned skill ids
 var displayed := 0.0                   # what the counter shows (lags during a payout)
 var persist := true                    # off for test/screenshot runs
 
@@ -60,11 +61,41 @@ func set_char_level(id: String, lvl: int) -> void:
 	_save()
 
 
-## Coins a run is worth: {time, bonus, total}.
-static func run_reward(seconds: float, kills: int) -> Dictionary:
+func has_skill(id: String, skill: String) -> bool:
+	return skill in skills_of(id)
+
+
+func skills_of(id: String) -> Array:
+	return char_skills.get(id, [])
+
+
+func learn_skill(id: String, skill: String) -> void:
+	var list: Array = skills_of(id).duplicate()
+	if not skill in list:
+		list.append(skill)
+	char_skills[id] = list
+	_save()
+
+
+## Spend coins (no animation). Returns false if there aren't enough.
+func spend(amount: int) -> bool:
+	if amount > coins:
+		return false
+	coins -= amount
+	displayed = coins
+	_pulse = 1.0
+	_save()
+	changed.emit(coins)
+	return true
+
+
+## Coins a run is worth: {time, bonus, extra, total}. `gain` is the coin multiplier from
+## skills (e.g. 1.15 = +15%); `extra` is what it adds.
+static func run_reward(seconds: float, kills: int, gain := 1.0) -> Dictionary:
 	var t := int(floor(seconds)) * COINS_PER_SECOND
 	var b := (kills / KILLS_PER_BONUS) * KILL_BONUS
-	return {"time": t, "bonus": b, "total": t + b}
+	var extra := int(round((t + b) * (gain - 1.0)))
+	return {"time": t, "bonus": b, "extra": extra, "total": t + b + extra}
 
 
 ## Add coins immediately (no animation).
@@ -280,6 +311,7 @@ func _load() -> void:
 	if cfg.load(PATH) == OK:
 		coins = int(cfg.get_value("wallet", "coins", 0))
 		char_levels = cfg.get_value("characters", "levels", {})
+		char_skills = cfg.get_value("characters", "skills", {})
 
 
 func _save() -> void:
@@ -289,4 +321,5 @@ func _save() -> void:
 	cfg.load(PATH)
 	cfg.set_value("wallet", "coins", coins)
 	cfg.set_value("characters", "levels", char_levels)
+	cfg.set_value("characters", "skills", char_skills)
 	cfg.save(PATH)

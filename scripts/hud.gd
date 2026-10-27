@@ -496,10 +496,12 @@ func show_end(won: bool) -> void:
 	end_stats.text = "Time %s   ·   Level %d   ·   Kills %d" % [_fmt_time(main.run_time), main.level, main.kills]
 	end_root.visible = true
 	# Coins: shown here, banked when they pour into the counter
-	run_reward = Wallet.run_reward(main.run_time, main.kills)
+	run_reward = Wallet.run_reward(main.run_time, main.kills, main.stats.value("coin_gain"))
 	var bonus_line := "Kills %s   →   +%s bonus" % [Wallet.fmt(main.kills), Wallet.fmt(run_reward["bonus"])] if run_reward["bonus"] > 0 \
 		else "Kills %s   →   +0 bonus  (100 coins per 1,000 kills)" % Wallet.fmt(main.kills)
 	end_coin_lines.text = "Survived %s   →   %s coins\n%s" % [_fmt_time(main.run_time), Wallet.fmt(run_reward["time"]), bonus_line]
+	if run_reward["extra"] > 0:
+		end_coin_lines.text += "\nSkills  →   +%s coins" % Wallet.fmt(run_reward["extra"])
 	_pot_left = run_reward["total"]
 	end_pot.text = "+" + Wallet.fmt(_pot_left)
 	_pay_started = false

@@ -182,7 +182,7 @@ func try_cast(i: int) -> bool:
 			_cast_shockwave()
 		METEOR:
 			_cast_meteor()
-	cooldown[i] = DEFS[i]["cooldown"]
+	cooldown[i] = DEFS[i]["cooldown"] * (stats.value("ability_cdr") if stats.has_stat("ability_cdr") else 1.0)
 	cast.emit(i)
 	return true
 
