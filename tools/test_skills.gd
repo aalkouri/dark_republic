@@ -1,7 +1,8 @@
 extends Node
 ## Skill trees: structure (3 categories x 2 rows x 3), per-character trees (wizard authored,
-## others a fixed random draw), learning rules (coins, row 2 needs row 1, lvl +1), effects in
-## a run, and the Skills button / screen on character select.
+## others a fixed random draw), levels from EXP (1 per kill, table up to lvl 10), skill points
+## (one per level), learning rules (row 2 needs row 1, Special locked until lvl 5), effects in
+## a run, and the Skills button / screen (points "N/10", Special padlock).
 ##   godot --headless --path . res://tools/test_skills.tscn
 
 var fails := 0
@@ -10,7 +11,7 @@ var fails := 0
 func _ready() -> void:
 	Wallet.persist = false
 	Wallet.coins = 0
-	Wallet.char_levels = {}
+	Wallet.char_exp = {}
 	Wallet.char_skills = {}
 
 	var t := SkillTree.tree_for("fire_wizard")
@@ -30,18 +31,30 @@ func _ready() -> void:
 				ids[sk["id"]] = true
 	_check("no duplicate skills in a tree", ids.size() == 18, "%d" % ids.size())
 
+	# Levels from EXP
+	var table := [[0, 0], [1999, 0], [2000, 1], [10000, 2], [50000, 3], [1000000, 4], [5000000, 5],
+		[15000000, 6], [50000000, 7], [100000000, 8], [500000000, 9], [1000000000, 10], [5000000000, 10]]
+	var table_ok := true
+	for e in table:
+		table_ok = table_ok and Wallet.level_for(e[0]) == e[1]
+	_check("EXP table: lvl 1 at 2,000 ... lvl 10 at 1 billion, 10 is max", table_ok, "")
+	_check("1 EXP per kill, levels reported", Wallet.add_char_exp("fire_wizard", 2500) == 1 and Wallet.char_level("fire_wizard") == 1, "")
+	_check("skill points = level", Wallet.skill_points_total("fire_wizard") == 1 and Wallet.skill_points_free("fire_wizard") == 1, "")
+
 	# Learning rules
-	_check("can't learn without coins", SkillTree.blocked_reason("fire_wizard", "kindling") == "Not enough coins", SkillTree.blocked_reason("fire_wizard", "kindling"))
-	Wallet.coins = 1000
 	_check("row 2 needs a row-1 skill of the column", SkillTree.blocked_reason("fire_wizard", "wildfire").begins_with("Learn a offense"), SkillTree.blocked_reason("fire_wizard", "wildfire"))
-	_check("learn row 1", SkillTree.learn("fire_wizard", "kindling") and Wallet.coins == 850, "%d" % Wallet.coins)
-	_check("learning raises lvl by 1", Wallet.char_level("fire_wizard") == 1, "")
-	_check("row 2 opens after a row-1 skill", SkillTree.learn("fire_wizard", "wildfire") and Wallet.coins == 450, "%d" % Wallet.coins)
+	_check("learning uses a skill point (coins untouched)", SkillTree.learn("fire_wizard", "kindling") and Wallet.skill_points_free("fire_wizard") == 0 and Wallet.coins == 0, "")
+	_check("learning doesn't change lvl", Wallet.char_level("fire_wizard") == 1, "")
+	_check("no points left -> blocked", SkillTree.blocked_reason("fire_wizard", "ember_hide").begins_with("No skill points"), SkillTree.blocked_reason("fire_wizard", "ember_hide"))
+	Wallet.set_char_exp("fire_wizard", 1000000)   # lvl 4
+	_check("row 2 opens after a row-1 skill", SkillTree.learn("fire_wizard", "wildfire"), "")
 	_check("can't learn twice", not SkillTree.learn("fire_wizard", "wildfire"), "")
 	_check("row 2 in another column still locked", SkillTree.blocked_reason("fire_wizard", "phoenix_heart") != "", "")
 	SkillTree.learn("fire_wizard", "ember_hide")
-	SkillTree.learn("fire_wizard", "gold_sense")
-	_check("lvl = skills learned", Wallet.char_level("fire_wizard") == 4, "%d" % Wallet.char_level("fire_wizard"))
+	_check("Special locked below lvl 5", SkillTree.category_locked("fire_wizard", "Special") and SkillTree.blocked_reason("fire_wizard", "gold_sense") == "Unlocks at level 5", SkillTree.blocked_reason("fire_wizard", "gold_sense"))
+	Wallet.set_char_exp("fire_wizard", 5000000)   # lvl 5
+	_check("Special opens at lvl 5", not SkillTree.category_locked("fire_wizard", "Special") and SkillTree.learn("fire_wizard", "gold_sense"), "")
+	_check("4 skills learned with 5 points: 1 left", Wallet.skill_points_free("fire_wizard") == 1, "%d" % Wallet.skill_points_free("fire_wizard"))
 
 	# Effects in a run
 	var stand_in := Node.new()
@@ -87,18 +100,27 @@ func _ready() -> void:
 	var sc: SkillScreen = cs.skills
 	_check("Skills opens the tree", sc.visible and sc._squares.size() == 18, "%d squares" % sc._squares.size())
 	_check("learned skills marked", (sc._squares["kindling"].get_meta("badge") as Label).text != "", "")
-	Wallet.coins = 100
-	sc._select("phoenix_heart")
-	_check("can't learn what you can't afford", sc._learn.disabled and "Not enough coins" in sc._info_cost.text, sc._info_cost.text)
-	Wallet.coins = 500
+	_check("skill points shown as level/10", sc._points.text == "5/10" and sc._points_free.text == "1 to spend", "%s, %s" % [sc._points.text, sc._points_free.text])
+	_check("Special padlock gone at lvl 5", not sc._lock_overlay.visible, "")
 	sc._select("ashen_ward")
-	_check("affordable row-1 skill can be learned", not sc._learn.disabled, "")
+	_check("a free point lets you learn", not sc._learn.disabled, "")
 	sc._learn_selected()
-	_check("Learn spends coins and raises lvl", Wallet.coins == 350 and Wallet.char_level("fire_wizard") == 5, "%d coins, lvl %d" % [Wallet.coins, Wallet.char_level("fire_wizard")])
+	_check("Learn uses the point", Wallet.skill_points_free("fire_wizard") == 0 and sc._points_free.text == "0 to spend", sc._points_free.text)
+	sc._select("smoulder")
+	_check("no points: Learn disabled", sc._learn.disabled and "No skill points" in sc._info_cost.text, sc._info_cost.text)
+	sc.close()
+	await get_tree().process_frame
+	# Below lvl 5 the Special column is greyed out under a padlock
+	Wallet.set_char_exp("kong", 0)
+	Wallet.set_char_exp("fire_wizard", 60000)   # lvl 3
+	cs._skills_btn.pressed.emit()
+	await get_tree().process_frame
+	_check("Special padlock below lvl 5", sc._lock_overlay.visible and sc._lock_overlay.message == "Unlocks at level 5", "")
+	_check("points show 3/10", sc._points.text == "3/10", sc._points.text)
 	sc.close()
 	await get_tree().process_frame
 	var lvl_label := cs._tiles[0].get_meta("lvl") as Label
-	_check("tile shows the new lvl after closing", lvl_label.visible and lvl_label.text == "lvl 5", lvl_label.text)
+	_check("tile shows lvl from EXP", lvl_label.visible and lvl_label.text == "lvl 3", lvl_label.text)
 
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)

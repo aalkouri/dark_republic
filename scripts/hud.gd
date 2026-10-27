@@ -32,6 +32,7 @@ var _hover_slot := -1
 var end_title: Label
 var end_stats: Label
 var end_coin_lines: Label
+var end_exp: Label
 var end_pot: Label
 var end_pot_icon: CoinIcon
 var run_reward := {"time": 0, "bonus": 0, "total": 0}
@@ -432,6 +433,11 @@ func _build_end(root: Control) -> void:
 	end_stats = _label("", 22)
 	end_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(end_stats)
+	# Character EXP earned this run (1 per kill, banked when the run ends)
+	end_exp = _label("", 20)
+	end_exp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	end_exp.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
+	vb.add_child(end_exp)
 	# Coins earned this run (banked here, poured into the counter)
 	var coin_box := VBoxContainer.new()
 	coin_box.add_theme_constant_override("separation", 4)
@@ -495,6 +501,18 @@ func show_end(won: bool) -> void:
 	end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if won else Color(1.0, 0.35, 0.3))
 	end_stats.text = "Time %s   ·   Level %d   ·   Kills %d" % [_fmt_time(main.run_time), main.level, main.kills]
 	end_root.visible = true
+	# EXP for the character played: 1 per kill, banked now
+	var cid := Settings.selected_character
+	var gained_levels := Wallet.add_char_exp(cid, main.kills)
+	var lvl := Wallet.char_level(cid)
+	var next := Wallet.next_level_exp(cid)
+	var progress := ("%s / %s EXP" % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else "max level"
+	end_exp.text = "EXP +%s   ·   lvl %d  (%s)" % [Wallet.fmt(main.kills), lvl, progress]
+	if gained_levels > 0:
+		end_exp.text += "\nLEVEL UP!  lvl %d   ·   +%d skill point%s" % [lvl, gained_levels, "s" if gained_levels > 1 else ""]
+		end_exp.add_theme_color_override("font_color", Color(0.55, 1.0, 0.6))
+	else:
+		end_exp.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
 	# Coins: shown here, banked when they pour into the counter
 	run_reward = Wallet.run_reward(main.run_time, main.kills, main.stats.value("coin_gain"))
 	var bonus_line := "Kills %s   →   +%s bonus" % [Wallet.fmt(main.kills), Wallet.fmt(run_reward["bonus"])] if run_reward["bonus"] > 0 \

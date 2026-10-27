@@ -11,6 +11,8 @@ func _ready() -> void:
 	Wallet.persist = false
 	Wallet.coins = 0
 	Wallet.displayed = 0.0
+	Wallet.char_exp = {}
+	Settings.selected_character = "fire_wizard"
 	var r := Wallet.run_reward(125.7, 2345)
 	_check("1 coin per second survived", r["time"] == 125, str(r))
 	_check("100 coins per 1,000 kills", r["bonus"] == 200, str(r))
@@ -36,6 +38,7 @@ func _ready() -> void:
 	main._end_run(false)
 	_check("end screen lists the coins", "61 coins" in main.hud.end_coin_lines.text and "+100 bonus" in main.hud.end_coin_lines.text, main.hud.end_coin_lines.text)
 	_check("pot shows the total before paying", main.hud.end_pot.text == "+161", main.hud.end_pot.text)
+	_check("EXP banked at the end: 1 per kill", Wallet.char_exp_of("fire_wizard") == 1500 and "EXP +1,500" in main.hud.end_exp.text, main.hud.end_exp.text)
 	var finished := [false]
 	Wallet.payout_finished.connect(func(): finished[0] = true, CONNECT_ONE_SHOT)
 	await get_tree().create_timer(1.2, true).timeout

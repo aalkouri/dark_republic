@@ -1,7 +1,8 @@
 extends CanvasLayer
 ## Coins (autoload "Wallet"): the player's persistent currency, and the coin counter that is
 ## always on screen in the top-right corner (title, character select, in-game, pause, end).
-## Also stores each character's level ("lvl", shown on the character select tiles).
+## Also stores each character's EXP (1 per kill, banked at the end of a run), which sets its
+## level ("lvl", 0-10) and skill points, and its learned skills.
 ##
 ## Earning: 1 coin per second survived + 100 coins per 1,000 kills. A run's coins are only
 ## banked on the end-of-run summary, where payout() pours them out of the middle of the screen:
@@ -20,7 +21,7 @@ const JINGLE := "res://audio/coins/jingle_loop.wav"
 const DING := "res://audio/coins/coin_done.wav"
 
 var coins := 0                         # banked total
-var char_levels := {}                  # character id -> lvl (0 when missing)
+var char_exp := {}                     # character id -> total EXP (1 per kill)
 var char_skills := {}                  # character id -> Array of learned skill ids
 var displayed := 0.0                   # what the counter shows (lags during a payout)
 var persist := true                    # off for test/screenshot runs
@@ -51,14 +52,55 @@ func _ready() -> void:
 	_build_audio()
 
 
-## A character's level ("lvl"), 0 if it has none.
+## Total EXP needed for each level (index 0 = level 1). Level 10 is the max.
+const LEVEL_EXP := [2000, 10000, 50000, 1000000, 5000000, 15000000, 50000000, 100000000, 500000000, 1000000000]
+const MAX_LEVEL := 10
+
+
+## A character's level ("lvl") from its EXP: 0 below 2,000, max 10.
 func char_level(id: String) -> int:
-	return int(char_levels.get(id, 0))
+	return level_for(char_exp_of(id))
 
 
-func set_char_level(id: String, lvl: int) -> void:
-	char_levels[id] = maxi(0, lvl)
+static func level_for(exp: int) -> int:
+	var lvl := 0
+	for need in LEVEL_EXP:
+		if exp >= need:
+			lvl += 1
+	return lvl
+
+
+func char_exp_of(id: String) -> int:
+	return int(char_exp.get(id, 0))
+
+
+## EXP needed for the next level, or -1 at max level.
+func next_level_exp(id: String) -> int:
+	var lvl := char_level(id)
+	return -1 if lvl >= MAX_LEVEL else int(LEVEL_EXP[lvl])
+
+
+## Add EXP to a character; returns the number of levels gained.
+func add_char_exp(id: String, amount: int) -> int:
+	var before := char_level(id)
+	char_exp[id] = char_exp_of(id) + maxi(0, amount)
 	_save()
+	return char_level(id) - before
+
+
+## Set a character's EXP directly (tests, screenshots, debugging).
+func set_char_exp(id: String, exp: int) -> void:
+	char_exp[id] = maxi(0, exp)
+	_save()
+
+
+## Skill points: one per level; each learned skill uses one.
+func skill_points_total(id: String) -> int:
+	return char_level(id)
+
+
+func skill_points_free(id: String) -> int:
+	return maxi(0, char_level(id) - skills_of(id).size())
 
 
 func has_skill(id: String, skill: String) -> bool:
@@ -310,7 +352,7 @@ func _load() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) == OK:
 		coins = int(cfg.get_value("wallet", "coins", 0))
-		char_levels = cfg.get_value("characters", "levels", {})
+		char_exp = cfg.get_value("characters", "exp", {})
 		char_skills = cfg.get_value("characters", "skills", {})
 
 
@@ -320,6 +362,6 @@ func _save() -> void:
 	var cfg := ConfigFile.new()
 	cfg.load(PATH)
 	cfg.set_value("wallet", "coins", coins)
-	cfg.set_value("characters", "levels", char_levels)
+	cfg.set_value("characters", "exp", char_exp)
 	cfg.set_value("characters", "skills", char_skills)
 	cfg.save(PATH)

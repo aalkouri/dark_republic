@@ -391,6 +391,10 @@ func _show(k: int) -> void:
 	_kit.visible = unlocked
 	if unlocked:
 		_status.text = "SELECTED" if Settings.selected_character == c["id"] else "Press Enter to choose"
+		var cid: String = c["id"]
+		var next := Wallet.next_level_exp(cid)
+		_status.text += "   ·   lvl %d   ·   %s" % [Wallet.char_level(cid),
+			("%s / %s EXP" % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else "max level"]
 		_status.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
 	else:
 		_status.text = "LOCKED  -  coming soon"
@@ -478,15 +482,20 @@ func _shot_setup() -> void:
 			_shot_at = float(a.split("=")[1])
 		elif a == "--shot-levels":   # demo levels (screenshot runs don't save)
 			for id in ["fire_wizard", "kong", "thog", "merlin"]:
-				Wallet.set_char_level(id, {"fire_wizard": 7, "kong": 2, "thog": 12, "merlin": 1}[id])
+				Wallet.set_char_exp(id, {"fire_wizard": 62000000, "kong": 12500, "thog": 1000000000, "merlin": 2500}[id])
 			refresh_levels()
-		elif a == "--shot-skills":   # demo tree with a few skills learned (not saved)
-			Wallet.coins = 2000
+		elif a == "--shot-skills":   # demo tree: lvl 3 (Special still locked), 2 skills learned (not saved)
+			Wallet.set_char_exp("fire_wizard", 61234)
+			for sk in ["kindling", "ember_hide"]:
+				SkillTree.learn("fire_wizard", sk)
+			refresh_levels()
+			_open_skills.call_deferred()
+		elif a == "--shot-skills-5":   # demo tree at lvl 6 with Special open
+			Wallet.set_char_exp("fire_wizard", 5600000)
 			for sk in ["kindling", "wildfire", "ember_hide", "fleet"]:
 				SkillTree.learn("fire_wizard", sk)
 			refresh_levels()
 			_open_skills.call_deferred()
-			(func(): skills._select("searing")).call_deferred()
 		elif a.begins_with("--shot-char="):
 			var k := index_of(a.split("=")[1])
 			if k >= 0:

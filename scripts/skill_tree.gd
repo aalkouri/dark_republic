@@ -1,16 +1,17 @@
 class_name SkillTree
 extends RefCounted
 ## Per-character skill trees: three categories (Defense, Offense, Special), each two rows of
-## three skills. Row 1 skills cost TIER_COST[0] coins; row 2 skills cost TIER_COST[1] and need
-## at least one row-1 skill of the same category. Every skill learned raises the character's
-## lvl by 1. Learned skills are saved (Wallet) and applied to the run's stats at the start.
+## three skills. Each skill costs one skill point (a character earns one per level, max 10).
+## Row 2 needs at least one row-1 skill of the same category; Special unlocks at level 5.
+## Learned skills are saved (Wallet) and applied to the run's stats at the start.
 ##
 ## The Fire Wizard has a hand-made tree; every other character gets its own fixed "random" draw
 ## from the shared pool (seeded by the character id, so it never changes between sessions).
 
 const CATEGORIES := ["Defense", "Offense", "Special"]
 const CATEGORY_COLORS := [Color(0.45, 0.72, 1.0), Color(1.0, 0.45, 0.25), Color(0.78, 0.5, 1.0)]
-const TIER_COST := [150, 400]
+const POINT_COST := 1
+const SPECIAL_LEVEL := 5      # the Special column unlocks at this level
 const PER_ROW := 3
 
 # Skill: id, name, desc, icon, effects [[stat, op, amount], ...]
@@ -138,8 +139,12 @@ static func find(char_id: String, skill_id: String) -> Dictionary:
 	return {}
 
 
-static func cost(tier: int) -> int:
-	return TIER_COST[tier]
+static func cost(_tier: int) -> int:
+	return POINT_COST
+
+
+static func category_locked(char_id: String, category: String) -> bool:
+	return category == "Special" and Wallet.char_level(char_id) < SPECIAL_LEVEL
 
 
 ## Can `skill_id` be learned now? Returns "" if so, else the reason.
@@ -149,6 +154,8 @@ static func blocked_reason(char_id: String, skill_id: String) -> String:
 		return "Unknown skill"
 	if Wallet.has_skill(char_id, skill_id):
 		return "Learned"
+	if category_locked(char_id, info["category"]):
+		return "Unlocks at level %d" % SPECIAL_LEVEL
 	if info["tier"] == 1:
 		var any := false
 		for s in tree_for(char_id)[info["category"]][0]:
@@ -156,19 +163,16 @@ static func blocked_reason(char_id: String, skill_id: String) -> String:
 				any = true
 		if not any:
 			return "Learn a %s skill from the first row first" % String(info["category"]).to_lower()
-	if Wallet.coins < cost(info["tier"]):
-		return "Not enough coins"
+	if Wallet.skill_points_free(char_id) < POINT_COST:
+		return "No skill points (earn one each level)"
 	return ""
 
 
-## Spend the coins, learn the skill, raise the character's lvl. Returns true on success.
+## Spend a skill point and learn the skill. Returns true on success.
 static func learn(char_id: String, skill_id: String) -> bool:
 	if blocked_reason(char_id, skill_id) != "":
 		return false
-	var info := find(char_id, skill_id)
-	Wallet.spend(cost(info["tier"]))
 	Wallet.learn_skill(char_id, skill_id)
-	Wallet.set_char_level(char_id, Wallet.char_level(char_id) + 1)
 	return true
 
 

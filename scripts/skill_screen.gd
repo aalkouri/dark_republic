@@ -2,7 +2,9 @@ class_name SkillScreen
 extends Control
 ## Skill tree overlay for one character (opened from character select). Three columns —
 ## Defense, Offense, Special — each with two rows of three skill squares. Select a square to
-## see what it does; "Learn" spends the coins. Row 2 needs a row-1 skill of the same column.
+## see what it does; "Learn" spends a skill point (one per character level, shown top-right
+## as "N/10"). Row 2 needs a row-1 skill of the same column. Special is greyed out under a
+## big padlock until the character reaches level 5.
 
 signal closed
 
@@ -21,6 +23,9 @@ var _learn: Button
 var _squares := {}        # skill id -> Button
 var _selected := ""
 var _done_btn: Button
+var _points: Label
+var _points_free: Label
+var _lock_overlay: ColumnLock
 
 
 func setup(p_font: Font, p_bold: Font) -> void:
@@ -33,6 +38,7 @@ func open(id: String, display_name: String) -> void:
 	char_name = display_name
 	for c in get_children():
 		c.queue_free()
+	_lock_overlay = null
 	_squares.clear()
 	_selected = ""
 	_build()
@@ -86,10 +92,28 @@ func _build() -> void:
 	v.add_theme_constant_override("separation", 14)
 	panel.add_child(v)
 
+	var top := HBoxContainer.new()
+	v.add_child(top)
+	var tl := VBoxContainer.new()
+	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(tl)
 	_title = _label("%s  ·  Skills" % char_name, 40, Color(1.0, 0.82, 0.5), true)
-	v.add_child(_title)
+	tl.add_child(_title)
 	_sub = _label("", 18, Color(0.85, 0.78, 0.66))
-	v.add_child(_sub)
+	tl.add_child(_sub)
+	# Skill points, top right: "level/10" with what's left to spend underneath
+	var pts := VBoxContainer.new()
+	pts.add_theme_constant_override("separation", 0)
+	top.add_child(pts)
+	var pts_head := _label("SKILL POINTS", 16, Color(0.85, 0.75, 0.55), true)
+	pts_head.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pts.add_child(pts_head)
+	_points = _label("", 44, Color(1.0, 0.86, 0.4), true)
+	_points.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pts.add_child(_points)
+	_points_free = _label("", 15, Color(0.85, 0.8, 0.7))
+	_points_free.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	pts.add_child(_points_free)
 
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 40)
@@ -99,9 +123,17 @@ func _build() -> void:
 	for ci in SkillTree.CATEGORIES.size():
 		var cat: String = SkillTree.CATEGORIES[ci]
 		var ccol: Color = SkillTree.CATEGORY_COLORS[ci]
+		# Column + (for Special) a padlock overlay stacked on top of it
+		var holder := MarginContainer.new()
+		cols.add_child(holder)
 		var col := VBoxContainer.new()
 		col.add_theme_constant_override("separation", 10)
-		cols.add_child(col)
+		holder.add_child(col)
+		if cat == "Special":
+			_lock_overlay = ColumnLock.new()
+			_lock_overlay.text_font = _font_bold
+			_lock_overlay.message = "Unlocks at level %d" % SkillTree.SPECIAL_LEVEL
+			holder.add_child(_lock_overlay)
 		var head := _label(cat.to_upper(), 28, ccol, true)
 		head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(head)
@@ -110,7 +142,7 @@ func _build() -> void:
 		underline.custom_minimum_size = Vector2(0, 2)
 		col.add_child(underline)
 		for tier in 2:
-			var tag := _label("Row %d  ·  %d coins%s" % [tier + 1, SkillTree.cost(tier), "  ·  needs row 1" if tier == 1 else ""], 14, Color(0.7, 0.65, 0.58))
+			var tag := _label("Row %d  ·  1 point each%s" % [tier + 1, "  ·  needs row 1" if tier == 1 else ""], 14, Color(0.7, 0.65, 0.58))
 			tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			col.add_child(tag)
 			var row := HBoxContainer.new()
@@ -201,7 +233,7 @@ func _square(skill: Dictionary, ccol: Color) -> Control:
 	holder.add_child(b)
 	var name := _label(skill["name"], 13, Color(0.86, 0.8, 0.7))
 	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name.custom_minimum_size = Vector2(SQUARE, 34)   # room for two lines, so rows line up
+	name.custom_minimum_size = Vector2(SQUARE, 42)   # room for two lines, so rows line up
 	name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	holder.add_child(name)
 	_squares[skill["id"]] = b
@@ -227,13 +259,22 @@ func _learn_selected() -> void:
 
 func _refresh() -> void:
 	var lvl := Wallet.char_level(char_id)
-	_sub.text = "lvl %d   ·   %d / 18 skills learned   ·   each skill learned raises lvl by 1" % [lvl, Wallet.skills_of(char_id).size()]
+	var exp := Wallet.char_exp_of(char_id)
+	var next := Wallet.next_level_exp(char_id)
+	var exp_text := ("EXP %s / %s to lvl %d" % [Wallet.fmt(exp), Wallet.fmt(next), lvl + 1]) if next >= 0 else ("EXP %s  ·  max level" % Wallet.fmt(exp))
+	_sub.text = "lvl %d   ·   %s   ·   %d / 18 skills learned" % [lvl, exp_text, Wallet.skills_of(char_id).size()]
+	_points.text = "%d/%d" % [Wallet.skill_points_total(char_id), Wallet.MAX_LEVEL]
+	var free := Wallet.skill_points_free(char_id)
+	_points_free.text = "%d to spend" % free
+	_points_free.add_theme_color_override("font_color", Color(0.6, 1.0, 0.55) if free > 0 else Color(0.7, 0.65, 0.6))
+	if _lock_overlay:
+		_lock_overlay.visible = SkillTree.category_locked(char_id, "Special")
 	for id in _squares:
 		var b: Button = _squares[id]
 		var ccol: Color = b.get_meta("color")
 		var learned := Wallet.has_skill(char_id, id)
 		var reason := SkillTree.blocked_reason(char_id, id)
-		var locked_row := reason.begins_with("Learn a")
+		var locked_row := reason.begins_with("Learn a") or reason.begins_with("Unlocks")
 		var icon: SkillIcon = b.get_meta("icon")
 		var badge: Label = b.get_meta("badge")
 		icon.dim = 0.35 if locked_row else (1.0 if learned else 0.7)
@@ -261,7 +302,7 @@ func _refresh() -> void:
 		_info_cost.text = "Learned"
 		_info_cost.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
 	else:
-		_info_cost.text = "%s  ·  Cost %s coins%s" % [info["category"], Wallet.fmt(SkillTree.cost(info["tier"])), ("   ·   " + why) if why != "" else ""]
+		_info_cost.text = "%s  ·  Costs 1 skill point%s" % [info["category"], ("   ·   " + why) if why != "" else ""]
 		_info_cost.add_theme_color_override("font_color", Color(0.85, 0.75, 0.55) if why == "" else Color(1.0, 0.5, 0.4))
 	_learn.disabled = why != ""
 
@@ -270,3 +311,33 @@ func _unhandled_input(event: InputEvent) -> void:
 	if visible and (event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel")):
 		close()
 		get_viewport().set_input_as_handled()
+
+
+
+## Grey veil + giant padlock over a locked column.
+class ColumnLock extends Control:
+	var message := ""
+	var text_font: Font
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_STOP   # the column can't be clicked through it
+
+	func _draw() -> void:
+		draw_rect(Rect2(Vector2.ZERO, size), Color(0.08, 0.08, 0.09, 0.72))
+		var c := size * 0.5 + Vector2(0, -18)
+		var r := minf(size.x, size.y) * 0.2
+		var steel := Color(0.78, 0.76, 0.72)
+		draw_arc(c + Vector2(0, -r * 0.35), r * 0.62, PI, TAU, 28, steel, r * 0.2)
+		draw_line(c + Vector2(-r * 0.62, -r * 0.35), c + Vector2(-r * 0.62, r * 0.1), steel, r * 0.2)
+		draw_line(c + Vector2(r * 0.62, -r * 0.35), c + Vector2(r * 0.62, r * 0.1), steel, r * 0.2)
+		var body := Rect2(c + Vector2(-r, 0), Vector2(r * 2.0, r * 1.5))
+		draw_rect(body, Color(0.86, 0.7, 0.32))
+		draw_rect(body, Color(0.35, 0.25, 0.08), false, 3.0)
+		draw_circle(c + Vector2(0, r * 0.6), r * 0.18, Color(0.2, 0.12, 0.03))
+		draw_line(c + Vector2(0, r * 0.65), c + Vector2(0, r * 1.05), Color(0.2, 0.12, 0.03), r * 0.12)
+		var f := text_font if text_font else ThemeDB.fallback_font
+		var fs := 26
+		var tw := f.get_string_size(message, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var at := Vector2((size.x - tw) * 0.5, c.y + r * 1.5 + 44)
+		draw_string_outline(f, at, message, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 6, Color(0, 0, 0, 0.9))
+		draw_string(f, at, message, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1.0, 0.86, 0.5))

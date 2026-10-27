@@ -34,12 +34,18 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 
 **Characters** on the title opens a roster of 25 champions: a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. Only **The Fire Wizard** is playable for now; he previews as his live 3D model, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. Each character has a saved level (`lvl`, kept with the coins in `user://progress.cfg`). Tiles show **lvl N** in the bottom-left corner when it's 1 or more, and nothing at 0. Mouse, keyboard and gamepad all work; Esc goes back.
 
-## Skills
+## Character levels and skills
 
-Playable characters have a **Skills** button on character select, between Back and Play. It opens the character's skill tree:
-- **Layout:** three columns, Defense, Offense and Special, each with two rows of three skill squares (`skill_tree.gd`, `skill_screen.gd`).
-- **Learning:** select a square to see what it does, then press **Learn**. First-row skills cost 150 coins and second-row skills 400. A column's second row opens once you've learned any skill in its first row.
-- **Levels:** every skill learned raises the character's `lvl` by 1, as shown on the tile.
+**EXP and levels.** Each character earns **1 EXP per kill**, banked when the run ends and shown on the summary with any level-up. The level (`lvl`, shown on the character select tile) comes from total EXP:
+
+| lvl | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 (max) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| EXP | 2,000 | 10,000 | 50,000 | 1M | 5M | 15M | 50M | 100M | 500M | 1B |
+
+**Skills.** Playable characters have a **Skills** button between Back and Play. It opens the character's tree (`skill_tree.gd`, `skill_screen.gd`):
+- **Layout:** three columns, Defense, Offense and Special, each with two rows of three skill squares.
+- **Points:** every level gives one **skill point**, and each skill costs one. The top right shows **lvl/10** with how many points are left to spend.
+- **Unlock rules:** a column's second row opens once you've learned any skill in its first row. **Special** is greyed out under a big padlock reading "Unlocks at level 5" until the character reaches level 5.
 - **In runs:** learned skills apply to every run with that character. They cover max HP, armor, regen, a starting shield, damage, attack speed, fireball count and pierce, area, move speed, air jumps, pickup range, luck, XP, faster ability recharge and bonus coins.
 - **Which skills:** the Fire Wizard has a hand-made fire-themed tree. Every other character gets its own fixed random draw from a shared pool.
 

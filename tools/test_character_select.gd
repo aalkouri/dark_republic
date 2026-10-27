@@ -75,11 +75,11 @@ func _ready() -> void:
 	Wallet.persist = false
 	var lvl0 := cs._tiles[0].get_meta("lvl") as Label
 	_check("level 0 shows nothing", not lvl0.visible, lvl0.text)
-	Wallet.set_char_level("fire_wizard", 3)
+	Wallet.set_char_exp("fire_wizard", 50000)   # lvl 3
 	cs.refresh_levels()
 	_check("level 3 shows 'lvl 3'", lvl0.visible and lvl0.text == "lvl 3", lvl0.text)
 	_check("label sits in the tile's bottom-left", lvl0.position.x < 20 and lvl0.position.y > cs.TILE * 0.6, str(lvl0.position))
-	Wallet.set_char_level("fire_wizard", 0)
+	Wallet.set_char_exp("fire_wizard", 0)
 	cs.refresh_levels()
 
 	var k: int = cs.index_of("ogre")
@@ -98,7 +98,7 @@ func _ready() -> void:
 	cs._tiles[0].pressed.emit()
 	await get_tree().process_frame
 	_check("choosing the wizard selects him and moves focus to Play", Settings.selected_character == "fire_wizard"
-		and cs._play_btn.has_focus() and not cs._play_btn.disabled and cs._status.text == "SELECTED", cs._status.text)
+		and cs._play_btn.has_focus() and not cs._play_btn.disabled and cs._status.text.begins_with("SELECTED"), cs._status.text)
 
 	var esc := InputEventAction.new()
 	esc.action = "pause"
