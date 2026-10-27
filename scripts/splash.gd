@@ -4,6 +4,7 @@ extends Control
 
 const LOGO := "res://video/atomai_logo.ogv"
 const NEXT_SCENE := "res://scenes/title.tscn"
+const GAME_SCENE := "res://scenes/main.tscn"
 const FADE_OUT := 0.35
 
 var _player: VideoStreamPlayer
@@ -13,7 +14,10 @@ var _leaving := false
 func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	for a in args:
-		if a == "--smoketest" or a.begins_with("--shot") or a == "--skip-intro":
+		if a == "--smoketest" or a.begins_with("--shot"):
+			get_tree().change_scene_to_file.call_deferred(GAME_SCENE)   # tests go straight in
+			return
+		if a == "--skip-intro":
 			_go.call_deferred()
 			return
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
