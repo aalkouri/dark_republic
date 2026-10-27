@@ -7,7 +7,7 @@ signal shrine_completed(shrine: Shrine, chest: Chest)
 
 const MIN_SHRINES := 1
 const MAX_SHRINES := 8
-const PATTERNS := 2          # CHAINS, NOVA (a third pattern is still to be designed)
+const PATTERNS := 2          # CHAINS, NOVA
 
 var player: Player
 var water: SwampWater
