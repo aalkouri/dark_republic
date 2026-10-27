@@ -7,6 +7,8 @@ extends Node3D
 ## Potions bob and spin, are pulled in by the player's pickup range, and expire after a while.
 
 signal collected(kind: int)
+signal healed(amount: float)                    # HP actually restored
+signal cooldowns_cut(amounts: PackedFloat32Array)  # seconds removed per ability
 
 enum { PURPLE, RED, BLUE }
 
@@ -175,11 +177,17 @@ static func is_visible_at(age: float) -> bool:
 func _apply(kind: int) -> void:
 	match kind:
 		PURPLE:
+			var cut := PackedFloat32Array()
 			for i in abilities.cooldown.size():
 				var full: float = Abilities.DEFS[i]["cooldown"]
-				abilities.cooldown[i] = maxf(0.0, abilities.cooldown[i] - full * COOLDOWN_CUT)
+				var before := abilities.cooldown[i]
+				abilities.cooldown[i] = maxf(0.0, before - full * COOLDOWN_CUT)
+				cut.append(before - abilities.cooldown[i])
+			cooldowns_cut.emit(cut)
 		RED:
+			var before := player.hp
 			player.heal(player.max_hp * HEAL_FRAC)
+			healed.emit(player.hp - before)
 		BLUE:
 			player.add_shield(player.max_hp * SHIELD_FRAC)
 	collected.emit(kind)

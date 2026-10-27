@@ -24,6 +24,8 @@ var tooltip: PanelContainer
 var tooltip_text: RichTextLabel
 var inspect_hint: Label
 var buff_label: RichTextLabel
+var _popups: Array = []   # [Label, age, base_pos]
+const POPUP_LIFE := 0.9
 var _hover_slot := -1
 var end_title: Label
 var end_stats: Label
@@ -317,6 +319,54 @@ func _on_slot_hover(i: int, on: bool) -> void:
 	_hover_slot = i if on else (-1 if _hover_slot == i else _hover_slot)
 
 
+## A pop-up text on the HUD: starts small, swells, settles, floats up and fades (< 1 s).
+func popup(text: String, at: Vector2, color: Color, size := 30) -> void:
+	var l := _label(text, size)
+	l.add_theme_color_override("font_color", color)
+	l.pivot_offset = Vector2(0, size * 0.6)
+	add_child(l)
+	l.position = at
+	_popups.append([l, 0.0, at])
+
+
+## "+N" to the right of the health bar.
+func show_heal(amount: float) -> void:
+	if amount >= 0.5:
+		popup("+%d" % roundi(amount), hp_bar.position + Vector2(hp_bar.size.x + 12, -6), Color(1.0, 0.22, 0.2), 30)
+
+
+## "-Ns" above each ability that had time taken off its cooldown.
+func show_cooldown_cuts(cuts: PackedFloat32Array) -> void:
+	for i in mini(cuts.size(), ability_slots.size()):
+		if cuts[i] < 0.05:
+			continue
+		var slot: Control = ability_slots[i]
+		var r := slot.get_global_rect()
+		var txt := ("-%ds" % roundi(cuts[i])) if absf(cuts[i] - roundf(cuts[i])) < 0.05 else ("-%.1fs" % cuts[i])
+		popup(txt, Vector2(r.position.x + r.size.x * 0.5 - 22, r.position.y - 40), Color(0.8, 0.45, 1.0), 26)
+
+
+func _update_popups(dt: float) -> void:
+	for k in range(_popups.size() - 1, -1, -1):
+		var p: Array = _popups[k]
+		var l: Label = p[0]
+		p[1] += dt
+		var t: float = p[1] / POPUP_LIFE
+		if t >= 1.0:
+			l.queue_free()
+			_popups.remove_at(k)
+			continue
+		var s := 1.0
+		if t < 0.15:
+			var kk := t / 0.15
+			s = lerpf(0.35, 1.45, 1.0 - (1.0 - kk) * (1.0 - kk))
+		elif t < 0.35:
+			s = lerpf(1.45, 1.0, (t - 0.15) / 0.2)
+		l.scale = Vector2.ONE * s
+		l.position = (p[2] as Vector2) + Vector2(0, -26.0 * t)
+		l.modulate.a = 1.0 if t < 0.5 else 1.0 - (t - 0.5) / 0.5
+
+
 func set_inspect(on: bool) -> void:
 	inspect_hint.visible = on
 	if not on:
@@ -442,6 +492,7 @@ func _process(dt: float) -> void:
 	inv_label.text = "\n".join(lines)
 
 	_update_tooltip()
+	_update_popups(dt)
 	buff_label.text = "[center]%s[/center]" % main.powerups.status_text()
 	for i in ability_slots.size():
 		ability_slots[i].set_locked(not main.abilities.is_unlocked(i))

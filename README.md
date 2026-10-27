@@ -52,8 +52,8 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 
 | Potion | Chance | Effect |
 |---|---|---|
-| Purple | 30% | Every ability's cooldown is reduced by 30% of its full duration |
-| Red | 50% | Heal 10% of max HP |
+| Purple | 30% | Every ability's cooldown is reduced by 30% of its full duration ("-Ns" pops up above each ability that was cooling down) |
+| Red | 50% | Heal 10% of max HP (a red "+N" pops up next to the health bar and above the wizard) |
 | Blue | 20% | Shield worth 10% of max HP (absorbs damage first, stacks) |
 
 Potions lean and spin slowly so they're easy to spot, last 45 s, and blink every 0.3 s during their final 5 s.

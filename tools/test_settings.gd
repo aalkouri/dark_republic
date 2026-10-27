@@ -119,6 +119,37 @@ func _ready() -> void:
 	_check("ability slots are the same size", sizes[0] == sizes[1] and sizes[1] == sizes[2], str(sizes))
 	_check("ability names are aligned", is_equal_approx(label_y[0], label_y[2]) and is_equal_approx(label_y[1], label_y[2]), str(label_y))
 
+	# Potion pop-ups: "+N" by the health bar and above the head; "-Ns" above each ability
+	main.player.hp = 50.0
+	main.potions._apply(PotionManager.RED)
+	var texts := []
+	for p in hud._popups:
+		texts.append((p[0] as Label).text)
+	var heal_pop: Label = hud._popups[hud._popups.size() - 1][0]
+	_check("red potion: +10 next to the health bar", "+10" in texts and heal_pop.position.x > hud.hp_bar.position.x + hud.hp_bar.size.x and absf(heal_pop.position.y - hud.hp_bar.position.y) < 30, str(texts))
+	var head_txt := []
+	for l in main.numbers._labels:
+		if l.visible:
+			head_txt.append(l.text)
+	_check("red potion: red +10 above the wizard", "+10" in head_txt, str(head_txt))
+	main.player.hp = main.player.max_hp
+	var n_before: int = hud._popups.size()
+	main.potions._apply(PotionManager.RED)
+	_check("no heal pop-up at full health", hud._popups.size() == n_before, "")
+	main.abilities.cooldown = PackedFloat32Array([20.0, 0.0, 100.0])
+	n_before = hud._popups.size()
+	main.potions._apply(PotionManager.PURPLE)
+	var cut_txt := []
+	for k in range(n_before, hud._popups.size()):
+		cut_txt.append((hud._popups[k][0] as Label).text)
+	_check("purple potion: time cut shown above abilities on cooldown", cut_txt == ["-9s", "-36s"], str(cut_txt))
+	var slot_r: Rect2 = (hud.ability_slots[2] as Control).get_global_rect()
+	var cut_pop: Label = hud._popups[hud._popups.size() - 1][0]
+	_check("cut pop-up sits above its ability", cut_pop.position.y < slot_r.position.y and absf(cut_pop.position.x - slot_r.get_center().x) < 40, "")
+	for f in 70:
+		hud._update_popups(1.0 / 60.0)
+	_check("pop-ups fade out within a second", hud._popups.size() == 0, "%d left" % hud._popups.size())
+
 	DirAccess.remove_absolute(saved_path)
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)

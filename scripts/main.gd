@@ -197,6 +197,10 @@ func _ready() -> void:
 	potions.setup(player, abilities, rng)
 	add_child(potions)
 	potions.collected.connect(func(k: int): hud.flash_message(PotionManager.NAMES[k], 1.5))
+	potions.healed.connect(func(amount: float):
+		hud.show_heal(amount)
+		numbers.add(player.global_position + Vector3(0, 2.6, 0), amount, DamageNumbers.HEAL))
+	potions.cooldowns_cut.connect(func(cuts: PackedFloat32Array): hud.show_cooldown_cuts(cuts))
 	enemies.epic_killed.connect(func(p: Vector3): potions.drop(p))
 	powerups = PowerupManager.new()
 	powerups.setup(player, stats, enemies, gems, db, rng)

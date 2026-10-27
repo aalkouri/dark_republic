@@ -9,7 +9,8 @@ const POOL := 180
 const MAX_NEW_PER_FRAME := 40
 const NORMAL := 0
 const BURN := 1
-const COLORS := [Color(1.0, 0.95, 0.8), Color(1.0, 0.55, 0.15)]
+const HEAL := 2
+const COLORS := [Color(1.0, 0.95, 0.8), Color(1.0, 0.55, 0.15), Color(1.0, 0.18, 0.15)]
 
 var _labels: Array[Label3D] = []
 var _age := PackedFloat32Array()
@@ -27,7 +28,7 @@ func _ready() -> void:
 
 
 func add(at: Vector3, amount: float, kind := NORMAL) -> void:
-	if _new_this_frame >= MAX_NEW_PER_FRAME or amount < 0.5:
+	if (_new_this_frame >= MAX_NEW_PER_FRAME and kind != HEAL) or amount < 0.5:
 		return
 	_new_this_frame += 1
 	var i := _next
@@ -35,7 +36,7 @@ func add(at: Vector3, amount: float, kind := NORMAL) -> void:
 	if i >= _labels.size():
 		_labels.append(_make_label())
 	var l := _labels[i]
-	l.text = str(roundi(amount))
+	l.text = ("+%d" if kind == HEAL else "%d") % roundi(amount)
 	l.modulate = COLORS[kind]
 	l.outline_modulate = Color(0.1, 0.02, 0.0, 1.0) if kind == BURN else Color(0, 0, 0, 1)
 	l.visible = true
