@@ -56,6 +56,7 @@ var _font_bold: FontVariation
 
 
 func _ready() -> void:
+	Wallet.set_shown(true)
 	load("res://scripts/main.gd").setup_inputs()
 	Settings.apply_bindings()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

@@ -33,6 +33,7 @@ var _t := 0.0
 
 
 func _ready() -> void:
+	Wallet.set_shown(true)
 	characters = load_characters()
 	_build_fonts()
 	_build_background()
@@ -207,8 +208,8 @@ func _build_panel() -> void:
 	ps.set_corner_radius_all(10)
 	ps.set_content_margin_all(22)
 	panel.add_theme_stylebox_override("panel", ps)
-	panel.position = Vector2(860, 40)
-	panel.custom_minimum_size = Vector2(690, 740)
+	panel.position = Vector2(860, 74)
+	panel.custom_minimum_size = Vector2(690, 712)
 	add_child(panel)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 8)

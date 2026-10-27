@@ -31,6 +31,13 @@ const POPUP_LIFE := 0.9
 var _hover_slot := -1
 var end_title: Label
 var end_stats: Label
+var end_coin_lines: Label
+var end_pot: Label
+var end_pot_icon: CoinIcon
+var run_reward := {"time": 0, "bonus": 0, "total": 0}
+var _pot_left := 0
+var _pay_started := false
+var _pay_base := 0.0
 var show_debug := false
 var _msg_t := 0.0
 
@@ -78,7 +85,7 @@ func setup(m) -> void:
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	info_label.offset_left = -320
 	info_label.offset_right = -20
-	info_label.offset_top = 20
+	info_label.offset_top = 70   # below the coin counter (Wallet)
 	root.add_child(info_label)
 
 	debug_label = _label("", 14)
@@ -425,6 +432,26 @@ func _build_end(root: Control) -> void:
 	end_stats = _label("", 22)
 	end_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(end_stats)
+	# Coins earned this run (banked here, poured into the counter)
+	var coin_box := VBoxContainer.new()
+	coin_box.add_theme_constant_override("separation", 4)
+	vb.add_child(coin_box)
+	end_coin_lines = _label("", 20)
+	end_coin_lines.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	end_coin_lines.add_theme_color_override("font_color", Color(0.95, 0.85, 0.6))
+	coin_box.add_child(end_coin_lines)
+	var pot_row := HBoxContainer.new()
+	pot_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	pot_row.add_theme_constant_override("separation", 10)
+	coin_box.add_child(pot_row)
+	end_pot_icon = CoinIcon.new()
+	end_pot_icon.custom_minimum_size = Vector2(48, 48)
+	pot_row.add_child(end_pot_icon)
+	end_pot = _label("", 44)
+	end_pot.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	end_pot.add_theme_color_override("font_outline_color", Color(0.2, 0.1, 0.0))
+	end_pot.add_theme_constant_override("outline_size", 6)
+	pot_row.add_child(end_pot)
 	var btn := Button.new()
 	btn.text = "Restart  [R]"
 	btn.add_theme_font_size_override("font_size", 24)
@@ -468,6 +495,23 @@ func show_end(won: bool) -> void:
 	end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if won else Color(1.0, 0.35, 0.3))
 	end_stats.text = "Time %s   ·   Level %d   ·   Kills %d" % [_fmt_time(main.run_time), main.level, main.kills]
 	end_root.visible = true
+	# Coins: shown here, banked when they pour into the counter
+	run_reward = Wallet.run_reward(main.run_time, main.kills)
+	var bonus_line := "Kills %s   →   +%s bonus" % [Wallet.fmt(main.kills), Wallet.fmt(run_reward["bonus"])] if run_reward["bonus"] > 0 \
+		else "Kills %s   →   +0 bonus  (100 coins per 1,000 kills)" % Wallet.fmt(main.kills)
+	end_coin_lines.text = "Survived %s   →   %s coins\n%s" % [_fmt_time(main.run_time), Wallet.fmt(run_reward["time"]), bonus_line]
+	_pot_left = run_reward["total"]
+	end_pot.text = "+" + Wallet.fmt(_pot_left)
+	_pay_started = false
+	get_tree().create_timer(0.8, true).timeout.connect(_start_payout)
+
+
+func _start_payout() -> void:
+	if not end_root.visible or _pay_started:
+		return
+	_pay_started = true
+	_pay_base = Wallet.displayed
+	Wallet.payout(run_reward["total"], end_pot_icon.get_global_rect().get_center())
 
 
 func flash_message(text: String, duration := 3.0) -> void:
@@ -485,6 +529,12 @@ static func _fmt_time(t: float) -> String:
 
 
 func _process(dt: float) -> void:
+	if end_root != null and end_root.visible and _pay_started:
+		# The pot counts down as the coins land in the counter
+		var landed := int(round(Wallet.displayed - _pay_base))
+		_pot_left = maxi(0, int(run_reward["total"]) - landed)
+		end_pot.text = "+" + Wallet.fmt(_pot_left)
+		end_pot_icon.spin = fmod(end_pot_icon.spin + dt * 1.5, 1.0) if _pot_left > 0 else 0.0
 	if main == null or main.player == null:
 		return
 	var p: Player = main.player

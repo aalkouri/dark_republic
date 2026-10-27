@@ -96,6 +96,7 @@ var _shot_pitch := -99.0
 
 
 func _ready() -> void:
+	Wallet.set_shown(true)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	setup_inputs()
 	Settings.apply_bindings()

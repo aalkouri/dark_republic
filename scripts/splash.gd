@@ -21,6 +21,7 @@ func _ready() -> void:
 			_go.call_deferred()
 			return
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Wallet.set_shown(false)   # the coin counter appears from the title screen on
 	var bg := ColorRect.new()
 	bg.color = Color(0.02, 0.04, 0.12)   # matches the logo's navy, so letterboxing is invisible
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)

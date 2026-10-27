@@ -14,6 +14,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 
 Events="*res://scripts/events.gd"
 Settings="*res://scripts/settings.gd"
+Wallet="*res://scripts/wallet.gd"
 
 [display]
 

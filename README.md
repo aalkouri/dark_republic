@@ -34,6 +34,15 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 
 **Characters** on the title opens a roster of 23 champions: a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. Only **The Fire Wizard** is playable for now; he previews as his live 3D model, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. Mouse, keyboard and gamepad all work; Esc goes back.
 
+## Coins
+
+Coins are saved between sessions (`user://progress.cfg`, autoload `Wallet`), and the counter is always in the top-right corner: title, character select, in-game, pause and the end screen. A run earns **1 coin per second survived** plus **100 coins per 1,000 kills**, but they're only banked on the end-of-run summary.
+- **The tally:** the summary lists the time and kill-bonus coins with the total pot.
+- **The payout:** coins pour out from the middle of the screen and jump to the counter, disappearing into it. The pot counts down and the counter counts up as they land.
+- **Sound:** a casino jingle plays throughout, then a ka-ching when the last coin lands. Both sounds are synthesized by `tools/gen_coin_sounds.py`.
+
+Quitting a run from the pause menu forfeits its coins.
+
 ## Pause menu and settings
 
 **Esc** opens the pause menu: Resume, Settings, Restart run, Quit to desktop. Settings are saved to `user://settings.cfg` and applied on startup.
@@ -221,6 +230,9 @@ godot --headless --path . res://tools/test_character_select.tscn
 
 # Re-bake the goblin animations from Higgsfield GLBs
 godot --headless --path . --script res://tools/bake_vat.gd -- <glb dir> res://models/goblin "run=Male_Head_Down_Charge:16:loop,attack=Punch_Combo:50:loop,death=Shot_and_Fall_Backward:40:hold"
+
+# Coins (reward maths, banked only at the end, payout animation, counter on every screen)
+godot --headless --path . res://tools/test_wallet.tscn
 
 # Crowd simulation benchmark
 godot --headless --path . res://tools/bench_enemies.tscn
