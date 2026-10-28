@@ -5,8 +5,8 @@ extends Node3D
 
 signal shrine_completed(shrine: Shrine, chest: Chest)
 
-const MIN_SHRINES := 1
-const MAX_SHRINES := 8
+const MIN_SHRINES := 4
+const MAX_SHRINES := 14   # the map is 440 m across
 const PATTERNS := 2          # CHAINS, NOVA
 
 var player: Player
@@ -38,6 +38,17 @@ func spawn_all(half: float) -> void:
 
 
 func _free_spot(half: float) -> Vector3:
+	# The world reserved level pads for shrines; use those first
+	if water != null and not water.shrine_sites.is_empty():
+		for site in water.shrine_sites:
+			var taken := false
+			for s in shrines:
+				if Vector2(s.position.x - site.x, s.position.z - site.z).length() < 1.0:
+					taken = true
+					break
+			if not taken:
+				return site
+		return Vector3.INF
 	var need := Shrine.ZONE_RADIUS + 1.5
 	for attempt in 400:
 		var p := Vector3(rng.randf_range(-half + 12.0, half - 12.0), 0.0, rng.randf_range(-half + 12.0, half - 12.0))
@@ -58,6 +69,7 @@ func _free_spot(half: float) -> Vector3:
 					ok = false
 					break
 		if ok:
+			p.y = SwampWater.height_at(p.x, p.z)
 			return p
 	return Vector3.INF
 

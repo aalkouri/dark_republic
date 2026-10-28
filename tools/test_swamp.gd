@@ -4,6 +4,7 @@ extends Node3D
 ##   godot --headless --path . --fixed-fps 60 res://tools/test_swamp.tscn
 
 var fails := 0
+const HALF := 220.0   # same as the game (main.gd ARENA_HALF)
 
 
 func _ready() -> void:
@@ -13,7 +14,7 @@ func _ready() -> void:
 		rng.seed = seed
 		var root := Node3D.new()
 		add_child(root)
-		var water := WorldBuilder.build(root, rng, 110.0)
+		var water := WorldBuilder.build(root, rng, HALF)
 		_check_pools(water, seed)
 		if seed == 11:
 			await _check_movement(root, water)
@@ -24,7 +25,8 @@ func _ready() -> void:
 
 
 func _check_pools(water: SwampWater, seed: int) -> void:
-	_check("seed %d: 4 pools" % seed, water.pools.size() == 4, "%d" % water.pools.size())
+	_check("seed %d: 14 pools" % seed, water.pools.size() == WorldBuilder.POOLS, "%d" % water.pools.size())
+	_check_terrain(water, seed)
 	var widest := 0.0
 	var deepest := 0.0
 	var lumpiness := 0.0
@@ -45,6 +47,40 @@ func _check_pools(water: SwampWater, seed: int) -> void:
 	_check("seed %d: diameter <= 10 yd (9.14 m)" % seed, widest <= 9.144, "widest %.2f m" % widest)
 	_check("seed %d: depth < character height (1.8 m)" % seed, deepest < 1.8, "deepest %.2f m" % deepest)
 	_check("seed %d: shapes are irregular" % seed, lumpiness > 1.05, "max/min radius %.2f" % lumpiness)
+
+
+## Rolling ground: real hills and dips, walkable slopes, level pads for the start, every pool
+## and every shrine site, and a berm rising at the edge.
+func _check_terrain(water: SwampWater, seed: int) -> void:
+	var lo := 1e9
+	var hi := -1e9
+	var steepest := 0.0
+	var x := -HALF + 2.0
+	while x <= HALF - 2.0:
+		var z := -HALF + 2.0
+		while z <= HALF - 2.0:
+			var h := water.ground_height(x, z)
+			if not water.near_pool(x, z, 1.0):
+				lo = minf(lo, h)
+				hi = maxf(hi, h)
+				var n := water.normal_at(x, z)
+				steepest = maxf(steepest, rad_to_deg(acos(n.y)))
+			z += 3.0
+		x += 3.0
+	_check("seed %d: hills and dips (height range > 6 m)" % seed, hi - lo > 6.0, "%.1f .. %.1f m" % [lo, hi])
+	_check("seed %d: every slope is walkable (< 40 deg)" % seed, steepest < 40.0, "steepest %.1f deg" % steepest)
+	var flat := true
+	var pads := [Vector3(0, water.ground_height(0, 0), 0)]
+	pads.append_array(water.shrine_sites)
+	for site in pads:
+		for k in 8:
+			var a := TAU * k / 8.0
+			var r := 6.0 if site == pads[0] else Shrine.ZONE_RADIUS
+			if absf(water.ground_height(site.x + cos(a) * r, site.z + sin(a) * r) - site.y) > 0.05:
+				flat = false
+	_check("seed %d: start and shrine pads are level" % seed, flat and water.shrine_sites.size() >= ShrineManager.MAX_SHRINES, "%d sites" % water.shrine_sites.size())
+	var rise := water.ground_height(HALF, 30.0) - water.raw_hills(HALF, 30.0) * 0.4
+	_check("seed %d: ground rises into a berm at the edge" % seed, rise > SwampWater.EDGE_RISE * 0.9, "+%.1f m" % rise)
 
 
 func _check_movement(root: Node3D, water: SwampWater) -> void:
@@ -75,7 +111,7 @@ func _check_movement(root: Node3D, water: SwampWater) -> void:
 	var pool_jump: float = await _measure_jump(player, deep_spot)
 
 	# Dry land: far from every pool
-	var dry := Vector3(0, 0.3, 0)
+	var dry := Vector3(0, water.ground_height(0, 0) + 0.3, 0)
 	var land_speed: float = await _measure_speed(player, dry)
 	var land_jump: float = await _measure_jump(player, dry)
 
@@ -95,7 +131,7 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	ab.setup(player.stats, em, player, fx)
 	ab.level = 10
 	root.add_child(ab)
-	await _place(player, Vector3(0, 0.3, 0))
+	await _place(player, Vector3(0, water.ground_height(0, 0) + 0.3, 0))
 	player.cam_yaw = 0.0
 	player.cam_pitch = -0.6
 	for f in 5:
@@ -174,7 +210,7 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	_check("only the burnt tree is blackened", shared_char == null or is_equal_approx(shared_char, 0.0), "")
 
 	# Fire Nova reaches 18 m (was 9 m): a goblin 16 m away is hit and knocked back
-	await _place(player, Vector3(0, 0.3, 0))
+	await _place(player, Vector3(0, water.ground_height(0, 0) + 0.3, 0))
 	em.count = 0
 	var far_g := em.spawn(EnemyManager.TANK, player.global_position + Vector3(16, 0, 0), 100.0)
 	var beyond := em.spawn(EnemyManager.TANK, player.global_position + Vector3(0, 0, 21), 100.0)
@@ -184,7 +220,7 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	ab.cooldown[Abilities.SHOCKWAVE] = 0.0
 	ab.try_cast(Abilities.SHOCKWAVE)
 	var pushed := false
-	for f in 60:
+	for f in 60 + int(Abilities.NOVA_DELAY * 60.0):   # the ring bursts out after the wind-up
 		ab.tick(1.0 / 60.0)
 		em._build_grid(player.global_position)
 		if em.kb_t[far_g] > 0.0:

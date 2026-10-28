@@ -93,7 +93,7 @@ func _ready() -> void:
 	hp = max_hp
 	stats.changed.connect(_on_stat_changed)
 
-	floor_snap_length = 0.35
+	floor_snap_length = 0.6   # stay glued to the ground running down hills
 	floor_max_angle = deg_to_rad(50.0)
 
 	var shape := CapsuleShape3D.new()

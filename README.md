@@ -119,11 +119,13 @@ Picking one up while it's active refreshes its timer; active power-ups and their
 Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 - **Sky:** 50% chance of a gloomy day with the sun glowing through dense clouds, 50% chance of a moonlit night with very few clouds and stars. Lighting, ambient light and fog follow.
+- **Size:** 440 × 440 m (`ARENA_HALF = 220` in `scripts/main.gd`), with stone walls round the edge.
+- **Terrain:** rolling hills, dips and slopes from two layers of smooth noise: broad hills of up to about ±6.5 m and smaller rolls on top. Every slope stays walkable (under 40°). The start point, every pool and every shrine sit on level pads that ramp gently back into the hills. Near the walls the ground climbs into a berm about 7 m high. Everything follows the ground: goblins, drops, trees, grass and the flat ability markers. The Meteor target, Fire Nova's ring and glow, and the Stink Aura are `GroundDisc`s that drape over the slopes. The terrain is baked into a 1 m height grid (`SwampWater.build_terrain`) that collision, the ground mesh and gameplay all share. To tune it, change `HILL_HEIGHT`, `HILL_FREQ`, `BUMP_HEIGHT` and `EDGE_RISE` in `scripts/swamp_water.gd`.
 - **Ground:** random patches of wet mud and swamp grass, with swaying grass tufts.
-- **45 swamp trees** in 4 variants: bald cypress (flared trunk, knees, hanging moss), dead snag, swamp willow (drooping curtains) and mangrove (stilt roots). All collide with the player.
-- **18 fallen trees:** mossy logs with root plates, slightly tilted, which you can climb and jump off.
-- **4 pools of swamp water:** irregular shapes up to 10 yd across, recessed into the ground with uneven beds, never deeper than the character. Reeds and cattails grow around the edges. **In water, move speed and jump height are halved** (goblins wade at half speed too).
-- **6 mossy stone ruins** as landmarks.
+- **180 swamp trees** in 4 variants: bald cypress (flared trunk, knees, hanging moss), dead snag, swamp willow (drooping curtains) and mangrove (stilt roots). All collide with the player.
+- **72 fallen trees:** mossy logs with root plates, slightly tilted, which you can climb and jump off.
+- **14 pools of swamp water:** irregular shapes up to 10 yd across, recessed into the ground with uneven beds, never deeper than the character. Reeds and cattails grow around the edges. **In water, move speed and jump height are halved** (goblins wade at half speed too).
+- **24 mossy stone ruins** as landmarks.
 - **Music:** "Tension Drop" (`audio/music/tension_drop.mp3`) starts with the level and loops until the run ends, then fades out. Change `SWAMP_MUSIC` / `MUSIC_VOLUME_DB` in `scripts/main.gd`.
 - **Ability sounds:** Inferno and Fire Nova play their sound on the key press and take effect 1 s later (`INFERNO_DELAY`, `NOVA_DELAY`). Meteor plays its sound on the cast and an explosion when it lands. The explosion is synthesised by `tools/gen_explosion_sound.py`. All of them are in `audio/abilities/` and use the SFX bus.
 - **Menu music:** "Menu of Shadows" (`audio/music/menu_of_shadows.mp3`) loops on the title and character select screens. The `MenuMusic` autoload (`scripts/menu_music.gd`) plays it, so it carries on without restarting between the two screens and fades out when a run starts.
@@ -191,7 +193,8 @@ scripts/
   goblin_mesh.gd     old procedural goblin (unused)
   goblin_audio.gd    goblin death sounds (rate-limited, positional)
   swamp_props.gd     procedural swamp trees (4 variants), fallen trees, ruins
-  swamp_water.gd     recessed pools: outline, bed, water shader, heightmap collision, slow zones
+  swamp_water.gd     terrain (hills, pads, berm, height grid) + recessed pools: outline, bed, water shader, collision, slow zones
+  ground_disc.gd     flat markers that drape over the hills (vertex shader samples the height texture)
   mesh_builder.gd    merges primitives into vertex-colored meshes with wind sway
   damage_numbers.gd  pooled pop-and-fade damage numbers
   corpse_manager.gd  fallen goblins (topple, linger, sink) in one MultiMesh

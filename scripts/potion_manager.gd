@@ -74,7 +74,7 @@ func drop(at: Vector3, kind := -1) -> void:
 	var root := Node3D.new()
 	root.top_level = true
 	add_child(root)
-	root.global_position = Vector3(at.x, 0.0, at.z)
+	root.global_position = Vector3(at.x, SwampWater.height_at(at.x, at.z), at.z)
 
 	# spinner (turns around vertical, bobs) -> tilt (leans the bottle) -> bottle mesh
 	var spinner := Node3D.new()

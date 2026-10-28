@@ -35,7 +35,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	var lo: int = counts.min()
 	var hi: int = counts.max()
-	_check("1-8 shrines per run", lo >= 1 and hi <= 8 and hi > lo, str(counts))
+	_check("4-14 shrines per run (the map is 440 m across)", lo >= ShrineManager.MIN_SHRINES and hi <= ShrineManager.MAX_SHRINES and hi > lo, str(counts))
 	_check("shrine zones are clear of pools and trees", clear, "")
 	_check("zone is 10 yards", is_equal_approx(Shrine.ZONE_RADIUS, 9.144), "%.3f m" % Shrine.ZONE_RADIUS)
 

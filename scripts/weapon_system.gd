@@ -28,7 +28,7 @@ var mm: MultiMesh
 var tail_mm: MultiMesh
 var tail_buf := PackedFloat32Array()
 var buf := PackedFloat32Array()
-var aura_mesh: MeshInstance3D
+var aura_mesh: GroundDisc
 var aura_mat: StandardMaterial3D
 var _aura_pulse := 0.0
 var _rings: Array = []     # [MeshInstance3D, age, radius]
@@ -95,18 +95,8 @@ func _ready() -> void:
 	mmi.custom_aabb = AABB(Vector3(-500, -50, -500), Vector3(1000, 100, 1000))
 	add_child(mmi)
 
-	aura_mat = _fx_material(Color(0.55, 1.0, 0.35, 0.18))
-	var disc := CylinderMesh.new()
-	disc.top_radius = 1.0
-	disc.bottom_radius = 1.0
-	disc.height = 0.05
-	disc.radial_segments = 32
-	disc.material = aura_mat
-	aura_mesh = MeshInstance3D.new()
-	aura_mesh.mesh = disc
-	aura_mesh.top_level = true
+	aura_mesh = GroundDisc.create(1.0, Color(0.55, 1.0, 0.35, 0.18))   # drapes over the hills
 	aura_mesh.visible = false
-	aura_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(aura_mesh)
 
 	_ring_mat = _fx_material(Color(1.0, 0.9, 0.5, 0.6))
@@ -149,7 +139,7 @@ func tick(dt: float) -> void:
 			for e in enemies.query_radius(chest, r):
 				enemies.damage(e, d)
 		_aura_pulse = maxf(0.0, _aura_pulse - dt * 5.0)
-		aura_mat.albedo_color.a = 0.14 + 0.16 * _aura_pulse
+		aura_mesh.alpha = 0.14 + 0.16 * _aura_pulse
 
 	# --- Ground Slam: periodic knockback nova
 	if db.level_of("weapon_slam") > 0:

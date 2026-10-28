@@ -1,6 +1,9 @@
 class_name SwampWater
 extends RefCounted
-## Recessed pools of swamp water.
+## The ground: rolling terrain (hills, dips and slopes) plus recessed pools of swamp water.
+##  - Terrain: two layers of smooth noise (broad hills + smaller bumps), flattened into level
+##    pads where pools, shrines and the start point sit, and rising into a berm at the arena
+##    edge. Baked into a 1 m height grid that everything samples (ground_height).
 ##  - Outline: r(θ) = R * (1 + Σ a_k sin(kθ + φ_k)), k = 2..5, so every pool has a natural,
 ##    lumpy shape. Max diameter is capped at 10 yd (9.14 m).
 ##  - Bed: a bowl whose depth varies across the pool and per pool, always shallower than the
@@ -52,16 +55,40 @@ void fragment() {
 
 const BED_COLOR := Color(0.13, 0.1, 0.07)
 
+# Terrain shape
+const HILL_HEIGHT := 6.5        # broad hills: up to about +/- this many metres
+const HILL_FREQ := 0.0105       # ~95 m between hill tops
+const BUMP_HEIGHT := 0.7        # small rolls on top
+const BUMP_FREQ := 0.045
+const EDGE_RISE := 7.0          # the ground climbs this much into a berm at the arena edge
+const EDGE_BAND := 32.0         # ...over the last this-many metres
+const PAD_BLEND := 9.0          # how far a flattened pad blends back into the hills
+
+## The ground of the current run, for anything that needs a height (pickups, drops, aim).
+static var current: SwampWater
+
+## Ground height at XZ in the current run (0 if no world is built).
+static func height_at(x: float, z: float) -> float:
+	return current.ground_height(x, z) if current != null else 0.0
+
 # Per pool: center (Vector2), base radius, depth, water level, amplitudes[4], phases[4], bed seed
 var pools: Array = []
 # Flat arrays for fast "near a pool?" rejection in hot loops
 var fast_x := PackedFloat32Array()
 var fast_z := PackedFloat32Array()
 var fast_r2 := PackedFloat32Array()
-# 1 m grid over the arena: 1 where a pool might be (bounding circle). Read inline by hot loops.
-const MASK_HALF := 128
-const MASK_SIZE := MASK_HALF * 2
-var mask := PackedByteArray()
+# Height grid (1 m cells) covering the arena + margin. Hot loops read it inline:
+#   h = hgrid[iz * hsize + ix], with ix = x - horigin, iz = z - horigin.
+var hgrid := PackedFloat32Array()
+var hsize := 0
+var horigin := 0.0
+var half_extent := 0.0
+# Level pads: [Vector2 centre, radius, height]
+var pads: Array = []
+var shrine_sites: Array[Vector3] = []
+var height_texture: ImageTexture   # the height grid as a texture, for shaders (GroundDisc)
+var _hills: FastNoiseLite
+var _bumps: FastNoiseLite
 
 
 static func generate(rng: RandomNumberGenerator, count: int, half: float, keep_out: float) -> SwampWater:
@@ -80,12 +107,12 @@ static func generate(rng: RandomNumberGenerator, count: int, half: float, keep_o
 		# Largest possible radius is R * (1 + amp_sum); keep diameter <= 10 yd.
 		var r_cap := (MAX_DIAMETER * 0.5 - 0.05) / (1.0 + amp_sum)
 		var base_r := rng.randf_range(2.0, r_cap)
-		var c := Vector2(rng.randf_range(-half + 15.0, half - 15.0), rng.randf_range(-half + 15.0, half - 15.0))
+		var c := Vector2(rng.randf_range(-half + EDGE_BAND + 6.0, half - EDGE_BAND - 6.0), rng.randf_range(-half + EDGE_BAND + 6.0, half - EDGE_BAND - 6.0))
 		if c.length() < keep_out:
 			continue
 		var ok := true
 		for p in sw.pools:
-			if c.distance_to(p["center"]) < 25.0:
+			if c.distance_to(p["center"]) < 42.0:
 				ok = false
 		if not ok:
 			continue
@@ -100,19 +127,6 @@ static func generate(rng: RandomNumberGenerator, count: int, half: float, keep_o
 		sw.fast_x.append(c.x)
 		sw.fast_z.append(c.y)
 		sw.fast_r2.append(pow(sw.max_radius(p), 2.0))
-	sw.mask.resize(MASK_SIZE * MASK_SIZE)
-	for zi in MASK_SIZE:
-		for xi in MASK_SIZE:
-			# Cell centre test with a 1 m margin so no edge cell is missed
-			var x := xi - MASK_HALF + 0.5
-			var z := zi - MASK_HALF + 0.5
-			for k in sw.fast_x.size():
-				var dx := x - sw.fast_x[k]
-				var dz := z - sw.fast_z[k]
-				var r := sqrt(sw.fast_r2[k]) + 1.0
-				if dx * dx + dz * dz < r * r:
-					sw.mask[zi * MASK_SIZE + xi] = 1
-					break
 	return sw
 
 
@@ -124,6 +138,126 @@ func maybe_in_pool(x: float, z: float) -> bool:
 		if dx * dx + dz * dz < fast_r2[k]:
 			return true
 	return false
+
+
+# ------------------------------------------------------------------ terrain
+
+## Rolling hills, without pads, pools or the edge berm.
+func raw_hills(x: float, z: float) -> float:
+	return _hills.get_noise_2d(x, z) * HILL_HEIGHT + _bumps.get_noise_2d(x, z) * BUMP_HEIGHT
+
+
+## Hills plus the edge berm (before pads and pools).
+func base_terrain(x: float, z: float) -> float:
+	var edge := smoothstep(0.0, EDGE_BAND, maxf(absf(x), absf(z)) - (half_extent - EDGE_BAND))
+	# Hills calm down as the ground climbs into the berm, so the edge never gets too steep
+	return raw_hills(x, z) * (1.0 - 0.6 * edge) + EDGE_RISE * edge
+
+
+## Bakes the terrain into the height grid. `shrine_count` level pads are reserved for
+## shrines (away from the start, the pools and each other); the start point and every pool
+## sit on level ground too.
+func build_terrain(rng: RandomNumberGenerator, half: float, shrine_count: int, shrine_radius: float) -> void:
+	half_extent = half
+	_hills = FastNoiseLite.new()
+	_hills.seed = rng.randi()
+	_hills.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	_hills.frequency = HILL_FREQ
+	_hills.fractal_octaves = 2
+	_bumps = FastNoiseLite.new()
+	_bumps.seed = rng.randi()
+	_bumps.frequency = BUMP_FREQ
+	_bumps.fractal_octaves = 2
+
+	# Pads: start point, every pool, shrine sites
+	pads.clear()
+	pads.append([Vector2.ZERO, 10.0, base_terrain(0, 0)])
+	for p in pools:
+		var c: Vector2 = p["center"]
+		p["base"] = base_terrain(c.x, c.y)
+		pads.append([c, max_radius(p) + 2.5, p["base"]])
+	shrine_sites.clear()
+	var tries := 0
+	while shrine_sites.size() < shrine_count and tries < 2000:
+		tries += 1
+		var c := Vector2(rng.randf_range(-half + EDGE_BAND + 8.0, half - EDGE_BAND - 8.0), rng.randf_range(-half + EDGE_BAND + 8.0, half - EDGE_BAND - 8.0))
+		if c.length() < 40.0 or near_pool(c.x, c.y, shrine_radius + 14.0):
+			continue
+		var ok := true
+		for q in shrine_sites:
+			if c.distance_to(Vector2(q.x, q.z)) < 55.0:
+				ok = false
+				break
+		if not ok:
+			continue
+		var h := base_terrain(c.x, c.y)
+		pads.append([c, shrine_radius + 1.5, h])
+		shrine_sites.append(Vector3(c.x, h, c.y))
+
+	# Height grid: hills + edge berm, then flatten every pad, then carve the pools
+	hsize = int(ceil(half * 2.0 + 20.0)) + 1
+	horigin = -float(hsize - 1) * 0.5
+	hgrid.resize(hsize * hsize)
+	for zi in hsize:
+		var z := horigin + zi
+		for xi in hsize:
+			var x := horigin + xi
+			hgrid[zi * hsize + xi] = base_terrain(x, z)
+	for pad in pads:
+		var c: Vector2 = pad[0]
+		var r: float = pad[1]
+		var ph: float = pad[2]
+		# Blend wider where the hills around the pad are far above/below it, so the ramp
+		# down to (or up from) the pad stays a gentle slope
+		var diff := 0.0
+		for k in 16:
+			var a := TAU * k / 16.0
+			var ex := c.x + cos(a) * (r + PAD_BLEND)
+			var ez := c.y + sin(a) * (r + PAD_BLEND)
+			diff = maxf(diff, absf(hgrid[clampi(int(ez - horigin), 0, hsize - 1) * hsize + clampi(int(ex - horigin), 0, hsize - 1)] - ph))
+		var reach := r + clampf(diff * 3.6, PAD_BLEND, 34.0)
+		for other in pads:   # never ramp into another pad's level core
+			if other != pad:
+				reach = minf(reach, maxf(r + 4.0, c.distance_to(other[0]) - float(other[1]) - 1.0))
+		for zi in range(maxi(0, int(c.y - reach - horigin)), mini(hsize, int(c.y + reach - horigin) + 2)):
+			for xi in range(maxi(0, int(c.x - reach - horigin)), mini(hsize, int(c.x + reach - horigin) + 2)):
+				var d := Vector2(horigin + xi, horigin + zi).distance_to(c)
+				if d >= reach:
+					continue
+				var w := 1.0 - smoothstep(r, reach, d)
+				var k := zi * hsize + xi
+				hgrid[k] = lerpf(hgrid[k], ph, w)
+	for p in pools:
+		var c: Vector2 = p["center"]
+		var mr := max_radius(p) + 1.0
+		for zi in range(maxi(0, int(c.y - mr - horigin)), mini(hsize, int(c.y + mr - horigin) + 2)):
+			for xi in range(maxi(0, int(c.x - mr - horigin)), mini(hsize, int(c.x + mr - horigin) + 2)):
+				var x := horigin + xi
+				var z := horigin + zi
+				var b := _pool_bed_offset(p, x, z)
+				if b < 0.0:
+					hgrid[zi * hsize + xi] = float(p["base"]) + b
+	var img := Image.create_from_data(hsize, hsize, false, Image.FORMAT_RF, hgrid.to_byte_array())
+	height_texture = ImageTexture.create_from_image(img)
+	current = self
+
+
+## How far below the pool's base the bed is at XZ (0 outside the outline).
+func _pool_bed_offset(p: Dictionary, x: float, z: float) -> float:
+	var c: Vector2 = p["center"]
+	var dx := x - c.x
+	var dz := z - c.y
+	var th := atan2(dz, dx)
+	var rr := outline_radius(p, th)
+	var d := sqrt(dx * dx + dz * dz)
+	return bed_height(p, d / rr, th) if d < rr else 0.0
+
+
+## Surface normal of the terrain at XZ (from the height grid).
+func normal_at(x: float, z: float) -> Vector3:
+	var hx := ground_height(x + 0.5, z) - ground_height(x - 0.5, z)
+	var hz := ground_height(x, z + 0.5) - ground_height(x, z - 0.5)
+	return Vector3(-hx, 1.0, -hz).normalized()
 
 
 # ------------------------------------------------------------------ shape queries
@@ -155,22 +289,20 @@ func bed_height(p: Dictionary, rho: float, theta: float) -> float:
 	return -depth * profile * (0.7 + 0.3 * bumps) - 0.01
 
 
-## Ground height at a world XZ position (0 outside pools).
+## Ground height at a world XZ position (bilinear in the 1 m height grid).
 func ground_height(x: float, z: float) -> float:
-	for p in pools:
-		var c: Vector2 = p["center"]
-		var dx := x - c.x
-		var dz := z - c.y
-		var d2 := dx * dx + dz * dz
-		var mr := max_radius(p)
-		if d2 > mr * mr:
-			continue
-		var th := atan2(dz, dx)
-		var rr := outline_radius(p, th)
-		var d := sqrt(d2)
-		if d < rr:
-			return bed_height(p, d / rr, th)
-	return 0.0
+	if hsize == 0:
+		return 0.0
+	var gx := clampf(x - horigin, 0.0, hsize - 1.001)
+	var gz := clampf(z - horigin, 0.0, hsize - 1.001)
+	var ix := int(gx)
+	var iz := int(gz)
+	var fx := gx - ix
+	var fz := gz - iz
+	var k := iz * hsize + ix
+	var a := lerpf(hgrid[k], hgrid[k + 1], fx)
+	var b := lerpf(hgrid[k + hsize], hgrid[k + hsize + 1], fx)
+	return lerpf(a, b, fz)
 
 
 ## True if a body whose feet are at `pos` is standing in water.
@@ -182,7 +314,7 @@ func in_water(pos: Vector3) -> bool:
 		var mr := max_radius(p)
 		if dx * dx + dz * dz > mr * mr:
 			continue
-		if pos.y > float(p["water_y"]) + 0.05:
+		if pos.y > float(p.get("base", 0.0)) + float(p["water_y"]) + 0.05:
 			continue
 		if sqrt(dx * dx + dz * dz) < outline_radius(p, atan2(dz, dx)) * 0.97:
 			return true
@@ -228,7 +360,8 @@ func _polar_mesh(p: Dictionary, is_bed: bool) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var c: Vector2 = p["center"]
-	var wy: float = p["water_y"]
+	var base: float = p.get("base", 0.0)
+	var wy: float = base + float(p["water_y"])
 	var grid := []
 	for ri in RINGS + 1:
 		var rho := float(ri) / RINGS
@@ -238,7 +371,7 @@ func _polar_mesh(p: Dictionary, is_bed: bool) -> ArrayMesh:
 			var rr := outline_radius(p, th) * (1.0 if is_bed else 0.995)
 			var x := c.x + cos(th) * rr * rho
 			var z := c.y + sin(th) * rr * rho
-			var y := bed_height(p, rho, th) if is_bed else wy
+			var y := base + bed_height(p, rho, th) if is_bed else wy
 			row.append(Vector3(x, y, z))
 		grid.append(row)
 	for ri in RINGS:
@@ -259,19 +392,12 @@ func _polar_mesh(p: Dictionary, is_bed: bool) -> ArrayMesh:
 
 # ------------------------------------------------------------------ collision + ground shader data
 
-## Heightmap collision for the whole ground (1 m cells), recessed where the pools are.
-func heightmap_body(half: float) -> StaticBody3D:
-	var size := int(ceil(half * 2.0 + 20.0)) + 1
-	var heights := PackedFloat32Array()
-	heights.resize(size * size)
-	var origin := -float(size - 1) * 0.5
-	for zi in size:
-		for xi in size:
-			heights[zi * size + xi] = ground_height(origin + xi, origin + zi)
+## Heightmap collision for the whole ground (1 m cells), straight from the height grid.
+func heightmap_body() -> StaticBody3D:
 	var shape := HeightMapShape3D.new()
-	shape.map_width = size
-	shape.map_depth = size
-	shape.map_data = heights
+	shape.map_width = hsize
+	shape.map_depth = hsize
+	shape.map_data = hgrid
 	var col := CollisionShape3D.new()
 	col.shape = shape
 	var body := StaticBody3D.new()
@@ -279,12 +405,51 @@ func heightmap_body(half: float) -> StaticBody3D:
 	return body
 
 
+## Visible ground: a grid mesh following the height grid (every `step` metres).
+func ground_mesh(step: int) -> ArrayMesh:
+	var n := (hsize - 1) / step + 1
+	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	verts.resize(n * n)
+	normals.resize(n * n)
+	for zi in n:
+		for xi in n:
+			var gx := mini(xi * step, hsize - 1)
+			var gz := mini(zi * step, hsize - 1)
+			var x := horigin + gx
+			var z := horigin + gz
+			verts[zi * n + xi] = Vector3(x, hgrid[gz * hsize + gx], z)
+			normals[zi * n + xi] = normal_at(x, z)
+	var idx := PackedInt32Array()
+	idx.resize((n - 1) * (n - 1) * 6)
+	var w := 0
+	for zi in n - 1:
+		for xi in n - 1:
+			var a := zi * n + xi
+			var b := a + 1
+			var c := a + n
+			var d := c + 1
+			idx[w] = a; idx[w + 1] = b; idx[w + 2] = c
+			idx[w + 3] = b; idx[w + 4] = d; idx[w + 5] = c
+			w += 6
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_INDEX] = idx
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
+
+
+const MAX_SHADER_POOLS := 16
+
 ## Uniform arrays for the ground shader so it can cut holes exactly where the pools are.
 func shader_params() -> Dictionary:
 	var a := []   # center.x, center.z, R, unused
 	var amps := []
 	var phases := []
-	for k in 4:
+	for k in MAX_SHADER_POOLS:
 		if k < pools.size():
 			var p: Dictionary = pools[k]
 			var c: Vector2 = p["center"]

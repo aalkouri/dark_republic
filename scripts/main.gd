@@ -6,7 +6,7 @@ extends Node3D
 ## Headless smoke test:
 ##   godot --headless --path . --fixed-fps 60 -- --smoketest --smoke-seconds=240
 
-const ARENA_HALF := 110.0
+const ARENA_HALF := 220.0   # 440 m across
 const RUN_LENGTH := 600.0
 const BOSS_TIME := 300.0
 const MAX_WEAPONS := 3
@@ -188,7 +188,7 @@ func _ready() -> void:
 	player.stats = stats
 	player.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(player)
-	player.global_position = Vector3(0, 0.5, 0)
+	player.global_position = Vector3(0, water.ground_height(0, 0) + 0.5, 0)
 	player.died.connect(_on_player_died)
 	if stats.value("start_shield") > 0.0:
 		player.add_shield(stats.value("max_hp") * stats.value("start_shield"))
@@ -434,7 +434,9 @@ func _pick_type(m: float) -> int:
 func _spawn_point(min_d: float, max_d: float) -> Vector3:
 	var a := rng.randf() * TAU
 	var p := player.global_position + Vector3(cos(a), 0, sin(a)) * rng.randf_range(min_d, max_d)
-	return Vector3(clampf(p.x, -ARENA_HALF + 2, ARENA_HALF - 2), 0, clampf(p.z, -ARENA_HALF + 2, ARENA_HALF - 2))
+	var q := Vector3(clampf(p.x, -ARENA_HALF + 2, ARENA_HALF - 2), 0, clampf(p.z, -ARENA_HALF + 2, ARENA_HALF - 2))
+	q.y = water.ground_height(q.x, q.z)
+	return q
 
 
 func _on_enemy_killed(p: Vector3, type_id: int) -> void:
@@ -723,7 +725,8 @@ func _shot_tick() -> void:
 				best = tb
 		var tp := best.global_position
 		var away := Vector3(tp.x, 0, tp.z).normalized()
-		player.global_position = tp - away * 11.0 + Vector3(0, 0.5, 0)
+		player.global_position = tp - away * 11.0
+		player.global_position.y = water.ground_height(player.global_position.x, player.global_position.z) + 0.5
 		var to := tp - player.global_position
 		player.cam_yaw = atan2(-to.x, -to.z)
 		TreeFire.ignite(best)
@@ -750,7 +753,7 @@ func _shot_tick() -> void:
 	if _shot_pool and run_time < 0.05:
 		var c: Vector2 = water.pools[0]["center"]
 		var r: float = water.pools[0]["r"]
-		player.global_position = Vector3(c.x + r + 6.0, 0.5, c.y + 1.0)
+		player.global_position = Vector3(c.x + r + 6.0, water.ground_height(c.x + r + 6.0, c.y + 1.0) + 0.5, c.y + 1.0)
 		player.cam_yaw = atan2(-(c.x - player.global_position.x), -(c.y - player.global_position.z)) * -1.0
 		var to := Vector3(c.x, 0, c.y) - player.global_position
 		player.cam_yaw = atan2(-to.x, -to.z)

@@ -36,9 +36,9 @@ var burn_dps_frac := 0.05
 var burn_explode_frac := 0.5
 var burn_explode_radius := 1.83     # 2 yards
 
-var arena_half := 110.0
+var arena_half := 220.0
 var rng: RandomNumberGenerator
-var water: SwampWater          # optional: goblins wade (and slow down) in swamp pools
+var water: SwampWater          # optional: the ground (goblins follow its hills and pools)
 const WATER_SPEED_MULT := 0.5
 var numbers: DamageNumbers      # optional: floating damage numbers
 var corpses: CorpseManager      # optional: dead goblins fall over and linger for 3 s
@@ -235,6 +235,7 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	var i := count
 	count += 1
 	pos[i] = Vector3(clampf(p.x, -arena_half, arena_half), 0.0, clampf(p.z, -arena_half, arena_half))
+	pos[i].y = SwampWater.height_at(pos[i].x, pos[i].z)
 	vel[i] = Vector3.ZERO
 	hp[i] = t_hp[t] * hp_mult * (EPIC_HP if is_epic else 1.0)
 	epic[i] = 1 if is_epic else 0
@@ -422,8 +423,12 @@ func tick(dt: float, player_pos: Vector3) -> void:
 	var max_dv := ACCEL * dt
 	var lim := arena_half
 	var reloc2 := RELOCATE_DIST * RELOCATE_DIST
-	var wmask_on := water != null
-	var wmask: PackedByteArray = water.mask if wmask_on else PackedByteArray()
+	# Ground height grid (1 m cells), sampled inline below so goblins follow the hills
+	var hg_on := water != null and water.hsize > 0
+	var hg: PackedFloat32Array = water.hgrid if hg_on else PackedFloat32Array()
+	var hs := water.hsize if hg_on else 0
+	var ho := water.horigin if hg_on else 0.0
+	var hmax := float(hs) - 1.001
 	for i in n:
 		var p := pos[i]
 		var t := typ[i]
@@ -463,10 +468,17 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			p.x = clampf(p.x + kv.x * dt, -lim, lim)
 			p.z = clampf(p.z + kv.z * dt, -lim, lim)
 			p.y = 0.0
-			if wmask_on:
-				var mi := (clampi(int(p.z + 128.0), 0, 255) << 8) + clampi(int(p.x + 128.0), 0, 255)
-				if wmask[mi]:
-					p.y = water.ground_height(p.x, p.z)
+			if hg_on:
+				var hgx := clampf(p.x - ho, 0.0, hmax)
+				var hgz := clampf(p.z - ho, 0.0, hmax)
+				var hix := int(hgx)
+				var hiz := int(hgz)
+				var hfx := hgx - hix
+				var hfz := hgz - hiz
+				var hk := hiz * hs + hix
+				var h0 := hg[hk] + (hg[hk + 1] - hg[hk]) * hfx
+				var h1 := hg[hk + hs] + (hg[hk + hs + 1] - hg[hk + hs]) * hfx
+				p.y = h0 + (h1 - h0) * hfz
 			pos[i] = p
 			_write_xform(b, p, -kv.x, -kv.z, sc, sc)
 			buf[b + 12] = _clip_run
@@ -539,10 +551,17 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		p.x = clampf(p.x + v.x * dt + sep_x[i] * corr, -lim, lim)
 		p.z = clampf(p.z + v.z * dt + sep_z[i] * corr, -lim, lim)
 		p.y = 0.0
-		if wmask_on:
-			var mi := (clampi(int(p.z + 128.0), 0, 255) << 8) + clampi(int(p.x + 128.0), 0, 255)
-			if wmask[mi]:
-				p.y = water.ground_height(p.x, p.z)
+		if hg_on:
+			var hgx := clampf(p.x - ho, 0.0, hmax)
+			var hgz := clampf(p.z - ho, 0.0, hmax)
+			var hix := int(hgx)
+			var hiz := int(hgz)
+			var hfx := hgx - hix
+			var hfz := hgz - hiz
+			var hk := hiz * hs + hix
+			var h0 := hg[hk] + (hg[hk + 1] - hg[hk]) * hfx
+			var h1 := hg[hk + hs] + (hg[hk + hs + 1] - hg[hk + hs]) * hfx
+			p.y = h0 + (h1 - h0) * hfz
 		pos[i] = p
 		vel[i] = v
 

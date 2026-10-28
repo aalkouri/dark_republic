@@ -260,7 +260,7 @@ func _cast_meteor() -> void:
 	marker.global_position = target + Vector3(0, 0.05, 0)
 	var fill := _ground_disc(METEOR_RADIUS, Color(1.0, 0.4, 0.05, 0.35))
 	fill.global_position = target + Vector3(0, 0.07, 0)
-	fill.scale = Vector3(0.01, 1, 0.01)
+	fill.scale = Vector3(0.01 * METEOR_RADIUS, 1, 0.01 * METEOR_RADIUS)
 
 	# Comes in at an angle, from behind the caster.
 	var back := (target - player.global_position)
@@ -322,14 +322,14 @@ func _aim_point() -> Vector3:
 	if hit.is_empty():
 		var flat := Vector3(dir.x, 0, dir.z).normalized()
 		p = player.global_position + flat * 20.0
-		p.y = 0.0
+		p.y = SwampWater.height_at(p.x, p.z)
 	else:
 		p = hit["position"]
 	var off := p - player.global_position
 	off.y = 0.0
 	if off.length() > METEOR_RANGE:
 		p = player.global_position + off.normalized() * METEOR_RANGE
-		p.y = 0.0
+	p.y = SwampWater.height_at(p.x, p.z)
 	return _floor_below(p + Vector3(0, 0.5, 0))
 
 
@@ -339,15 +339,15 @@ func _update_meteors(dt: float) -> void:
 		m["t"] += dt
 		var tt: float = m["t"] / METEOR_FALL_TIME
 		var target: Vector3 = m["target"]
-		var marker: MeshInstance3D = m["marker"]
-		var fill: MeshInstance3D = m["fill"]
+		var marker: GroundDisc = m["marker"]
+		var fill: GroundDisc = m["fill"]
 		var head: Node3D = m["head"]
 		if tt < 1.0:
 			var e := tt * tt   # accelerates as it falls
 			head.global_position = (m["start"] as Vector3).lerp(target + Vector3(0, 1.5, 0), e)
 			player.global_position = head.global_position - Vector3(0, 1.6, 0)   # camera rides along
-			fill.scale = Vector3(tt, 1, tt)
-			(marker.mesh.material as StandardMaterial3D).albedo_color.a = 0.18 + 0.12 * sin(m["t"] * 12.0)
+			fill.scale = Vector3(tt * METEOR_RADIUS, 1, tt * METEOR_RADIUS)
+			marker.alpha = 0.18 + 0.12 * sin(m["t"] * 12.0)
 			continue
 		player.exit_meteor_form(target)
 		_meteor_impact(target)
@@ -456,21 +456,12 @@ func _cast_shockwave() -> void:
 ## The ring bursts out from wherever the wizard is standing when the wind-up ends.
 func _erupt_shockwave() -> void:
 	var center := _floor_below(player.global_position + Vector3(0, 0.5, 0))
-	var ring := MeshInstance3D.new()
-	var torus := TorusMesh.new()
-	torus.inner_radius = 0.93
-	torus.outer_radius = 1.0
-	torus.rings = 48
-	torus.ring_segments = 8
-	torus.material = _fire_mat.duplicate()
-	ring.mesh = torus
-	ring.top_level = true
-	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(ring)
-	ring.global_position = center + Vector3(0, 0.3, 0)
-	var disc := _ground_disc(1.0, Color(1.0, 0.3, 0.04, 0.12))
-	(disc.mesh.material as StandardMaterial3D).blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	(disc.mesh.material as StandardMaterial3D).disable_fog = true   # additive + fog = pale grey halos
+	# The fire ring is drawn on the ground so it rolls over the hills
+	var ring := _ground_disc(1.0, Color(1.0, 0.45, 0.1, 0.75), true)
+	ring.set_ring(0.9)
+	ring.set_lift(0.2)
+	ring.global_position = center
+	var disc := _ground_disc(1.0, Color(1.0, 0.3, 0.04, 0.12), true)
 	disc.global_position = center + Vector3(0, 0.06, 0)
 	_shocks.append({"center": center, "t": 0.0, "hit": {}, "ring": ring, "disc": disc})
 	player.add_shake(0.35)
@@ -483,8 +474,8 @@ func _update_shocks(dt: float) -> void:
 		s["t"] += dt
 		var tt: float = s["t"] / SHOCK_EXPAND_TIME
 		var center: Vector3 = s["center"]
-		var ring: MeshInstance3D = s["ring"]
-		var disc: MeshInstance3D = s["disc"]
+		var ring: GroundDisc = s["ring"]
+		var disc: GroundDisc = s["disc"]
 		var r := SHOCK_RADIUS * minf(tt, 1.0)
 		if tt <= 1.0:
 			var hit: Dictionary = s["hit"]
@@ -499,17 +490,20 @@ func _update_shocks(dt: float) -> void:
 		# Visual: ring rides the front, then fades out
 		var fade := clampf(1.0 - (tt - 1.0) / 0.5, 0.0, 1.0)
 		var vr := maxf(r, 0.3)
-		ring.scale = Vector3(vr, 0.6 + 0.8 * fade, vr)
+		ring.scale = Vector3(vr, 1, vr)
+		ring.set_ring(clampf(1.0 - 1.4 / vr, 0.0, 0.92))   # a band ~1.4 m wide
 		disc.scale = Vector3(vr, 1, vr)
-		((ring.mesh as TorusMesh).material as StandardMaterial3D).albedo_color.a = 0.75 * fade
-		(disc.mesh.material as StandardMaterial3D).albedo_color.a = 0.12 * fade
+		ring.alpha = 0.75 * fade
+		disc.alpha = 0.12 * fade
 		if tt > 1.0 and fade <= 0.0:
 			ring.queue_free()
 			disc.queue_free()
 			_shocks.remove_at(k)
 		elif tt <= 1.0 and Engine.get_physics_frames() % 3 == 0:
 			var a := randf() * TAU
-			if fx: fx.burst(center + Vector3(cos(a) * r, 0.6, sin(a) * r), 1.1, Color(1.0, 0.4, 0.08), 0.3)
+			var bx := center.x + cos(a) * r
+			var bz := center.z + sin(a) * r
+			if fx: fx.burst(Vector3(bx, SwampWater.height_at(bx, bz) + 0.6, bz), 1.1, Color(1.0, 0.4, 0.08), 0.3)
 
 
 # ------------------------------------------------------------------ 3: Inferno (ultimate)
@@ -536,28 +530,14 @@ func _floor_below(from: Vector3) -> Vector3:
 	q.exclude = [player.get_rid()]
 	var hit := get_world_3d().direct_space_state.intersect_ray(q)
 	if hit.is_empty():
-		return Vector3(from.x, 0.0, from.z)
+		return Vector3(from.x, SwampWater.height_at(from.x, from.z), from.z)
 	return hit["position"]
 
 
-func _ground_disc(radius: float, color: Color) -> MeshInstance3D:
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = radius
-	mesh.bottom_radius = radius
-	mesh.height = 0.04
-	mesh.radial_segments = 40
-	mesh.rings = 1
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = color
-	mesh.material = mat
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	mi.top_level = true
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(mi)
-	return mi
+func _ground_disc(radius: float, color: Color, additive := false) -> GroundDisc:
+	var g := GroundDisc.create(radius, color, additive)
+	add_child(g)
+	return g
 
 
 ## Shared fire particle emitter (meteor trail, wizard flames).

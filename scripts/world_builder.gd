@@ -2,15 +2,17 @@ class_name WorldBuilder
 extends RefCounted
 ## Builds the dark swamp arena from a seed:
 ##   sky (50% sun behind dense clouds / 50% moon with few clouds), lighting and fog,
-##   ground with random mud and swamp-grass patches, swaying grass tufts and reeds,
-##   4 recessed pools of swamp water, 45 swamp trees (4 variants), 18 fallen trees,
-##   6 mossy ruins and stone walls.
+##   rolling ground (hills, dips, slopes; level pads for the start, pools and shrines) with
+##   random mud and swamp-grass patches, swaying grass tufts and reeds, 14 recessed pools of
+##   swamp water, 180 swamp trees (4 variants), 72 fallen trees, 24 mossy ruins and a berm
+##   with stone walls round the edge.
 ## Returns the SwampWater so gameplay can query water and ground height.
 
-const TREES := 45
-const FALLEN := 18
-const RUINS := 6
-const POOLS := 4
+const TREES := 180
+const FALLEN := 72
+const RUINS := 24
+const POOLS := 14
+const SHRINE_SITES := 14   # level pads reserved for shrines (ShrineManager uses some of them)
 
 const SKY_SHADER := """
 shader_type sky;
@@ -88,9 +90,9 @@ const GROUND_SHADER := """
 shader_type spatial;
 uniform sampler2D patch_map : filter_linear, repeat_disable;
 uniform float extent = 120.0;
-uniform vec4 pools[4];
-uniform vec4 pool_amps[4];
-uniform vec4 pool_phases[4];
+uniform vec4 pools[16];
+uniform vec4 pool_amps[16];
+uniform vec4 pool_phases[16];
 uniform vec3 base_col : source_color = vec3(0.17, 0.16, 0.1);
 uniform vec3 grass_col : source_color = vec3(0.15, 0.21, 0.08);
 uniform vec3 mud_col : source_color = vec3(0.12, 0.085, 0.055);
@@ -107,10 +109,11 @@ void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 void fragment() {
 	// Cut holes where the pools are (the pool bed mesh fills them) and darken their wet banks
 	float bank = 0.0;
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 16; i++) {
 		vec4 p = pools[i];
 		if (p.w < 0.5) { continue; }
 		vec2 d = wpos.xz - p.xy;
+		if (dot(d, d) > p.z * p.z * 2.6 + 30.0) { continue; }
 		float th = atan(d.y, d.x);
 		vec4 a = pool_amps[i];
 		vec4 ph = pool_phases[i];
@@ -140,7 +143,8 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	var is_night := rng.randf() < 0.5
 	_environment(parent, rng, is_night)
 
-	var water := SwampWater.generate(rng, POOLS, half, 18.0)
+	var water := SwampWater.generate(rng, POOLS, half, 35.0)
+	water.build_terrain(rng, half, SHRINE_SITES, Shrine.ZONE_RADIUS)
 	var patches := _patch_map(rng, half + 10.0)
 	_ground(parent, half, water, patches)
 	water.build_meshes(parent)
@@ -152,7 +156,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	for i in TREES:
 		var p := _free_point(rng, half - 6.0, 12.0, water, 3.0, placed, 4.5)
 		var t := SwampProps.tree(i % SwampProps.VARIANTS, rng)
-		_prop(parent, t, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p), true)
+		_prop(parent, t, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p + Vector3(0, -0.25, 0)), true)
 		placed.append(p)
 
 	for i in FALLEN:
@@ -162,14 +166,18 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 		var p := _free_point(rng, half - length * 0.5 - 4.0, 14.0, water, length * 0.5 + 2.0, placed, length * 0.5 + 1.0)
 		# Lie on the ground, partly sunk in the mud, root end lifted a little
 		var tilt := deg_to_rad(rng.randf_range(2.0, 8.0))
-		var basis := Basis(Vector3.UP, rng.randf() * TAU) * Basis(Vector3(0, 0, 1), -tilt)
-		var y := r * 0.8 + sin(tilt) * length * 0.5
+		var yaw := rng.randf() * TAU
+		var basis := Basis(Vector3.UP, yaw) * Basis(Vector3(0, 0, 1), -tilt)
+		# On a slope, sit at the lower end of the log so neither end floats
+		var along := Basis(Vector3.UP, yaw) * Vector3(1, 0, 0) * length * 0.5
+		var low := minf(water.ground_height(p.x + along.x, p.z + along.z), water.ground_height(p.x - along.x, p.z - along.z))
+		var y := (low - p.y) + r * 0.8 + sin(tilt) * length * 0.5
 		_prop(parent, fallen, Transform3D(basis, p + Vector3(0, y, 0)), true)
 		placed.append(p)
 
 	for i in RUINS:
 		var p := _free_point(rng, half - 15.0, 25.0, water, 4.0, placed, 6.0)
-		_prop(parent, SwampProps.ruin(rng), Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p))
+		_prop(parent, SwampProps.ruin(rng), Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p + Vector3(0, -0.6, 0)))
 		var ruin_body := parent.get_child(parent.get_child_count() - 1)
 		ruin_body.add_to_group("obstacle")
 		ruin_body.set_meta("reach", 3.0)
@@ -183,13 +191,20 @@ static func _free_point(rng: RandomNumberGenerator, extent: float, keep_out: flo
 		if p.length() < keep_out or water.near_pool(p.x, p.z, pool_margin):
 			continue
 		var ok := true
+		for site in water.shrine_sites:   # keep shrine pads clear
+			if Vector2(p.x - site.x, p.z - site.z).length() < Shrine.ZONE_RADIUS + 3.0 + spacing * 0.5:
+				ok = false
+				break
 		for q in placed:
 			if p.distance_to(q) < spacing:
 				ok = false
 				break
 		if ok:
+			p.y = water.ground_height(p.x, p.z)
 			return p
-	return Vector3(rng.randf_range(-extent, extent), 0.0, rng.randf_range(-extent, extent))
+	var q := Vector3(rng.randf_range(-extent, extent), 0.0, rng.randf_range(-extent, extent))
+	q.y = water.ground_height(q.x, q.z)
+	return q
 
 
 static func _prop(parent: Node3D, data: Dictionary, xf: Transform3D, burnable := false) -> void:
@@ -294,7 +309,7 @@ static func _patch_map(rng: RandomNumberGenerator, extent: float) -> Image:
 	grass.seed = rng.randi()
 	grass.frequency = 0.045
 	grass.fractal_octaves = 3
-	var n := 256
+	var n := 384
 	var img := Image.create(n, n, false, Image.FORMAT_RGB8)
 	for y in n:
 		for x in n:
@@ -312,9 +327,8 @@ static func _sample(img: Image, extent: float, x: float, z: float) -> Color:
 
 
 static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Image) -> void:
-	var body := water.heightmap_body(half)
-	var mesh := PlaneMesh.new()
-	mesh.size = Vector2(half * 2.0 + 20.0, half * 2.0 + 20.0)
+	var body := water.heightmap_body()
+	var mesh := water.ground_mesh(2)
 	var sh := Shader.new()
 	sh.code = GROUND_SHADER
 	var sm := ShaderMaterial.new()
@@ -324,7 +338,7 @@ static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Ima
 	var sp := water.shader_params()
 	for k in sp:
 		sm.set_shader_parameter(k, sp[k])
-	mesh.material = sm
+	mesh.surface_set_material(0, sm)
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
 	body.add_child(mi)
@@ -412,14 +426,19 @@ static func _multimesh(parent: Node3D, mesh: Mesh, xforms: Array[Transform3D]) -
 
 
 static func _walls(parent: Node3D, half: float) -> void:
+	# The ground rises into a berm at the edge; the walls stand on top of it, sunk deep
+	# enough to cover every dip.
 	var c := Color(0.2, 0.21, 0.19)
-	var h := 6.0
+	var top := SwampWater.HILL_HEIGHT + SwampWater.BUMP_HEIGHT + SwampWater.EDGE_RISE + 5.0
+	var bottom := -SwampWater.HILL_HEIGHT - SwampWater.BUMP_HEIGHT - 2.0
+	var h := top - bottom
+	var y := (top + bottom) * 0.5
 	var t := 2.0
 	var l := half * 2.0 + t * 2.0
-	_box(parent, Vector3(0, h * 0.5, -half - t * 0.5), Vector3(l, h, t), c)
-	_box(parent, Vector3(0, h * 0.5, half + t * 0.5), Vector3(l, h, t), c)
-	_box(parent, Vector3(-half - t * 0.5, h * 0.5, 0), Vector3(t, h, l), c)
-	_box(parent, Vector3(half + t * 0.5, h * 0.5, 0), Vector3(t, h, l), c)
+	_box(parent, Vector3(0, y, -half - t * 0.5), Vector3(l, h, t), c)
+	_box(parent, Vector3(0, y, half + t * 0.5), Vector3(l, h, t), c)
+	_box(parent, Vector3(-half - t * 0.5, y, 0), Vector3(t, h, l), c)
+	_box(parent, Vector3(half + t * 0.5, y, 0), Vector3(t, h, l), c)
 
 
 static func _box(parent: Node3D, at: Vector3, size: Vector3, color: Color) -> void:
