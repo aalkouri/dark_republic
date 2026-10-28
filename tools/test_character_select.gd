@@ -123,11 +123,16 @@ func _ready() -> void:
 	Wallet.set_char_exp("fire_wizard", 0)
 	cs.refresh_levels()
 
-	var k: int = cs.index_of("ogre")
+	var og: int = cs.index_of("ogre")
+	cs._tiles[og].grab_focus()
+	await get_tree().process_frame
+	_check("a locked character with a model previews in 3D", cs._view_box.visible and not cs._big_icon.visible
+		and cs._previews.has("ogre") and (cs._previews["ogre"] as Node3D).visible and not cs._hero_preview.visible, "")
+	var k: int = cs.index_of("death")
 	cs._tiles[k].grab_focus()
 	await get_tree().process_frame
-	_check("focusing a locked character previews its portrait", cs._shown == k and cs._big_icon.visible
-		and not cs._view_box.visible and cs._name.text == "Ogre", cs._name.text)
+	_check("a locked character without a model shows its portrait", cs._shown == k and cs._big_icon.visible
+		and not cs._view_box.visible and cs._name.text == "Death", cs._name.text)
 	_check("Play disabled for locked characters", cs._play_btn.disabled, "")
 	cs._tiles[k].pressed.emit()
 	await get_tree().process_frame
