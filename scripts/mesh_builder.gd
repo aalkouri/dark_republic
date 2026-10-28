@@ -26,8 +26,10 @@ void vertex() {
 	VERTEX.z += s * 0.7 * w * wind;
 }
 void fragment() {
+	// Never let a bad normal through (NaN pixels bloom into white flashes on some GPUs)
+	if (any(isnan(NORMAL)) || dot(NORMAL, NORMAL) < 1e-6) { NORMAL = vec3(0.0, 0.0, 1.0); }
 	// Vertex colors are authored in sRGB
-	vec3 col = pow(COLOR.rgb, vec3(2.2));
+	vec3 col = pow(max(COLOR.rgb, vec3(0.0)), vec3(2.2));
 	// Charring creeps in patchily, then covers everything
 	float patch = noise(lpos * 2.3);
 	float c = smoothstep(patch * 0.6, patch * 0.6 + 0.4, char_amount);
@@ -87,6 +89,14 @@ func limb(a: Vector3, b: Vector3, r_a: float, r_b: float, color: Color, seg := 8
 
 
 func commit(material: Material = null) -> ArrayMesh:
+	# Degenerate parts (zero-radius tips, collapsed triangles) can carry zero/NaN normals;
+	# on some GPUs those shade as NaN pixels that the glow blows up into flashing white dots.
+	for k in _norms.size():
+		var n := _norms[k]
+		if not n.is_finite() or n.length_squared() < 1e-8:
+			_norms[k] = Vector3.UP
+		else:
+			_norms[k] = n.normalized()
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = _verts

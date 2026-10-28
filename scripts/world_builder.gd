@@ -156,7 +156,8 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	for i in TREES:
 		var p := _free_point(rng, half - 6.0, 12.0, water, 3.0, placed, 4.5)
 		var t := SwampProps.tree(i % SwampProps.VARIANTS, rng)
-		_prop(parent, t, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p + Vector3(0, -0.25, 0)), true)
+		p.y = _low_point(water, p, 1.2) - 0.15   # on a slope, sit on the downhill side
+		_prop(parent, t, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p), true)
 		placed.append(p)
 
 	for i in FALLEN:
@@ -177,7 +178,8 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 
 	for i in RUINS:
 		var p := _free_point(rng, half - 15.0, 25.0, water, 4.0, placed, 6.0)
-		_prop(parent, SwampProps.ruin(rng), Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p + Vector3(0, -0.6, 0)))
+		p.y = _low_point(water, p, 2.5) - 0.3
+		_prop(parent, SwampProps.ruin(rng), Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p))
 		var ruin_body := parent.get_child(parent.get_child_count() - 1)
 		ruin_body.add_to_group("obstacle")
 		ruin_body.set_meta("reach", 3.0)
@@ -205,6 +207,15 @@ static func _free_point(rng: RandomNumberGenerator, extent: float, keep_out: flo
 	var q := Vector3(rng.randf_range(-extent, extent), 0.0, rng.randf_range(-extent, extent))
 	q.y = water.ground_height(q.x, q.z)
 	return q
+
+
+## Lowest ground within radius r of p (centre + 8 points round it).
+static func _low_point(water: SwampWater, p: Vector3, r: float) -> float:
+	var h := water.ground_height(p.x, p.z)
+	for k in 8:
+		var a := TAU * k / 8.0
+		h = minf(h, water.ground_height(p.x + cos(a) * r, p.z + sin(a) * r))
+	return h
 
 
 static func _prop(parent: Node3D, data: Dictionary, xf: Transform3D, burnable := false) -> void:
@@ -262,6 +273,7 @@ static func _environment(parent: Node3D, rng: RandomNumberGenerator, night: bool
 	env.sky = sky
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.glow_enabled = true
+	env.glow_hdr_luminance_cap = 4.0   # one over-bright pixel can't bloom into a big white flash
 	env.fog_enabled = true
 	env.fog_sky_affect = 0.12
 	if night:
@@ -328,7 +340,7 @@ static func _sample(img: Image, extent: float, x: float, z: float) -> Color:
 
 static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Image) -> void:
 	var body := water.heightmap_body()
-	var mesh := water.ground_mesh(2)
+	var mesh := water.ground_mesh(1)   # same 1 m grid as collision + placement, so nothing floats
 	var sh := Shader.new()
 	sh.code = GROUND_SHADER
 	var sm := ShaderMaterial.new()
@@ -399,7 +411,7 @@ static func _reeds(parent: Node3D, rng: RandomNumberGenerator, water: SwampWater
 			var th := rng.randf() * TAU
 			var r := water.outline_radius(p, th) * rng.randf_range(0.85, 1.15)
 			var pos := Vector3(c.x + cos(th) * r, 0, c.y + sin(th) * r)
-			pos.y = water.ground_height(pos.x, pos.z)
+			pos.y = water.exact_height(pos.x, pos.z) - 0.05
 			var s := rng.randf_range(0.8, 1.25)
 			xforms.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * s), pos))
 	var mb := MeshBuilder.new()

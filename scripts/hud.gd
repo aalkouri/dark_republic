@@ -14,6 +14,7 @@ var info_label: Label
 var inv_label: Label
 var debug_label: Label
 var msg_label: Label
+var intro_banner: BloodBanner
 var pause_root: Control
 var settings_menu: SettingsMenu
 var draft_root: Control
@@ -107,7 +108,7 @@ func setup(m) -> void:
 	inv_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	root.add_child(inv_label)
 
-	var hint := _label("WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns", 14)
+	var hint := _label("WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns", 14)
 	hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hint.offset_left = -800
@@ -124,6 +125,8 @@ func setup(m) -> void:
 	msg_label.offset_top = 150
 	msg_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	root.add_child(msg_label)
+	intro_banner = BloodBanner.new()
+	root.add_child(intro_banner)
 
 	_build_ability_bar(root)
 	_build_pause(root)
@@ -537,7 +540,7 @@ func set_paused(p: bool) -> void:
 
 
 func show_end(won: bool) -> void:
-	end_title.text = "YOU SURVIVED!" if won else "YOU GOT BONKED"
+	end_title.text = "YOU SURVIVED!" if won else "YOU DIED"
 	end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if won else Color(1.0, 0.35, 0.3))
 	end_stats.text = "Time %s   ·   Level %d   ·   Kills %d" % [_fmt_time(main.run_time), main.level, main.kills]
 	end_root.visible = true

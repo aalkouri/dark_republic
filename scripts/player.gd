@@ -58,6 +58,10 @@ var burn_left := 0.0
 var _collider: CollisionShape3D
 const SPRING_NORMAL := 6.5
 const SPRING_METEOR := 14.0
+const ZOOM_MAX := 16.0          # mouse wheel: furthest camera distance
+const ZOOM_STEP := 0.85         # each wheel notch scales the distance by this
+const FIRST_PERSON_AT := 0.9    # closer than this snaps into first person
+const MODEL_LAYER := 2          # the wizard renders on this layer (hidden from the camera in first person)
 var face_camera := false   # screenshot/portrait mode
 var face_offset := 0.0     # extra yaw for portraits (3/4 views)
 
@@ -70,6 +74,8 @@ var bot_slide := false
 var sliding := false
 var cam_yaw := 0.0
 var cam_pitch := -0.3
+static var zoom := SPRING_NORMAL   # camera distance chosen with the mouse wheel (0 = first person); kept between runs
+var first_person := false
 
 var _coyote := 0.0
 var _jump_buf := 0.0
@@ -111,7 +117,7 @@ func _ready() -> void:
 	rig.top_level = true
 	add_child(rig)
 	spring = SpringArm3D.new()
-	spring.spring_length = 6.5
+	spring.spring_length = zoom
 	spring.margin = 0.2
 	var probe := SphereShape3D.new()
 	probe.radius = 0.25
@@ -131,6 +137,25 @@ func _build_model() -> void:
 	add_child(model)
 
 
+## Mouse wheel: in (-1) or out (+1). Zooming all the way in goes first person; zooming out
+## of first person starts close behind the head.
+func zoom_by(notches: int) -> void:
+	if notches < 0:
+		zoom = 0.0 if zoom * ZOOM_STEP < FIRST_PERSON_AT else zoom * ZOOM_STEP
+	else:
+		zoom = minf(ZOOM_MAX, maxf(zoom / ZOOM_STEP, FIRST_PERSON_AT + 0.3))
+
+
+## Hide the wizard from the camera in first person (he still casts his shadow).
+func _set_first_person(on: bool) -> void:
+	first_person = on
+	for n in model.find_children("*", "VisualInstance3D", true, false):
+		(n as VisualInstance3D).layers = 1 << (MODEL_LAYER - 1)
+	cam.set_cull_mask_value(MODEL_LAYER, not on)
+	if not on:
+		cam_pitch = minf(cam_pitch, 0.4)
+
+
 func _on_stat_changed(stat: String) -> void:
 	if stat == "max_hp":
 		var new_max := stats.value("max_hp")
@@ -139,11 +164,16 @@ func _on_stat_changed(stat: String) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			zoom_by(-1)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			zoom_by(1)
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var sens := MOUSE_SENS * Settings.mouse_sensitivity
 		var dy: float = event.relative.y * (-1.0 if Settings.invert_y else 1.0)
 		cam_yaw -= event.relative.x * sens
-		cam_pitch = clampf(cam_pitch - dy * sens, -1.25, 0.4)
+		cam_pitch = clampf(cam_pitch - dy * sens, -1.25, 1.2 if first_person else 0.4)
 
 
 func _physics_process(dt: float) -> void:
@@ -297,6 +327,13 @@ func _update_visuals(dt: float) -> void:
 
 	var head := global_position + Vector3(0.0, 1.0 if sliding else 1.6, 0.0)
 	rig.global_position = rig.global_position.lerp(head, 1.0 - exp(-20.0 * dt))
+	# Mouse-wheel zoom glides to the chosen distance; 0 = first person (eyes at the head)
+	spring.spring_length = lerpf(spring.spring_length, zoom, 1.0 - exp(-12.0 * dt))
+	if zoom <= 0.0 and spring.spring_length < 0.05:
+		spring.spring_length = 0.0
+	var fp := spring.spring_length < 0.35
+	if fp != first_person:
+		_set_first_person(fp)
 	rig.rotation = Vector3(cam_pitch, cam_yaw, 0.0)
 	var fov_target := Settings.fov + clampf((hv.length() - 9.0) * 0.9, 0.0, 22.0)
 	cam.fov = lerpf(cam.fov, fov_target, 1.0 - exp(-6.0 * dt))
@@ -359,6 +396,8 @@ func enter_meteor_form() -> void:
 	_collider.set_deferred("disabled", true)
 	velocity = Vector3.ZERO
 	sliding = false
+	if first_person:
+		_set_first_person(false)
 	spring.spring_length = SPRING_METEOR
 
 
@@ -368,7 +407,7 @@ func exit_meteor_form(at: Vector3) -> void:
 	velocity = Vector3.ZERO
 	model.reappear()
 	_collider.set_deferred("disabled", false)
-	spring.spring_length = SPRING_NORMAL
+	spring.spring_length = maxf(zoom, 0.0)
 	invuln = maxf(invuln, 0.25)   # a moment to get bearings after landing
 
 

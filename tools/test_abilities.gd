@@ -90,6 +90,18 @@ func _ready() -> void:
 	add_child(ab)
 	_check("Inferno has its cast sound on the SFX bus", ab.inferno_sfx.stream != null and ab.inferno_sfx.bus == Settings.SFX_BUS, "")
 	_check("Meteor has its cast sound and an explosion on impact", ab.meteor_sfx.stream != null and ab.impact_sfx.stream != null and ab.impact_sfx.bus == Settings.SFX_BUS, "")
+	# Mouse-wheel zoom: in all the way = first person (wizard hidden from the camera only)
+	Player.zoom = Player.SPRING_NORMAL
+	for k in 30:
+		player.zoom_by(-1)
+	_check("wheel in all the way reaches first person", Player.zoom == 0.0, "%.2f" % Player.zoom)
+	player._set_first_person(true)
+	_check("first person hides the wizard from the camera", not player.cam.get_cull_mask_value(Player.MODEL_LAYER) and player.model.visible, "")
+	for k in 40:
+		player.zoom_by(1)
+	_check("wheel out is capped", is_equal_approx(Player.zoom, Player.ZOOM_MAX), "%.2f" % Player.zoom)
+	player._set_first_person(false)
+	Player.zoom = Player.SPRING_NORMAL
 	var pm := PotionManager.new()
 	pm.setup(player, ab, rng)
 	add_child(pm)

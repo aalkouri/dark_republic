@@ -147,6 +147,8 @@ func _ready() -> void:
 			_shot_level = int(a.split("=")[1])
 		elif a.begins_with("--shot-zoom="):
 			_shot_zoom = float(a.split("=")[1])
+			if _shot_zoom == 0.0:
+				_shot_zoom = 0.001   # first person
 		elif a.begins_with("--shot-turn="):
 			_shot_turn = deg_to_rad(float(a.split("=")[1]))
 		elif a == "--shot-ignite":
@@ -273,7 +275,7 @@ func _ready() -> void:
 		print("SMOKE music %s loop=%s playing=%s" % [ms.resource_path if ms else "none", str(ms.get("loop")) if ms else "-", str(music.playing) if music else "-"])
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	hud.flash_message("Survive 10 minutes. A Big Bonker arrives at 5:00.", 4.0)
+	hud.intro_banner.show_text("SURVIVE 10 MINUTES")
 
 
 func _exit_tree() -> void:
@@ -419,7 +421,7 @@ func _spawn_director(dt: float) -> void:
 	if not _boss_spawned and run_time >= BOSS_TIME:
 		_boss_spawned = true
 		enemies.spawn(EnemyManager.BOSS, _spawn_point(30.0, 32.0), hpm)
-		hud.flash_message("A BIG BONKER APPROACHES", 4.0)
+		hud.flash_message("A GOBLIN WARLORD APPROACHES", 4.0)
 
 
 func _pick_type(m: float) -> int:
@@ -447,7 +449,7 @@ func _on_enemy_killed(p: Vector3, type_id: int) -> void:
 	gems.spawn(p + Vector3(0, 0.5, 0), enemies.t_xp[type_id])
 	if type_id == EnemyManager.BOSS:
 		gems.magnetise_all()
-		hud.flash_message("BIG BONKER BONKED!", 4.0)
+		hud.flash_message("GOBLIN WARLORD SLAIN!", 4.0)
 
 
 # ------------------------------------------------------------------ progression
@@ -719,6 +721,7 @@ func _shot_tick() -> void:
 	player.face_offset = _shot_turn
 	if _shot_zoom > 0.0:
 		player.spring.spring_length = _shot_zoom
+		Player.zoom = _shot_zoom
 	if _shot_ignite and run_time < 0.05:
 		# Stand 11 m from the nearest standing tree, look at it, and set it on fire
 		var best: Node3D = null

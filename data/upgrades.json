@@ -63,7 +63,7 @@
     { "id": "tome_quantity", "kind": "tome", "icon": { "glyph": "triple", "cover": "#8e5a1f" }, "name": "Tome of Quantity", "weight": 3, "max_level": 3, "fixed": true,
       "desc": "+1 projectile for every projectile weapon.", "per_level": [ { "stat": "projectile_count", "op": "flat", "value": 1 } ] },
 
-    { "id": "item_bomb", "kind": "item", "icon": { "glyph": "bomb", "cover": "#7a3a1a", "tint": "#ffb020" }, "name": "Bonk Bomb", "weight": 5, "max_level": 5,
+    { "id": "item_bomb", "kind": "item", "icon": { "glyph": "bomb", "cover": "#7a3a1a", "tint": "#ffb020" }, "name": "Blast Bomb", "weight": 5, "max_level": 5,
       "desc": "Enemies have a chance to explode on death.",
       "per_level": [ { "stat": "bomb_chance", "op": "flat", "value": 0.06 }, { "stat": "bomb_damage", "op": "add", "value": 0.15 } ] },
     { "id": "item_fang", "kind": "item", "icon": { "glyph": "fang", "cover": "#3a1020", "tint": "#e0303a" }, "name": "Vampire Fang", "weight": 5, "max_level": 5,

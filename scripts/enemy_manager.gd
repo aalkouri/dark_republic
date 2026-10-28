@@ -172,7 +172,7 @@ func _ready() -> void:
 	_add_type("Goblin", 10.0, 4.2, 0.45, 1.0, 16.0, 1.0, Color(0.5, 0.32, 0.17))
 	_add_type("Goblin Scamp", 6.0, 6.8, 0.36, 0.8, 12.0, 1.0, Color(0.9, 0.68, 0.18))
 	_add_type("Goblin Brute", 55.0, 3.0, 0.85, 1.8, 32.0, 5.0, Color(0.38, 0.4, 0.46))
-	_add_type("Big Bonker", 2500.0, 3.6, 2.0, 4.5, 70.0, 120.0, Color(0.55, 0.08, 0.1))
+	_add_type("Goblin Warlord", 2500.0, 3.6, 2.0, 4.5, 70.0, 120.0, Color(0.55, 0.08, 0.1))
 
 	mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D

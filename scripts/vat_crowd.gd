@@ -45,7 +45,8 @@ void vertex() {
 	vec3 n0 = texelFetch(vat_nrm, texel(start + f0, vid), 0).rgb * 2.0 - 1.0;
 	vec3 n1 = texelFetch(vat_nrm, texel(start + f1, vid), 0).rgb * 2.0 - 1.0;
 	VERTEX = mix(p0, p1, w);
-	NORMAL = normalize(mix(n0, n1, w));
+	vec3 nn = mix(n0, n1, w);
+	NORMAL = dot(nn, nn) > 1e-6 ? normalize(nn) : vec3(0.0, 1.0, 0.0);   // no NaN normals
 
 	float a = INSTANCE_CUSTOM.a;
 	epic = step(3.5, a);

@@ -48,7 +48,7 @@
 
     {"id": "kong", "name": "Kong", "epithet": "Escapee of the Menagerie", "bio": "Broke out of the zoo, swam the river and found the swamp to his liking. Still wears the shackles. Uses them.", "icon": {"bg": ["#3a4428", "#0e1208"], "body": "bulky", "body_col": "#3e3834", "skin": "#56504a", "head": "gorilla", "hat": "none", "eyes": "#d98a2a", "item": "chains", "fx": "none"}, "price": 10000},
 
-    {"id": "thog", "name": "Thog the Troll", "epithet": "Bridge Keeper Emeritus", "bio": "A big blue troll with a bigger club. Retired from bridge duty after a goat incident. Not retired from bonking.", "icon": {"bg": ["#14304a", "#050d16"], "body": "bulky", "body_col": "#5a3b1e", "skin": "#4a7fc0", "head": "troll", "hat": "none", "hair": "#2b2b38", "eyes": "#ffe36a", "item": "club", "fx": "none"}, "price": 10000},
+    {"id": "thog", "name": "Thog the Troll", "epithet": "Bridge Keeper Emeritus", "bio": "A big blue troll with a bigger club. Retired from bridge duty after a goat incident. Not retired from smashing.", "icon": {"bg": ["#14304a", "#050d16"], "body": "bulky", "body_col": "#5a3b1e", "skin": "#4a7fc0", "head": "troll", "hat": "none", "hair": "#2b2b38", "eyes": "#ffe36a", "item": "club", "fx": "none"}, "price": 10000},
 
     {"id": "mystery_1", "name": "???", "mystery": true, "icon": {"mystery": true}},
 

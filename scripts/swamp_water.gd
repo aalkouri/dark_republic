@@ -46,9 +46,13 @@ void fragment() {
 	float weed = smoothstep(0.55, 0.75, noise(p * 0.9) * 0.7 + noise(p * 4.0) * 0.3 + edge * 0.35);
 	vec3 water = mix(deep, shallow, edge * 0.6);
 	ALBEDO = mix(water, scum, weed);
-	ROUGHNESS = mix(0.06, 0.8, weed);
+	// Not mirror-smooth: a glossy surface with moving ripples caught the sun in single-frame
+	// glints that the glow turned into flashing white dots across the map (even while paused,
+	// since the ripples run on TIME). Distant water is also calmed down.
+	float far = smoothstep(15.0, 45.0, length(VERTEX));
+	ROUGHNESS = mix(mix(0.3, 0.55, far), 0.85, weed);
 	METALLIC = 0.0;
-	SPECULAR = 0.6;
+	SPECULAR = mix(0.35, 0.15, far);
 	ALPHA = mix(0.88, 1.0, weed);
 }
 """
@@ -251,6 +255,16 @@ func _pool_bed_offset(p: Dictionary, x: float, z: float) -> float:
 	var rr := outline_radius(p, th)
 	var d := sqrt(dx * dx + dz * dz)
 	return bed_height(p, d / rr, th) if d < rr else 0.0
+
+
+## Ground height using the exact pool bed shape inside pools (matches the smooth bed mesh);
+## the height grid everywhere else.
+func exact_height(x: float, z: float) -> float:
+	for p in pools:
+		var b := _pool_bed_offset(p, x, z)
+		if b < 0.0:
+			return float(p["base"]) + b
+	return ground_height(x, z)
 
 
 ## Surface normal of the terrain at XZ (from the height grid).

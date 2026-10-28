@@ -118,7 +118,7 @@ func tick(dt: float) -> void:
 	var feet := player.global_position
 	var chest := feet + Vector3(0.0, 0.9, 0.0)
 
-	# --- Bonk Orbs: auto-targeted projectiles
+	# --- Fireballs: auto-targeted projectiles
 	if db.level_of("weapon_orb") > 0:
 		orb_t -= dt
 		if orb_t <= 0.0:
