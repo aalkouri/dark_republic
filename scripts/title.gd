@@ -38,10 +38,6 @@ var _t := 0.0
 var _goblins: Array = []        # {node, a, r, phase, creep, creep_t, anim}
 var _goblin_vat: VatCrowd
 var _goblin_mm: MultiMesh
-var _voice: AudioStreamPlayer3D
-var _voice_gap := 2.5
-var _clip_last := {}
-var _clips: Array[AudioStream] = []
 var _music: AudioStreamPlayer
 var _ui: CanvasLayer
 var _title: Label
@@ -157,15 +153,6 @@ func _build_goblins() -> void:
 func _build_audio() -> void:
 	_music = MenuMusic.player   # shared with character select so the song never restarts
 	MenuMusic.play()
-	for path in GoblinAudio.AMBIENT_CLIPS:
-		var c := GoblinAudio._try_load(path)
-		if c != null:
-			_clips.append(c)
-	_voice = AudioStreamPlayer3D.new()
-	_voice.bus = Settings.SFX_BUS
-	_voice.unit_size = 8.0
-	_voice.volume_db = -6.0
-	add_child(_voice)
 
 
 # ------------------------------------------------------------------ UI
@@ -382,7 +369,6 @@ func _process(dt: float) -> void:
 	_t += dt
 	_update_camera(dt)
 	_update_goblins(dt)
-	_update_voices(dt)
 	_shot_tick()
 	if _title_mat:
 		var vp := get_viewport().get_visible_rect().size
@@ -420,23 +406,3 @@ func _update_goblins(dt: float) -> void:
 		_goblin_mm.set_instance_color(k, _goblin_vat.anim_color("run", g["anim"]))
 
 
-func _update_voices(dt: float) -> void:
-	if _clips.is_empty():
-		return
-	_voice_gap -= dt
-	if _voice_gap > 0.0:
-		return
-	_voice_gap = randf_range(3.0, 7.0)
-	var ready := []
-	for k in _clips.size():
-		if _t - float(_clip_last.get(k, -99.0)) >= GoblinAudio.CLIP_COOLDOWN:
-			ready.append(k)
-	if ready.is_empty():
-		return
-	var k: int = ready[randi() % ready.size()]
-	_clip_last[k] = _t
-	var g: Dictionary = _goblins[randi() % _goblins.size()]
-	_voice.global_position = (g["node"] as Node3D).global_position + Vector3(0, 0.6, 0)
-	_voice.stream = _clips[k]
-	_voice.pitch_scale = randf_range(0.9, 1.05)
-	_voice.play()

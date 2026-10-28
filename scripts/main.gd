@@ -347,7 +347,6 @@ func _contact_damage() -> void:
 			away.y = 0.0
 			push -= away.normalized() if away.length_squared() > 0.0001 else Vector3.ZERO
 		player.hurt(dmg)
-		goblin_audio.play_collision()
 		_smoke_contacts += 1
 		if push.length_squared() < 0.0001:
 			push = -player.velocity
@@ -362,7 +361,6 @@ func _contact_damage() -> void:
 			if back.length_squared() < 0.01:
 				back = enemies.pos[i] - me
 			enemies.knock(i, back, CONTACT_ENEMY_KNOCK, 0.2)
-			goblin_audio.play_collision()
 			_smoke_immune_knocks += 1
 
 

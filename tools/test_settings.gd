@@ -53,7 +53,7 @@ func _ready() -> void:
 	(mutes[1] as CheckBox).button_pressed = true
 	_check("other-audio mute", AudioServer.is_bus_mute(si), "")
 	_check("level music plays on the Music bus", main.music.bus == Settings.MUSIC_BUS, main.music.bus)
-	_check("goblin voices play on the SFX bus", main.goblin_audio._hit_player.bus == Settings.SFX_BUS, main.goblin_audio._hit_player.bus)
+	_check("goblin death sounds play on the SFX bus", main.goblin_audio._voices[0].bus == Settings.SFX_BUS, main.goblin_audio._voices[0].bus)
 
 	# Persistence
 	var cf := ConfigFile.new()

@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://bjlognryegle1"
-path="res://.godot/imported/battle_cry.wav-d272b2fad3e9274e572ae9379cb9ed45.sample"
+uid="uid://ctj3gidatrjav"
+path="res://.godot/imported/death_1.wav-f33a00c41a2ac4ab8f62f52c7d24059e.sample"
 
 [deps]
 
-source_file="res://audio/goblin/battle_cry.wav"
-dest_files=["res://.godot/imported/battle_cry.wav-d272b2fad3e9274e572ae9379cb9ed45.sample"]
+source_file="res://audio/goblin/death_1.wav"
+dest_files=["res://.godot/imported/death_1.wav-f33a00c41a2ac4ab8f62f52c7d24059e.sample"]
 
 [params]
 

@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://cmpl38ybi7tey"
-path="res://.godot/imported/hit_grunt.wav-a81b2e35c7aed1f490998c103c85363d.sample"
+uid="uid://clfnqe4k8rodx"
+path="res://.godot/imported/death_4.wav-eb9fa97356aa720e9eb4a8321995b828.sample"
 
 [deps]
 
-source_file="res://audio/goblin/hit_grunt.wav"
-dest_files=["res://.godot/imported/hit_grunt.wav-a81b2e35c7aed1f490998c103c85363d.sample"]
+source_file="res://audio/goblin/death_4.wav"
+dest_files=["res://.godot/imported/death_4.wav-eb9fa97356aa720e9eb4a8321995b828.sample"]
 
 [params]
 

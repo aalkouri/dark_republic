@@ -151,10 +151,7 @@ Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): abo
 
 **Death:** killed goblins play a fall-backwards death animation, lie on the ground (charred if they died burning), then sink away 3 s after death.
 
-**Sounds** (`audio/goblin/`, generated in Higgsfield):
-- Ambient: a random nearby goblin voices one of five clips every 0.8–2.2 s. Each clip has its own 5 s cooldown, so the same sound never repeats within 5 s. Bigger goblins are pitched lower.
-- Collision: a grunt (`hit_grunt.wav`) plays whenever a goblin runs into the player.
-- To swap or add clips, edit `AMBIENT_CLIPS` / `COLLISION_CLIP` in `scripts/goblin_audio.gd`.
+**Sounds:** goblins are silent while alive, with no voices or grunts. When one dies within 30 m, a short "splat-pop" plays from where it fell. There are 4 variants, and bigger goblins sound deeper. Death sounds are limited to about 20 per second, so mass kills sound like a crunchy volley. The clips (`audio/goblin/death_*.wav`) are synthesised by `tools/gen_goblin_death_sounds.py`, and the player is `scripts/goblin_audio.gd`.
 
 ## Combat feedback
 
@@ -192,7 +189,7 @@ scripts/
   ability_slot.gd    one ability-bar slot (procedural icon, cooldown, ult outline)
   vat_crowd.gd       baked vertex-animation playback for the goblin crowd (clip/phase per instance, tint, burn, epic, hit flash)
   goblin_mesh.gd     old procedural goblin (unused)
-  goblin_audio.gd    ambient goblin voices with per-clip cooldowns, collision sound
+  goblin_audio.gd    goblin death sounds (rate-limited, positional)
   swamp_props.gd     procedural swamp trees (4 variants), fallen trees, ruins
   swamp_water.gd     recessed pools: outline, bed, water shader, heightmap collision, slow zones
   mesh_builder.gd    merges primitives into vertex-colored meshes with wind sway
