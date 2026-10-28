@@ -21,6 +21,8 @@ var _bio: Label
 var _kit: Label
 var _ability_bar: HBoxContainer
 var _ability_slots: Array = []     # AbilitySlot, one per Abilities.DEFS entry
+var _ability_names: Array = []     # Label under each slot
+var _kit_char := "fire_wizard"     # whose abilities the bar and tooltips show
 var _tooltip: PanelContainer
 var _tooltip_text: RichTextLabel
 var _hover_slot := -1
@@ -359,6 +361,7 @@ func _build_ability_bar(parent: Control) -> void:
 		name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(name)
 		_ability_slots.append(slot)
+		_ability_names.append(name)
 
 	_tooltip = PanelContainer.new()
 	_tooltip.visible = false
@@ -386,8 +389,9 @@ func _build_ability_bar(parent: Control) -> void:
 
 
 ## Tooltip text for ability i outside a run: what it does, cooldown, and when it unlocks.
-static func ability_tooltip(i: int) -> String:
-	var lines := Abilities.describe_lines(i)
+## Characters other than the Fire Wizard show their designed kit from data/abilities.json.
+static func ability_tooltip(i: int, char_id := "fire_wizard") -> String:
+	var lines := Abilities.describe_lines(i) if char_id == "fire_wizard" else KitDB.describe_lines(char_id, i)
 	var lvl := int(Abilities.DEFS[i]["unlock_level"])
 	lines.append("")
 	if lvl <= 1:
@@ -395,6 +399,20 @@ static func ability_tooltip(i: int) -> String:
 	else:
 		lines.append("[color=#ffb347]Unlocks at level %d during a run[/color]" % lvl)
 	return "\n".join(lines)
+
+
+## Point the ability bar at a character's kit: the Fire Wizard keeps his hand-drawn icons,
+## everyone else gets AbilityGlyphs icons and names from data/abilities.json.
+func _set_kit(id: String) -> void:
+	_kit_char = id
+	for i in _ability_slots.size():
+		var slot: AbilitySlot = _ability_slots[i]
+		var a := KitDB.ability(id, i)
+		var ic: Dictionary = a.get("icon", {})
+		slot.glyph = "" if id == "fire_wizard" else str(ic.get("glyph", ""))
+		slot.glyph_color = Color(str(ic.get("color", "#ffffff")))
+		(_ability_names[i] as Label).text = str(a.get("name", Abilities.DEFS[i]["name"])) if id != "fire_wizard" else Abilities.DEFS[i]["name"]
+		slot.queue_redraw()
 
 
 func _on_slot_hover(i: int, on: bool) -> void:
@@ -409,7 +427,7 @@ func _update_tooltip() -> void:
 	if _hover_slot < 0 or not _ability_bar.is_visible_in_tree():
 		_tooltip.visible = false
 		return
-	_tooltip_text.text = ability_tooltip(_hover_slot)
+	_tooltip_text.text = ability_tooltip(_hover_slot, _kit_char)
 	_tooltip.visible = true
 	_tooltip.reset_size()
 	var r: Rect2 = (_ability_slots[_hover_slot] as Control).get_global_rect()
@@ -517,14 +535,17 @@ func _show(k: int) -> void:
 	_epithet.text = c.get("epithet", "")
 	_bio.text = c.get("bio", "")
 	var kit: Array = c.get("kit", [])
-	var has_abilities: bool = c["id"] == "fire_wizard"   # the only kit built so far
-	_ability_bar.visible = has_abilities and not mystery
+	var has_abilities: bool = KitDB.has_kit(c["id"]) and not mystery
+	_set_kit(c["id"] if has_abilities else "fire_wizard")
+	_ability_bar.visible = has_abilities
 	_hover_slot = -1
 	_update_tooltip()
 	var weapon := ""
 	for item in kit:
 		if str(item).ends_with("(weapon)"):
 			weapon = "Weapon: " + str(item).trim_suffix(" (weapon)")
+	if c["id"] != "fire_wizard" and has_abilities:
+		weapon = KitDB.weapon_line(c["id"])
 	_kit.text = weapon if has_abilities else ("  ·  ".join(kit) if ready else "")
 	_kit.visible = _kit.text != ""
 	_play_btn.text = "PLAY"

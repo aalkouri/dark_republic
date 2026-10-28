@@ -15,6 +15,8 @@ const PULSE_SCALE := 0.08     # +8% size at the peak
 const PULSE_BRIGHT := 0.45    # extra brightness at the peak
 
 var icon := Icon.METEOR
+var glyph := ""                  # roster kits: AbilityGlyphs name, drawn instead of `icon`
+var glyph_color := Color.WHITE
 var key_text := "1"
 var is_ult := false
 var locked := false
@@ -92,13 +94,10 @@ func _draw() -> void:
 
 	# Icon
 	var c := size * 0.5
-	match icon:
-		Icon.METEOR:
-			_icon_meteor(c)
-		Icon.SHOCKWAVE:
-			_icon_shockwave(c)
-		Icon.INFERNO:
-			_icon_inferno(c)
+	if glyph != "":
+		AbilityGlyphs.draw(self, glyph, c, glyph_color, _time)
+	else:
+		_draw_icon(c)
 
 	if locked:
 		_draw_locked(r, c)
@@ -186,6 +185,16 @@ func _draw_locked(r: Rect2, c: Vector2) -> void:
 
 
 # ------------------------------------------------------------------ icons
+
+func _draw_icon(c: Vector2) -> void:
+	match icon:
+		Icon.METEOR:
+			_icon_meteor(c)
+		Icon.SHOCKWAVE:
+			_icon_shockwave(c)
+		Icon.INFERNO:
+			_icon_inferno(c)
+
 
 func _icon_meteor(c: Vector2) -> void:
 	# The wizard's own flaming head, diving down-right with a fire trail

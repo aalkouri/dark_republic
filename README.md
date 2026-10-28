@@ -36,6 +36,41 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 
 Each character has a saved level (`lvl`, kept with the coins in `user://progress.cfg`). Tiles show **lvl N** in the bottom-left corner when it's 1 or more, and nothing at 0. Mouse, keyboard and gamepad all work; Esc goes back.
 
+## Character kits
+
+Every character has a designed kit in `data/abilities.json`: a starting weapon plus three abilities on the same keys and unlock levels as the Fire Wizard (**1** from the start, **2** at run level 5, **3** the ultimate at level 10). Cooldowns and numbers are balanced against his kit (about 30 s / 45 s / 2 min; 80-160 damage for the level-5 ability, 200-400 for ultimates).
+
+**On the select screen**, every character shows its weapon and its three ability squares. Hover one for the full description with cooldown and numbers (`KitDB.describe_lines`; `{braces}` in the JSON mark highlighted numbers). Icons are drawn in code by `scripts/ability_glyphs.gd` from each ability's `"icon": {"glyph", "color"}` (36 glyphs). To preview them all: `godot --path . --script res://tools/render_ability_icons.gd -- /out.png`.
+
+**In runs**, only the Fire Wizard's kit is implemented so far (`abilities.gd`); the others are designs until each character is built.
+
+| Character | Role | Weapon | 1 | 2 (Lv 5) | 3 Ultimate (Lv 10) |
+|---|---|---|---|---|---|
+| Ice Wizard | Crowd control: slows, freezes and shatters | Frost Shards | Flash Freeze | Glacial Path | Absolute Zero |
+| Merlin | Control mage who bends time | Arcane Bolts | Time Warp | Polymorph | Rewind |
+| Thunder Wizard | Fast, mobile chain-lightning caster | Chain Lightning | Overcharge | Thunderclap | Storm Lord |
+| Dark Wizard | Life-drain and undead summoner | Shadow Bolts | Siphon | Raise Dead | Eclipse |
+| Ogre | Close-range bruiser with huge cleaves | Tree Trunk | Bellow | Belly Flop | Swamp Rage |
+| Ghast | Untouchable spirit that terrifies the horde | Wail | Phase | Haunt | Banshee Scream |
+| Vampire Hunter | Precise ranged hunter, deadly to big targets | Silver Bolts | Holy Water | Stake Volley | Hunter's Night |
+| Vicki | Aerial lancer who dives on the horde | Valkyrie Spear | Shield Wall | Wings of Valhalla | Ride of the Valkyries |
+| The Rogue | Evasive striker with bleeds and bursts | Twin Daggers | Smoke Bomb | Pickpocket | Death by a Thousand Cuts |
+| Gaiden | Teleporting ninja duelist | Katana | Shadow Step | Shuriken Storm | Reed Clones |
+| Dr. Croc | Alchemist who melts goblins with acid | Volatile Flasks | Mutagen | Death Roll | Toxic Spill |
+| The Arachnid | Trapper who poisons and cocoons | Venom Spit | Web Trap | Brood | Cocoon |
+| Blob | Tanky puddle that eats goblins | Acid Body | Engulf | Split | The Great Puddle |
+| Death | Executioner who reaps the weak | Scythe Sweep | Harvest | Mark of the Inevitable | Overtime |
+| Billy Bulldog | Scrappy melee dog with taunts and stuns | Bite | Fetch! | Zoomies | Who's a Good Boy |
+| Cowboy | Gunslinger with bursts of precise damage | Six-Shooter | Lasso | Dynamite | High Noon |
+| Loco Robotico | Party robot that stuns crowds, then lasers them | Maraca Blasters | Party Mode | Piñata Drop | DESTROY Mode |
+| Singe | Fast fire imp who sets the ground ablaze | Cinder Toss | Hotfoot | Flashover | Supernova |
+| An Argyle Sock | Odd little whirlwind with static shocks | Static Cling | Spin Cycle | Lost Pair | Laundry Day |
+| Sentient Platypus | Poison-kicking scholar with sleep and eggs | Venom Spur | Electro-Bill | Egg Clutch | The Lecture |
+| Bog Witch | Hexer who curses and drowns the horde | Ladle of Bile | Bubbling Cauldron | Hex of Silence | Swamp's Fury |
+| Toadstool Knight | Brave little defender with spores and summons | Spore Blade | Fungal Shield | Fairy Ring | The Fungus Court |
+| Kong | Brawler who throws the swamp at goblins | Shackle Swing | Chest Pound | Log Toss | Rampage |
+| Thog the Troll | Slow, heavy smasher who controls space | Big Club | Toll Booth | Goat Charge | Bridge Collapse |
+
 ## Character levels and skills
 
 **EXP and levels.** Each character earns **1 EXP per kill**, banked when the run ends and shown on the summary with any level-up. The level (`lvl`, shown on the character select tile) comes from total EXP:
@@ -192,6 +227,8 @@ scripts/
   potion_manager.gd  epic drops: purple / red / blue potions
   fx_manager.gd      pooled bursts and ash footprints (MultiMesh)
   ability_slot.gd    one ability-bar slot (procedural icon, cooldown, ult outline)
+  ability_glyphs.gd  procedural icons for the roster kits' abilities
+  kit_db.gd          loads data/abilities.json: every character's weapon + 3 abilities, tooltips
   vat_crowd.gd       baked vertex-animation playback for the goblin crowd (clip/phase per instance, tint, burn, epic, hit flash)
   goblin_mesh.gd     old procedural goblin (unused)
   goblin_audio.gd    goblin death sounds (rate-limited, positional)

@@ -101,7 +101,49 @@ func _ready() -> void:
 	var m: int = cs.index_of("mystery_1")
 	cs._tiles[m].grab_focus()
 	await get_tree().process_frame
-	_check("characters without a kit show no ability squares", not cs._ability_bar.visible, "")
+	_check("mystery slots show no ability squares", not cs._ability_bar.visible, "")
+	# Every roster character shows its own designed kit: weapon line, three named abilities
+	# with glyph icons, and tooltips from data/abilities.json
+	var kit_bad: Array = []
+	var glyph_names := {}
+	for c in cs.characters:
+		if c.get("mystery", false) or c["id"] == "fire_wizard":
+			continue
+		var kk: int = cs.index_of(c["id"])
+		cs._tiles[kk].grab_focus()
+		await get_tree().process_frame
+		var why := ""
+		if not cs._ability_bar.visible:
+			why = "no bar"
+		elif not cs._kit.text.begins_with("Weapon: "):
+			why = "weapon: " + cs._kit.text
+		for i in 3:
+			var sl: AbilitySlot = cs._ability_slots[i]
+			if sl.glyph == "" or not (sl.glyph in AbilityGlyphs.NAMES):
+				why = "glyph %d '%s'" % [i, sl.glyph]
+			glyph_names[sl.glyph] = true
+			var nm: String = (cs._ability_names[i] as Label).text
+			if nm in ["Inferno", "Fire Nova", "Meteor"] or nm == "":
+				why = "name %d" % i
+			cs._on_slot_hover(i, true)
+			await get_tree().process_frame
+			var t: String = cs._tooltip_text.text
+			if not (nm in t and "Cooldown" in t and "•" in t and not "{" in t):
+				why = "tooltip %d: %s" % [i, t.left(60)]
+			if i == 2 and not "ULTIMATE" in t:
+				why = "ult tag"
+			cs._on_slot_hover(i, false)
+		if why != "":
+			kit_bad.append("%s (%s)" % [c["id"], why])
+	_check("all 24 roster characters show their own kit", kit_bad.is_empty(), str(kit_bad))
+	_check("roster kits use a good spread of icons", glyph_names.size() >= 25, "%d" % glyph_names.size())
+	cs._tiles[0].grab_focus()
+	await get_tree().process_frame
+	var tip0: String = cs.ability_tooltip(0, cs._kit_char)
+	_check("back on the wizard: his own icons and live tooltips", cs._kit_char == "fire_wizard" and (cs._ability_slots[0] as AbilitySlot).glyph == ""
+		and (cs._ability_names[0] as Label).text == "Inferno" and "Inferno" in tip0, cs._kit_char)
+	cs._tiles[m].grab_focus()
+	await get_tree().process_frame
 	_check("mystery: ??? and nothing else", cs._name.text == "???" and cs._bio.text == "" and cs._epithet.text == "" and not cs._status.visible
 		and not (cs._tiles[m].get_meta("price") as Control).visible and cs._play_btn.disabled and cs._skills_btn.disabled, cs._name.text)
 	# Unlocking with coins

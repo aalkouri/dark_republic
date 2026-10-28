@@ -1,0 +1,478 @@
+{
+  "_note": "Character kits: a starting weapon plus three abilities (key 1 from the start of a run, key 2 at run level 5, key 3 = ultimate at run level 10), balanced against the Fire Wizard (Inferno 30 s, Fire Nova 45 s / 80 dmg, Meteor 2 min / 250 dmg). Damage numbers scale with the Damage stat. In 'lines', {braces} mark the numbers the tooltip highlights. Icons are drawn by scripts/ability_glyphs.gd.",
+  "kits": {
+    "fire_wizard": {
+      "role": "Burn-and-explode area caster",
+      "weapon": { "name": "Fireballs", "desc": "Auto-aimed fireballs that pierce" },
+      "abilities": [
+        { "name": "Inferno", "cooldown": 30, "icon": { "glyph": "flame", "color": "#ff7a2a" } },
+        { "name": "Fire Nova", "cooldown": 45, "icon": { "glyph": "ring", "color": "#ff9a30" } },
+        { "name": "Meteor", "cooldown": 120, "icon": { "glyph": "burst", "color": "#ffb020" } }
+      ]
+    },
+
+    "ice_wizard": {
+      "role": "Crowd control: slows, freezes and shatters",
+      "weapon": { "name": "Frost Shards", "desc": "Piercing icicles that slow goblins 30% for 2 s" },
+      "abilities": [
+        { "name": "Flash Freeze", "cooldown": 30, "icon": { "glyph": "snowflake", "color": "#9fe8ff" },
+          "text": "Freezes every goblin around you solid.",
+          "lines": ["Goblins within {15 m} are frozen for {3 s} and take {+50%} damage while frozen",
+                    "Frozen goblins that die shatter for {40%} of their max HP to goblins within {2 yd}; shatters chain"] },
+        { "name": "Glacial Path", "cooldown": 45, "icon": { "glyph": "dash", "color": "#bfe6ff" },
+          "text": "Skate across the swamp on a trail of ice.",
+          "lines": ["{+60%} move speed for {6 s}",
+                    "Your ice trail lasts {5 s}: goblins on it are slowed {60%} and take {15} damage per second"] },
+        { "name": "Absolute Zero", "cooldown": 120, "icon": { "glyph": "cloud", "color": "#e8f6ff" },
+          "text": "A blizzard swallows everything around you.",
+          "lines": ["{25 m} blizzard centred on you for {8 s}: goblins inside are slowed {80%} and take {4%} of max HP per second",
+                    "When it ends, every goblin inside freezes for {2 s}, then shatters for {200} damage"] }
+      ]
+    },
+
+    "merlin": {
+      "role": "Control mage who bends time",
+      "weapon": { "name": "Arcane Bolts", "desc": "Homing bolts that bounce to 2 more goblins" },
+      "abilities": [
+        { "name": "Time Warp", "cooldown": 35, "icon": { "glyph": "hourglass", "color": "#9fb8ff" },
+          "text": "Slows time for everyone but you.",
+          "lines": ["Goblins within {20 m} move and attack {70%} slower for {5 s}",
+                    "Your attack speed is {+50%} while it lasts"] },
+        { "name": "Polymorph", "cooldown": 50, "icon": { "glyph": "frog", "color": "#7ddc6a" },
+          "text": "Turns the nearest goblins into frogs.",
+          "lines": ["Up to {40} goblins within {20 m} become frogs for {8 s} (not the boss)",
+                    "Frogs are harmless, take {double} damage and give {2x} XP if killed"] },
+        { "name": "Rewind", "cooldown": 150, "icon": { "glyph": "swirl", "color": "#c9b6ff" },
+          "text": "He's seen this before. Turn the clock back.",
+          "lines": ["Restores your HP and shield to what they were {8 s} ago",
+                    "Resets the cooldowns of your other two abilities",
+                    "Every goblin within {25 m} is flung back {10 yd} and stunned for {2 s}"] }
+      ]
+    },
+
+    "thunder_wizard": {
+      "role": "Fast, mobile chain-lightning caster",
+      "weapon": { "name": "Chain Lightning", "desc": "Arcs to 4 goblins, losing 20% damage per jump" },
+      "abilities": [
+        { "name": "Overcharge", "cooldown": 30, "icon": { "glyph": "bolt", "color": "#fff27a" },
+          "text": "Never stands still. Now he really can't.",
+          "lines": ["{+40%} move speed for {8 s}",
+                    "Every jump and every landing releases a shock: {40} damage within {6 m}"] },
+        { "name": "Thunderclap", "cooldown": 45, "icon": { "glyph": "burst", "color": "#ffe14a" },
+          "text": "Lightning finds the toughest goblins.",
+          "lines": ["{12} bolts strike the goblins with the most HP within {25 m}",
+                    "{120} damage each, and they're stunned for {1.5 s}"] },
+        { "name": "Storm Lord", "cooldown": 120, "icon": { "glyph": "cloud", "color": "#b59cff" },
+          "text": "A thunderstorm follows you around.",
+          "lines": ["For {10 s}, a bolt strikes a goblin within {18 m} every {0.25 s}",
+                    "Each bolt deals {90} damage and chains to {3} more goblins"] }
+      ]
+    },
+
+    "dark_wizard": {
+      "role": "Life-drain and undead summoner",
+      "weapon": { "name": "Shadow Bolts", "desc": "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)" },
+      "abilities": [
+        { "name": "Siphon", "cooldown": 30, "icon": { "glyph": "drop", "color": "#c45bff" },
+          "text": "Drains the life out of everything nearby.",
+          "lines": ["Goblins within {12 m} lose {6%} of max HP per second for {4 s}",
+                    "You heal {1} HP per goblin drained per second, up to {5%} of your max HP per second"] },
+        { "name": "Raise Dead", "cooldown": 50, "icon": { "glyph": "skull", "color": "#b78cff" },
+          "text": "The fallen get back up, on your side this time.",
+          "lines": ["The last {15} goblin corpses near you rise for {15 s} and fight the horde ({25} damage per hit)",
+                    "When their time is up they explode for {60} damage within {3 m}"] },
+        { "name": "Eclipse", "cooldown": 120, "icon": { "glyph": "moon", "color": "#8a4bd8" },
+          "text": "The sky goes black. They can't see you. You can see them.",
+          "lines": ["For {8 s}, goblins lose track of you and wander",
+                    "You deal {+100%} damage",
+                    "Every kill releases a shadow wisp that seeks a goblin for {60} damage"] }
+      ]
+    },
+
+    "ogre": {
+      "role": "Close-range bruiser with huge cleaves",
+      "weapon": { "name": "Tree Trunk", "desc": "Wide 120° cleave in front of you (3 m), heavy knockback" },
+      "abilities": [
+        { "name": "Bellow", "cooldown": 30, "icon": { "glyph": "ring", "color": "#c8d86a" },
+          "text": "GET OUT OF MY SWAMP.",
+          "lines": ["Goblins within {14 m} flee in terror for {4 s}",
+                    "You gain {+30%} armor for {6 s}"] },
+        { "name": "Belly Flop", "cooldown": 45, "icon": { "glyph": "burst", "color": "#9bbf3a" },
+          "text": "Leap and land on them. All of him.",
+          "lines": ["Leap up to {20 m} to where you aim",
+                    "Landing deals {160} damage within {7 m} and stuns for {2 s}"] },
+        { "name": "Swamp Rage", "cooldown": 120, "icon": { "glyph": "fist", "color": "#e0503a" },
+          "text": "Grows bigger and angrier.",
+          "lines": ["For {12 s}: {50%} bigger, {+60%} damage and immune to knockback",
+                    "Your cleave hits all the way around you ({360°})",
+                    "Each kill heals {2%} of your max HP"] }
+      ]
+    },
+
+    "ghast": {
+      "role": "Untouchable spirit that terrifies the horde",
+      "weapon": { "name": "Wail", "desc": "8 m cone of sound in front of you that pierces everything and slows 25%" },
+      "abilities": [
+        { "name": "Phase", "cooldown": 25, "icon": { "glyph": "ghost", "color": "#cfe9ea" },
+          "text": "Drift through goblins, trees and walls.",
+          "lines": ["Intangible for {4 s}: no contact damage, and you pass through everything",
+                    "Goblins you pass through take {30} damage and are slowed {50%} for {2 s}"] },
+        { "name": "Haunt", "cooldown": 45, "icon": { "glyph": "eye", "color": "#9ff0e8" },
+          "text": "Possess the biggest goblin around.",
+          "lines": ["Takes over the goblin with the most HP within {20 m} for {10 s} (epics first, not the boss)",
+                    "It fights the horde with {3x} damage, then bursts for {50%} of its max HP within {4 m}"] },
+        { "name": "Banshee Scream", "cooldown": 120, "icon": { "glyph": "ring", "color": "#e8fbff" },
+          "text": "A scream nobody survives hearing twice.",
+          "lines": ["Goblins within {30 m} take {15%} of their max HP and flee for {6 s}",
+                    "Goblins below {20%} HP die instantly (not the boss)"] }
+      ]
+    },
+
+    "vampire_hunter": {
+      "role": "Precise ranged hunter, deadly to big targets",
+      "weapon": { "name": "Silver Bolts", "desc": "Heavy crossbow bolts that pierce 3 goblins; double damage to epics" },
+      "abilities": [
+        { "name": "Holy Water", "cooldown": 30, "icon": { "glyph": "drop", "color": "#a8d8ff" },
+          "text": "A flask of blessed water, thrown where you aim.",
+          "lines": ["Leaves a {8 m} pool for {6 s}",
+                    "Goblins in it take {25} damage per second and are slowed {40%}"] },
+        { "name": "Stake Volley", "cooldown": 45, "icon": { "glyph": "arrow", "color": "#d9c49a" },
+          "text": "Stakes fly out in every direction.",
+          "lines": ["Fires {16} stakes in a ring: {90} damage each",
+                    "Goblins hit are pinned to the ground for {2 s}"] },
+        { "name": "Hunter's Night", "cooldown": 120, "icon": { "glyph": "moon", "color": "#e04050" },
+          "text": "The hunt is on.",
+          "lines": ["For {10 s}, goblins move at half speed",
+                    "Your bolts lock on to the {3} goblins with the most HP and deal {3x} damage",
+                    "Each kill heals {1%} of your max HP"] }
+      ]
+    },
+
+    "vicki": {
+      "role": "Aerial lancer who dives on the horde",
+      "weapon": { "name": "Valkyrie Spear", "desc": "Thrusts in a 6 m piercing line; every 4th throw is a javelin that flies 25 m" },
+      "abilities": [
+        { "name": "Shield Wall", "cooldown": 30, "icon": { "glyph": "shield", "color": "#c9d3dd" },
+          "text": "Brace behind your shield.",
+          "lines": ["Gain a shield worth {15%} of max HP for {6 s}",
+                    "Goblins that hit you while it holds take {2x} their contact damage back"] },
+        { "name": "Wings of Valhalla", "cooldown": 45, "icon": { "glyph": "wing", "color": "#e8f0ff" },
+          "text": "Take to the air, then come down spear-first.",
+          "lines": ["Leap high and glide for up to {4 s} (steer as you go)",
+                    "Diving down deals {140} damage within {6 m}"] },
+        { "name": "Ride of the Valkyries", "cooldown": 120, "icon": { "glyph": "star", "color": "#5cc8ff" },
+          "text": "Her horse comes back. Just this once.",
+          "lines": ["A spectral winged horse charges through the horde {3} times in the direction you aim",
+                    "{180} damage to every goblin on each pass",
+                    "Kills during the ride heal you {1%} of max HP"] }
+      ]
+    },
+
+    "rogue": {
+      "role": "Evasive striker with bleeds and bursts",
+      "weapon": { "name": "Twin Daggers", "desc": "Fast, short-range throws in pairs; hits bleed for 3% of max HP per second for 3 s" },
+      "abilities": [
+        { "name": "Smoke Bomb", "cooldown": 25, "icon": { "glyph": "cloud", "color": "#9aa49a" },
+          "text": "Vanish in a puff of smoke.",
+          "lines": ["{8 m} smoke cloud; you're invisible for {4 s} and goblins lose track of you",
+                    "Your first attack after the smoke deals {3x} damage"] },
+        { "name": "Pickpocket", "cooldown": 40, "icon": { "glyph": "dash", "color": "#e9f5c8" },
+          "text": "Dash through the crowd and help yourself.",
+          "lines": ["Dash {12 m} through up to {10} goblins: {70} damage each",
+                    "Each goblin you pass drops an extra XP gem"] },
+        { "name": "Death by a Thousand Cuts", "cooldown": 120, "icon": { "glyph": "blade", "color": "#e0e4ea" },
+          "text": "Blink from goblin to goblin faster than they can blink.",
+          "lines": ["Over {3 s}, strike the {20} nearest goblins: {120} damage each, plus a bleed",
+                    "Invulnerable throughout; you return to where you started"] }
+      ]
+    },
+
+    "gaiden": {
+      "role": "Teleporting ninja duelist",
+      "weapon": { "name": "Katana", "desc": "Fast 3-hit combo in a 3 m arc; the 3rd hit sends a wind slash 10 m" },
+      "abilities": [
+        { "name": "Shadow Step", "cooldown": 20, "icon": { "glyph": "moon", "color": "#7a8aa8" },
+          "text": "Appear behind your target. They won't hear you.",
+          "lines": ["Teleport behind the goblin with the most HP within {20 m} and strike for {250} damage",
+                    "Invulnerable for {1.5 s} afterwards",
+                    "Holds {2} charges"] },
+        { "name": "Shuriken Storm", "cooldown": 45, "icon": { "glyph": "star", "color": "#d0d8e4" },
+          "text": "Rings of shuriken spiral out from you.",
+          "lines": ["{3} rings of {12} shuriken over {2 s}",
+                    "{50} damage each; they pierce"] },
+        { "name": "Reed Clones", "cooldown": 120, "icon": { "glyph": "ghost", "color": "#4a5a70" },
+          "text": "Four of him. None of them make a sound.",
+          "lines": ["Summon {4} shadow clones for {12 s}",
+                    "They copy your attacks at {60%} damage"] }
+      ]
+    },
+
+    "dr_croc": {
+      "role": "Alchemist who melts goblins with acid",
+      "weapon": { "name": "Volatile Flasks", "desc": "Lobbed flasks that burst for 30 damage in 3 m and leave acid (4% of max HP per second for 3 s)" },
+      "abilities": [
+        { "name": "Mutagen", "cooldown": 30, "icon": { "glyph": "flask", "color": "#8cff6a" },
+          "text": "Drinks his own experiment. Side effects include winning.",
+          "lines": ["{+50%} attack speed and {+30%} move speed for {8 s}",
+                    "Side effect: you take {+10%} damage while it lasts"] },
+        { "name": "Death Roll", "cooldown": 45, "icon": { "glyph": "swirl", "color": "#5a9a3a" },
+          "text": "Spins forward, dragging goblins with him.",
+          "lines": ["Roll {15 m} where you aim, grabbing goblins in your path",
+                    "{50} damage every {0.25 s} while held; they're flung away at the end"] },
+        { "name": "Toxic Spill", "cooldown": 120, "icon": { "glyph": "drop", "color": "#b6ff3a" },
+          "text": "Knocks over the whole lab.",
+          "lines": ["A {20 m} flood of acid around you for {10 s}: {4%} of max HP per second",
+                    "Goblins that die in it burst for {30%} of their max HP within {3 m}"] }
+      ]
+    },
+
+    "arachnid": {
+      "role": "Trapper who poisons and cocoons",
+      "weapon": { "name": "Venom Spit", "desc": "Fast globs that poison for 3% of max HP per second for 4 s, stacking 3 times" },
+      "abilities": [
+        { "name": "Web Trap", "cooldown": 25, "icon": { "glyph": "web", "color": "#e8e8e8" },
+          "text": "Shoots a web where you aim.",
+          "lines": ["{10 m} web: goblins in it are stuck for {4 s}",
+                    "Stuck goblins take {+30%} damage from poison"] },
+        { "name": "Brood", "cooldown": 50, "icon": { "glyph": "egg", "color": "#d8d0b8" },
+          "text": "An egg sac hatches. Lunch is served.",
+          "lines": ["{12} spiderlings hatch and leap onto goblins for {15 s}",
+                    "Each deals {20} damage per second and applies poison"] },
+        { "name": "Cocoon", "cooldown": 120, "icon": { "glyph": "ring", "color": "#f0f0f0" },
+          "text": "Wraps everything nearby. Breakfast. And lunch.",
+          "lines": ["Every goblin within {25 m} is wrapped in silk for {5 s} (the boss is only slowed)",
+                    "Cocooned goblins take {25%} of their max HP; you heal {1%} of max HP per cocoon"] }
+      ]
+    },
+
+    "blob": {
+      "role": "Tanky puddle that eats goblins",
+      "weapon": { "name": "Acid Body", "desc": "Burns goblins touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size" },
+      "abilities": [
+        { "name": "Engulf", "cooldown": 30, "icon": { "glyph": "ring", "color": "#7cf08a" },
+          "text": "Swallows the goblins closest to you.",
+          "lines": ["Absorbs up to {20} goblins within {6 m} (not the boss)",
+                    "They're digested for {6 s}: {8%} of max HP per second, and you heal {1%} of max HP per goblin"] },
+        { "name": "Split", "cooldown": 45, "icon": { "glyph": "drop", "color": "#5ad86a" },
+          "text": "Two more of you. Equally hungry.",
+          "lines": ["{2} mini-blobs split off for {10 s} and chase goblins",
+                    "Each has its own Acid Body at {60%} damage"] },
+        { "name": "The Great Puddle", "cooldown": 120, "icon": { "glyph": "wave", "color": "#3ac85a" },
+          "text": "Spreads out flat across the swamp.",
+          "lines": ["Become a {20 m} puddle for {6 s}: you can't move, but you're invulnerable",
+                    "Goblins in it are slowed {90%} and take {6%} of max HP per second",
+                    "When you pull back together, survivors are flung out {6 yd}"] }
+      ]
+    },
+
+    "death": {
+      "role": "Executioner who reaps the weak",
+      "weapon": { "name": "Scythe Sweep", "desc": "360° spin every 1.5 s (4 m): 35 damage, instantly reaps goblins under 10% HP" },
+      "abilities": [
+        { "name": "Harvest", "cooldown": 30, "icon": { "glyph": "blade", "color": "#b8b8c8" },
+          "text": "Collects what's owed.",
+          "lines": ["Reaps every goblin within {12 m} below {30%} HP (not the boss)",
+                    "Each soul gives {+2%} damage for {20 s}, up to {+50%}"] },
+        { "name": "Mark of the Inevitable", "cooldown": 45, "icon": { "glyph": "eye", "color": "#9a7aff" },
+          "text": "Their time is up. In five seconds.",
+          "lines": ["Marks the {8} goblins with the most HP within {30 m}",
+                    "After {5 s} each takes {400} damage"] },
+        { "name": "Overtime", "cooldown": 120, "icon": { "glyph": "hourglass", "color": "#6a5a9a" },
+          "text": "He decided to stay a little longer.",
+          "lines": ["The run clock and goblin spawns stop for {10 s}",
+                    "You deal {+100%} damage and kills drop {2x} XP"] }
+      ]
+    },
+
+    "billy_bulldog": {
+      "role": "Scrappy melee dog with taunts and stuns",
+      "weapon": { "name": "Bite", "desc": "Lunges at the nearest goblin (2 m) for 25 damage; every 5th bite shakes it for 3x" },
+      "abilities": [
+        { "name": "Fetch!", "cooldown": 25, "icon": { "glyph": "bone", "color": "#f0e6c8" },
+          "text": "Throws his bone. The goblins want it more.",
+          "lines": ["Throw a bone up to {25 m}; goblins within {15 m} of it rush to it and squabble for {4 s}",
+                    "Then the bone explodes for {100} damage within {5 m}"] },
+        { "name": "Zoomies", "cooldown": 45, "icon": { "glyph": "dash", "color": "#ffd27a" },
+          "text": "Sprints in circles for no reason.",
+          "lines": ["{+100%} move speed for {6 s}",
+                    "Your dust trail deals {30} damage per second and knocks goblins back"] },
+        { "name": "Who's a Good Boy", "cooldown": 120, "icon": { "glyph": "paw", "color": "#ffb060" },
+          "text": "Nobody can resist. Then he barks.",
+          "lines": ["Every goblin within {20 m} stops to pet you for {4 s}; you're invulnerable",
+                    "Then a bark: {250} damage within {12 m} and big knockback"] }
+      ]
+    },
+
+    "cowboy": {
+      "role": "Gunslinger with bursts of precise damage",
+      "weapon": { "name": "Six-Shooter", "desc": "6 rapid shots of 40 damage (pierce 1), then a 1.5 s reload" },
+      "abilities": [
+        { "name": "Lasso", "cooldown": 25, "icon": { "glyph": "ring", "color": "#d8a86a" },
+          "text": "Ropes the biggest goblin and uses it as a weapon.",
+          "lines": ["Lasso the goblin with the most HP within {20 m} and swing it around you for {3 s}",
+                    "{60} damage to every goblin it hits, then you hurl it {15 m}"] },
+        { "name": "Dynamite", "cooldown": 40, "icon": { "glyph": "bomb", "color": "#e04a2a" },
+          "text": "Three sticks, short fuses.",
+          "lines": ["Throws {3} sticks in a fan",
+                    "Each explodes after {1.5 s} for {120} damage within {5 m}"] },
+        { "name": "High Noon", "cooldown": 120, "icon": { "glyph": "sun", "color": "#ffd23f" },
+          "text": "It's high noon somewhere.",
+          "lines": ["Time freezes for {2 s} while you mark up to {30} goblins in view",
+                    "Then you fire: {300} damage to each"] }
+      ]
+    },
+
+    "loco_robotico": {
+      "role": "Party robot that stuns crowds, then lasers them",
+      "weapon": { "name": "Maraca Blasters", "desc": "Alternating sonic pulses in a 6 m cone: 20 damage each, faster while you keep moving" },
+      "abilities": [
+        { "name": "Party Mode", "cooldown": 30, "icon": { "glyph": "note", "color": "#ff5ad8" },
+          "text": "Drops a disco ball. Everyone dances.",
+          "lines": ["Goblins within {15 m} are forced to dance for {6 s} (they can't move or attack)",
+                    "Dancing goblins take {5%} of max HP per second"] },
+        { "name": "Piñata Drop", "cooldown": 45, "icon": { "glyph": "bomb", "color": "#ffb020" },
+          "text": "Launches a piñata. It's full of explosives.",
+          "lines": ["A piñata lands where you aim; goblins swarm it, and it bursts after {3 s}",
+                    "{20} candy bombs rain out: {60} damage each within {3 m}"] },
+        { "name": "DESTROY Mode", "cooldown": 120, "icon": { "glyph": "bolt", "color": "#ff3a3a" },
+          "text": "Switches from DANCE to DESTROY.",
+          "lines": ["For {12 s}, twin lasers sweep around you to {20 m}",
+                    "{8%} of max HP per second to goblins in the beams; {+50%} armor"] }
+      ]
+    },
+
+    "singe": {
+      "role": "Fast fire imp who sets the ground ablaze",
+      "weapon": { "name": "Cinder Toss", "desc": "Lobbed hot coals that leave small fires (10 damage per second for 2 s)" },
+      "abilities": [
+        { "name": "Hotfoot", "cooldown": 25, "icon": { "glyph": "flame", "color": "#ff8a2a" },
+          "text": "Runs around leaving scorch marks on everything.",
+          "lines": ["{+40%} move speed for {6 s}, leaving burning footprints that last {4 s}",
+                    "Goblins that touch them burn for {4%} of max HP per second for {3 s}"] },
+        { "name": "Flashover", "cooldown": 45, "icon": { "glyph": "burst", "color": "#ffb030" },
+          "text": "Every fire he's lit goes off at once.",
+          "lines": ["Every fire on the ground erupts: {100} damage within {3 m} of each",
+                    "Each eruption leaves a fresh fire behind"] },
+        { "name": "Supernova", "cooldown": 120, "icon": { "glyph": "sun", "color": "#fff0c0" },
+          "text": "Gets very, very hot.",
+          "lines": ["Glow white-hot for {3 s} (you take no damage), then explode: {300} damage within {25 m}, plus a {3 s} burn",
+                    "Afterwards you're a tiny cinder with {+50%} move speed for {5 s}"] }
+      ]
+    },
+
+    "argyle_sock": {
+      "role": "Odd little whirlwind with static shocks",
+      "weapon": { "name": "Static Cling", "desc": "Zaps the 3 nearest goblins for 18 damage; builds up to 2x damage while you keep moving" },
+      "abilities": [
+        { "name": "Spin Cycle", "cooldown": 30, "icon": { "glyph": "swirl", "color": "#e05a8a" },
+          "text": "Spins like it's back in the machine.",
+          "lines": ["Become a whirlwind for {5 s}, pulling goblins within {6 m} in",
+                    "{40} damage every {0.5 s} to goblins inside"] },
+        { "name": "Lost Pair", "cooldown": 50, "icon": { "glyph": "sock", "color": "#5a8ae0" },
+          "text": "Finds its missing partner. Briefly.",
+          "lines": ["Your partner sock fights beside you for {15 s}",
+                    "It copies your attacks, and when both of you zap the same goblin it takes {2x} damage"] },
+        { "name": "Laundry Day", "cooldown": 120, "icon": { "glyph": "wave", "color": "#8ad8ff" },
+          "text": "A washing machine falls from the sky.",
+          "lines": ["Lands where you aim, sucks in every goblin within {10 m} and washes them for {4 s}: {10%} of max HP per second",
+                    "Survivors come out shrunk: half damage and {double} damage taken for {20 s}"] }
+      ]
+    },
+
+    "platypus": {
+      "role": "Poison-kicking scholar with sleep and eggs",
+      "weapon": { "name": "Venom Spur", "desc": "Melee kick that poisons for 2% of max HP per second; each stack slows 10% (max 5)" },
+      "abilities": [
+        { "name": "Electro-Bill", "cooldown": 30, "icon": { "glyph": "bolt", "color": "#7ad8ff" },
+          "text": "Senses every goblin nearby. Then shocks them.",
+          "lines": ["Electric pulse to {15 m}: {60} damage",
+                    "Goblins hit are stunned for {1.5 s}"] },
+        { "name": "Egg Clutch", "cooldown": 45, "icon": { "glyph": "egg", "color": "#f0e8d0" },
+          "text": "Lays eggs. Monotremes do that.",
+          "lines": ["Lays {4} eggs around you that hatch after {2 s}",
+                    "Each puggle explodes for {80} damage within {4 m} and poisons"] },
+        { "name": "The Lecture", "cooldown": 120, "icon": { "glyph": "book", "color": "#c8a06a" },
+          "text": "Reads aloud from his treatise on monotremes.",
+          "lines": ["Every goblin within {25 m} falls asleep for {6 s} (the boss is only slowed)",
+                    "Sleeping goblins take {double} poison damage; the first hit wakes them for {3x} damage"] }
+      ]
+    },
+
+    "bog_witch": {
+      "role": "Hexer who curses and drowns the horde",
+      "weapon": { "name": "Ladle of Bile", "desc": "Lobs bile that splashes for 25 damage in 3 m and slows 20%" },
+      "abilities": [
+        { "name": "Bubbling Cauldron", "cooldown": 35, "icon": { "glyph": "cauldron", "color": "#7ad85a" },
+          "text": "Sets down her cauldron. It spits.",
+          "lines": ["A cauldron stands for {15 s}, spitting a glob at a goblin within {15 m} every second: {50} damage",
+                    "You heal {2%} of max HP per second while standing next to it"] },
+        { "name": "Hex of Silence", "cooldown": 45, "icon": { "glyph": "eye", "color": "#a85ad8" },
+          "text": "Three hundred years, and now THIS noise.",
+          "lines": ["Goblins within {20 m} are hexed for {8 s} and take {+40%} damage",
+                    "A hexed goblin that dies passes the hex on to {2} neighbours"] },
+        { "name": "Swamp's Fury", "cooldown": 120, "icon": { "glyph": "wave", "color": "#3a8a4a" },
+          "text": "The bog rises up and grabs them.",
+          "lines": ["The ground within {30 m} turns to bog for {12 s}: goblins are slowed {70%}",
+                    "Every second, hands drag the {3} nearest goblins under (elites and the boss take {25%} of max HP instead)"] }
+      ]
+    },
+
+    "toadstool_knight": {
+      "role": "Brave little defender with spores and summons",
+      "weapon": { "name": "Spore Blade", "desc": "Sword slash in a 3 m arc: 30 damage, leaves a spore cloud (2% of max HP per second)" },
+      "abilities": [
+        { "name": "Fungal Shield", "cooldown": 30, "icon": { "glyph": "shield", "color": "#d84a3a" },
+          "text": "Raises a shield cap.",
+          "lines": ["Gain a shield worth {20%} of max HP for {8 s}",
+                    "When it breaks or runs out, it bursts into spores: {60} damage within {8 m}, plus poison"] },
+        { "name": "Fairy Ring", "cooldown": 45, "icon": { "glyph": "mushroom", "color": "#f0d0a0" },
+          "text": "A ring of mushrooms springs up around you.",
+          "lines": ["A {10 m} ring lasts {10 s}",
+                    "Goblins that cross it take {50} damage and wander confused for {3 s}"] },
+        { "name": "The Fungus Court", "cooldown": 120, "icon": { "glyph": "crown", "color": "#ffd23f" },
+          "text": "His liege lords arrive.",
+          "lines": ["{6} giant toadstool guardians rise in a {12 m} ring around you for {15 s}",
+                    "Each draws goblins to it and slams every {1.5 s}: {80} damage within {4 m}"] }
+      ]
+    },
+
+    "kong": {
+      "role": "Brawler who throws the swamp at goblins",
+      "weapon": { "name": "Shackle Swing", "desc": "Swings his chains around him (4 m): 30 damage and knockback" },
+      "abilities": [
+        { "name": "Chest Pound", "cooldown": 30, "icon": { "glyph": "fist", "color": "#a87a5a" },
+          "text": "Three pounds. Three shockwaves.",
+          "lines": ["{3} shockwaves to {10 m}: {50} damage each",
+                    "The last one stuns for {2 s}"] },
+        { "name": "Log Toss", "cooldown": 45, "icon": { "glyph": "dash", "color": "#8a6a4a" },
+          "text": "Rips up a log and bowls it at them.",
+          "lines": ["Hurls a log that rolls {30 m} where you aim",
+                    "{120} damage to every goblin it flattens"] },
+        { "name": "Rampage", "cooldown": 120, "icon": { "glyph": "chain", "color": "#d8d8d8" },
+          "text": "Snaps his shackles. Uses the pieces.",
+          "lines": ["For {12 s}: {+80%} damage and {+50%} move speed",
+                    "Every {3rd} step quakes for {60} damage within {6 m}",
+                    "The broken chains fly out to {25 m}, lashing goblins"] }
+      ]
+    },
+
+    "thog": {
+      "role": "Slow, heavy smasher who controls space",
+      "weapon": { "name": "Big Club", "desc": "Overhead smash in a 4 m cone: 50 damage, slow but with heavy knockback" },
+      "abilities": [
+        { "name": "Toll Booth", "cooldown": 30, "icon": { "glyph": "crown", "color": "#6a9ad8" },
+          "text": "None shall pass. Without paying.",
+          "lines": ["For {8 s}, every goblin that comes within {6 m} pays the toll: {80} damage",
+                    "Each one that pays drops an XP gem"] },
+        { "name": "Goat Charge", "cooldown": 45, "icon": { "glyph": "dash", "color": "#c8c0b0" },
+          "text": "He learned this one from the goat.",
+          "lines": ["Charge {20 m} headfirst where you aim",
+                    "Goblins hit take {120} damage and are thrown {8 yd}"] },
+        { "name": "Bridge Collapse", "cooldown": 120, "icon": { "glyph": "burst", "color": "#9aa0a8" },
+          "text": "Brings his old bridge down on them.",
+          "lines": ["A stone bridge crashes down on a {25 m} line where you aim: {350} damage",
+                    "The rubble stays for {10 s} as a wall goblins can't cross"] }
+      ]
+    }
+  }
+}
