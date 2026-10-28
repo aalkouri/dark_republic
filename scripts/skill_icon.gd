@@ -2,7 +2,7 @@ class_name SkillIcon
 extends Control
 ## Small vector glyphs for skill squares (drawn in a 64x64 design space and scaled).
 ## kinds: heart, shield, cross, bubble, blade, clock, orb, burst, arrow, boot, feather, coin,
-## magnet, book, clover, flame, expand, eye, triple.
+## magnet, book, clover, flame, expand, eye, triple, fireball, stink, slam, bomb, fang.
 
 var kind := "orb"
 var color := Color.WHITE
@@ -116,6 +116,51 @@ func _draw() -> void:
 				draw_line(o + Vector2(0, 8), o + Vector2(0, 22), dark, 4)
 				draw_circle(o, 7, c)
 				draw_circle(o + Vector2(-2, -2), 2.5, light)
+		"fireball":   # a blazing ball with its tail streaming behind (up-left)
+			_poly([Vector2(40, 30), Vector2(8, 8), Vector2(22, 26), Vector2(4, 22), Vector2(26, 40), Vector2(30, 46)], dark)
+			_poly([Vector2(40, 32), Vector2(14, 14), Vector2(26, 30), Vector2(12, 28), Vector2(32, 44)], c)
+			draw_circle(Vector2(40, 40), 15, c)
+			draw_circle(Vector2(40, 40), 10, light)
+			draw_circle(Vector2(37, 37), 4, Color(1, 1, 0.9))
+		"stink":   # wavy fumes rising from a puddle
+			draw_circle(Vector2(32, 52), 20, Color(c, 0.35))
+			for k in 3:
+				var x := 18.0 + k * 14.0
+				var pts := PackedVector2Array()
+				for j in 9:
+					var y := 48.0 - j * 4.6
+					pts.append(Vector2(x + sin(j * 1.1 + k) * 4.0, y))
+				draw_polyline(pts, c, 4)
+			draw_circle(Vector2(46, 14), 3, light)
+			draw_circle(Vector2(20, 12), 2.5, light)
+		"slam":   # a fist hammering the ground, cracks and dust flying
+			_poly([Vector2(20, 6), Vector2(44, 6), Vector2(46, 30), Vector2(18, 30)], c)
+			for k in 4:
+				draw_line(Vector2(22 + k * 6, 12), Vector2(22 + k * 6, 22), dark, 2)
+			_poly([Vector2(16, 30), Vector2(48, 30), Vector2(46, 36), Vector2(18, 36)], light)
+			draw_line(Vector2(6, 46), Vector2(58, 46), c, 3)
+			for seg in [[Vector2(32, 46), Vector2(26, 54), Vector2(28, 60)], [Vector2(32, 46), Vector2(40, 53), Vector2(38, 60)]]:
+				draw_polyline(PackedVector2Array(seg), dark, 2.5)
+			for k in 3:
+				var a := PI + 0.35 + k * 0.25
+				draw_line(Vector2(14, 42) + Vector2(cos(a), sin(a)) * 3, Vector2(14, 42) + Vector2(cos(a), sin(a)) * 11, light, 2.5)
+				var b := -0.35 - k * 0.25
+				draw_line(Vector2(50, 42) + Vector2(cos(b), sin(b)) * 3, Vector2(50, 42) + Vector2(cos(b), sin(b)) * 11, light, 2.5)
+		"bomb":
+			draw_circle(Vector2(28, 38), 19, Color(0.12, 0.12, 0.14))
+			draw_circle(Vector2(22, 32), 6, Color(0.45, 0.45, 0.5))
+			_poly([Vector2(34, 16), Vector2(44, 16), Vector2(44, 24), Vector2(34, 24)], Color(0.3, 0.3, 0.34))
+			draw_polyline(PackedVector2Array([Vector2(39, 16), Vector2(42, 10), Vector2(48, 8)]), Color(0.75, 0.6, 0.4), 2.5)
+			for k in 6:
+				var a := TAU * k / 6.0
+				draw_line(Vector2(50, 8), Vector2(50, 8) + Vector2(cos(a), sin(a)) * 7, c, 2.5)
+			draw_circle(Vector2(50, 8), 3, light)
+		"fang":
+			_poly([Vector2(10, 10), Vector2(54, 10), Vector2(54, 18), Vector2(10, 18)], Color(0.6, 0.15, 0.2))
+			_poly([Vector2(14, 16), Vector2(28, 16), Vector2(21, 48)], Color(0.96, 0.94, 0.88))
+			_poly([Vector2(36, 16), Vector2(50, 16), Vector2(43, 48)], Color(0.96, 0.94, 0.88))
+			draw_circle(Vector2(21, 54), 4, c)
+			_poly([Vector2(18, 53), Vector2(24, 53), Vector2(21, 46)], c)
 		"flame":
 			_poly([Vector2(32, 4), Vector2(48, 26), Vector2(50, 42), Vector2(32, 58), Vector2(14, 42), Vector2(18, 26), Vector2(26, 30)], c)
 			_poly([Vector2(32, 24), Vector2(40, 40), Vector2(32, 52), Vector2(24, 40)], light)

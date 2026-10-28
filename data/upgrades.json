@@ -19,20 +19,20 @@
   "percent_stats": ["luck", "bomb_chance", "fang_chance"],
 
   "upgrades": [
-    { "id": "weapon_orb", "kind": "weapon", "name": "Fireballs", "weight": 10, "max_level": 8,
+    { "id": "weapon_orb", "kind": "weapon", "icon": { "glyph": "fireball", "cover": "#7a2a10", "tint": "#ff9a30" }, "name": "Fireballs", "weight": 10, "max_level": 8,
       "desc": "Hurls fireballs from your staff at the nearest goblins.",
       "per_level": [
         { "stat": "orb_damage", "op": "add", "value": 0.2 },
         { "stat": "orb_count", "op": "flat", "value": 0.5 },
         { "stat": "orb_pierce", "op": "flat", "value": 0.34 } ] },
 
-    { "id": "weapon_aura", "kind": "weapon", "name": "Stink Aura", "weight": 8, "max_level": 8,
+    { "id": "weapon_aura", "kind": "weapon", "icon": { "glyph": "stink", "cover": "#2f4a1a", "tint": "#9be35a" }, "name": "Stink Aura", "weight": 8, "max_level": 8,
       "desc": "Constantly damages enemies around you.",
       "per_level": [
         { "stat": "aura_damage", "op": "add", "value": 0.25 },
         { "stat": "aura_radius", "op": "add", "value": 0.1 } ] },
 
-    { "id": "weapon_slam", "kind": "weapon", "name": "Ground Slam", "weight": 8, "max_level": 8,
+    { "id": "weapon_slam", "kind": "weapon", "icon": { "glyph": "slam", "cover": "#4a3a2a", "tint": "#e8c27a" }, "name": "Ground Slam", "weight": 8, "max_level": 8,
       "desc": "Periodically slams the ground, knocking enemies back.",
       "per_level": [
         { "stat": "slam_damage", "op": "add", "value": 0.25 },
@@ -63,13 +63,13 @@
     { "id": "tome_quantity", "kind": "tome", "icon": { "glyph": "triple", "cover": "#8e5a1f" }, "name": "Tome of Quantity", "weight": 3, "max_level": 3, "fixed": true,
       "desc": "+1 projectile for every projectile weapon.", "per_level": [ { "stat": "projectile_count", "op": "flat", "value": 1 } ] },
 
-    { "id": "item_bomb", "kind": "item", "name": "Bonk Bomb", "weight": 5, "max_level": 5,
+    { "id": "item_bomb", "kind": "item", "icon": { "glyph": "bomb", "cover": "#7a3a1a", "tint": "#ffb020" }, "name": "Bonk Bomb", "weight": 5, "max_level": 5,
       "desc": "Enemies have a chance to explode on death.",
       "per_level": [ { "stat": "bomb_chance", "op": "flat", "value": 0.06 }, { "stat": "bomb_damage", "op": "add", "value": 0.15 } ] },
-    { "id": "item_fang", "kind": "item", "name": "Vampire Fang", "weight": 5, "max_level": 5,
+    { "id": "item_fang", "kind": "item", "icon": { "glyph": "fang", "cover": "#3a1020", "tint": "#e0303a" }, "name": "Vampire Fang", "weight": 5, "max_level": 5,
       "desc": "Chance to heal when you kill an enemy.",
       "per_level": [ { "stat": "fang_chance", "op": "flat", "value": 0.04 } ] },
-    { "id": "item_feather", "kind": "item", "name": "Feather", "weight": 4, "max_level": 2, "fixed": true,
+    { "id": "item_feather", "kind": "item", "icon": { "glyph": "feather", "cover": "#1f3a5a", "tint": "#e8f0ff" }, "name": "Feather", "weight": 4, "max_level": 2, "fixed": true,
       "desc": "Jump again in mid-air.",
       "per_level": [ { "stat": "extra_jumps", "op": "flat", "value": 1 } ] }
   ]

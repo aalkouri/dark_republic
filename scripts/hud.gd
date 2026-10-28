@@ -17,7 +17,7 @@ var msg_label: Label
 var pause_root: Control
 var settings_menu: SettingsMenu
 var draft_root: Control
-var draft_cards: Array = []   # [Button, rarity Label, title Label, body Label, TomeIcon]
+var draft_cards: Array = []   # [Button, title Label, body Label, UpgradeIcon]
 var end_root: Control
 var ability_slots: Array = []   # AbilitySlot
 var tooltip: PanelContainer
@@ -218,39 +218,61 @@ func _build_draft(root: Control) -> void:
 	vb.add_child(hb)
 	for i in 3:
 		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(300, 230)
+		btn.custom_minimum_size = Vector2(300, 420)
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.pressed.connect(func(): main.choose_upgrade(i))
 		hb.add_child(btn)
 		var box := VBoxContainer.new()
 		box.set_anchors_preset(Control.PRESET_FULL_RECT)
-		box.offset_left = 16
-		box.offset_top = 14
-		box.offset_right = -16
-		box.offset_bottom = -14
+		box.offset_left = 18
+		box.offset_top = 18
+		box.offset_right = -18
+		box.offset_bottom = -18
 		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		box.add_theme_constant_override("separation", 8)
+		box.add_theme_constant_override("separation", 10)
 		btn.add_child(box)
-		var rar := _label("", 15)
-		var ttl := _label("", 24)
+		# Centrepiece: the upgrade's icon (tome book, weapon medallion, item charm)
+		var tome := UpgradeIcon.new()
+		tome.custom_minimum_size = Vector2(120, 120)
+		tome.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		box.add_child(tome)
+		var ttl := _label("", 26)
+		ttl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		ttl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		var body := _label("", 17)
+		box.add_child(ttl)
+		# What it does, in its own dark box
+		var body_box := PanelContainer.new()
+		body_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		body_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		var bs := StyleBoxFlat.new()
+		bs.bg_color = Color(0.02, 0.015, 0.01, 0.82)
+		bs.border_color = Color(1, 1, 1, 0.14)
+		bs.set_border_width_all(1)
+		bs.set_corner_radius_all(8)
+		bs.set_content_margin_all(12)
+		body_box.add_theme_stylebox_override("panel", bs)
+		box.add_child(body_box)
+		var body := _label("", 20)
+		body.add_theme_color_override("font_color", Color.WHITE)
+		body.add_theme_constant_override("outline_size", 5)
+		body.add_theme_constant_override("line_spacing", 4)
+		body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		body.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		var head := HBoxContainer.new()
-		head.add_theme_constant_override("separation", 10)
-		head.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var tome := TomeIcon.new()
-		tome.custom_minimum_size = Vector2(68, 68)
-		tome.visible = false
-		head.add_child(tome)
-		ttl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		ttl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		ttl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		head.add_child(ttl)
-		for l in [rar, head, body]:
-			box.add_child(l)
-		draft_cards.append([btn, rar, ttl, body, tome])
+		body_box.add_child(body)
+		draft_cards.append([btn, ttl, body, tome])
+
+
+## Card frame outlined thickly in the rarity colour (brighter on hover).
+static func _card_style(rarity: Color, fill: Color) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = fill
+	sb.border_color = rarity
+	sb.set_border_width_all(6)
+	sb.set_corner_radius_all(12)
+	sb.shadow_color = Color(rarity, 0.35)
+	sb.shadow_size = 10
+	return sb
 
 
 func _build_ability_bar(root: Control) -> void:
@@ -491,16 +513,18 @@ func show_draft(picks: Array) -> void:
 		if i >= picks.size():
 			continue
 		var info: Dictionary = main.db.describe(picks[i])
-		card[1].text = info["subtitle"]
-		card[1].add_theme_color_override("font_color", info["color"])
-		card[2].text = info["title"]
-		card[2].add_theme_color_override("font_color", info["color"])
-		card[3].text = info["body"]
+		var col: Color = info["color"]
+		btn.add_theme_stylebox_override("normal", _card_style(col, Color(0.07, 0.055, 0.045, 0.97)))
+		btn.add_theme_stylebox_override("hover", _card_style(col.lightened(0.3), Color(0.13, 0.1, 0.07, 0.98)))
+		btn.add_theme_stylebox_override("pressed", _card_style(col.lightened(0.45), Color(0.18, 0.13, 0.08, 1.0)))
+		card[1].text = info["title"]
+		card[1].add_theme_color_override("font_color", col.lightened(0.15))
+		card[2].text = info["body"]
 		var icon: Dictionary = info.get("icon", {})
-		var tome: TomeIcon = card[4]
-		tome.visible = not icon.is_empty()
-		if tome.visible:
-			tome.set_icon(icon)
+		var art: UpgradeIcon = card[3]
+		art.visible = not icon.is_empty()
+		if art.visible:
+			art.set_icon(icon, info["kind"])
 	draft_root.visible = true
 
 

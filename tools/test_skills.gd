@@ -138,7 +138,11 @@ func _ready() -> void:
 				bad.append(id + " (describe)")
 	_check("every tome has an icon (glyph + cover colour)", bad.is_empty(), str(bad))
 	_check("every tome cover is a different colour", covers.size() == 12, "%d" % covers.size())
-	_check("weapons/items have no tome icon", db.describe({"id": "weapon_aura", "rarity": 0})["icon"].is_empty(), "")
+	var missing := []
+	for id in db.defs:
+		if db.describe({"id": id, "rarity": 0})["icon"].is_empty():
+			missing.append(id)
+	_check("every weapon and item has an icon too", missing.is_empty(), str(missing))
 
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
