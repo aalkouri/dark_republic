@@ -224,6 +224,7 @@ func _build_pillar(tier_col: Color) -> void:
 	bm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	bm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	bm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	bm.disable_fog = true   # additive + fog = pale grey halos
 	bm.albedo_color = Color(tier_col, 0.35)
 	beam.material = bm
 	var bmi := MeshInstance3D.new()

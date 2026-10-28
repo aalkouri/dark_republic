@@ -178,6 +178,7 @@ func _ready() -> void:
 	spark_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	spark_mat.vertex_color_use_as_albedo = true
 	spark_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	spark_mat.disable_fog = true   # additive + fog = pale grey halos
 	spark_mesh.material = spark_mat
 	_sparks.mesh = spark_mesh
 	var grad := Gradient.new()

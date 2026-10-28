@@ -45,6 +45,7 @@ func _ready() -> void:
 	bm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	bm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	bm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	bm.disable_fog = true   # additive + fog = pale grey halos
 	bm.vertex_color_use_as_albedo = true
 	bm.cull_mode = BaseMaterial3D.CULL_DISABLED
 	sphere.material = bm

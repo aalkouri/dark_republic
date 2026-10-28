@@ -33,7 +33,7 @@ const SCORCH_DPS := 0.03             # of max HP per second while standing in th
 
 const SCORCH_SHADER := """
 shader_type spatial;
-render_mode unshaded, blend_add, cull_disabled, depth_draw_never, shadows_disabled;
+render_mode unshaded, blend_add, cull_disabled, depth_draw_never, shadows_disabled, fog_disabled;
 uniform float fade = 1.0;
 varying vec3 wpos;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -115,6 +115,7 @@ func _ready() -> void:
 	_fire_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_fire_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_fire_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	_fire_mat.disable_fog = true   # additive + fog = pale grey halos
 	_fire_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_fire_mat.albedo_color = Color(1.0, 0.45, 0.1, 0.9)
 
@@ -429,6 +430,7 @@ func _cast_shockwave() -> void:
 	ring.global_position = center + Vector3(0, 0.3, 0)
 	var disc := _ground_disc(1.0, Color(1.0, 0.3, 0.04, 0.12))
 	(disc.mesh.material as StandardMaterial3D).blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	(disc.mesh.material as StandardMaterial3D).disable_fog = true   # additive + fog = pale grey halos
 	disc.global_position = center + Vector3(0, 0.06, 0)
 	_shocks.append({"center": center, "t": 0.0, "hit": {}, "ring": ring, "disc": disc})
 	player.add_shake(0.35)
@@ -548,6 +550,7 @@ static func _flame_particles(size: float, lifetime: float, amount: int) -> CPUPa
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	mat.disable_fog = true   # additive + fog = pale grey halos
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	mat.vertex_color_use_as_albedo = true
 	mat.albedo_texture = _soft_dot()

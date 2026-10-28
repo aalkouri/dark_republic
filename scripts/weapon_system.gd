@@ -70,6 +70,7 @@ func _ready() -> void:
 	tail_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	tail_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	tail_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	tail_mat.disable_fog = true   # additive + fog = pale grey halos
 	tail_mat.albedo_color = Color(1.0, 0.32, 0.05, 0.75)
 	tail.material = tail_mat
 	tail_mm = MultiMesh.new()
