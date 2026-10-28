@@ -91,7 +91,11 @@ var _shot_ignite := false
 var _shot_zoom := 0.0
 var _shot_turn := 0.0
 var _shot_level := 0
-var _shot_draft: Array = []   # --shot-draft=id[:rarity],... : show these level-up cards
+var _shot_draft: Array = []
+var _frames_dir := ""      # --frames=DIR:START:COUNT  debug: dump COUNT frames from START s (game keeps running)
+var _frames_start := 0.0
+var _frames_left := 0
+var _frames_n := 0   # --shot-draft=id[:rarity],... : show these level-up cards
 var _shot_inspect := -1
 var _shot_settings_tab := -1
 var _forced_seed := -1
@@ -126,6 +130,12 @@ func _ready() -> void:
 			_shot_settings_tab = int(a.split("=")[1])
 		elif a.begins_with("--shot-inspect="):
 			_shot_inspect = int(a.split("=")[1])
+		elif a.begins_with("--frames="):
+			var fp := a.split("=")[1].split(":")
+			_frames_dir = fp[0]
+			_frames_start = float(fp[1])
+			_frames_left = int(fp[2])
+			RenderingServer.frame_post_draw.connect(_dump_frame)
 		elif a.begins_with("--shot-draft="):
 			for c in a.split("=")[1].split(","):
 				var parts := c.split(":")
@@ -778,6 +788,17 @@ func _shot_tick() -> void:
 			hud.settings_menu._tabs.current_tab = _shot_settings_tab
 		shot_path_save.call_deferred()
 		set_physics_process(false)
+
+
+func _dump_frame() -> void:
+	if _frames_left <= 0 or run_time < _frames_start:
+		return
+	get_viewport().get_texture().get_image().save_jpg("%s/f%04d.jpg" % [_frames_dir, _frames_n], 0.85)
+	_frames_n += 1
+	_frames_left -= 1
+	if _frames_left == 0:
+		print("FRAMES saved %d" % _frames_n)
+		get_tree().quit()
 
 
 func shot_path_save() -> void:

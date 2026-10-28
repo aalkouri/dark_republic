@@ -54,6 +54,8 @@ void vertex() {
 	a -= flash * 2.0;
 	burn = clamp(a, 0.0, 1.0);
 	tint = INSTANCE_CUSTOM.rgb;
+	// No hit reaction at all on goblins more than ~15 m away (they hide in the fog).
+	flash *= smoothstep(18.0, 12.0, length((MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz));
 }
 
 void fragment() {
