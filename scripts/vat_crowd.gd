@@ -62,7 +62,9 @@ void fragment() {
 	col = mix(col, col * vec3(0.95, 0.55, 1.35), epic * 0.85);
 	col = mix(col, vec3(1.0, 0.42, 0.08), burn * 0.6);
 	EMISSION = vec3(1.0, 0.32, 0.04) * burn * 0.9 + vec3(0.45, 0.1, 0.8) * epic * 0.3;
-	ALBEDO = mix(col, vec3(1.0), flash);
+	// Hit: a brief reddish tint. (A pure-white flash read as bright white dots on goblins
+	// far away in the fog.)
+	ALBEDO = mix(col, col * vec3(1.45, 0.55, 0.45), flash * 0.6);
 	ROUGHNESS = 0.85;
 }
 """
