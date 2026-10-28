@@ -68,6 +68,7 @@ const INFERNO_EXPLODE_FRAC := 0.5       # of the dying enemy's max HP
 const INFERNO_EXPLODE_RADIUS := 2.0 * YARD
 
 const INFERNO_SOUND := "res://audio/abilities/inferno.mp3"
+const INFERNO_DELAY := 1.0   # the sound plays on the key press; the fire erupts this much later
 
 const DEFS := [
 	{"name": "Inferno", "key": "1", "cooldown": INFERNO_COOLDOWN, "ult": false, "unlock_level": 1},
@@ -100,6 +101,7 @@ func setup(p_stats: Stats, p_enemies: EnemyManager, p_player: Player, p_fx: FxMa
 
 
 var inferno_sfx: AudioStreamPlayer
+var _inferno_wait := -1.0   # >= 0 while an Inferno cast is winding up
 
 
 func _ready() -> void:
@@ -207,6 +209,10 @@ func try_cast(i: int) -> bool:
 func tick(dt: float) -> void:
 	for i in cooldown.size():
 		cooldown[i] = maxf(0.0, cooldown[i] - dt)
+	if _inferno_wait >= 0.0:
+		_inferno_wait -= dt
+		if _inferno_wait < 0.0:
+			_erupt_inferno()
 	_update_meteors(dt)
 	_update_scorches(dt)
 	_update_shocks(dt)
@@ -468,10 +474,15 @@ func _update_shocks(dt: float) -> void:
 
 func _cast_inferno() -> void:
 	inferno_sfx.play()
+	_inferno_wait = INFERNO_DELAY
+
+
+func _erupt_inferno() -> void:
 	var n := enemies.ignite_all(INFERNO_BURN_TIME)
 	var at := player.global_position + Vector3(0, 1.0, 0)
-	fx.burst(at, 6.0, Color(1.0, 0.75, 0.25), 0.5)
-	fx.burst(at, 14.0, Color(1.0, 0.3, 0.05), 0.8)
+	if fx:
+		fx.burst(at, 6.0, Color(1.0, 0.75, 0.25), 0.5)
+		fx.burst(at, 14.0, Color(1.0, 0.3, 0.05), 0.8)
 	player.add_shake(0.6)
 	print_verbose("Inferno ignited %d enemies" % n)
 

@@ -101,6 +101,15 @@ func _ready() -> void:
 	ab.level = 1
 	_check("level 1: only Inferno is usable", ab.is_unlocked(Abilities.INFERNO) and not ab.is_unlocked(Abilities.SHOCKWAVE) and not ab.is_unlocked(Abilities.METEOR), "")
 	_check("locked abilities can't be cast", not ab.try_cast(Abilities.SHOCKWAVE) and not ab.try_cast(Abilities.METEOR), "")
+	em.count = 0
+	var gi := em.spawn(EnemyManager.GRUNT, Vector3(30, 0, 0), 1.0)
+	_check("Inferno casts (sound plays on the press)", ab.try_cast(Abilities.INFERNO) and ab.inferno_sfx.playing, "")
+	ab.tick(0.9)
+	_check("Inferno waits 1 s before the fire erupts", em.burn_t[gi] <= 0.0, "burn_t %.2f" % em.burn_t[gi])
+	ab.tick(0.15)
+	_check("after 1 s every goblin is on fire", em.burn_t[gi] > 0.0, "burn_t %.2f" % em.burn_t[gi])
+	ab.reset_cooldowns()
+	em.count = 0
 	ab.level = 4
 	_check("level 4: Fire Nova still locked", not ab.is_unlocked(Abilities.SHOCKWAVE), "")
 	ab.level = 5
