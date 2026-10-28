@@ -69,6 +69,8 @@ const INFERNO_EXPLODE_RADIUS := 2.0 * YARD
 
 const INFERNO_SOUND := "res://audio/abilities/inferno.mp3"
 const INFERNO_DELAY := 1.0   # the sound plays on the key press; the fire erupts this much later
+const NOVA_SOUND := "res://audio/abilities/fire_nova.mp3"
+const NOVA_DELAY := 1.0      # same wind-up for Fire Nova: sound first, the ring bursts out 1 s later
 
 const DEFS := [
 	{"name": "Inferno", "key": "1", "cooldown": INFERNO_COOLDOWN, "ult": false, "unlock_level": 1},
@@ -102,6 +104,8 @@ func setup(p_stats: Stats, p_enemies: EnemyManager, p_player: Player, p_fx: FxMa
 
 var inferno_sfx: AudioStreamPlayer
 var _inferno_wait := -1.0   # >= 0 while an Inferno cast is winding up
+var nova_sfx: AudioStreamPlayer
+var _nova_wait := -1.0
 
 
 func _ready() -> void:
@@ -111,6 +115,12 @@ func _ready() -> void:
 	if ResourceLoader.exists(INFERNO_SOUND):
 		inferno_sfx.stream = load(INFERNO_SOUND)
 	add_child(inferno_sfx)
+	nova_sfx = AudioStreamPlayer.new()
+	nova_sfx.bus = Settings.SFX_BUS
+	nova_sfx.max_polyphony = 2
+	if ResourceLoader.exists(NOVA_SOUND):
+		nova_sfx.stream = load(NOVA_SOUND)
+	add_child(nova_sfx)
 	_fire_mat = StandardMaterial3D.new()
 	_fire_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_fire_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -214,6 +224,10 @@ func tick(dt: float) -> void:
 		_inferno_wait -= dt
 		if _inferno_wait < 0.0:
 			_erupt_inferno()
+	if _nova_wait >= 0.0:
+		_nova_wait -= dt
+		if _nova_wait < 0.0:
+			_erupt_shockwave()
 	_update_meteors(dt)
 	_update_scorches(dt)
 	_update_shocks(dt)
@@ -415,6 +429,12 @@ func scorch_count() -> int:
 # ------------------------------------------------------------------ 2: Fire Nova
 
 func _cast_shockwave() -> void:
+	nova_sfx.play()
+	_nova_wait = NOVA_DELAY
+
+
+## The ring bursts out from wherever the wizard is standing when the wind-up ends.
+func _erupt_shockwave() -> void:
 	var center := _floor_below(player.global_position + Vector3(0, 0.5, 0))
 	var ring := MeshInstance3D.new()
 	var torus := TorusMesh.new()
@@ -469,7 +489,7 @@ func _update_shocks(dt: float) -> void:
 			_shocks.remove_at(k)
 		elif tt <= 1.0 and Engine.get_physics_frames() % 3 == 0:
 			var a := randf() * TAU
-			fx.burst(center + Vector3(cos(a) * r, 0.6, sin(a) * r), 1.1, Color(1.0, 0.4, 0.08), 0.3)
+			if fx: fx.burst(center + Vector3(cos(a) * r, 0.6, sin(a) * r), 1.1, Color(1.0, 0.4, 0.08), 0.3)
 
 
 # ------------------------------------------------------------------ 3: Inferno (ultimate)

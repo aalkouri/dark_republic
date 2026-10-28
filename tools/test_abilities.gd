@@ -114,6 +114,12 @@ func _ready() -> void:
 	_check("level 4: Fire Nova still locked", not ab.is_unlocked(Abilities.SHOCKWAVE), "")
 	ab.level = 5
 	_check("level 5: Fire Nova unlocks", ab.is_unlocked(Abilities.SHOCKWAVE) and not ab.is_unlocked(Abilities.METEOR), "")
+	_check("Fire Nova casts (its sound plays on the press)", ab.nova_sfx.stream != null and ab.nova_sfx.bus == Settings.SFX_BUS and ab.try_cast(Abilities.SHOCKWAVE) and ab.nova_sfx.playing, "")
+	ab.tick(0.9)
+	_check("Fire Nova waits 1 s before the ring bursts out", ab._shocks.is_empty(), "%d" % ab._shocks.size())
+	ab.tick(0.15)
+	_check("after 1 s the ring bursts out", ab._shocks.size() == 1, "%d" % ab._shocks.size())
+	ab.reset_cooldowns()
 	ab.level = 9
 	_check("level 9: Meteor still locked", not ab.is_unlocked(Abilities.METEOR), "")
 	ab.level = 10
