@@ -22,14 +22,14 @@ static func attach(id: String, skeleton: Skeleton3D) -> void:
 		"ogre":
 			_hold(skeleton, "RightHand", _club(), (FORWARD + Vector3.DOWN * 0.6).normalized())
 		"vampire_hunter":
-			_hold(skeleton, "RightHand", _crossbow(), FORWARD)
+			_hold(skeleton, "RightHand", _crossbow(), (Vector3.DOWN + FORWARD * 0.35).normalized())
 		"vicki":
 			_hold(skeleton, "RightHand", _spear(), SKIN_UP)
 		"rogue":
 			_hold(skeleton, "RightHand", _blade(0.32, 0.035, Color(0.8, 0.82, 0.86)), FORWARD)
 			_hold(skeleton, "LeftHand", _blade(0.32, 0.035, Color(0.8, 0.82, 0.86)), FORWARD)
 		"gaiden":
-			_hold(skeleton, "RightHand", _blade(0.85, 0.03, Color(0.86, 0.88, 0.92), true), (FORWARD + Vector3.UP * 0.4).normalized())
+			_hold(skeleton, "RightHand", _blade(0.85, 0.03, Color(0.86, 0.88, 0.92), true), (Vector3.DOWN + FORWARD * 0.5).normalized())
 		"dr_croc":
 			_hold(skeleton, "RightHand", _flask(), SKIN_UP)
 
@@ -100,7 +100,7 @@ static func _orb(c: Color) -> Node3D:
 	var s := SphereMesh.new()
 	s.radius = 0.07
 	s.height = 0.14
-	s.material = _mat(c, 3.0)
+	s.material = _mat(c, 1.4)
 	n.add_child(_part(s, Vector3.ZERO))
 	var light := OmniLight3D.new()
 	light.light_color = c
@@ -114,7 +114,7 @@ static func _crystal(c: Color) -> Node3D:
 	var n := Node3D.new()
 	var p := PrismMesh.new()
 	p.size = Vector3(0.1, 0.24, 0.1)
-	p.material = _mat(c, 2.0)
+	p.material = _mat(c, 1.1)
 	n.add_child(_part(p, Vector3(0, 0.06, 0)))
 	n.add_child(_part(p, Vector3(0, -0.08, 0), Vector3(PI, 0, 0)))
 	var light := OmniLight3D.new()
