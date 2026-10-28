@@ -6,7 +6,6 @@ extends Node3D
 
 const GAME_SCENE := "res://scenes/main.tscn"
 const CHARACTER_SCENE := "res://scenes/character_select.tscn"
-const MUSIC := "res://audio/music/tension_drop.mp3"
 const WORLD_SEED := 1            # a night-time swamp
 const ORBIT_RADIUS := 7.5
 const ORBIT_HEIGHT := 2.7
@@ -156,16 +155,8 @@ func _build_goblins() -> void:
 
 
 func _build_audio() -> void:
-	_music = AudioStreamPlayer.new()
-	_music.bus = Settings.MUSIC_BUS
-	_music.volume_db = -6.0
-	add_child(_music)
-	if ResourceLoader.exists(MUSIC):
-		var stream: AudioStream = load(MUSIC)
-		if stream is AudioStreamMP3:
-			(stream as AudioStreamMP3).loop = true
-		_music.stream = stream
-		_music.play()
+	_music = MenuMusic.player   # shared with character select so the song never restarts
+	MenuMusic.play()
 	for path in GoblinAudio.AMBIENT_CLIPS:
 		var c := GoblinAudio._try_load(path)
 		if c != null:
@@ -341,7 +332,8 @@ func _leave(scene: String, fade: float) -> void:
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(_fade, "color:a", 1.0, fade)
-	tw.tween_property(_music, "volume_db", -40.0, fade)
+	if scene == GAME_SCENE:
+		MenuMusic.fade_out(fade)
 	tw.chain().tween_callback(func(): get_tree().change_scene_to_file(scene))
 
 

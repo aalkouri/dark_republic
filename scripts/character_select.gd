@@ -7,7 +7,6 @@ extends Control
 const DATA := "res://data/characters.json"
 const TITLE_SCENE := "res://scenes/title.tscn"
 const GAME_SCENE := "res://scenes/main.tscn"
-const MUSIC := "res://audio/music/tension_drop.mp3"
 const COLUMNS := 6
 const TILE := 120.0
 
@@ -20,6 +19,11 @@ var _name: Label
 var _epithet: Label
 var _bio: Label
 var _kit: Label
+var _ability_bar: HBoxContainer
+var _ability_slots: Array = []     # AbilitySlot, one per Abilities.DEFS entry
+var _tooltip: PanelContainer
+var _tooltip_text: RichTextLabel
+var _hover_slot := -1
 var _status: Label
 var _big_icon: CharacterIcon
 var _view_box: SubViewportContainer
@@ -289,7 +293,7 @@ func _build_panel() -> void:
 
 	# Preview area: 3D model or a large portrait, same footprint
 	var stage := Control.new()
-	stage.custom_minimum_size = Vector2(640, 360)
+	stage.custom_minimum_size = Vector2(640, 290)
 	v.add_child(stage)
 	_view_box = SubViewportContainer.new()
 	_view_box.stretch = true
@@ -302,9 +306,9 @@ func _build_panel() -> void:
 	_view_box.add_child(vp)
 	_build_model_stage(vp)
 	_big_icon = CharacterIcon.new()
-	_big_icon.custom_minimum_size = Vector2(340, 340)
-	_big_icon.size = Vector2(340, 340)
-	_big_icon.position = Vector2((640 - 340) * 0.5, 10)
+	_big_icon.custom_minimum_size = Vector2(280, 280)
+	_big_icon.size = Vector2(280, 280)
+	_big_icon.position = Vector2((640 - 280) * 0.5, 5)
 	stage.add_child(_big_icon)
 
 	_name = _label("", 44, Color(1.0, 0.86, 0.6), true)
@@ -313,12 +317,13 @@ func _build_panel() -> void:
 	_epithet = _label("", 22, Color(1.0, 0.55, 0.2))
 	_epithet.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_epithet)
-	_bio = _label("", 19, Color(0.86, 0.8, 0.7))
+	_bio = _label("", 17, Color(0.86, 0.8, 0.7))
 	_bio.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_bio.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_bio.custom_minimum_size = Vector2(640, 0)
 	v.add_child(_bio)
-	_kit = _label("", 18, Color(0.95, 0.75, 0.45))
+	_build_ability_bar(v)
+	_kit = _label("", 17, Color(0.95, 0.75, 0.45))
 	_kit.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_kit.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_kit.custom_minimum_size = Vector2(640, 0)
@@ -326,6 +331,93 @@ func _build_panel() -> void:
 	_status = _label("", 20, Color(0.7, 0.68, 0.64))
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_status)
+
+
+## The character's three abilities, drawn exactly like the in-run ability bar (square, key,
+## name underneath). Hovering one shows the same tooltip as in a run: what it does + cooldown.
+func _build_ability_bar(parent: Control) -> void:
+	_ability_bar = HBoxContainer.new()
+	_ability_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	_ability_bar.add_theme_constant_override("separation", 22)
+	parent.add_child(_ability_bar)
+	var icons := [AbilitySlot.Icon.INFERNO, AbilitySlot.Icon.SHOCKWAVE, AbilitySlot.Icon.METEOR]
+	for i in Abilities.DEFS.size():
+		var d: Dictionary = Abilities.DEFS[i]
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 4)
+		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ability_bar.add_child(col)
+		var slot := AbilitySlot.new()
+		slot.icon = icons[i]
+		slot.key_text = d["key"]
+		slot.is_ult = d["ult"]
+		slot.unlock_level = d["unlock_level"]
+		slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		slot.hovered.connect(func(on: bool): _on_slot_hover(i, on))
+		col.add_child(slot)
+		var name := _label(d["name"], 14, Color(1.0, 0.85, 0.3) if d["ult"] else Color(1, 1, 1, 0.85))
+		name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(name)
+		_ability_slots.append(slot)
+
+	_tooltip = PanelContainer.new()
+	_tooltip.visible = false
+	_tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tooltip.z_index = 10
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.045, 0.04, 0.96)
+	sb.border_color = Color(1.0, 0.5, 0.18, 0.9)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(10)
+	sb.set_content_margin_all(14)
+	sb.shadow_color = Color(0, 0, 0, 0.5)
+	sb.shadow_size = 8
+	_tooltip.add_theme_stylebox_override("panel", sb)
+	_tooltip_text = RichTextLabel.new()
+	_tooltip_text.bbcode_enabled = true
+	_tooltip_text.fit_content = true
+	_tooltip_text.scroll_active = false
+	_tooltip_text.custom_minimum_size = Vector2(400, 0)
+	_tooltip_text.add_theme_font_size_override("normal_font_size", 16)
+	_tooltip_text.add_theme_font_size_override("bold_font_size", 16)
+	_tooltip_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tooltip.add_child(_tooltip_text)
+	add_child.call_deferred(_tooltip)   # on top of the panel
+
+
+## Tooltip text for ability i outside a run: what it does, cooldown, and when it unlocks.
+static func ability_tooltip(i: int) -> String:
+	var lines := Abilities.describe_lines(i)
+	var lvl := int(Abilities.DEFS[i]["unlock_level"])
+	lines.append("")
+	if lvl <= 1:
+		lines.append("[color=#7dff7d]Available from the start of every run[/color]")
+	else:
+		lines.append("[color=#ffb347]Unlocks at level %d during a run[/color]" % lvl)
+	return "\n".join(lines)
+
+
+func _on_slot_hover(i: int, on: bool) -> void:
+	if on:
+		_hover_slot = i
+	elif _hover_slot == i:
+		_hover_slot = -1
+	_update_tooltip()
+
+
+func _update_tooltip() -> void:
+	if _hover_slot < 0 or not _ability_bar.is_visible_in_tree():
+		_tooltip.visible = false
+		return
+	_tooltip_text.text = ability_tooltip(_hover_slot)
+	_tooltip.visible = true
+	_tooltip.reset_size()
+	var r: Rect2 = (_ability_slots[_hover_slot] as Control).get_global_rect()
+	var vp := get_viewport().get_visible_rect().size
+	var pos := Vector2(r.position.x + r.size.x * 0.5 - _tooltip.size.x * 0.5, r.position.y - _tooltip.size.y - 12)
+	pos.x = clampf(pos.x, 10, vp.x - _tooltip.size.x - 10)
+	pos.y = maxf(pos.y, 10)
+	_tooltip.position = pos
 
 
 func _build_model_stage(vp: SubViewport) -> void:
@@ -407,15 +499,8 @@ func _footer_button(text: String, cb: Callable) -> Button:
 
 
 func _build_music() -> void:
-	_music = AudioStreamPlayer.new()
-	var stream := load(MUSIC) as AudioStreamMP3
-	if stream:
-		stream = stream.duplicate()
-		stream.loop = true
-		_music.stream = stream
-	_music.bus = Settings.MUSIC_BUS
-	add_child(_music)
-	_music.play()
+	_music = MenuMusic.player   # same song as the title screen, carries on without restarting
+	MenuMusic.play()
 
 
 # ------------------------------------------------------------------ behaviour
@@ -432,8 +517,16 @@ func _show(k: int) -> void:
 	_epithet.text = c.get("epithet", "")
 	_bio.text = c.get("bio", "")
 	var kit: Array = c.get("kit", [])
-	_kit.text = "  ·  ".join(kit) if ready else ""
-	_kit.visible = ready
+	var has_abilities: bool = c["id"] == "fire_wizard"   # the only kit built so far
+	_ability_bar.visible = has_abilities and not mystery
+	_hover_slot = -1
+	_update_tooltip()
+	var weapon := ""
+	for item in kit:
+		if str(item).ends_with("(weapon)"):
+			weapon = "Weapon: " + str(item).trim_suffix(" (weapon)")
+	_kit.text = weapon if has_abilities else ("  ·  ".join(kit) if ready else "")
+	_kit.visible = _kit.text != ""
 	_play_btn.text = "PLAY"
 	_status.visible = not mystery
 	if mystery:
@@ -534,7 +627,8 @@ func _leave(scene: String) -> void:
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(_fade, "color:a", 1.0, 0.45)
-	tw.tween_property(_music, "volume_db", -40.0, 0.45)
+	if scene == GAME_SCENE:
+		MenuMusic.fade_out(0.45)
 	tw.chain().tween_callback(func(): get_tree().change_scene_to_file(scene))
 
 
@@ -590,6 +684,9 @@ func _shot_setup() -> void:
 		elif a.begins_with("--shot-coins="):
 			Wallet.coins = int(a.split("=")[1])
 			Wallet.displayed = Wallet.coins
+		elif a.begins_with("--shot-ability="):   # show ability i's hover tooltip
+			var i := int(a.split("=")[1])
+			(func(): _on_slot_hover(i, true)).call_deferred()
 		elif a.begins_with("--shot-char="):
 			var k := index_of(a.split("=")[1])
 			if k >= 0:
@@ -601,6 +698,7 @@ func _shot_tick() -> void:
 		return
 	var path := _shot_path
 	_shot_path = ""
+	_update_tooltip()
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(path)
 	print("SHOT saved ", path)

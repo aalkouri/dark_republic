@@ -113,8 +113,21 @@ var level := 1
 
 ## Tooltip text (BBCode) with the current numbers, including the Damage stat.
 func describe(i: int) -> String:
+	var lines := describe_lines(i, stats.value("damage") if stats != null else 1.0)
+	lines.append("")
+	if not is_unlocked(i):
+		lines.append("[color=#ff7060]Locked: unlocks at level %d[/color]" % int(DEFS[i]["unlock_level"]))
+	elif cooldown[i] > 0.0:
+		lines.append("[color=#cccccc]Ready in %s[/color]" % _fmt_cd(cooldown[i]))
+	else:
+		lines.append("[color=#7dff7d]Ready[/color]")
+	return "\n".join(lines)
+
+
+## Title, key/cooldown and what the ability does (BBCode lines), without the live status, so
+## the character select screen can show the same text outside a run.
+static func describe_lines(i: int, dmg_mult := 1.0) -> Array[String]:
 	var d: Dictionary = DEFS[i]
-	var dmg_mult := stats.value("damage") if stats != null else 1.0
 	var bonus := "" if is_equal_approx(dmg_mult, 1.0) else "  [color=#9be37a](+%d%% from Damage)[/color]" % roundi((dmg_mult - 1.0) * 100.0)
 	var hot := "[color=#ffb347]%s[/color]"
 	var lines: Array[String] = []
@@ -138,14 +151,7 @@ func describe(i: int) -> String:
 			lines.append("• Crashes where you aim after %s: %s damage within %s%s, plus knockback" % [hot % ("%d s" % roundi(METEOR_FALL_TIME)), hot % str(roundi(METEOR_DAMAGE * dmg_mult)), hot % ("%d m" % roundi(METEOR_RADIUS)), bonus])
 			lines.append("• You reappear at the crash site")
 			lines.append("• The ground burns for %s: %s of max HP per second within %s" % [hot % ("%d s" % roundi(SCORCH_TIME)), hot % ("%d%%" % roundi(SCORCH_DPS * 100.0)), hot % ("%d m" % roundi(SCORCH_RADIUS))])
-	lines.append("")
-	if not is_unlocked(i):
-		lines.append("[color=#ff7060]Locked: unlocks at level %d[/color]" % int(d["unlock_level"]))
-	elif cooldown[i] > 0.0:
-		lines.append("[color=#cccccc]Ready in %s[/color]" % _fmt_cd(cooldown[i]))
-	else:
-		lines.append("[color=#7dff7d]Ready[/color]")
-	return "\n".join(lines)
+	return lines
 
 
 static func _fmt_cd(secs: float) -> String:

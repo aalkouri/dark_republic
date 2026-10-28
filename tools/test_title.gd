@@ -31,6 +31,7 @@ func _ready() -> void:
 	_check("goblins lurk around him", title._goblins.size() == title.GOBLINS, "%d" % title._goblins.size())
 	var m: AudioStreamPlayer = title._music
 	_check("title music plays on the Music bus, looping", m.playing and m.bus == Settings.MUSIC_BUS and m.stream.get("loop") == true, m.bus)
+	_check("title plays Menu of Shadows", m == MenuMusic.player and MenuMusic.TRACK.ends_with("menu_of_shadows.mp3"), "")
 
 	(title._menu.get_child(2) as Button).pressed.emit()
 	await get_tree().process_frame

@@ -89,9 +89,19 @@ func _ready() -> void:
 		if (t.get_meta("price") as Control).visible:
 			priced += 1
 	_check("24 locked tiles show their price", priced == 24, "%d" % priced)
+	_check("menu song keeps playing from the title (no restart)", MenuMusic.player.playing and MenuMusic.player.get_playback_position() > 0.05, "%.2f" % MenuMusic.player.get_playback_position())
+	_check("wizard shows 3 ability squares", cs._ability_bar.visible and cs._ability_slots.size() == 3, "")
+	cs._on_slot_hover(2, true)
+	await get_tree().process_frame
+	var tip: String = cs._tooltip_text.text
+	_check("hovering an ability explains it with its cooldown", cs._tooltip.visible and "Meteor" in tip and "Cooldown 2 min" in tip and "level 10" in tip, tip.left(80))
+	cs._on_slot_hover(2, false)
+	await get_tree().process_frame
+	_check("tooltip hides when the mouse leaves", not cs._tooltip.visible, "")
 	var m: int = cs.index_of("mystery_1")
 	cs._tiles[m].grab_focus()
 	await get_tree().process_frame
+	_check("characters without a kit show no ability squares", not cs._ability_bar.visible, "")
 	_check("mystery: ??? and nothing else", cs._name.text == "???" and cs._bio.text == "" and cs._epithet.text == "" and not cs._status.visible
 		and not (cs._tiles[m].get_meta("price") as Control).visible and cs._play_btn.disabled and cs._skills_btn.disabled, cs._name.text)
 	# Unlocking with coins

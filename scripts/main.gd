@@ -512,6 +512,7 @@ func _on_player_died() -> void:
 ## Swamp music: starts with the level and repeats until the map ends.
 ## Keeps playing through pause and level-up menus.
 func _start_music() -> void:
+	MenuMusic.fade_out(0.3)   # in case the menu theme is still going
 	music = AudioStreamPlayer.new()
 	music.bus = Settings.MUSIC_BUS
 	music.process_mode = Node.PROCESS_MODE_ALWAYS
