@@ -12,6 +12,7 @@ extends Node3D
 ## Cooldowns tick in the physics step, so they pause with the game.
 
 signal cast(index: int)
+signal entrance_landed   # the run-start meteor (entrance) hit the ground
 
 const YARD := 0.9144
 
@@ -276,6 +277,29 @@ func _cast_meteor() -> void:
 	_meteors.append({"target": target, "t": 0.0, "head": head, "marker": marker, "fill": fill, "start": start})
 
 
+## Run start: the wizard arrives as his own Meteor, falling onto `target` over
+## METEOR_FALL_TIME seconds (same visuals, sound and impact as the ultimate, no scorched
+## ground, no cooldown). Emits entrance_landed when he hits the ground.
+func entrance_meteor(target: Vector3) -> void:
+	meteor_sfx.play()
+	var marker := _ground_disc(METEOR_RADIUS, Color(1.0, 0.15, 0.05, 0.22))
+	marker.global_position = target
+	var fill := _ground_disc(METEOR_RADIUS, Color(1.0, 0.4, 0.05, 0.35))
+	fill.global_position = target
+	fill.scale = Vector3(0.01 * METEOR_RADIUS, 1, 0.01 * METEOR_RADIUS)
+	# In from behind the camera, so the player watches it come down
+	var fwd := Vector3(-sin(player.cam_yaw), 0.0, -cos(player.cam_yaw))
+	var start := target - fwd * 35.0 + Vector3(0, 75.0, 0)
+	var head := _make_giant_head()
+	head.global_position = start
+	_face(head, target)
+	player.enter_meteor_form()
+	player.model.visible = false   # already gone: no slam/vanish animation for the entrance
+	player.model._vanish_t = -1.0
+	player.global_position = start - Vector3(0, 1.6, 0)
+	_meteors.append({"target": target, "t": 0.0, "head": head, "marker": marker, "fill": fill, "start": start, "entrance": true})
+
+
 ## A giant copy of the wizard's own head and hat, wreathed in fire.
 func _make_giant_head() -> Node3D:
 	var root := Node3D.new()
@@ -351,7 +375,10 @@ func _update_meteors(dt: float) -> void:
 			continue
 		player.exit_meteor_form(target)
 		_meteor_impact(target)
-		_start_scorch(target)
+		if m.get("entrance", false):
+			entrance_landed.emit()
+		else:
+			_start_scorch(target)
 		marker.queue_free()
 		fill.queue_free()
 		head.queue_free()

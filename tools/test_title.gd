@@ -45,6 +45,12 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var game: Node = get_tree().current_scene
 	_check("Play starts the game", game.name == "Main", game.name)
+	await get_tree().create_timer(1.0).timeout
+	_check("entrance: wizard is a falling meteor, clock and goblins held", game.intro and game.player.meteor_form and game.run_time == 0.0 and game.enemies.count == 0,
+		"intro %s form %s t %.2f enemies %d" % [game.intro, game.player.meteor_form, game.run_time, game.enemies.count])
+	await get_tree().create_timer(Abilities.METEOR_FALL_TIME).timeout
+	_check("entrance: he lands, the run starts and SURVIVE shows", not game.intro and not game.player.meteor_form and game.run_time > 0.0 and game.hud.intro_banner.is_showing(),
+		"intro %s t %.2f" % [game.intro, game.run_time])
 
 	await get_tree().create_timer(0.5).timeout
 	game.to_title()

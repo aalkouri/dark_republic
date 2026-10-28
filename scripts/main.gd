@@ -92,6 +92,8 @@ var _shot_zoom := 0.0
 var _shot_turn := 0.0
 var _shot_level := 0
 var _shot_epic := false
+var _shot_intro := false   # --shot-intro: screenshot runs play the entrance too
+var intro := false         # true while the entrance meteor is falling (first 3 s)
 var _shot_draft: Array = []
 var _frames_dir := ""      # --frames=DIR:START:COUNT  debug: dump COUNT frames from START s (game keeps running)
 var _frames_start := 0.0
@@ -131,6 +133,8 @@ func _ready() -> void:
 			_shot_settings_tab = int(a.split("=")[1])
 		elif a.begins_with("--shot-inspect="):
 			_shot_inspect = int(a.split("=")[1])
+		elif a == "--shot-intro":
+			_shot_intro = true
 		elif a == "--shot-epic":
 			_shot_epic = true
 		elif a.begins_with("--frames="):
@@ -275,6 +279,18 @@ func _ready() -> void:
 		print("SMOKE music %s loop=%s playing=%s" % [ms.resource_path if ms else "none", str(ms.get("loop")) if ms else "-", str(music.playing) if music else "-"])
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Entrance: everything holds still while the wizard comes down as a meteor; the run (and
+	# the "SURVIVE" banner) starts when he lands. Screenshot/smoke runs skip it unless asked.
+	if (smoke or shot_path != "") and not _shot_intro:
+		hud.intro_banner.show_text("SURVIVE 10 MINUTES")
+	else:
+		intro = true
+		abilities.entrance_landed.connect(_on_entrance_landed, CONNECT_ONE_SHOT)
+		abilities.entrance_meteor(Vector3(0, water.ground_height(0, 0), 0))
+
+
+func _on_entrance_landed() -> void:
+	intro = false
 	hud.intro_banner.show_text("SURVIVE 10 MINUTES")
 
 
@@ -306,6 +322,9 @@ func _physics_process(dt: float) -> void:
 	if shot_path != "":
 		_shot_tick()
 	if state != "playing":
+		return
+	if intro:   # entrance meteor: only the meteor moves; goblins, spawns and the clock wait
+		abilities.tick(dt)
 		return
 	run_time += dt
 	_spawn_director(dt)
@@ -503,7 +522,7 @@ func choose_upgrade(i: int) -> void:
 
 
 func cast_ability(i: int) -> void:
-	if state != "playing":
+	if state != "playing" or intro:
 		return
 	if abilities.try_cast(i):
 		if i == Abilities.INFERNO:
