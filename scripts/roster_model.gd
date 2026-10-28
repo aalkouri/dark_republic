@@ -39,6 +39,10 @@ func _ready() -> void:
 		player.add_animation_library("c", load(lib_path))
 		if player.has_animation("c/idle"):
 			player.play("c/idle")
+		elif player.has_animation("c/attack"):   # no idle clip yet: hold the attack stance
+			player.play("c/attack")
+			player.seek(0.0, true)
+			player.pause()
 	_floaty = skeleton == null
 	if skeleton:
 		RosterWeapons.attach(char_id, skeleton)
