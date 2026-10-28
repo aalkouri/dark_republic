@@ -70,6 +70,8 @@ const INFERNO_EXPLODE_RADIUS := 2.0 * YARD
 const INFERNO_SOUND := "res://audio/abilities/inferno.mp3"
 const INFERNO_DELAY := 1.0   # the sound plays on the key press; the fire erupts this much later
 const NOVA_SOUND := "res://audio/abilities/fire_nova.mp3"
+const METEOR_SOUND := "res://audio/abilities/meteor.mp3"
+const METEOR_IMPACT_SOUND := "res://audio/abilities/meteor_impact.wav"   # tools/gen_explosion_sound.py
 const NOVA_DELAY := 1.0      # same wind-up for Fire Nova: sound first, the ring bursts out 1 s later
 
 const DEFS := [
@@ -105,6 +107,8 @@ func setup(p_stats: Stats, p_enemies: EnemyManager, p_player: Player, p_fx: FxMa
 var inferno_sfx: AudioStreamPlayer
 var _inferno_wait := -1.0   # >= 0 while an Inferno cast is winding up
 var nova_sfx: AudioStreamPlayer
+var meteor_sfx: AudioStreamPlayer
+var impact_sfx: AudioStreamPlayer
 var _nova_wait := -1.0
 
 
@@ -121,6 +125,8 @@ func _ready() -> void:
 	if ResourceLoader.exists(NOVA_SOUND):
 		nova_sfx.stream = load(NOVA_SOUND)
 	add_child(nova_sfx)
+	meteor_sfx = _sfx(METEOR_SOUND, 0.0)
+	impact_sfx = _sfx(METEOR_IMPACT_SOUND, 2.0)
 	_fire_mat = StandardMaterial3D.new()
 	_fire_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_fire_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -235,7 +241,20 @@ func tick(dt: float) -> void:
 
 # ------------------------------------------------------------------ 1: Meteor
 
+## A 2D sound player on the SFX bus (the caster always hears it at full volume).
+func _sfx(path: String, volume_db: float) -> AudioStreamPlayer:
+	var p := AudioStreamPlayer.new()
+	p.bus = Settings.SFX_BUS
+	p.volume_db = volume_db
+	p.max_polyphony = 2
+	if ResourceLoader.exists(path):
+		p.stream = load(path)
+	add_child(p)
+	return p
+
+
 func _cast_meteor() -> void:
+	meteor_sfx.play()
 	var target := _aim_point()
 	var marker := _ground_disc(METEOR_RADIUS, Color(1.0, 0.15, 0.05, 0.22))
 	marker.global_position = target + Vector3(0, 0.05, 0)
@@ -351,6 +370,7 @@ func _ignite_trees(at: Vector3) -> int:
 
 
 func _meteor_impact(at: Vector3) -> void:
+	impact_sfx.play()
 	_ignite_trees(at)
 	var dmg := METEOR_DAMAGE * stats.value("damage")
 	for i in enemies.query_radius(Vector3(at.x, 0.8, at.z), METEOR_RADIUS, false):
