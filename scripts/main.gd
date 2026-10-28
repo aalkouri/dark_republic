@@ -91,6 +91,7 @@ var _shot_ignite := false
 var _shot_zoom := 0.0
 var _shot_turn := 0.0
 var _shot_level := 0
+var _shot_draft: Array = []   # --shot-draft=id[:rarity],... : show these level-up cards
 var _shot_inspect := -1
 var _shot_settings_tab := -1
 var _forced_seed := -1
@@ -125,6 +126,10 @@ func _ready() -> void:
 			_shot_settings_tab = int(a.split("=")[1])
 		elif a.begins_with("--shot-inspect="):
 			_shot_inspect = int(a.split("=")[1])
+		elif a.begins_with("--shot-draft="):
+			for c in a.split("=")[1].split(","):
+				var parts := c.split(":")
+				_shot_draft.append({"id": parts[0], "rarity": int(parts[1]) if parts.size() > 1 else 0})
 		elif a.begins_with("--shot-level="):
 			_shot_level = int(a.split("=")[1])
 		elif a.begins_with("--shot-zoom="):
@@ -762,6 +767,11 @@ func _shot_tick() -> void:
 			hud.set_inspect(true)
 			hud._on_slot_hover(_shot_inspect, true)
 			hud._update_tooltip()
+		if not _shot_draft.is_empty():
+			state = "levelup"
+			get_tree().paused = true
+			current_draft = _shot_draft
+			hud.show_draft(current_draft)
 		if _shot_settings_tab >= 0:
 			state = "paused"
 			get_tree().paused = true

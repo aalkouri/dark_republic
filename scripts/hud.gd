@@ -17,7 +17,7 @@ var msg_label: Label
 var pause_root: Control
 var settings_menu: SettingsMenu
 var draft_root: Control
-var draft_cards: Array = []   # [Button, rarity Label, title Label, body Label]
+var draft_cards: Array = []   # [Button, rarity Label, title Label, body Label, TomeIcon]
 var end_root: Control
 var ability_slots: Array = []   # AbilitySlot
 var tooltip: PanelContainer
@@ -237,9 +237,20 @@ func _build_draft(root: Control) -> void:
 		var body := _label("", 17)
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		for l in [rar, ttl, body]:
+		var head := HBoxContainer.new()
+		head.add_theme_constant_override("separation", 10)
+		head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var tome := TomeIcon.new()
+		tome.custom_minimum_size = Vector2(68, 68)
+		tome.visible = false
+		head.add_child(tome)
+		ttl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ttl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		ttl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		head.add_child(ttl)
+		for l in [rar, head, body]:
 			box.add_child(l)
-		draft_cards.append([btn, rar, ttl, body])
+		draft_cards.append([btn, rar, ttl, body, tome])
 
 
 func _build_ability_bar(root: Control) -> void:
@@ -485,6 +496,11 @@ func show_draft(picks: Array) -> void:
 		card[2].text = info["title"]
 		card[2].add_theme_color_override("font_color", info["color"])
 		card[3].text = info["body"]
+		var icon: Dictionary = info.get("icon", {})
+		var tome: TomeIcon = card[4]
+		tome.visible = not icon.is_empty()
+		if tome.visible:
+			tome.set_icon(icon)
 	draft_root.visible = true
 
 

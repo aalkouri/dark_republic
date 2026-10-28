@@ -137,6 +137,7 @@ func describe(pick: Dictionary) -> Dictionary:
 		"subtitle": "%s · %s · %s" % [rarity["name"], d["kind"].capitalize(), tag],
 		"color": Color.html(rarity["color"]),
 		"body": "\n".join(lines),
+		"icon": d.get("icon", {}),   # tomes: {"glyph", "cover"} for TomeIcon
 	}
 
 

@@ -2,7 +2,7 @@ class_name SkillIcon
 extends Control
 ## Small vector glyphs for skill squares (drawn in a 64x64 design space and scaled).
 ## kinds: heart, shield, cross, bubble, blade, clock, orb, burst, arrow, boot, feather, coin,
-## magnet, book, clover, flame.
+## magnet, book, clover, flame, expand, eye, triple.
 
 var kind := "orb"
 var color := Color.WHITE
@@ -80,7 +80,7 @@ func _draw() -> void:
 			draw_circle(Vector2(27, 26), 6, light)
 			draw_arc(Vector2(32, 32), 18, 0, TAU, 32, dark, 2)
 		"magnet":
-			draw_arc(Vector2(32, 30), 17, 0, PI, 20, c, 12)
+			draw_arc(Vector2(32, 30), 17, PI, TAU, 20, c, 12)
 			_poly([Vector2(9, 30), Vector2(21, 30), Vector2(21, 44), Vector2(9, 44)], c)
 			_poly([Vector2(43, 30), Vector2(55, 30), Vector2(55, 44), Vector2(43, 44)], c)
 			_poly([Vector2(9, 44), Vector2(21, 44), Vector2(21, 54), Vector2(9, 54)], light)
@@ -95,6 +95,27 @@ func _draw() -> void:
 				var a := TAU * k / 4.0 + PI * 0.25
 				draw_circle(Vector2(32, 30) + Vector2(cos(a), sin(a)) * 11, 10, c)
 			draw_line(Vector2(32, 34), Vector2(40, 58), dark, 4)
+		"expand":   # four arrows pushing outwards
+			for k in 4:
+				var a := TAU * k / 4.0 + PI * 0.25
+				var dir := Vector2(cos(a), sin(a))
+				var side := Vector2(-dir.y, dir.x)
+				var o := Vector2(32, 32)
+				draw_line(o + dir * 6, o + dir * 20, c, 5)
+				_poly([o + dir * 27, o + dir * 16 + side * 8, o + dir * 16 - side * 8], light)
+			draw_circle(Vector2(32, 32), 5, c)
+		"eye":
+			_poly([Vector2(6, 32), Vector2(20, 20), Vector2(32, 16), Vector2(44, 20), Vector2(58, 32),
+				Vector2(44, 44), Vector2(32, 48), Vector2(20, 44)], c)
+			draw_circle(Vector2(32, 32), 11, dark)
+			draw_circle(Vector2(32, 32), 6, light)
+			draw_circle(Vector2(29, 29), 2.5, Color(1, 1, 1, 0.9))
+		"triple":   # three projectiles side by side
+			for k in 3:
+				var o := Vector2(16 + k * 16, 36 - (k % 2) * 8)
+				draw_line(o + Vector2(0, 8), o + Vector2(0, 22), dark, 4)
+				draw_circle(o, 7, c)
+				draw_circle(o + Vector2(-2, -2), 2.5, light)
 		"flame":
 			_poly([Vector2(32, 4), Vector2(48, 26), Vector2(50, 42), Vector2(32, 58), Vector2(14, 42), Vector2(18, 26), Vector2(26, 30)], c)
 			_poly([Vector2(32, 24), Vector2(40, 40), Vector2(32, 52), Vector2(24, 40)], light)

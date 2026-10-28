@@ -122,6 +122,24 @@ func _ready() -> void:
 	var lvl_label := cs._tiles[0].get_meta("lvl") as Label
 	_check("tile shows lvl from EXP", lvl_label.visible and lvl_label.text == "lvl 3", lvl_label.text)
 
+	# Tome icons on the level-up cards
+	var db := UpgradeDB.new("res://data/upgrades.json", RandomNumberGenerator.new())
+	var glyphs := ["blade", "clock", "boot", "heart", "expand", "arrow", "magnet", "eye", "shield", "cross", "clover", "triple"]
+	var bad := []
+	var covers := {}
+	for id in db.defs:
+		var d: Dictionary = db.defs[id]
+		if d["kind"] == "tome":
+			var icon: Dictionary = d.get("icon", {})
+			if not glyphs.has(icon.get("glyph", "")) or not Color.html_is_valid(str(icon.get("cover", ""))):
+				bad.append(id)
+			covers[icon.get("cover", "")] = true
+			if db.describe({"id": id, "rarity": 0})["icon"] != icon:
+				bad.append(id + " (describe)")
+	_check("every tome has an icon (glyph + cover colour)", bad.is_empty(), str(bad))
+	_check("every tome cover is a different colour", covers.size() == 12, "%d" % covers.size())
+	_check("weapons/items have no tome icon", db.describe({"id": "weapon_aura", "rarity": 0})["icon"].is_empty(), "")
+
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
 

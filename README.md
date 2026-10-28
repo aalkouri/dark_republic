@@ -126,6 +126,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **6 mossy stone ruins** as landmarks.
 - **Music:** "Tension Drop" (`audio/music/tension_drop.mp3`) starts with the level and loops until the run ends, then fades out. Change `SWAMP_MUSIC` / `MUSIC_VOLUME_DB` in `scripts/main.gd`.
 - **Menu music:** "Menu of Shadows" (`audio/music/menu_of_shadows.mp3`) loops on the title and character select screens. The `MenuMusic` autoload (`scripts/menu_music.gd`) plays it, so it carries on without restarting between the two screens and fades out when a run starts.
+- **Tome icons:** each tome has its own book icon (a cover colour plus a gold emblem) on its level-up card. The glyph and colour are set in `data/upgrades.json` (`"icon": {"glyph", "cover"}`), and the icon is drawn by `scripts/tome_icon.gd`. To preview all of them, run `godot --path . --script res://tools/render_tomes.gd -- /out.png`.
 - **Character select abilities:** the selected character's three abilities appear as the same squares as the in-run ability bar. Hover one for what it does, its cooldown and the run level it unlocks at (`Abilities.describe_lines`).
 
 ## Shrines
