@@ -88,6 +88,7 @@ func _ready() -> void:
 	var ab := Abilities.new()
 	ab.setup(stats, em, player, null)
 	add_child(ab)
+	_check("Inferno has its cast sound on the SFX bus", ab.inferno_sfx.stream != null and ab.inferno_sfx.bus == Settings.SFX_BUS, "")
 	var pm := PotionManager.new()
 	pm.setup(player, ab, rng)
 	add_child(pm)

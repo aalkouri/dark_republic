@@ -67,6 +67,8 @@ const INFERNO_BURN_DPS := 0.05          # of max HP per second
 const INFERNO_EXPLODE_FRAC := 0.5       # of the dying enemy's max HP
 const INFERNO_EXPLODE_RADIUS := 2.0 * YARD
 
+const INFERNO_SOUND := "res://audio/abilities/inferno.mp3"
+
 const DEFS := [
 	{"name": "Inferno", "key": "1", "cooldown": INFERNO_COOLDOWN, "ult": false, "unlock_level": 1},
 	{"name": "Fire Nova", "key": "2", "cooldown": SHOCK_COOLDOWN, "ult": false, "unlock_level": 5},
@@ -97,7 +99,16 @@ func setup(p_stats: Stats, p_enemies: EnemyManager, p_player: Player, p_fx: FxMa
 	enemies.burn_explode_radius = INFERNO_EXPLODE_RADIUS
 
 
+var inferno_sfx: AudioStreamPlayer
+
+
 func _ready() -> void:
+	inferno_sfx = AudioStreamPlayer.new()   # 2D: the caster always hears it at full volume
+	inferno_sfx.bus = Settings.SFX_BUS
+	inferno_sfx.max_polyphony = 2
+	if ResourceLoader.exists(INFERNO_SOUND):
+		inferno_sfx.stream = load(INFERNO_SOUND)
+	add_child(inferno_sfx)
 	_fire_mat = StandardMaterial3D.new()
 	_fire_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_fire_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -456,6 +467,7 @@ func _update_shocks(dt: float) -> void:
 # ------------------------------------------------------------------ 3: Inferno (ultimate)
 
 func _cast_inferno() -> void:
+	inferno_sfx.play()
 	var n := enemies.ignite_all(INFERNO_BURN_TIME)
 	var at := player.global_position + Vector3(0, 1.0, 0)
 	fx.burst(at, 6.0, Color(1.0, 0.75, 0.25), 0.5)
