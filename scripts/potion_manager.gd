@@ -179,7 +179,7 @@ func _apply(kind: int) -> void:
 		PURPLE:
 			var cut := PackedFloat32Array()
 			for i in abilities.cooldown.size():
-				var full: float = Abilities.DEFS[i]["cooldown"]
+				var full: float = abilities.defs()[i]["cooldown"]
 				var before := abilities.cooldown[i]
 				abilities.cooldown[i] = maxf(0.0, before - full * COOLDOWN_CUT)
 				cut.append(before - abilities.cooldown[i])

@@ -288,14 +288,20 @@ func _build_ability_bar(root: Control) -> void:
 	bar.add_theme_constant_override("separation", 14)
 	root.add_child(bar)
 	var icons := [AbilitySlot.Icon.INFERNO, AbilitySlot.Icon.SHOCKWAVE, AbilitySlot.Icon.METEOR]
-	for i in Abilities.DEFS.size():
-		var d: Dictionary = Abilities.DEFS[i]
+	var defs: Array = main.abilities.defs()
+	var kit: String = main.abilities.kit
+	for i in defs.size():
+		var d: Dictionary = defs[i]
 		var col := VBoxContainer.new()
 		col.add_theme_constant_override("separation", 4)
 		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		bar.add_child(col)
 		var slot := AbilitySlot.new()
 		slot.icon = icons[i]
+		if main.abilities.roster != null:   # roster characters: their kit's icons
+			var ic: Dictionary = KitDB.ability(kit, i).get("icon", {})
+			slot.glyph = str(ic.get("glyph", ""))
+			slot.glyph_color = Color(str(ic.get("color", "#ffffff")))
 		slot.key_text = d["key"]
 		slot.is_ult = d["ult"]
 		slot.unlock_level = d["unlock_level"]

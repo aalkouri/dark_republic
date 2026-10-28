@@ -11,6 +11,7 @@ extends Node3D
 
 signal exploded(pos: Vector3, radius: float)
 signal epic_killed(pos: Vector3)
+signal shattered(pos: Vector3, radius: float)   # a frozen goblin died and burst into ice
 
 const MAX := 1500
 const CELL := 2.0
@@ -49,6 +50,26 @@ var _clip_run := 0.0
 var _clip_attack := 0.25
 var _attack_rate := 1.0
 var fear := false               # Fear Idol: goblins run away from the player
+var lost := false               # Eclipse: goblins lose track of the player and wander
+var bonus_mult := 1.0           # ability damage buffs (Eclipse), on top of damage_mult
+# Status effects from roster abilities (per goblin, seconds left):
+#   slow   moves at slow_f of its speed            (Frost Shards, Glacial Path, Absolute Zero)
+#   freeze frozen solid: can't move or hit you, takes +freeze_bonus damage, shatters on death
+#   stun   can't move or hit you                   (Thunderclap, Rewind...)
+#   curse  takes +curse_bonus damage               (Shadow Bolts)
+var slow_t := PackedFloat32Array()
+var slow_f := PackedFloat32Array()
+var freeze_t := PackedFloat32Array()
+var stun_t := PackedFloat32Array()
+var curse_t := PackedFloat32Array()
+var freeze_bonus := 0.5
+var curse_bonus := 0.25
+var shatter_frac := 0.4         # frozen goblins that die burst for this much of their max HP
+var shatter_radius := 1.83      # 2 yards
+var _shatters := PackedVector3Array()   # queued: x, z, damage
+const FX_FROZEN := 8.0          # added to the shader's per-instance code (see VatCrowd)
+const FX_CHILL := 16.0
+const FX_SHADOW := 32.0
 const BURN_NUMBER_INTERVAL := 0.5   # burn damage is totalled and shown twice a second
 const BAR_STRIDE := 16              # health bars: 12 transform + 4 custom (hp fraction, epic)
 const BAR_HIDE_DIST := 45.0
@@ -156,6 +177,8 @@ func _ready() -> void:
 	sz.resize(MAX)
 	sep_x.resize(MAX)
 	sep_z.resize(MAX)
+	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t]:
+		a.resize(MAX)
 	cell_of.resize(MAX)
 	sorted.resize(MAX)
 	cell_count.resize(GRID_N * GRID_N)
@@ -254,6 +277,11 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	dead[i] = 0
 	sep_x[i] = 0.0
 	sep_z[i] = 0.0
+	slow_t[i] = 0.0
+	slow_f[i] = 1.0
+	freeze_t[i] = 0.0
+	stun_t[i] = 0.0
+	curse_t[i] = 0.0
 	return i
 
 
@@ -262,7 +290,7 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 func damage(i: int, amount: float, knockback := Vector3.ZERO) -> bool:
 	if dead[i]:
 		return false
-	amount *= damage_mult
+	amount *= damage_mult * taken_mult(i)
 	hp[i] -= amount
 	flash[i] = 0.08
 	if numbers != null:
@@ -273,6 +301,58 @@ func damage(i: int, amount: float, knockback := Vector3.ZERO) -> bool:
 		_kill(i)
 		return true
 	return false
+
+
+## How much extra damage this goblin takes right now (frozen, cursed, ability buffs).
+func taken_mult(i: int) -> float:
+	var m := bonus_mult
+	if freeze_t[i] > 0.0:
+		m *= 1.0 + freeze_bonus
+	if curse_t[i] > 0.0:
+		m *= 1.0 + curse_bonus
+	return m
+
+
+## Slow to `factor` of normal speed for `secs` (the stronger / longer effect wins).
+func slow(i: int, factor: float, secs: float) -> void:
+	if dead[i]:
+		return
+	if slow_t[i] <= 0.0 or factor <= slow_f[i]:
+		slow_f[i] = factor
+	slow_t[i] = maxf(slow_t[i], secs)
+
+
+## Frozen solid for `secs` (the boss for a third as long).
+func freeze(i: int, secs: float) -> void:
+	if dead[i]:
+		return
+	freeze_t[i] = maxf(freeze_t[i], secs * (0.34 if typ[i] == BOSS else 1.0))
+	vel[i] = Vector3.ZERO
+
+
+func stun(i: int, secs: float) -> void:
+	if dead[i]:
+		return
+	stun_t[i] = maxf(stun_t[i], secs * (0.5 if typ[i] == BOSS else 1.0))
+	vel[i] = Vector3.ZERO
+
+
+func curse(i: int, secs: float) -> void:
+	if not dead[i]:
+		curse_t[i] = maxf(curse_t[i], secs)
+
+
+## Frozen or stunned: stands still and can't hurt the player.
+func is_held(i: int) -> bool:
+	return freeze_t[i] > 0.0 or stun_t[i] > 0.0
+
+
+func frozen_count() -> int:
+	var n := 0
+	for i in count:
+		if freeze_t[i] > 0.0 and not dead[i]:
+			n += 1
+	return n
 
 
 func _kill(i: int) -> void:
@@ -289,6 +369,8 @@ func _kill(i: int) -> void:
 		epic_killed.emit(pos[i])
 	if burn_t[i] > 0.0:
 		_explosions.append(Vector3(pos[i].x, pos[i].z, hp_max[i] * burn_explode_frac))
+	if freeze_t[i] > 0.0 and shatter_frac > 0.0:
+		_shatters.append(Vector3(pos[i].x, pos[i].z, hp_max[i] * shatter_frac))
 	Events.enemy_killed.emit(pos[i], typ[i])
 
 
@@ -296,7 +378,7 @@ func _kill(i: int) -> void:
 func dot_damage(i: int, amount: float) -> void:
 	if dead[i]:
 		return
-	amount *= damage_mult
+	amount *= damage_mult * taken_mult(i)
 	hp[i] -= amount
 	burn_acc[i] += amount
 	if hp[i] <= 0.0 or _time >= dot_next[i]:
@@ -324,6 +406,12 @@ func knock(i: int, dir: Vector3, distance: float, duration := 0.25) -> void:
 	kb_vel[i] = dir.normalized() * (distance / duration)
 	kb_t[i] = duration
 	vel[i] = Vector3.ZERO
+
+
+## Unit (x, z) facing from this goblin toward `target`.
+func heading_to(i: int, target: Vector3) -> Vector2:
+	var d := Vector2(target.x - pos[i].x, target.z - pos[i].z)
+	return d / d.length() if d.length_squared() > 0.0001 else Vector2(0, 1)
 
 
 ## Direction the enemy is currently heading (velocity, or knockback while being knocked).
@@ -416,6 +504,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 	_compact()
 	_build_grid(player_pos)
 	_resolve_explosions()
+	_resolve_shatters()
 
 	var n := count
 	var parity := _frame & 1
@@ -488,6 +577,24 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			_write_color(i, b, t, burning)
 			continue
 
+		# Status timers. Frozen / stunned goblins stand still (animation paused) and can't attack.
+		if slow_t[i] > 0.0:
+			slow_t[i] -= dt
+		if curse_t[i] > 0.0:
+			curse_t[i] -= dt
+		if freeze_t[i] > 0.0 or stun_t[i] > 0.0:
+			freeze_t[i] -= dt
+			stun_t[i] -= dt
+			vel[i] = Vector3.ZERO
+			var face := heading_to(i, player_pos)
+			_write_xform(b, p, face.x, face.y, sc, sc)
+			buf[b + 12] = _clip_run
+			buf[b + 13] = aph[i]
+			if flash[i] > 0.0:
+				flash[i] -= dt
+			_write_color(i, b, t, burning)
+			continue
+
 		# Separation is expensive, so each enemy recomputes it every other frame (cached between).
 		if (i & 1) == parity:
 			var ax := 0.0
@@ -537,8 +644,16 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			fx = tx * inv
 			fz = tz * inv
 			var sp := t_speed[t] * (WATER_SPEED_MULT if p.y < -0.15 else 1.0)
+			if slow_t[i] > 0.0:
+				sp *= slow_f[i]
 			if fear:
 				sp = -sp   # run away from the player
+			elif lost and t != BOSS:
+				# Lost in the dark: amble along a slowly turning heading of their own
+				var wa := float(uid[i]) * 2.399 + _time * 0.35
+				fx = cos(wa)
+				fz = sin(wa)
+				sp *= 0.55
 			dvx += fx * sp
 			dvz += fz * sp
 		var dl := sqrt(dvx * dvx + dvz * dvz)
@@ -579,7 +694,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		var reach := t_radius[t] * sz[i] + ATTACK_REACH
 		var ph := aph[i]
 		var clip := _clip_run
-		if d2 < reach * reach and not fear:
+		if d2 < reach * reach and not fear and not (lost and t != BOSS):
 			clip = _clip_attack
 			ph += dt * _attack_rate
 		else:
@@ -612,6 +727,10 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		if epic[i]:
 			fxc += 4.0
 			col = col.lerp(EPIC_TINT, 0.3)   # clothing only leans purple
+		if slow_t[i] > 0.0:
+			fxc += FX_CHILL
+		if curse_t[i] > 0.0:
+			fxc += FX_SHADOW
 		buf[b + 16] = col.r
 		buf[b + 17] = col.g
 		buf[b + 18] = col.b
@@ -677,6 +796,12 @@ func _write_color(i: int, b: int, t: int, burning: bool) -> void:
 	if epic[i]:
 		fx += 4.0
 		col = col.lerp(EPIC_TINT, 0.3)   # clothing only leans purple
+	if freeze_t[i] > 0.0:
+		fx += FX_FROZEN
+	elif slow_t[i] > 0.0:
+		fx += FX_CHILL
+	if curse_t[i] > 0.0:
+		fx += FX_SHADOW
 	buf[b + 16] = col.r
 	buf[b + 17] = col.g
 	buf[b + 18] = col.b
@@ -696,6 +821,20 @@ func _resolve_explosions() -> void:
 		for j in query_radius(c, burn_explode_radius, false):
 			damage(j, e.z)
 		exploded.emit(Vector3(e.x, 0.6, e.y), burn_explode_radius)
+
+
+## Shatters work like burn explosions: queued on death, resolved (capped) next tick, chaining.
+func _resolve_shatters() -> void:
+	if _shatters.is_empty():
+		return
+	var n := mini(_shatters.size(), MAX_EXPLOSIONS_PER_TICK)
+	var now := _shatters.slice(0, n)
+	_shatters = _shatters.slice(n)
+	for e in now:
+		var c := Vector3(e.x, 0.8, e.y)
+		for j in query_radius(c, shatter_radius, false):
+			damage(j, e.z)
+		shattered.emit(Vector3(e.x, SwampWater.height_at(e.x, e.y) + 0.6, e.y), shatter_radius)
 
 
 func burning_count() -> int:
@@ -758,6 +897,11 @@ func _compact() -> void:
 			sz[i] = sz[last]
 			sep_x[i] = sep_x[last]
 			sep_z[i] = sep_z[last]
+			slow_t[i] = slow_t[last]
+			slow_f[i] = slow_f[last]
+			freeze_t[i] = freeze_t[last]
+			stun_t[i] = stun_t[last]
+			curse_t[i] = curse_t[last]
 			count -= 1
 		else:
 			i += 1

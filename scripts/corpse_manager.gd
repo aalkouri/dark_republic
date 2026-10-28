@@ -75,6 +75,24 @@ func add(at: Vector3, facing: Vector3, scale: float, tint: Color, epic: bool, bu
 	_side[i] = 0.0
 
 
+## Raise Dead: up to `n` bodies still lying within `radius` of `near` (freshest first). They're
+## removed from the ground; returns their positions.
+func take_recent(near: Vector3, radius: float, n: int) -> Array:
+	var cand := []
+	for i in _count:
+		if _age[i] >= LIFETIME - SINK_TIME:
+			continue
+		var p := _pos[i]
+		if Vector2(p.x - near.x, p.z - near.z).length() <= radius:
+			cand.append(i)
+	cand.sort_custom(func(a, b): return _age[a] < _age[b])
+	var out := []
+	for i in cand.slice(0, n):
+		out.append(_pos[i])
+		_age[i] = LIFETIME   # gone
+	return out
+
+
 func _process(dt: float) -> void:
 	for i in _count:
 		_age[i] += dt

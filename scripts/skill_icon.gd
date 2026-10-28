@@ -116,6 +116,21 @@ func _draw() -> void:
 				draw_line(o + Vector2(0, 8), o + Vector2(0, 22), dark, 4)
 				draw_circle(o, 7, c)
 				draw_circle(o + Vector2(-2, -2), 2.5, light)
+		"shard":   # an icicle flying down-right with frost trailing
+			for k in 3:
+				draw_line(Vector2(10 + k * 6, 14 + k * 2), Vector2(24 + k * 6, 28 + k * 2), Color(light, 0.5), 3)
+			_poly([Vector2(20, 18), Vector2(28, 14), Vector2(56, 52), Vector2(14, 26)], c)
+			_poly([Vector2(24, 18), Vector2(28, 16), Vector2(54, 50)], light)
+		"chainbolt":   # a bolt that forks into a second goblin-seeking arc
+			_poly([Vector2(30, 4), Vector2(14, 34), Vector2(26, 34), Vector2(20, 60), Vector2(42, 26), Vector2(30, 26), Vector2(40, 4)], c)
+			draw_polyline(PackedVector2Array([Vector2(36, 30), Vector2(46, 36), Vector2(42, 44), Vector2(56, 52)]), light, 3)
+			draw_circle(Vector2(56, 52), 4, light)
+		"shadowbolt":   # a dark orb with a violet halo and a wisping tail
+			for k in 4:
+				draw_circle(Vector2(18 - k * 3, 46 + k * 3), 6 - k, Color(c, 0.5 - k * 0.1))
+			draw_circle(Vector2(36, 28), 17, c)
+			draw_circle(Vector2(36, 28), 11, Color(0.08, 0.02, 0.12))
+			draw_arc(Vector2(36, 28), 17, PI * 1.1, PI * 1.7, 12, light, 3)
 		"fireball":   # a blazing ball with its tail streaming behind (up-left)
 			_poly([Vector2(40, 30), Vector2(8, 8), Vector2(22, 26), Vector2(4, 22), Vector2(26, 40), Vector2(30, 46)], dark)
 			_poly([Vector2(40, 32), Vector2(14, 14), Vector2(26, 30), Vector2(12, 28), Vector2(32, 44)], c)

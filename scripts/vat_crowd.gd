@@ -5,6 +5,7 @@ extends RefCounted
 ## Per-instance data:
 ##   COLOR (instance color)  r = clip index / 4, g = phase in the clip (0..1)
 ##   INSTANCE_CUSTOM         rgb = tint, a = burn (0..1) + 2 if hit-flashing + 4 if epic
+##                           + 8 if frozen solid + 16 if chilled (slowed) + 32 if shadowed
 ## The shader looks up the two baked frames around the phase and blends them, so playback is
 ## smooth at any speed. Clips are numbered in bake order (see vat.json).
 
@@ -18,11 +19,15 @@ uniform int verts = 1;
 uniform int tex_w = 4096;
 uniform vec4 clips[4];          // start frame, frame count, loop (1/0), unused
 uniform float tint_amount = 0.35;
+uniform float ghost = 0.0;      // Raise Dead's allies: a strong violet glow
 
 varying vec3 tint;
 varying float burn;
 varying float flash;
 varying float epic;
+varying float frozen;
+varying float chill;
+varying float shadow;
 
 ivec2 texel(int frame, int vid) {
 	int idx = frame * verts + vid;
@@ -49,6 +54,12 @@ void vertex() {
 	NORMAL = dot(nn, nn) > 1e-6 ? normalize(nn) : vec3(0.0, 1.0, 0.0);   // no NaN normals
 
 	float a = INSTANCE_CUSTOM.a;
+	shadow = step(31.5, a);
+	a -= shadow * 32.0;
+	chill = step(15.5, a);
+	a -= chill * 16.0;
+	frozen = step(7.5, a);
+	a -= frozen * 8.0;
 	epic = step(3.5, a);
 	a -= epic * 4.0;
 	flash = step(1.5, a);
@@ -67,7 +78,14 @@ void fragment() {
 	col = mix(col, col * vec3(0.92, 0.78, 1.12), epic * 0.6);
 	col = mix(col, vec3(1.0, 0.42, 0.08), burn * 0.6);
 	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 2.5);
-	EMISSION = vec3(1.0, 0.32, 0.04) * burn * 0.9 + vec3(0.62, 0.18, 1.0) * epic * rim * 1.6;
+	// Roster statuses: ice (frozen solid / chilled) and shadow (cursed, risen dead)
+	col = mix(col, col * vec3(0.55, 0.8, 1.25), chill * 0.55);
+	col = mix(col, vec3(0.72, 0.9, 1.0), frozen * 0.78);
+	col = mix(col, col * vec3(0.35, 0.22, 0.5), shadow * 0.7);
+	EMISSION = vec3(1.0, 0.32, 0.04) * burn * 0.9 + vec3(0.62, 0.18, 1.0) * epic * rim * 1.6
+		+ vec3(0.45, 0.8, 1.0) * (frozen * (0.25 + rim * 1.4) + chill * rim * 0.6)
+		+ vec3(0.6, 0.2, 1.0) * shadow * rim * 1.8
+		+ vec3(0.55, 0.25, 1.0) * ghost * (0.35 + rim * 2.5);
 	// Hit: a brief reddish tint. (A pure-white flash read as bright white dots on goblins
 	// far away in the fog.)
 	ALBEDO = mix(col, col * vec3(1.45, 0.55, 0.45), flash * 0.6);

@@ -87,7 +87,8 @@ var _slide_cd := 0.0
 var rig: Node3D
 var spring: SpringArm3D
 var cam: Camera3D
-var model: HeroModel
+var model: HeroBase
+var footprints := true      # ash footprints (the Fire Wizard)
 var fx: FxManager          # set by main; used for the ash trail
 var _ash_dist := 0.0
 var _ash_side := 1.0
@@ -133,7 +134,9 @@ func _ready() -> void:
 
 
 func _build_model() -> void:
-	model = HeroModel.new()
+	var id := Settings.selected_character
+	model = RosterHero.create(id) if RosterHero.is_playable(id) else HeroModel.new()
+	footprints = model is HeroModel   # only the Fire Wizard leaves ash
 	add_child(model)
 
 
@@ -345,7 +348,7 @@ func _update_visuals(dt: float) -> void:
 
 ## Ash footprints: a flake every ~0.45 m travelled on the ground, alternating feet.
 func _update_ash(dt: float) -> void:
-	if fx == null or not is_on_floor() or in_water:
+	if not footprints or fx == null or not is_on_floor() or in_water:
 		return
 	var hv := Vector3(velocity.x, 0.0, velocity.z)
 	var sp := hv.length()

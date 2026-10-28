@@ -92,9 +92,10 @@ func is_mystery(k: int) -> bool:
 	return bool(characters[k].get("mystery", false))
 
 
-## Has a model and abilities, so it can actually be played (only the Fire Wizard so far).
+## Has a model and abilities, so it can actually be played: the Fire Wizard, plus the roster
+## characters RosterHero can run (Ice, Thunder and Dark Wizards so far).
 func is_ready(k: int) -> bool:
-	return characters[k].has("kit")
+	return characters[k].has("kit") or RosterHero.is_playable(characters[k]["id"])
 
 
 func price_of(k: int) -> int:

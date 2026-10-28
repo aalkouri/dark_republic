@@ -159,8 +159,14 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_check("unlocking spends the price", Wallet.coins == 500 and Wallet.is_char_unlocked("ice_wizard"), "%d" % Wallet.coins)
 	_check("unlocked tile: no padlock or price", not (cs._tiles[iw].get_meta("icon") as CharacterIcon).locked and not (cs._tiles[iw].get_meta("price") as Control).visible, "")
-	_check("unlocked: Skills open, Play waits for the model", not cs._skills_btn.disabled and cs._play_btn.disabled and "playable soon" in cs._status.text, cs._status.text)
+	_check("unlocked Ice Wizard is playable: Skills and Play", not cs._skills_btn.disabled and not cs._play_btn.disabled and "playable soon" not in cs._status.text, cs._status.text)
 	_check("unlock count updates", cs._count_label.text == "2 of 30 unlocked", cs._count_label.text)
+	var mi: int = cs.index_of("merlin")
+	Wallet.unlocked_chars.append("merlin")
+	cs._shown = -1
+	cs._show(mi)
+	_check("unlocked Merlin: Skills open, Play waits for his kit", not cs._skills_btn.disabled and cs._play_btn.disabled and "playable soon" in cs._status.text, cs._status.text)
+	Wallet.unlocked_chars.erase("merlin")
 	Wallet.unlocked_chars = []
 	Wallet.coins = 0
 	cs.refresh_levels()

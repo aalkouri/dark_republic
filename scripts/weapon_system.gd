@@ -3,6 +3,12 @@ extends Node3D
 ## Runs all owned weapons each tick. Weapon stats live in the shared Stats object
 ## (orb_*, aura_*, slam_*) and are scaled by global stats (damage, attack_speed, area...).
 ## Projectiles are packed arrays + one MultiMesh, same pattern as enemies.
+##
+## The starting weapon (upgrade "weapon_orb", stats orb_*) depends on the character (`style`):
+##   fire     Fireballs        auto-aimed fireballs that pierce
+##   ice      Frost Shards     icicles that slow goblins (SHARD_SLOW for SHARD_SLOW_TIME)
+##   thunder  Chain Lightning  instant arcs that jump CHAIN_JUMPS (+ pierce) times, losing 20% each
+##   dark     Shadow Bolts     slow, extra-piercing bolts; CURSE_CHANCE to curse for CURSE_TIME
 
 const P_MAX := 400
 const P_STRIDE := 12
@@ -20,6 +26,28 @@ var p_dmg := PackedFloat32Array()
 var p_pierce := PackedInt32Array()
 var p_hits: Array = []     # PackedInt32Array of enemy uids already hit, per projectile
 
+const SHARD_SLOW := 0.7          # Frost Shards: goblins move at 70% speed...
+const SHARD_SLOW_TIME := 2.0     # ...for 2 s
+const CHAIN_JUMPS := 4           # Chain Lightning: extra goblins each arc jumps to
+const CHAIN_RANGE := 6.0
+const CHAIN_FALLOFF := 0.8       # damage kept per jump
+const CHAIN_REACH := 22.0        # first target range
+const DARK_SPEED := 0.6          # Shadow Bolts fly at 60% speed...
+const DARK_PIERCE := 2           # ...pierce 2 more goblins...
+const CURSE_CHANCE := 0.2        # ...and curse (+25% damage taken)...
+const CURSE_TIME := 4.0          # ...for 4 s
+## Level-up card for the starting weapon, per style.
+const CARDS := {
+	"ice": {"name": "Frost Shards", "desc": "Hurls icicles from your staff that slow the goblins they hit.",
+		"icon": {"glyph": "shard", "cover": "#1d4a6e", "tint": "#bfe9ff"}},
+	"thunder": {"name": "Chain Lightning", "desc": "Lightning arcs from your staff and jumps between goblins.",
+		"icon": {"glyph": "chainbolt", "cover": "#3a2a6e", "tint": "#fff27a"}},
+	"dark": {"name": "Shadow Bolts", "desc": "Slow bolts of shadow that pierce and curse the goblins they hit.",
+		"icon": {"glyph": "shadowbolt", "cover": "#2a1236", "tint": "#c45bff"}},
+}
+
+var style := "fire"              # set by main from the selected character, before _ready
+var lightning: LightningFx
 var orb_t := 0.3
 var aura_t := 0.0
 var slam_t := 1.5
@@ -59,7 +87,7 @@ func _ready() -> void:
 	orb.rings = 5
 	var orb_mat := StandardMaterial3D.new()
 	orb_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	orb_mat.albedo_color = Color(1.0, 0.78, 0.3)
+	orb_mat.albedo_color = {"ice": Color(0.85, 0.97, 1.0), "dark": Color(0.35, 0.08, 0.5)}.get(style, Color(1.0, 0.78, 0.3))
 	orb.material = orb_mat
 	var tail := SphereMesh.new()
 	tail.radius = 0.5
@@ -71,7 +99,7 @@ func _ready() -> void:
 	tail_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	tail_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	tail_mat.disable_fog = true   # additive + fog = pale grey halos
-	tail_mat.albedo_color = Color(1.0, 0.32, 0.05, 0.75)
+	tail_mat.albedo_color = {"ice": Color(0.3, 0.7, 1.0, 0.6), "dark": Color(0.6, 0.15, 1.0, 0.7)}.get(style, Color(1.0, 0.32, 0.05, 0.75))
 	tail.material = tail_mat
 	tail_mm = MultiMesh.new()
 	tail_mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -100,6 +128,24 @@ func _ready() -> void:
 	add_child(aura_mesh)
 
 	_ring_mat = _fx_material(Color(1.0, 0.9, 0.5, 0.6))
+	lightning = LightningFx.new()
+	add_child(lightning)
+
+
+## Rename and re-icon the starting weapon's level-up card for this style.
+static func retheme_card(db: UpgradeDB, p_style: String) -> void:
+	if not CARDS.has(p_style) or not db.defs.has("weapon_orb"):
+		return
+	var d: Dictionary = db.defs["weapon_orb"]
+	var c: Dictionary = CARDS[p_style]
+	d["name"] = c["name"]
+	d["desc"] = c["desc"]
+	d["icon"] = c["icon"]
+
+
+## Character id -> weapon style.
+static func style_of(char_id: String) -> String:
+	return {"ice_wizard": "ice", "thunder_wizard": "thunder", "dark_wizard": "dark"}.get(char_id, "fire")
 
 
 static func _fx_material(c: Color) -> StandardMaterial3D:
@@ -122,7 +168,8 @@ func tick(dt: float) -> void:
 	if db.level_of("weapon_orb") > 0:
 		orb_t -= dt
 		if orb_t <= 0.0:
-			orb_t = stats.value("orb_cooldown") / haste if _fire_orbs(chest, dmg_mult) else 0.1
+			var fired := _fire_chain(chest, dmg_mult) if style == "thunder" else _fire_orbs(chest, dmg_mult)
+			orb_t = stats.value("orb_cooldown") / haste if fired else 0.1
 	_update_projectiles(dt)
 
 	# --- Stink Aura: damage ticks in a radius
@@ -164,6 +211,11 @@ func _fire_orbs(origin: Vector3, dmg_mult: float) -> bool:
 	var speed := stats.value("orb_speed") * stats.value("projectile_speed")
 	var dmg := stats.value("orb_damage") * dmg_mult
 	var pierce := int(stats.value("orb_pierce"))
+	var life := 1.6
+	if style == "dark":
+		speed *= DARK_SPEED
+		pierce += DARK_PIERCE
+		life /= DARK_SPEED
 	# The wizard swings his staff at the first target; every orb leaves from the staff tip.
 	if player.model != null and player.model.has_method("attack"):
 		origin = player.model.attack(enemies.center_of(targets[0]))
@@ -173,7 +225,47 @@ func _fire_orbs(origin: Vector3, dmg_mult: float) -> bool:
 		if k >= targets.size():  # more orbs than targets: fan out
 			var spread := 0.22 * float(k - targets.size() + 1) * (1.0 if k % 2 == 0 else -1.0)
 			dir = dir.rotated(Vector3.UP, spread)
-		_spawn_projectile(origin, dir * speed, 1.6, dmg, pierce)
+		_spawn_projectile(origin, dir * speed, life, dmg, pierce)
+	return true
+
+
+## Chain Lightning: an instant arc from the staff to each target, jumping on to nearby goblins.
+func _fire_chain(origin: Vector3, dmg_mult: float) -> bool:
+	var n := maxi(1, int(stats.value("orb_count")) + int(stats.value("projectile_count")))
+	var targets := enemies.nearest_k(origin, CHAIN_REACH, n)
+	if targets.is_empty():
+		return false
+	if player.model != null:
+		origin = player.model.attack(enemies.center_of(targets[0]))
+	var dmg := stats.value("orb_damage") * dmg_mult
+	var jumps := CHAIN_JUMPS + int(stats.value("orb_pierce"))
+	var col := RosterHero.color("thunder_wizard", "main")
+	var hit := {}
+	for t in targets:
+		if hit.has(t):
+			continue
+		var from := origin
+		var cur := t
+		var d := dmg
+		for j in jumps + 1:
+			hit[cur] = true
+			var at := enemies.center_of(cur)
+			lightning.bolt(from, at, col, 0.05 if j > 0 else 0.07, 0.14)
+			enemies.damage(cur, d)
+			from = at
+			d *= CHAIN_FALLOFF
+			var next := -1
+			var best := CHAIN_RANGE * CHAIN_RANGE
+			for e in enemies.query_radius(at, CHAIN_RANGE, false):
+				if hit.has(e):
+					continue
+				var dd := at.distance_squared_to(enemies.center_of(e))
+				if dd < best:
+					best = dd
+					next = e
+			if next < 0:
+				break
+			cur = next
 	return true
 
 
@@ -204,6 +296,10 @@ func _update_projectiles(dt: float) -> void:
 					continue
 				hl.append(u)
 				enemies.damage(e, p_dmg[i], p_vel[i].normalized() * 2.5)
+				if style == "ice":
+					enemies.slow(e, SHARD_SLOW, SHARD_SLOW_TIME)
+				elif style == "dark" and randf() < CURSE_CHANCE:
+					enemies.curse(e, CURSE_TIME)
 				p_pierce[i] -= 1
 				if p_pierce[i] < 0:
 					alive = false
@@ -235,9 +331,15 @@ func _update_projectiles(dt: float) -> void:
 		tail_buf[b] = tb.x.x; tail_buf[b + 1] = tb.y.x; tail_buf[b + 2] = tb.z.x; tail_buf[b + 3] = tc.x
 		tail_buf[b + 4] = tb.x.y; tail_buf[b + 5] = tb.y.y; tail_buf[b + 6] = tb.z.y; tail_buf[b + 7] = tc.y
 		tail_buf[b + 8] = tb.x.z; tail_buf[b + 9] = tb.y.z; tail_buf[b + 10] = tb.z.z; tail_buf[b + 11] = tc.z
-		buf[b] = 1.0; buf[b + 1] = 0.0; buf[b + 2] = 0.0; buf[b + 3] = p.x
-		buf[b + 4] = 0.0; buf[b + 5] = 1.0; buf[b + 6] = 0.0; buf[b + 7] = p.y
-		buf[b + 8] = 0.0; buf[b + 9] = 0.0; buf[b + 10] = 1.0; buf[b + 11] = p.z
+		# Core: a round fireball / shadow orb, or a long thin icicle along the flight path
+		var cb := Basis.IDENTITY
+		if style == "ice":
+			cb = Basis(side * 0.45, up * 0.45, fwd * 2.2)
+		elif style == "dark":
+			cb = Basis.IDENTITY.scaled(Vector3.ONE * (1.15 + 0.15 * sin(p_life[i] * 25.0)))
+		buf[b] = cb.x.x; buf[b + 1] = cb.y.x; buf[b + 2] = cb.z.x; buf[b + 3] = p.x
+		buf[b + 4] = cb.x.y; buf[b + 5] = cb.y.y; buf[b + 6] = cb.z.y; buf[b + 7] = p.y
+		buf[b + 8] = cb.x.z; buf[b + 9] = cb.y.z; buf[b + 10] = cb.z.z; buf[b + 11] = p.z
 		i += 1
 	mm.buffer = buf
 	mm.visible_instance_count = pc

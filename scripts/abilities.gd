@@ -9,6 +9,11 @@ extends Node3D
 ##                           his own head, which crashes where you aim 3 s later; he reappears
 ##                           there. Big AoE damage, then the ground burns for 3 s (3% max HP/s).
 ## Slot order lives in DEFS; refer to slots by INFERNO / SHOCKWAVE / METEOR, never by number.
+##
+## Other playable characters (`kit` = their id) keep the same slots, keys, unlock levels and
+## cooldown handling here, but their abilities live in RosterKit (`roster`) and their names
+## and cooldowns come from data/abilities.json (defs()). Their entrance is a comet in their
+## own colours instead of the giant flaming head.
 ## Cooldowns tick in the physics step, so they pause with the game.
 
 signal cast(index: int)
@@ -81,6 +86,10 @@ const DEFS := [
 	{"name": "Meteor", "key": "3", "cooldown": METEOR_COOLDOWN, "ult": true, "unlock_level": 10},
 ]
 
+var kit := "fire_wizard"     # the selected character; set before the node enters the tree
+var roster: RosterKit        # its abilities, for everyone but the Fire Wizard
+var _defs: Array = []
+
 var stats: Stats
 var enemies: EnemyManager
 var player: Player
@@ -135,6 +144,22 @@ func _ready() -> void:
 	_fire_mat.disable_fog = true   # additive + fog = pale grey halos
 	_fire_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_fire_mat.albedo_color = Color(1.0, 0.45, 0.1, 0.9)
+	if kit != "fire_wizard" and KitDB.has_kit(kit):
+		roster = RosterKit.new()
+		roster.setup(self, kit)
+		add_child(roster)
+
+
+## This character's slots: name, key, cooldown, ult, unlock_level (like DEFS).
+func defs() -> Array:
+	if kit == "fire_wizard" or not KitDB.has_kit(kit):
+		return DEFS
+	if _defs.is_empty():
+		for i in 3:
+			var a := KitDB.ability(kit, i)
+			_defs.append({"name": a["name"], "key": KitDB.KEYS[i], "cooldown": float(a["cooldown"]),
+				"ult": i == 2, "unlock_level": KitDB.UNLOCK_LEVELS[i]})
+	return _defs
 
 
 
@@ -144,10 +169,17 @@ var level := 1
 
 ## Tooltip text (BBCode) with the current numbers, including the Damage stat.
 func describe(i: int) -> String:
-	var lines := describe_lines(i, stats.value("damage") if stats != null else 1.0)
+	var dmg := stats.value("damage") if stats != null else 1.0
+	var lines: Array[String]
+	if roster:
+		lines = KitDB.describe_lines(kit, i)
+		if not is_equal_approx(dmg, 1.0):
+			lines.append("[color=#9be37a]Damage stat: %+d%% to flat damage[/color]" % roundi((dmg - 1.0) * 100.0))
+	else:
+		lines = describe_lines(i, dmg)
 	lines.append("")
 	if not is_unlocked(i):
-		lines.append("[color=#ff7060]Locked: unlocks at level %d[/color]" % int(DEFS[i]["unlock_level"]))
+		lines.append("[color=#ff7060]Locked: unlocks at level %d[/color]" % int(defs()[i]["unlock_level"]))
 	elif cooldown[i] > 0.0:
 		lines.append("[color=#cccccc]Ready in %s[/color]" % _fmt_cd(cooldown[i]))
 	else:
@@ -194,7 +226,7 @@ static func _fmt_cd(secs: float) -> String:
 
 
 func is_unlocked(i: int) -> bool:
-	return level >= int(DEFS[i]["unlock_level"])
+	return level >= int(defs()[i]["unlock_level"])
 
 
 func is_ready(i: int) -> bool:
@@ -202,7 +234,7 @@ func is_ready(i: int) -> bool:
 
 
 func fraction_remaining(i: int) -> float:
-	return clampf(cooldown[i] / float(DEFS[i]["cooldown"]), 0.0, 1.0)
+	return clampf(cooldown[i] / float(defs()[i]["cooldown"]), 0.0, 1.0)
 
 
 func reset_cooldowns() -> void:
@@ -210,16 +242,19 @@ func reset_cooldowns() -> void:
 
 
 func try_cast(i: int) -> bool:
-	if i < 0 or i >= DEFS.size() or not is_ready(i):
+	if i < 0 or i >= defs().size() or not is_ready(i):
 		return false
-	match i:
-		INFERNO:
-			_cast_inferno()
-		SHOCKWAVE:
-			_cast_shockwave()
-		METEOR:
-			_cast_meteor()
-	cooldown[i] = DEFS[i]["cooldown"] * (stats.value("ability_cdr") if stats.has_stat("ability_cdr") else 1.0)
+	if roster:
+		roster.cast(i)
+	else:
+		match i:
+			INFERNO:
+				_cast_inferno()
+			SHOCKWAVE:
+				_cast_shockwave()
+			METEOR:
+				_cast_meteor()
+	cooldown[i] = defs()[i]["cooldown"] * (stats.value("ability_cdr") if stats.has_stat("ability_cdr") else 1.0)
 	cast.emit(i)
 	return true
 
@@ -238,6 +273,8 @@ func tick(dt: float) -> void:
 	_update_meteors(dt)
 	_update_scorches(dt)
 	_update_shocks(dt)
+	if roster:
+		roster.tick(dt)
 
 
 # ------------------------------------------------------------------ 1: Meteor
@@ -290,12 +327,11 @@ func entrance_meteor(target: Vector3) -> void:
 	# In from behind the camera, so the player watches it come down
 	var fwd := Vector3(-sin(player.cam_yaw), 0.0, -cos(player.cam_yaw))
 	var start := target - fwd * 35.0 + Vector3(0, 75.0, 0)
-	var head := _make_giant_head()
+	var head := _make_giant_head() if roster == null else _make_comet()
 	head.global_position = start
 	_face(head, target)
 	player.enter_meteor_form()
-	player.model.visible = false   # already gone: no slam/vanish animation for the entrance
-	player.model._vanish_t = -1.0
+	player.model.hide_now()   # already gone: no slam/vanish animation for the entrance
 	player.global_position = start - Vector3(0, 1.6, 0)
 	_meteors.append({"target": target, "t": 0.0, "head": head, "marker": marker, "fill": fill, "start": start, "entrance": true})
 
@@ -322,6 +358,41 @@ func _make_giant_head() -> Node3D:
 	root.add_child(trail)
 	var light := OmniLight3D.new()
 	light.light_color = Color(1.0, 0.5, 0.15)
+	light.light_energy = 5.0
+	light.omni_range = 22.0
+	root.add_child(light)
+	return root
+
+
+## A roster character's entrance: a comet of its own magic (ice, lightning, shadow).
+func _make_comet() -> Node3D:
+	var main := RosterHero.color(kit, "main")
+	var light_c := RosterHero.color(kit, "light")
+	var root := Node3D.new()
+	root.top_level = true
+	add_child(root)
+	var core := MeshInstance3D.new()
+	var s := SphereMesh.new()
+	s.radius = 1.6
+	s.height = 3.2
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = light_c
+	s.material = m
+	core.mesh = s
+	root.add_child(core)
+	for spec in [[3.2, 0.7, 160, 2.2, 0.0], [3.6, 1.6, 220, 1.6, 6.0]]:
+		var p := _flame_particles(spec[0], spec[1], spec[2])
+		p.emission_sphere_radius = spec[3]
+		p.gravity = Vector3(0, spec[4], 0)
+		var grad := Gradient.new()
+		grad.set_color(0, Color(light_c, 1.0))
+		grad.set_color(1, Color(RosterHero.color(kit, "deep"), 0.0))
+		grad.add_point(0.35, Color(main, 0.8))
+		p.color_ramp = grad
+		root.add_child(p)
+	var light := OmniLight3D.new()
+	light.light_color = main
 	light.light_energy = 5.0
 	light.omni_range = 22.0
 	root.add_child(light)
@@ -398,6 +469,9 @@ func _ignite_trees(at: Vector3) -> int:
 
 func _meteor_impact(at: Vector3) -> void:
 	impact_sfx.play()
+	if roster:   # a roster character's entrance comet: its colours, no fire
+		_comet_impact(at)
+		return
 	_ignite_trees(at)
 	var dmg := METEOR_DAMAGE * stats.value("damage")
 	for i in enemies.query_radius(Vector3(at.x, 0.8, at.z), METEOR_RADIUS, false):
@@ -410,6 +484,23 @@ func _meteor_impact(at: Vector3) -> void:
 		var a := randf() * TAU
 		var r := randf_range(1.0, METEOR_RADIUS * 0.9)
 		fx.burst(at + Vector3(cos(a) * r, randf_range(0.3, 2.0), sin(a) * r), randf_range(1.0, 2.2), Color(1.0, 0.35, 0.05), randf_range(0.4, 0.8))
+	var d := player.global_position.distance_to(at)
+	player.add_shake(clampf(1.2 - d / 40.0, 0.15, 1.0))
+
+
+func _comet_impact(at: Vector3) -> void:
+	var main := RosterHero.color(kit, "main")
+	var light_c := RosterHero.color(kit, "light")
+	var dmg := METEOR_DAMAGE * stats.value("damage")
+	for i in enemies.query_radius(Vector3(at.x, 0.8, at.z), METEOR_RADIUS, false):
+		if not enemies.damage(i, dmg):
+			enemies.knock(i, enemies.pos[i] - at, METEOR_KNOCKBACK, 0.2)
+	fx.burst(at + Vector3(0, 1.0, 0), METEOR_RADIUS * 1.1, main, 0.6)
+	fx.burst(at + Vector3(0, 2.5, 0), METEOR_RADIUS * 0.6, light_c, 0.4)
+	for n in 10:
+		var a := randf() * TAU
+		var r := randf_range(1.0, METEOR_RADIUS * 0.9)
+		fx.burst(at + Vector3(cos(a) * r, randf_range(0.3, 2.0), sin(a) * r), randf_range(1.0, 2.2), main, randf_range(0.4, 0.8))
 	var d := player.global_position.distance_to(at)
 	player.add_shake(clampf(1.2 - d / 40.0, 0.15, 1.0))
 

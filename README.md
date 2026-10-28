@@ -32,7 +32,7 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 
 ## Character select
 
-**Characters** on the title opens a roster of 25 champions plus 5 mystery slots (shown only as "?"): a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. Only **The Fire Wizard** is playable for now; he previews as his live 3D model, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. **Unlocking with coins:** each locked tile shows its price: 2,000 for the Ice, Thunder and Dark Wizards, 7,000 for Merlin and 10,000 for everyone else. Selecting a locked character turns Play into **Unlock**, which spends the coins. Bought characters get their skill tree and level straight away. Only characters with a model and abilities can be played, which so far is just the Fire Wizard, so others show "playable soon" until they're built.
+**Characters** on the title opens a roster of 25 champions plus 5 mystery slots (shown only as "?"): a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. **The Fire Wizard** plays from the start; the **Ice, Thunder and Dark Wizards** are playable once bought. Characters with a model preview as it in 3D, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. **Unlocking with coins:** each locked tile shows its price: 2,000 for the Ice, Thunder and Dark Wizards, 7,000 for Merlin and 10,000 for everyone else. Selecting a locked character turns Play into **Unlock**, which spends the coins. Bought characters get their skill tree and level straight away. Only characters with a model and abilities can be played, which so far is just the Fire Wizard, so others show "playable soon" until they're built.
 
 Each character has a saved level (`lvl`, kept with the coins in `user://progress.cfg`). Tiles show **lvl N** in the bottom-left corner when it's 1 or more, and nothing at 0. Mouse, keyboard and gamepad all work; Esc goes back.
 
@@ -42,7 +42,31 @@ Every character has a designed kit in `data/abilities.json`: a starting weapon p
 
 **On the select screen**, every character shows its weapon and its three ability squares. Hover one for the full description with cooldown and numbers (`KitDB.describe_lines`; `{braces}` in the JSON mark highlighted numbers). Icons are drawn in code by `scripts/ability_glyphs.gd` from each ability's `"icon": {"glyph", "color"}` (36 glyphs). To preview them all: `godot --path . --script res://tools/render_ability_icons.gd -- /out.png`.
 
-**In runs**, only the Fire Wizard's kit is implemented so far (`abilities.gd`); the others are designs until each character is built.
+**In runs**, the Fire Wizard, Ice Wizard, Thunder Wizard and Dark Wizard are playable; the others are designs until each character is built (they show "playable soon" once bought).
+
+## The Ice, Thunder and Dark Wizards
+
+Each plays as its own rigged Higgsfield model (`models/<id>/`, Lean clip set: idle, run, hit, attack, ability) driven by `RosterHero` (`scripts/roster_hero.gd`): idle/run blend by speed, and the staff thrust, hit flinch and ability casts play on the upper body so the legs keep running. The staff comes from `RosterWeapons`, and shots leave from its head. Each arrives as a comet in its own colours instead of the flaming head, and only the Fire Wizard leaves ash footprints.
+
+**Weapons** (the starting `weapon_orb` card is renamed and re-iconed per character, and levels up the same way):
+
+| Character | Weapon | Effect |
+|---|---|---|
+| Ice Wizard | Frost Shards | Icicles that slow goblins 30% for 2 s |
+| Thunder Wizard | Chain Lightning | Instant arcs that jump to 4 more goblins (+1 per pierce) within 6 m, losing 20% per jump |
+| Dark Wizard | Shadow Bolts | Slow bolts (60% speed) that pierce 2 more goblins; 20% chance to curse (+25% damage taken for 4 s) |
+
+**Abilities** (`scripts/roster_kit.gd`; damage numbers scale with Damage, % of max HP doesn't):
+
+| | 1 (start) | 2 (level 5) | 3 Ultimate (level 10) |
+|---|---|---|---|
+| **Ice** | **Flash Freeze** (30 s): goblins within 15 m frozen solid for 3 s; frozen goblins can't hurt you, take +50% damage and shatter on death for 40% of their max HP within 2 yd (chains) | **Glacial Path** (45 s): +60% speed for 6 s; your ice trail lasts 5 s, slows 60% and deals 15/s | **Absolute Zero** (2 min): 25 m blizzard on you for 8 s (80% slow, 4% max HP/s), then everything inside freezes for 2 s and shatters for 200 |
+| **Thunder** | **Overcharge** (30 s): +40% speed for 8 s; every jump and landing shocks 6 m for 40 | **Thunderclap** (45 s): 12 bolts on the goblins with the most HP within 25 m: 120 each, 1.5 s stun | **Storm Lord** (2 min): a thundercloud follows you for 10 s, striking a goblin within 18 m every 0.25 s for 90, chaining to 3 more |
+| **Dark** | **Siphon** (30 s): goblins within 12 m lose 6% max HP/s for 4 s; you heal 1 HP per goblin per second (max 5% of max HP/s) | **Raise Dead** (50 s): 15 dead goblins (fresh corpses first, the rest claw out of the bog) fight for you for 15 s (25 per hit), then explode for 60 in 3 m | **Eclipse** (2 min): the world goes dark for 8 s; goblins lose track of you and wander, you deal +100% damage, and every kill sends a shadow wisp at a goblin for 60 |
+
+**Goblin statuses** (`enemy_manager.gd`): slow, freeze, stun, curse, the Eclipse wander, and shatter explosions, shown in the goblin shader as icy, frosted or shadowed. Frozen and stunned goblins stand still and deal no contact damage. Raise Dead's allies (`ally_crowd.gd`) reuse the goblin's baked mesh and animations, shadow-tinted. Lightning everywhere is `lightning_fx.gd` (one additive MultiMesh of jagged segments).
+
+**Sounds** are synthesised by `tools/gen_roster_sounds.py` into `audio/abilities/`. **Tests:** `godot --headless --path . res://tools/test_roster.tscn` plays a run as each character and checks the model, entrance, weapon and all nine abilities. Screenshot runs take `--char=<id>` to play as someone else, and `--shot-slow=T` to slow to a crawl at T seconds so short effects like bolts are caught.
 
 | Character | Role | Weapon | 1 | 2 (Lv 5) | 3 Ultimate (Lv 10) |
 |---|---|---|---|---|---|
@@ -229,6 +253,11 @@ scripts/
   ability_slot.gd    one ability-bar slot (procedural icon, cooldown, ult outline)
   ability_glyphs.gd  procedural icons for the roster kits' abilities
   kit_db.gd          loads data/abilities.json: every character's weapon + 3 abilities, tooltips
+  hero_base.gd       what a playable character's model provides (HeroModel and RosterHero)
+  roster_hero.gd     rigged roster character in runs: clips, staff, twist, colours
+  roster_kit.gd      the Ice / Thunder / Dark Wizards' abilities and their effects
+  ally_crowd.gd      Raise Dead's risen goblins
+  lightning_fx.gd    pooled jagged lightning bolts
   vat_crowd.gd       baked vertex-animation playback for the goblin crowd (clip/phase per instance, tint, burn, epic, hit flash)
   goblin_mesh.gd     old procedural goblin (unused)
   goblin_audio.gd    goblin death sounds (rate-limited, positional)

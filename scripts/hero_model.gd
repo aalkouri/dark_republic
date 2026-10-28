@@ -1,5 +1,5 @@
 class_name HeroModel
-extends Node3D
+extends HeroBase
 ## The fire wizard as a rigged, textured model (generated with Higgsfield / Meshy) driven by an
 ## AnimationTree. Faces -Z, origin at the feet, 1.8 m tall.
 ##
@@ -282,6 +282,11 @@ func vanish() -> void:
 func reappear() -> void:
 	_vanish_t = -1.0
 	visible = true
+
+
+func hide_now() -> void:
+	_vanish_t = -1.0
+	visible = false
 
 
 ## True while a one-shot layer is playing (or was just requested and starts next frame).

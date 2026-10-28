@@ -103,6 +103,7 @@ var _shot_inspect := -1
 var _shot_settings_tab := -1
 var _forced_seed := -1
 var _shot_pitch := -99.0
+var _shot_slow := -1.0   # --shot-slow=T: crawl (time scale 0.02) from T, to catch short effects
 
 
 func _ready() -> void:
@@ -117,7 +118,9 @@ func _ready() -> void:
 		if a.begins_with("--smoke-seconds="):
 			smoke_seconds = float(a.split("=")[1])
 	for a in args:
-		if a.begins_with("--shot="):
+		if a.begins_with("--char="):   # play as this character (tests, screenshots)
+			Settings.selected_character = a.split("=")[1]
+		elif a.begins_with("--shot="):
 			shot_path = a.split("=")[1]
 		elif a.begins_with("--shot-at="):
 			shot_at = float(a.split("=")[1])
@@ -170,6 +173,8 @@ func _ready() -> void:
 			_shot_pool = true
 		elif a == "--shot-front":
 			_shot_front = true
+		elif a.begins_with("--shot-slow="):
+			_shot_slow = float(a.split("=")[1])
 		elif a.begins_with("--shot-pitch="):
 			_shot_pitch = float(a.split("=")[1])
 	if smoke:
@@ -217,15 +222,20 @@ func _ready() -> void:
 	gems = GemManager.new()
 	add_child(gems)
 
+	# The character: Fire Wizard, or a playable roster character with its own weapon and kit
+	var who := Settings.selected_character if RosterHero.is_playable(Settings.selected_character) else "fire_wizard"
 	weapons = WeaponSystem.new()
+	weapons.style = WeaponSystem.style_of(who)
+	WeaponSystem.retheme_card(db, weapons.style)
 	weapons.setup(stats, db, enemies, player)
 	add_child(weapons)
 
 	abilities = Abilities.new()
+	abilities.kit = who
 	abilities.setup(stats, enemies, player, fx)
 	add_child(abilities)
 	abilities.cast.connect(func(i: int):
-		if i != Abilities.METEOR:      # the Meteor plays its own arms-up as he vanishes
+		if abilities.roster != null or i != Abilities.METEOR:   # the Meteor plays its own arms-up as he vanishes
 			player.model.play_ability(i))
 	goblin_audio = GoblinAudio.new()
 	goblin_audio.setup(enemies, player, rng)
@@ -254,6 +264,10 @@ func _ready() -> void:
 	enemies.epic_killed.connect(func(p: Vector3): powerups.on_elite_killed(p))
 
 	enemies.exploded.connect(func(p: Vector3, r: float): fx.burst(p, r * 1.4, Color(1.0, 0.4, 0.08), 0.35))
+	if abilities.roster:
+		abilities.roster.healed.connect(func(amount: float):
+			hud.show_heal(amount)
+			numbers.add(player.global_position + Vector3(0, 2.6, 0), amount, DamageNumbers.HEAL))
 
 	items = ItemEffects.new()
 	items.setup(stats, enemies, player, rng)
@@ -376,10 +390,14 @@ func _contact_damage() -> void:
 		var dmg := 0.0
 		var push := Vector3.ZERO
 		for i in hits:
+			if enemies.is_held(i):
+				continue   # frozen or stunned goblins can't hit
 			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]])
 			var away := enemies.pos[i] - me
 			away.y = 0.0
 			push -= away.normalized() if away.length_squared() > 0.0001 else Vector3.ZERO
+		if dmg <= 0.0:
+			return
 		player.hurt(dmg)
 		_smoke_contacts += 1
 		if push.length_squared() < 0.0001:
@@ -486,8 +504,8 @@ func _add_xp(v: float) -> void:
 		pending_levels += 1
 		Events.level_up.emit(level)
 		abilities.level = level
-		for k in Abilities.DEFS.size():
-			var d: Dictionary = Abilities.DEFS[k]
+		for k in abilities.defs().size():
+			var d: Dictionary = abilities.defs()[k]
 			if int(d["unlock_level"]) == level:
 				hud.flash_message("NEW ABILITY UNLOCKED: %s  [%s]" % [d["name"].to_upper(), d["key"]], 4.0)
 	if pending_levels > 0 and state == "playing":
@@ -525,10 +543,8 @@ func cast_ability(i: int) -> void:
 	if state != "playing" or intro:
 		return
 	if abilities.try_cast(i):
-		if i == Abilities.INFERNO:
-			hud.flash_message("INFERNO!", 2.0)
-		elif i == Abilities.METEOR:
-			hud.flash_message("METEOR!", 2.0)
+		if i == Abilities.INFERNO or i == Abilities.METEOR:
+			hud.flash_message(str(abilities.defs()[i]["name"]).to_upper() + "!", 2.0)
 
 
 func resume_from_pause() -> void:
@@ -793,6 +809,9 @@ func _shot_tick() -> void:
 			else:
 				_spawn_enemy(t, _spawn_point(14.0, 30.0), 3.0)
 		_shot_spawn = 0
+	if _shot_slow >= 0.0 and run_time >= _shot_slow:
+		Engine.time_scale = 0.02
+		shot_at = minf(shot_at, run_time + 0.1)
 	for t in shot_casts.keys():
 		if run_time >= t:
 			abilities.reset_cooldowns()

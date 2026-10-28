@@ -9,37 +9,40 @@ const SKIN_UP := Vector3.UP
 const FORWARD := Vector3(0, 0, 1)   # GLB characters face +Z in skeleton space
 
 
-static func attach(id: String, skeleton: Skeleton3D) -> void:
+## Returns the right-hand weapon (staffs have their head 0.9 m up their local +Y).
+static func attach(id: String, skeleton: Skeleton3D) -> Node3D:
+	var w: Node3D = null
 	match id:
 		"ice_wizard":
-			_hold(skeleton, "RightHand", _staff(Color(0.55, 0.6, 0.68), _crystal(Color(0.6, 0.9, 1.0))), SKIN_UP)
+			w = _hold(skeleton, "RightHand", _staff(Color(0.55, 0.6, 0.68), _crystal(Color(0.6, 0.9, 1.0))), SKIN_UP)
 		"merlin":
-			_hold(skeleton, "RightHand", _staff(Color(0.3, 0.2, 0.12), _orb(Color(0.45, 0.65, 1.0))), SKIN_UP)
+			w = _hold(skeleton, "RightHand", _staff(Color(0.3, 0.2, 0.12), _orb(Color(0.45, 0.65, 1.0))), SKIN_UP)
 		"thunder_wizard":
-			_hold(skeleton, "RightHand", _staff(Color(0.4, 0.38, 0.42), _orb(Color(1.0, 0.92, 0.35))), SKIN_UP)
+			w = _hold(skeleton, "RightHand", _staff(Color(0.4, 0.38, 0.42), _orb(Color(1.0, 0.92, 0.35))), SKIN_UP)
 		"dark_wizard":
-			_hold(skeleton, "RightHand", _staff(Color(0.08, 0.06, 0.1), _skull()), SKIN_UP)
+			w = _hold(skeleton, "RightHand", _staff(Color(0.08, 0.06, 0.1), _skull()), SKIN_UP)
 		"ogre":
-			_hold(skeleton, "RightHand", _club(), (FORWARD + Vector3.DOWN * 0.6).normalized())
+			w = _hold(skeleton, "RightHand", _club(), (FORWARD + Vector3.DOWN * 0.6).normalized())
 		"vampire_hunter":
-			_hold(skeleton, "RightHand", _crossbow(), (Vector3.DOWN + FORWARD * 0.35).normalized())
+			w = _hold(skeleton, "RightHand", _crossbow(), (Vector3.DOWN + FORWARD * 0.35).normalized())
 		"vicki":
-			_hold(skeleton, "RightHand", _spear(), SKIN_UP)
+			w = _hold(skeleton, "RightHand", _spear(), SKIN_UP)
 		"rogue":
-			_hold(skeleton, "RightHand", _blade(0.32, 0.035, Color(0.8, 0.82, 0.86)), FORWARD)
+			w = _hold(skeleton, "RightHand", _blade(0.32, 0.035, Color(0.8, 0.82, 0.86)), FORWARD)
 			_hold(skeleton, "LeftHand", _blade(0.32, 0.035, Color(0.8, 0.82, 0.86)), FORWARD)
 		"gaiden":
-			_hold(skeleton, "RightHand", _blade(0.85, 0.03, Color(0.86, 0.88, 0.92), true), (Vector3.DOWN + FORWARD * 0.5).normalized())
+			w = _hold(skeleton, "RightHand", _blade(0.85, 0.03, Color(0.86, 0.88, 0.92), true), (Vector3.DOWN + FORWARD * 0.5).normalized())
 		"dr_croc":
-			_hold(skeleton, "RightHand", _flask(), SKIN_UP)
+			w = _hold(skeleton, "RightHand", _flask(), SKIN_UP)
+	return w
 
 
 ## Attach `weapon` to `bone`, gripped in the palm, its +Y pointing along `dir` (skeleton space)
 ## in the rest pose. Skeleton space is in centimetres (the Armature is scaled 0.01).
-static func _hold(sk: Skeleton3D, bone: String, weapon: Node3D, dir: Vector3) -> void:
+static func _hold(sk: Skeleton3D, bone: String, weapon: Node3D, dir: Vector3) -> Node3D:
 	var b := sk.find_bone(bone)
 	if b < 0:
-		return
+		return null
 	var parent := sk.get_bone_parent(b)
 	var rest := sk.get_bone_global_rest(b)
 	var along := (rest.origin - sk.get_bone_global_rest(parent).origin).normalized() if parent >= 0 else Vector3.DOWN
@@ -53,6 +56,7 @@ static func _hold(sk: Skeleton3D, bone: String, weapon: Node3D, dir: Vector3) ->
 	sk.add_child(attach)
 	weapon.transform = rest.affine_inverse() * want
 	attach.add_child(weapon)
+	return weapon
 
 
 static func _mat(c: Color, emit := 0.0, metal := 0.0) -> StandardMaterial3D:
