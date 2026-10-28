@@ -224,8 +224,7 @@ func _square(skill: Dictionary, ccol: Color) -> Control:
 	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	b.add_child(badge)
 	b.set_meta("badge", badge)
-	b.focus_entered.connect(_select.bind(skill["id"]))
-	b.mouse_entered.connect(func(): b.grab_focus())
+	b.focus_entered.connect(_select.bind(skill["id"]))   # keyboard/gamepad; hovering only highlights
 	b.pressed.connect(func():
 		_select(skill["id"])
 		if SkillTree.blocked_reason(char_id, skill["id"]) == "":
@@ -281,10 +280,17 @@ func _refresh() -> void:
 		icon.locked = locked_row
 		var border := Color(1.0, 0.82, 0.3) if learned else (Color(0.3, 0.28, 0.26) if locked_row else ccol.darkened(0.15))
 		var fill := Color(0.22, 0.15, 0.05, 0.95) if learned else Color(0.06, 0.05, 0.05, 0.92)
-		b.add_theme_stylebox_override("normal", _box(border, 3 if learned else 2, fill))
-		b.add_theme_stylebox_override("hover", _box(Color(1.0, 0.85, 0.5), 3, fill.lightened(0.08)))
-		b.add_theme_stylebox_override("focus", _box(Color(1.0, 0.9, 0.6), 4, fill.lightened(0.08)))
-		b.add_theme_stylebox_override("pressed", _box(Color(1.0, 0.95, 0.7), 4, fill.lightened(0.12)))
+		if id == _selected:   # stays highlighted until another skill is clicked
+			var sel := _box(Color(1.0, 0.92, 0.55), 5, fill.lightened(0.14))
+			sel.shadow_color = Color(1.0, 0.75, 0.3, 0.55)
+			sel.shadow_size = 10
+			for st in ["normal", "hover", "focus", "pressed"]:
+				b.add_theme_stylebox_override(st, sel)
+		else:
+			b.add_theme_stylebox_override("normal", _box(border, 3 if learned else 2, fill))
+			b.add_theme_stylebox_override("hover", _box(Color(1.0, 0.85, 0.5), 3, fill.lightened(0.08)))
+			b.add_theme_stylebox_override("focus", _box(Color(1.0, 0.9, 0.6), 4, fill.lightened(0.08)))
+			b.add_theme_stylebox_override("pressed", _box(Color(1.0, 0.95, 0.7), 4, fill.lightened(0.12)))
 		badge.text = "✓" if learned else ""
 		badge.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
 	if _selected == "":

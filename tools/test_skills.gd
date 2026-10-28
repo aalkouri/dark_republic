@@ -107,6 +107,13 @@ func _ready() -> void:
 	sc._learn_selected()
 	_check("Learn uses the point", Wallet.skill_points_free("fire_wizard") == 0 and sc._points_free.text == "0 to spend", sc._points_free.text)
 	sc._select("smoulder")
+	(sc._squares["kindling"] as Button).mouse_entered.emit()
+	await get_tree().process_frame
+	_check("hovering another skill doesn't select it", sc._selected == "smoulder", sc._selected)
+	sc._learn.grab_focus()
+	await get_tree().process_frame
+	var sel_box := (sc._squares["smoulder"] as Button).get_theme_stylebox("normal") as StyleBoxFlat
+	_check("the clicked skill stays highlighted when focus moves away", sel_box.border_width_left == 5 and sc._selected == "smoulder", "%d" % sel_box.border_width_left)
 	_check("no points: Learn disabled", sc._learn.disabled and "No skill points" in sc._info_cost.text, sc._info_cost.text)
 	sc.close()
 	await get_tree().process_frame
