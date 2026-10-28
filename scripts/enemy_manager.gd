@@ -282,7 +282,7 @@ func _kill(i: int) -> void:
 		var t := typ[i]
 		var col: Color = t_color[t]
 		if epic[i]:
-			col = col.lerp(EPIC_TINT, 0.7)
+			col = col.lerp(EPIC_TINT, 0.3)   # clothing only leans purple
 		var facing := Vector3(vel[i].x, 0.0, vel[i].z)
 		corpses.add(pos[i], facing, t_scale[t] * sz[i], col, epic[i] == 1, burn_t[i] > 0.0)
 	if epic[i]:
@@ -611,7 +611,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			fxc += 2.0
 		if epic[i]:
 			fxc += 4.0
-			col = col.lerp(EPIC_TINT, 0.7)
+			col = col.lerp(EPIC_TINT, 0.3)   # clothing only leans purple
 		buf[b + 16] = col.r
 		buf[b + 17] = col.g
 		buf[b + 18] = col.b
@@ -676,7 +676,7 @@ func _write_color(i: int, b: int, t: int, burning: bool) -> void:
 		fx += 2.0
 	if epic[i]:
 		fx += 4.0
-		col = col.lerp(EPIC_TINT, 0.7)
+		col = col.lerp(EPIC_TINT, 0.3)   # clothing only leans purple
 	buf[b + 16] = col.r
 	buf[b + 17] = col.g
 	buf[b + 18] = col.b

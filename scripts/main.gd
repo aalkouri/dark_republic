@@ -91,6 +91,7 @@ var _shot_ignite := false
 var _shot_zoom := 0.0
 var _shot_turn := 0.0
 var _shot_level := 0
+var _shot_epic := false
 var _shot_draft: Array = []
 var _frames_dir := ""      # --frames=DIR:START:COUNT  debug: dump COUNT frames from START s (game keeps running)
 var _frames_start := 0.0
@@ -130,6 +131,8 @@ func _ready() -> void:
 			_shot_settings_tab = int(a.split("=")[1])
 		elif a.begins_with("--shot-inspect="):
 			_shot_inspect = int(a.split("=")[1])
+		elif a == "--shot-epic":
+			_shot_epic = true
 		elif a.begins_with("--frames="):
 			var fp := a.split("=")[1].split(":")
 			_frames_dir = fp[0]
@@ -763,7 +766,10 @@ func _shot_tick() -> void:
 	if _shot_spawn > 0:
 		for k in _shot_spawn:
 			var t := EnemyManager.TANK if k % 9 == 0 else (EnemyManager.RUNNER if k % 3 == 0 else EnemyManager.GRUNT)
-			_spawn_enemy(t, _spawn_point(14.0, 30.0), 3.0)
+			if _shot_epic and k % 3 == 0:   # --shot-epic: every third one is an epic, close by
+				enemies.spawn(t, _spawn_point(5.0, 9.0), 3.0, true)
+			else:
+				_spawn_enemy(t, _spawn_point(14.0, 30.0), 3.0)
 		_shot_spawn = 0
 	for t in shot_casts.keys():
 		if run_time >= t:

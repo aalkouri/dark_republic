@@ -44,9 +44,10 @@ void fragment() {
 	float cloth = step(0.75, mask);
 	float skin = step(0.25, mask) * (1.0 - cloth);
 	col = mix(col, tint, cloth);
-	col = mix(col, col * vec3(0.95, 0.55, 1.35), skin * epic * 0.85);
+	col = mix(col, col * vec3(0.92, 0.78, 1.12), epic * 0.6);
 	col = mix(col, vec3(1.0, 0.42, 0.08), burn * 0.65 * (cloth + skin));
-	EMISSION = vec3(1.0, 0.32, 0.04) * burn * 0.9 + vec3(0.45, 0.1, 0.8) * epic * 0.25 * (cloth + skin);
+	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 2.5);
+	EMISSION = vec3(1.0, 0.32, 0.04) * burn * 0.9 + vec3(0.62, 0.18, 1.0) * epic * rim * 1.6;
 	// Hit: a brief reddish tint. (A pure-white flash read as bright white dots on goblins
 	// far away in the fog.)
 	ALBEDO = mix(col, col * vec3(1.45, 0.55, 0.45), flash * 0.6);
