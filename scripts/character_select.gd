@@ -243,8 +243,7 @@ func _build_grid() -> void:
 		price.add_child(amount)
 		b.add_child(price)
 		b.set_meta("price", price)
-		b.focus_entered.connect(_show.bind(k))
-		b.mouse_entered.connect(func(): b.grab_focus())
+		b.focus_entered.connect(_show.bind(k))   # keyboard/gamepad navigation; hovering does nothing
 		b.pressed.connect(_choose.bind(k))
 		grid.add_child(b)
 		_tiles.append(b)
