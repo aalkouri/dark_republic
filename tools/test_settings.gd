@@ -63,10 +63,10 @@ func _ready() -> void:
 	_check("moving the other-audio slider unchecks its Mute", not (mutes[1] as CheckBox).button_pressed and not AudioServer.is_bus_mute(si), "")
 	sfx_slider.value = 0.25
 	(mutes[0] as CheckBox).button_pressed = true
-	for kind in ["levelup", "hover", "pick", "pick_tome"]:
+	for kind in ["levelup", "hover", "pick", "pick_tome", "ban"]:
 		main.hud.play_ui(kind)
 	var ui_ok := true
-	for kind in ["levelup", "hover", "pick", "pick_tome"]:
+	for kind in ["levelup", "hover", "pick", "pick_tome", "ban"]:
 		var up: AudioStreamPlayer = main.hud._ui_players[kind]
 		ui_ok = ui_ok and up.stream != null and up.bus == Settings.SFX_BUS and up.process_mode == Node.PROCESS_MODE_ALWAYS
 	_check("level-up, card hover and card pick (tome / other) sounds load and play on the SFX bus (even paused)", ui_ok, "")

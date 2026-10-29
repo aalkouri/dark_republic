@@ -23,6 +23,7 @@ const UI_SOUNDS := {
 	"hover": "res://audio/ui/hover_tick.wav",
 	"pick": "res://audio/ui/pick_shing.wav",        # weapons and items
 	"pick_tome": "res://audio/ui/pick_slam.wav",    # tomes: a heavy book slam
+	"ban": "res://audio/ui/ban_stamp.wav",          # BAN: stamp + "denied" drone
 }
 var _ui_players := {}
 var pause_root: Control
@@ -273,7 +274,7 @@ func _build_draft(root: Control) -> void:
 		ban.add_theme_stylebox_override("disabled", _ban_style(Color(0.25, 0.22, 0.2), Color(0.08, 0.07, 0.07, 0.9)))
 		ban.pressed.connect(func():
 			if main.ban_upgrade(i):
-				play_ui("pick_tome"))
+				play_ui("ban"))
 		ban.mouse_entered.connect(func(): if not ban.disabled: play_ui("hover"))
 		col.add_child(ban)
 		# Shown over a banned card

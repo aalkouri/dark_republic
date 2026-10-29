@@ -9,6 +9,7 @@
   audio/ui/pick_shing.wav        magical "shing": bright sweep into a ringing bell
   audio/ui/pick_slam.wav         heavy book slam with a sparkle on top
   audio/ui/pick_rune.wav         low rune "thrum" with a rising chime
+  audio/ui/ban_stamp.wav         BAN: a heavy rubber-stamp thunk and a falling, "denied" two-note drone
 
     python3 tools/gen_ui_sounds.py
 """
@@ -174,6 +175,21 @@ def pick_rune():
     finish(buf, "pick_rune.wav", peak=0.8)
 
 
-for f in [levelup_chime, levelup_fanfare, levelup_flame, hover_tick, hover_glass, hover_page, pick_shing, pick_slam, pick_rune]:
+def ban_stamp():
+    d = 0.9
+    t = t_of(d)
+    thunk = np.sin(2 * np.pi * np.cumsum(60 + 140 * np.exp(-t / 0.02)) / SR) * np.exp(-t * 16)
+    slap = bp(rng.normal(0, 1, t.size), 300, 2500) * np.exp(-t * 45) * 0.9
+    buf = thunk + slap
+    # falling minor second, buzzy (square-ish): "nope"
+    for at, f in [(0.07, 311.13), (0.22, 233.08)]:
+        tt = t_of(0.45)
+        tone = np.sign(np.sin(2 * np.pi * f * tt)) * 0.25 + np.sin(2 * np.pi * f * tt) * 0.5
+        tone = lp(tone * np.minimum(1, tt / 0.01) * np.exp(-tt * 5), 1800)
+        place(buf, tone * 0.45, at)
+    finish(buf, "ban_stamp.wav", peak=0.85)
+
+
+for f in [levelup_chime, levelup_fanfare, levelup_flame, hover_tick, hover_glass, hover_page, pick_shing, pick_slam, pick_rune, ban_stamp]:
     f()
 print("wrote audio/ui/*.wav")
