@@ -53,6 +53,16 @@ func _ready() -> void:
 	(mutes[1] as CheckBox).button_pressed = true
 	_check("other-audio mute", AudioServer.is_bus_mute(si), "")
 	_check("level music plays on the Music bus", main.music.bus == Settings.MUSIC_BUS, main.music.bus)
+	var music_slider := sound.find_children("*", "HSlider", true, false)[0] as HSlider
+	music_slider.value = 0.6   # moving a volume bar un-mutes it (and only it)
+	_check("moving the music slider unchecks its Mute", not (mutes[0] as CheckBox).button_pressed and not AudioServer.is_bus_mute(mi) and (mutes[1] as CheckBox).button_pressed,
+		"music mute %s, sfx mute %s" % [(mutes[0] as CheckBox).button_pressed, (mutes[1] as CheckBox).button_pressed])
+	var sfx_slider := sound.find_children("*", "HSlider", true, false)[1] as HSlider
+	sfx_slider.value = 0.25
+	sfx_slider.value = 0.3
+	_check("moving the other-audio slider unchecks its Mute", not (mutes[1] as CheckBox).button_pressed and not AudioServer.is_bus_mute(si), "")
+	sfx_slider.value = 0.25
+	(mutes[0] as CheckBox).button_pressed = true
 	_check("goblin death sounds play on the SFX bus", main.goblin_audio._voices[0].bus == Settings.SFX_BUS, main.goblin_audio._voices[0].bus)
 
 	# Persistence

@@ -140,11 +140,15 @@ func _volume_row(vb: VBoxContainer, label: String, vol_key: String, mute_key: St
 	var l := _label(label)
 	l.custom_minimum_size.x = 190
 	hb.add_child(l)
-	var slider := _slider(0.0, 1.0, 0.01, Settings.get(vol_key), func(v: float): Settings.set_value(vol_key, v), "%d%%", 100.0)
-	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hb.add_child(slider)
 	var mute := _check(Settings.get(mute_key), func(on: bool): Settings.set_value(mute_key, on))
 	mute.text = "Mute"
+	# Moving the volume slider un-mutes that bar (you clearly want to hear it)
+	var slider := _slider(0.0, 1.0, 0.01, Settings.get(vol_key), func(v: float):
+		Settings.set_value(vol_key, v)
+		if mute.button_pressed:
+			mute.button_pressed = false, "%d%%", 100.0)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hb.add_child(slider)
 	hb.add_child(mute)
 	vb.add_child(hb)
 
