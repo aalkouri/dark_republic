@@ -27,6 +27,14 @@ func _ready() -> void:
 	_check("menu: Play / Characters / Settings / Quit", labels == ["PLAY", "CHARACTERS", "SETTINGS", "QUIT"], str(labels))
 	_check("Play has keyboard/gamepad focus", (title._menu.get_child(0) as Button).has_focus(), "")
 	_check("title text", title._title.text == "DARK REPUBLIC", title._title.text)
+	var puns: Array = title.load_taglines()
+	var unique := {}
+	for p in puns:
+		unique[p] = true
+	_check("50 different D&D puns for the tagline", puns.size() == 50 and unique.size() == 50 and puns.has(title._tagline.text), title._tagline.text)
+	var first: String = title._tagline.text
+	title._update_tagline(title.TAGLINE_TIME + 0.01)
+	_check("the tagline rotates to another pun", title._tagline.text != first and puns.has(title._tagline.text), title._tagline.text)
 	_check("wizard on the dais", title.find_children("*", "HeroModel", true, false).size() == 1, "")
 	_check("goblins lurk around him", title._goblins.size() == title.GOBLINS, "%d" % title._goblins.size())
 	var m: AudioStreamPlayer = title._music

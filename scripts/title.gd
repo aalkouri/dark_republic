@@ -6,6 +6,8 @@ extends Node3D
 
 const GAME_SCENE := "res://scenes/main.tscn"
 const CHARACTER_SCENE := "res://scenes/character_select.tscn"
+const TAGLINES := "res://data/taglines.json"
+const TAGLINE_TIME := 5.0   # seconds each pun stays up
 const WORLD_SEED := 1            # a night-time swamp
 const ORBIT_RADIUS := 7.5
 const ORBIT_HEIGHT := 2.7
@@ -39,6 +41,11 @@ var _goblins: Array = []        # {node, a, r, phase, creep, creep_t, anim}
 var _goblin_vat: VatCrowd
 var _goblin_mm: MultiMesh
 var _music: AudioStreamPlayer
+var _tagline: Label
+var _taglines: Array = []
+var _tag_i := 0
+var _tag_t := 0.0
+var _tag_first := true
 var _ui: CanvasLayer
 var _title: Label
 var _title_mat: ShaderMaterial
@@ -204,13 +211,16 @@ func _build_ui() -> void:
 	_title.material = _title_mat
 	root.add_child(_title)
 
-	var tagline := Label.new()
-	tagline.text = "Burn back the goblin horde"
-	tagline.add_theme_font_override("font", _font)
-	tagline.add_theme_font_size_override("font_size", 26)
-	tagline.add_theme_color_override("font_color", Color(0.86, 0.78, 0.66, 0.85))
-	tagline.position = Vector2(88, 238)
-	root.add_child(tagline)
+	# Tagline: rotating Dungeons & Dragons puns (data/taglines.json), shuffled, crossfading
+	_tagline = Label.new()
+	_tagline.add_theme_font_override("font", _font)
+	_tagline.add_theme_font_size_override("font_size", 26)
+	_tagline.add_theme_color_override("font_color", Color(0.86, 0.78, 0.66, 0.85))
+	_tagline.position = Vector2(88, 238)
+	root.add_child(_tagline)
+	_taglines = load_taglines()
+	_taglines.shuffle()
+	_tagline.text = _taglines[0] if not _taglines.is_empty() else ""
 
 	# Embers rising off the lettering
 	var sparks := CPUParticles2D.new()
@@ -385,8 +395,38 @@ func _shot_tick() -> void:
 
 # ------------------------------------------------------------------ animation
 
+## The 50 title-screen puns.
+static func load_taglines() -> Array:
+	var d = JSON.parse_string(FileAccess.get_file_as_string(TAGLINES))
+	return (d["taglines"] as Array).duplicate() if d is Dictionary and d.has("taglines") else []
+
+
+## Every TAGLINE_TIME seconds the line fades out and the next pun fades in (shuffled; the
+## whole list plays before any repeats).
+func _update_tagline(dt: float) -> void:
+	if _taglines.size() < 2:
+		return
+	_tag_t += dt
+	var fade := 0.45
+	if _tag_t >= TAGLINE_TIME:
+		_tag_t = 0.0
+		_tag_first = false
+		_tag_i += 1
+		if _tag_i >= _taglines.size():
+			var last: String = _taglines[-1]
+			_taglines.shuffle()
+			if _taglines[0] == last:
+				_taglines.reverse()
+			_tag_i = 0
+		_tagline.text = _taglines[_tag_i]
+	var a_in := 1.0 if _tag_first else minf(1.0, _tag_t / fade)   # the first pun is just there
+	var a_out := minf(1.0, (TAGLINE_TIME - _tag_t) / fade)
+	_tagline.modulate.a = clampf(a_in * a_out, 0.0, 1.0)
+
+
 func _process(dt: float) -> void:
 	_t += dt
+	_update_tagline(dt)
 	_update_camera(dt)
 	_update_goblins(dt)
 	_shot_tick()
