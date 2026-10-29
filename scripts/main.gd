@@ -307,7 +307,7 @@ func _ready() -> void:
 	add_child(shrines)
 	shrines.spawn_all(ARENA_HALF)
 	shrines.shrine_completed.connect(func(s: Shrine, _c: Chest):
-		hud.flash_message("SHRINE COMPLETE!  %s chest" % s.tier_name(), 3.0))
+		hud.flash_message(tr("SHRINE COMPLETE!  %s chest") % tr(s.tier_name()), 3.0))
 
 	powerups = PowerupManager.new()
 	powerups.setup(player, stats, enemies, gems, db, rng)
@@ -632,7 +632,7 @@ func _add_xp(v: float) -> void:
 		for k in abilities.defs().size():
 			var d: Dictionary = abilities.defs()[k]
 			if int(d["unlock_level"]) == level:
-				hud.flash_message("NEW ABILITY UNLOCKED: %s  [%s]" % [d["name"].to_upper(), d["key"]], 4.0)
+				hud.flash_message(tr("NEW ABILITY UNLOCKED: %s  [%s]") % [tr(d["name"]).to_upper(), d["key"]], 4.0)
 	if pending_levels > 0 and state == "playing":
 		_open_draft()
 
@@ -705,7 +705,7 @@ func cast_ability(i: int) -> void:
 		return
 	if abilities.try_cast(i):
 		if i == Abilities.INFERNO or i == Abilities.METEOR:
-			hud.flash_message(str(abilities.defs()[i]["name"]).to_upper() + "!", 2.0)
+			hud.flash_message(tr(str(abilities.defs()[i]["name"])).to_upper() + "!", 2.0)
 
 
 func resume_from_pause() -> void:

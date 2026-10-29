@@ -1,13 +1,17 @@
 class_name SettingsMenu
 extends Control
-## Settings screen with Video, Sound and Controls tabs. Built in code; every change is
-## applied immediately and saved through the Settings autoload.
+## Settings screen with Gameplay, Video, Sound and Controls tabs. Built in code. Changes
+## apply live so you can try them; Apply saves them (and switches the language), closing
+## without applying puts everything back.
 
 signal closed
 
 var _tabs: TabContainer
 var _bind_buttons := {}       # action -> Button
 var _waiting_action := ""     # action currently waiting for a key press
+var _snap := {}               # saved settings when the menu opened (Back reverts to these)
+var _apply: Button
+var _lang: OptionButton
 
 
 func _init() -> void:
@@ -49,28 +53,75 @@ func _ready() -> void:
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tabs.add_theme_font_size_override("font_size", 20)
 	vb.add_child(_tabs)
-	_tabs.add_child(_video_tab())
-	_tabs.add_child(_sound_tab())
-	_tabs.add_child(_controls_tab())
+	_build_tabs()
 
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 24)
+	vb.add_child(buttons)
 	var back := Button.new()
 	back.text = "Back"
 	back.custom_minimum_size = Vector2(180, 44)
 	back.add_theme_font_size_override("font_size", 20)
-	back.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	back.pressed.connect(close)
-	vb.add_child(back)
+	buttons.add_child(back)
+	_apply = Button.new()
+	_apply.text = "Apply"
+	_apply.custom_minimum_size = Vector2(180, 44)
+	_apply.add_theme_font_size_override("font_size", 20)
+	_apply.add_theme_color_override("font_color", Color(1.0, 0.8, 0.45))
+	_apply.pressed.connect(apply)
+	buttons.add_child(_apply)
+	Settings.changed.connect(_update_apply)
+	_snap = Settings.snapshot()
+	_update_apply()
 
 
 func open() -> void:
 	visible = true
+	_snap = Settings.snapshot()
+	_sync_widgets()
 	_refresh_bindings()
+	_update_apply()
 
 
+## Save the changes; a new language takes effect everywhere right away.
+func apply() -> void:
+	Settings.commit()
+	_snap = Settings.snapshot()
+	_update_apply()
+
+
+## Close; unapplied changes are discarded.
 func close() -> void:
 	_waiting_action = ""
+	if Settings.is_dirty(_snap):
+		Settings.restore(_snap)
 	visible = false
 	closed.emit()
+
+
+func _update_apply() -> void:
+	if _apply and is_inside_tree():
+		_apply.disabled = not Settings.is_dirty(_snap)
+
+
+## Rebuild the tabs from the current Settings (the menu is reused after a revert).
+func _sync_widgets() -> void:
+	var cur := _tabs.current_tab
+	for c in _tabs.get_children():
+		_tabs.remove_child(c)
+		c.queue_free()
+	_bind_buttons.clear()
+	_build_tabs()
+	_tabs.current_tab = clampi(cur, 0, _tabs.get_tab_count() - 1)
+
+
+func _build_tabs() -> void:
+	_tabs.add_child(_gameplay_tab())
+	_tabs.add_child(_video_tab())
+	_tabs.add_child(_sound_tab())
+	_tabs.add_child(_controls_tab())
 
 
 ## Returns true if the menu consumed this Esc press (e.g. cancelling a rebind).
@@ -98,6 +149,30 @@ func _tab(tab_name: String) -> VBoxContainer:
 	vb.add_theme_constant_override("separation", 14)
 	margin.add_child(vb)
 	return vb
+
+
+func _gameplay_tab() -> Control:
+	var vb := _tab("Gameplay")
+	_lang = OptionButton.new()
+	_lang.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED   # names stay in their own language
+	for entry in Settings.LANGUAGES:
+		_lang.add_item(entry[1])
+	_lang.selected = _lang_index(Settings.language)
+	_lang.item_selected.connect(func(i: int): Settings.set_value("language", Settings.LANGUAGES[i][0]))
+	_row(vb, "Language", _lang)
+	var note := Label.new()
+	note.text = "Press Apply to switch the language."
+	note.modulate.a = 0.6
+	note.add_theme_font_size_override("font_size", 15)
+	vb.add_child(note)
+	return vb.get_parent().get_parent()
+
+
+func _lang_index(loc: String) -> int:
+	for i in Settings.LANGUAGES.size():
+		if Settings.LANGUAGES[i][0] == loc:
+			return i
+	return 0
 
 
 func _video_tab() -> Control:

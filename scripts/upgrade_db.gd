@@ -127,17 +127,17 @@ func describe(pick: Dictionary) -> Dictionary:
 	var is_unlock: bool = d["kind"] == "weapon" and lv == 0
 	var lines := []
 	if is_unlock:
-		lines.append("NEW WEAPON")
-		lines.append(d["desc"])
+		lines.append(tr("NEW WEAPON"))
+		lines.append(text(d["desc"]))
 	else:
 		if lv == 0:
-			lines.append(d["desc"])
+			lines.append(text(d["desc"]))
 		for m in _scaled_mods(d, int(pick["rarity"])):
 			lines.append(_fmt_mod(m))
-	var tag := "NEW" if lv == 0 else "Lv %d → %d" % [lv, lv + 1]
+	var tag := tr("NEW") if lv == 0 else tr("Lv %d → %d") % [lv, lv + 1]
 	return {
-		"title": d["name"],
-		"subtitle": "%s · %s · %s" % [rarity["name"], d["kind"].capitalize(), tag],
+		"title": tr(d["name"]),
+		"subtitle": "%s · %s · %s" % [tr(rarity["name"]), tr(d["kind"].capitalize()), tag],
 		"color": Color.html(rarity["color"]),
 		"body": "\n".join(lines),
 		"icon": d.get("icon", {}),   # {"glyph", "cover", "tint"?} for UpgradeIcon
@@ -147,7 +147,7 @@ func describe(pick: Dictionary) -> Dictionary:
 
 
 func _fmt_mod(m: Dictionary) -> String:
-	var name: String = stat_names.get(m["stat"], m["stat"])
+	var name: String = text(stat_names.get(m["stat"], m["stat"]))
 	var v: float = m["value"]
 	match m["op"]:
 		"add":
@@ -162,3 +162,14 @@ func _fmt_mod(m: Dictionary) -> String:
 			if absf(v - roundf(v)) < 0.01:
 				return "+%d %s" % [roundi(v), name]
 			return "+%.1f %s" % [v, name]
+
+
+## Translated text: a plain string, or [format, part, part...] where every piece is
+## translated (used for text built from names, e.g. "%s Damage").
+static func text(v) -> String:
+	if v is Array:
+		var parts := []
+		for k in range(1, v.size()):
+			parts.append(TranslationServer.translate(str(v[k])))
+		return TranslationServer.translate(str(v[0])) % parts
+	return TranslationServer.translate(str(v))

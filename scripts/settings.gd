@@ -4,6 +4,12 @@ extends Node
 ##
 ## Audio: two buses under Master - "Music" (the level music) and "SFX" (everything else).
 ## Each has its own volume and mute.
+##
+## Changes from the settings menu apply live (so you can hear/see them) but are only saved
+## when you press Apply; closing the menu without applying reverts them (snapshot/restore).
+##
+## Language: data/i18n/<locale>.json maps English text -> translation. Every Control/Label3D
+## translates its text automatically; code that builds text from parts calls tr().
 
 signal changed
 
@@ -21,10 +27,19 @@ const REBINDABLE := [
 	["inspect", "Inspect abilities (hold)"],
 ]
 
+## Language choices: [locale, name shown in the dropdown (in that language)].
+const LANGUAGES := [
+	["en", "English"], ["es", "Español"], ["fr", "Français"], ["ar", "العربية"],
+	["de", "Deutsch"], ["zh_CN", "中文 (简体)"], ["ja", "日本語"],
+]
+const I18N_DIR := "res://data/i18n/"
+
 ## Character picked on the character select screen (session only, not saved).
 var selected_character := "fire_wizard"
 var selected_map := "swamp"            # "swamp" or "forest" (MapPicker, before a run)
 
+# Gameplay
+var language := "en"
 # Sound
 var music_volume := 0.8      # 0..1 (linear)
 var music_muted := false
@@ -47,8 +62,39 @@ func _ready() -> void:
 	_ensure_bus(MUSIC_BUS)
 	_ensure_bus(SFX_BUS)
 	load_settings()
+	load_translations()
+	apply_language()
 	apply_audio()
 	apply_video()
+
+
+# ------------------------------------------------------------------ language
+
+## Register one Translation per language file (English needs none: it is the source text).
+func load_translations() -> void:
+	for entry in LANGUAGES:
+		var loc: String = entry[0]
+		var path := I18N_DIR + loc + ".json"
+		if loc == "en" or not FileAccess.file_exists(path):
+			continue
+		var d = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if not (d is Dictionary):
+			continue
+		var t := Translation.new()
+		t.locale = loc
+		for k in d:
+			if str(d[k]) != "":
+				t.add_message(k, d[k])
+		TranslationServer.add_translation(t)
+
+
+func apply_language() -> void:
+	TranslationServer.set_locale(language)
+
+
+## Right-to-left script (Arabic): text is shaped RTL; layouts stay as designed.
+func is_rtl() -> bool:
+	return language == "ar"
 
 
 func _ensure_bus(bus_name: String) -> void:
@@ -102,7 +148,6 @@ func apply_bindings() -> void:
 func rebind(action: String, keycode: int) -> void:
 	_set_key(action, keycode)
 	bindings[action] = keycode
-	save_settings()
 	changed.emit()
 
 
@@ -127,13 +172,13 @@ func key_text(action: String) -> String:
 
 func reset_bindings() -> void:
 	bindings.clear()
-	save_settings()
 
 
 # ------------------------------------------------------------------ persistence
 
 func save_settings() -> void:
 	var cf := ConfigFile.new()
+	cf.set_value("gameplay", "language", language)
 	cf.set_value("sound", "music_volume", music_volume)
 	cf.set_value("sound", "music_muted", music_muted)
 	cf.set_value("sound", "sfx_volume", sfx_volume)
@@ -154,6 +199,7 @@ func load_settings() -> void:
 	var cf := ConfigFile.new()
 	if cf.load(PATH) != OK:
 		return
+	language = cf.get_value("gameplay", "language", language)
 	music_volume = cf.get_value("sound", "music_volume", music_volume)
 	music_muted = cf.get_value("sound", "music_muted", music_muted)
 	sfx_volume = cf.get_value("sound", "sfx_volume", sfx_volume)
@@ -169,12 +215,57 @@ func load_settings() -> void:
 	bindings = cf.get_value("controls", "bindings", bindings)
 
 
-## Set a value by name, apply it, save, and notify (used by the settings menu).
+## Set a value by name, apply it live and notify (used by the settings menu). Not saved
+## until commit(); language waits for commit() too (it re-translates every screen).
 func set_value(key: String, value) -> void:
 	set(key, value)
 	if key.begins_with("music") or key.begins_with("sfx"):
 		apply_audio()
 	elif key in ["window_mode", "vsync", "render_scale", "max_fps"]:
 		apply_video()
+	changed.emit()
+
+
+const SAVED_KEYS := ["language", "music_volume", "music_muted", "sfx_volume", "sfx_muted",
+	"window_mode", "vsync", "render_scale", "fov", "max_fps", "show_fps",
+	"mouse_sensitivity", "invert_y", "bindings"]
+
+
+## The saved state, to compare against (is_dirty) or go back to (restore).
+func snapshot() -> Dictionary:
+	var d := {}
+	for k in SAVED_KEYS:
+		var v = get(k)
+		d[k] = v.duplicate() if v is Dictionary else v
+	return d
+
+
+func is_dirty(snap: Dictionary) -> bool:
+	for k in SAVED_KEYS:
+		if get(k) != snap[k]:
+			return true
+	return false
+
+
+## Apply: save everything and switch the language.
+func commit() -> void:
 	save_settings()
+	if TranslationServer.get_locale() != language:
+		apply_language()
+	changed.emit()
+
+
+## Discard unapplied changes.
+func restore(snap: Dictionary) -> void:
+	var keys_changed: bool = bindings != snap["bindings"]
+	for k in SAVED_KEYS:
+		var v = snap[k]
+		set(k, v.duplicate() if v is Dictionary else v)
+	apply_audio()
+	apply_video()
+	if keys_changed:
+		for entry in REBINDABLE:
+			InputMap.erase_action(entry[0])
+		load("res://scripts/main.gd").setup_inputs()
+		apply_bindings()
 	changed.emit()

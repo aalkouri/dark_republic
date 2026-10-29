@@ -49,7 +49,7 @@ func _ready() -> void:
 	light.position.y = 1.0
 	add_child(light)
 	var label := Label3D.new()
-	label.text = "%s Chest" % TIER_NAMES[tier]
+	label.text = tr("%s Chest") % tr(TIER_NAMES[tier])
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.font_size = 48
 	label.outline_size = 10

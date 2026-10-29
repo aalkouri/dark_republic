@@ -85,9 +85,9 @@ static func lock_reason(map: String, char_id: String = "") -> String:
 			continue
 		var boss: String = m.get("requires", "")
 		if boss != "" and not Wallet.has_defeated(boss):
-			return "Defeat %s to unlock" % BOSS_NAMES.get(boss, boss)
+			return I18n.f("Defeat %s to unlock", I18n.t(BOSS_NAMES.get(boss, boss)))
 		if map in banned_maps(char_id):
-			return "%s can't fight here: this is his home turf" % _char_name(char_id)
+			return I18n.f("%s can't fight here: this is his home turf", _char_name(char_id))
 		return ""
 	return "Unknown map"
 
@@ -106,7 +106,7 @@ static func banned_maps(char_id: String) -> Array:
 
 static func _char_name(char_id: String) -> String:
 	banned_maps(char_id)
-	return str(_banned.get("name:" + char_id, char_id)).split(" ")[0]
+	return TranslationServer.translate(str(_banned.get("name:" + char_id, char_id))).split(" ")[0]
 
 
 func _label(text: String, size: int, color: Color) -> Label:
@@ -126,7 +126,7 @@ func _card(m: Dictionary) -> Button:
 	# Unlocked since the picker was last seen: starts locked and plays the padlock drop
 	var fresh: bool = reason == "" and m.get("requires", "") != "" and not Wallet.unlock_seen("map:" + str(m["id"]))
 	if fresh:
-		reason = "Defeat %s to unlock" % BOSS_NAMES.get(m["requires"], m["requires"])
+		reason = tr("Defeat %s to unlock") % tr(BOSS_NAMES.get(m["requires"], m["requires"]))
 	var locked := reason != ""
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(380, 330)
@@ -173,9 +173,9 @@ func _card(m: Dictionary) -> Button:
 		lock.pivot_offset = Vector2(48, 30)   # hangs from the shackle when it rattles
 		b.set_meta("lock", lock)
 		b.add_child(lock)   # after the picture and text, so it draws on top, undimmed
-	var name := _label(str(m["name"]).to_upper(), 26, Color(0.95, 0.88, 0.75) if not locked else Color(0.6, 0.55, 0.5))
+	var name := _label(tr(str(m["name"])).to_upper(), 26, Color(0.95, 0.88, 0.75) if not locked else Color(0.6, 0.55, 0.5))
 	v.add_child(name)
-	var blurb := _label(m["blurb"] if not locked else reason + ".", 17, Color(0.82, 0.76, 0.68) if not locked else Color(1.0, 0.55, 0.4))
+	var blurb := _label(tr(m["blurb"]) if not locked else reason + ".", 17, Color(0.82, 0.76, 0.68) if not locked else Color(1.0, 0.55, 0.4))
 	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(blurb)
 	b.set_meta("pic", pic)

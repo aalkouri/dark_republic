@@ -497,7 +497,7 @@ func _update_bar() -> void:
 		_bar_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.3))
 	else:
 		var left := ENRAGE_AFTER - alive_time
-		_bar_label.text = "THOG THE TROLL  ·  enrages in %d:%02d" % [int(left) / 60, int(left) % 60]
+		_bar_label.text = tr("THOG THE TROLL  ·  enrages in %d:%02d") % [int(left) / 60, int(left) % 60]
 
 
 func _shake(amount: float) -> void:

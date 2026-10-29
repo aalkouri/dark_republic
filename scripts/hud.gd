@@ -262,7 +262,7 @@ func _build_draft(root: Control) -> void:
 		col.add_child(btn)
 		# BAN: pay 100 coins to throw this reward out of this and every later draft
 		var ban := Button.new()
-		ban.text = "BAN  ·  %d coins" % main.BAN_COST
+		ban.text = tr("BAN  ·  %d coins") % main.BAN_COST
 		ban.focus_mode = Control.FOCUS_NONE
 		ban.custom_minimum_size = Vector2(300, 44)
 		ban.add_theme_font_size_override("font_size", 18)
@@ -627,7 +627,7 @@ func show_draft(picks: Array) -> void:
 		card[1].add_theme_color_override("font_color", col.lightened(0.15))
 		card[2].text = info["body"]
 		var icon: Dictionary = info.get("icon", {})
-		(card[4] as Label).text = "Lv %d" % int(info.get("next_level", 1))
+		(card[4] as Label).text = tr("Lv %d") % int(info.get("next_level", 1))
 		(card[4] as Label).add_theme_color_override("font_color", col.lightened(0.25))
 		var art: UpgradeIcon = card[3]
 		art.visible = not icon.is_empty()
@@ -647,7 +647,7 @@ func mark_banned(i: int) -> void:
 
 
 func _refresh_bans() -> void:
-	draft_bans.text = "Bans left: %d / %d   ·   %d coins each" % [main.bans_left, main.BANS_PER_RUN, main.BAN_COST]
+	draft_bans.text = tr("Bans left: %d / %d   ·   %d coins each") % [main.bans_left, main.BANS_PER_RUN, main.BAN_COST]
 	for i in draft_cards.size():
 		(draft_cards[i][5] as Button).disabled = not main.can_ban(i)
 
@@ -672,7 +672,7 @@ func set_paused(p: bool) -> void:
 func show_end(won: bool) -> void:
 	end_title.text = ("THOG DEFEATED!" if main.boss_won else "YOU SURVIVED!") if won else "YOU DIED"
 	end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if won else Color(1.0, 0.35, 0.3))
-	end_stats.text = "Time %s   ·   Level %d   ·   Kills %d" % [_fmt_time(main.run_time), main.level, main.kills]
+	end_stats.text = tr("Time %s   ·   Level %d   ·   Kills %d") % [_fmt_time(main.run_time), main.level, main.kills]
 	show_unlocks(unlocks_for("thog") if main.first_boss_kill else [])
 	end_root.visible = true
 	# EXP for the character played: 1 per kill, banked now
@@ -680,20 +680,20 @@ func show_end(won: bool) -> void:
 	var gained_levels := Wallet.add_char_exp(cid, main.kills)
 	var lvl := Wallet.char_level(cid)
 	var next := Wallet.next_level_exp(cid)
-	var progress := ("%s / %s EXP" % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else "max level"
-	end_exp.text = "EXP +%s   ·   lvl %d  (%s)" % [Wallet.fmt(main.kills), lvl, progress]
+	var progress := (tr("%s / %s EXP") % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else tr("max level")
+	end_exp.text = tr("EXP +%s   ·   lvl %d  (%s)") % [Wallet.fmt(main.kills), lvl, progress]
 	if gained_levels > 0:
-		end_exp.text += "\nLEVEL UP!  lvl %d   ·   +%d skill point%s" % [lvl, gained_levels, "s" if gained_levels > 1 else ""]
+		end_exp.text += "\n" + (tr("LEVEL UP!  lvl %d   ·   +%d skill points") if gained_levels > 1 else tr("LEVEL UP!  lvl %d   ·   +%d skill point")) % [lvl, gained_levels]
 		end_exp.add_theme_color_override("font_color", Color(0.55, 1.0, 0.6))
 	else:
 		end_exp.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
 	# Coins: shown here, banked when they pour into the counter
 	run_reward = Wallet.run_reward(main.run_time, main.kills, main.stats.value("coin_gain"))
-	var bonus_line := "Kills %s   →   +%s bonus" % [Wallet.fmt(main.kills), Wallet.fmt(run_reward["bonus"])] if run_reward["bonus"] > 0 \
-		else "Kills %s   →   +0 bonus  (100 coins per 1,000 kills)" % Wallet.fmt(main.kills)
-	end_coin_lines.text = "Survived %s   →   %s coins\n%s" % [_fmt_time(main.run_time), Wallet.fmt(run_reward["time"]), bonus_line]
+	var bonus_line := tr("Kills %s   →   +%s bonus") % [Wallet.fmt(main.kills), Wallet.fmt(run_reward["bonus"])] if run_reward["bonus"] > 0 \
+		else tr("Kills %s   →   +0 bonus  (100 coins per 1,000 kills)") % Wallet.fmt(main.kills)
+	end_coin_lines.text = tr("Survived %s   →   %s coins") % [_fmt_time(main.run_time), Wallet.fmt(run_reward["time"])] + "\n" + bonus_line
 	if run_reward["extra"] > 0:
-		end_coin_lines.text += "\nSkills  →   +%s coins" % Wallet.fmt(run_reward["extra"])
+		end_coin_lines.text += "\n" + tr("Skills  →   +%s coins") % Wallet.fmt(run_reward["extra"])
 	_pot_left = run_reward["total"]
 	end_pot.text = "+" + Wallet.fmt(_pot_left)
 	_pay_started = false
@@ -723,7 +723,7 @@ static func unlocks_for(boss: String) -> Array:
 		for c in data.get("characters", []):
 			if c.get("requires_boss", "") == boss:
 				out.append({"tag": "NEW CHAMPION", "name": c["name"], "color": Color(1.0, 0.62, 0.25),
-					"hint": "Now for sale in Characters: %s coins" % Wallet.fmt(int(c.get("price", 0)))})
+					"hint": I18n.t("Now for sale in Characters: %s coins") % Wallet.fmt(int(c.get("price", 0)))})
 	return out
 
 
@@ -789,7 +789,7 @@ func _unlock_card(item: Dictionary) -> Control:
 	var text := VBoxContainer.new()
 	text.add_theme_constant_override("separation", 0)
 	row.add_child(text)
-	var name := _label(str(item["name"]).to_upper(), 28)
+	var name := _label(tr(str(item["name"])).to_upper(), 28)
 	name.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
 	text.add_child(name)
 	var hint := _label(item["hint"], 16)
@@ -915,7 +915,7 @@ func _inv_chip(id: String, lv: int) -> Control:
 	var chip := Control.new()
 	chip.custom_minimum_size = Vector2(46, 46)
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	chip.tooltip_text = "%s  Lv %d" % [d["name"], lv]
+	chip.tooltip_text = tr("%s  Lv %d") % [tr(d["name"]), lv]
 	var icon := UpgradeIcon.create(d.get("icon", {}), d["kind"])
 	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
 	chip.add_child(icon)
@@ -977,14 +977,14 @@ func _process(dt: float) -> void:
 	hp_label.text = "%d / %d" % [ceili(p.hp), roundi(p.max_hp)]
 	shield_bar.visible = p.shield > 0.5
 	if shield_bar.visible:
-		hp_label.text += "   +%d shield" % ceili(p.shield)
+		hp_label.text += "   " + tr("+%d shield") % ceili(p.shield)
 		shield_bar.max_value = p.max_hp
 		shield_bar.value = minf(p.shield, p.max_hp)
 	xp_bar.max_value = main.xp_next
 	xp_bar.value = main.xp
-	level_label.text = "LV %d" % main.level
+	level_label.text = tr("LV %d") % main.level
 	timer_label.text = _fmt_time(main.run_time)
-	info_label.text = "Kills %d\nEnemies %d\nSpeed %.1f m/s" % [main.kills, main.enemies.alive_count(), p.horizontal_speed()]
+	info_label.text = tr("Kills %d\nEnemies %d\nSpeed %.1f m/s") % [main.kills, main.enemies.alive_count(), p.horizontal_speed()]
 	if Settings.show_fps:
 		info_label.text += "\nFPS %d" % Engine.get_frames_per_second()
 
@@ -992,13 +992,13 @@ func _process(dt: float) -> void:
 	for id in main.db.order:
 		var lv: int = main.db.level_of(id)
 		if lv > 0 and main.db.defs[id]["kind"] != "tome":
-			lines.append("%s  Lv %d" % [main.db.defs[id]["name"], lv])
+			lines.append(tr("%s  Lv %d") % [tr(main.db.defs[id]["name"]), lv])
 	var tomes := 0
 	for id in main.db.levels:
 		if main.db.defs[id]["kind"] == "tome":
 			tomes += main.db.levels[id]
 	if tomes > 0:
-		lines.append("Tomes ×%d" % tomes)
+		lines.append(tr("Tomes ×%d") % tomes)
 	inv_label.text = "\n".join(lines)
 	_update_inventory()
 
@@ -1008,11 +1008,11 @@ func _process(dt: float) -> void:
 	shrine_label.visible = sh != null
 	shrine_bar.visible = sh != null
 	if sh != null:
-		shrine_label.text = "%s  ·  %.1f / %d s" % [sh.describe(), sh.progress, int(Shrine.REQUIRED_TIME)]
+		shrine_label.text = tr("%s  ·  %.1f / %d s") % [sh.describe(), sh.progress, int(Shrine.REQUIRED_TIME)]
 		shrine_bar.value = sh.progress
 		(shrine_bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color = Shrine.TIER_COLORS[sh.difficulty - 1]
 	if p.burn_left > 0.0:
-		hp_label.text += "   BURNING"
+		hp_label.text += "   " + tr("BURNING")
 		hp_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
 	else:
 		hp_label.remove_theme_color_override("font_color")

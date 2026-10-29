@@ -30,7 +30,7 @@ func _build(char_name: String, weapon: Dictionary, ribbon: String, font: Font, f
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
 	title = Label.new()
-	title.text = "UNLOCKED %s" % str(weapon.get("name", "")).to_upper()
+	title.text = tr("UNLOCKED %s") % tr(str(weapon.get("name", ""))).to_upper()
 	title.add_theme_font_override("font", font_bold)
 	title.add_theme_font_size_override("font_size", 56)
 	title.add_theme_color_override("font_color", Color(1.0, 0.82, 0.38))

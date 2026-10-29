@@ -97,7 +97,7 @@ func _build() -> void:
 	var tl := VBoxContainer.new()
 	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(tl)
-	_title = _label("%s  ·  Skills" % char_name, 40, Color(1.0, 0.82, 0.5), true)
+	_title = _label(tr("%s  ·  Skills") % tr(char_name), 40, Color(1.0, 0.82, 0.5), true)
 	tl.add_child(_title)
 	_sub = _label("", 18, Color(0.85, 0.78, 0.66))
 	tl.add_child(_sub)
@@ -132,9 +132,9 @@ func _build() -> void:
 		if cat == "Special":
 			_lock_overlay = ColumnLock.new()
 			_lock_overlay.text_font = _font_bold
-			_lock_overlay.message = "Unlocks at level %d" % SkillTree.SPECIAL_LEVEL
+			_lock_overlay.message = tr("Unlocks at level %d") % SkillTree.SPECIAL_LEVEL
 			holder.add_child(_lock_overlay)
-		var head := _label(cat.to_upper(), 28, ccol, true)
+		var head := _label(tr(cat).to_upper(), 28, ccol, true)
 		head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(head)
 		var underline := ColorRect.new()
@@ -142,7 +142,7 @@ func _build() -> void:
 		underline.custom_minimum_size = Vector2(0, 2)
 		col.add_child(underline)
 		for tier in 2:
-			var tag := _label("Row %d  ·  1 point each%s" % [tier + 1, "  ·  needs row 1" if tier == 1 else ""], 14, Color(0.7, 0.65, 0.58))
+			var tag := _label(tr("Row %d  ·  1 point each") % (tier + 1) + ("  ·  " + tr("needs row 1") if tier == 1 else ""), 14, Color(0.7, 0.65, 0.58))
 			tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			col.add_child(tag)
 			var row := HBoxContainer.new()
@@ -260,11 +260,11 @@ func _refresh() -> void:
 	var lvl := Wallet.char_level(char_id)
 	var exp := Wallet.char_exp_of(char_id)
 	var next := Wallet.next_level_exp(char_id)
-	var exp_text := ("EXP %s / %s to lvl %d" % [Wallet.fmt(exp), Wallet.fmt(next), lvl + 1]) if next >= 0 else ("EXP %s  ·  max level" % Wallet.fmt(exp))
-	_sub.text = "lvl %d   ·   %s   ·   %d / 18 skills learned" % [lvl, exp_text, Wallet.skills_of(char_id).size()]
+	var exp_text := (tr("EXP %s / %s to lvl %d") % [Wallet.fmt(exp), Wallet.fmt(next), lvl + 1]) if next >= 0 else (tr("EXP %s  ·  max level") % Wallet.fmt(exp))
+	_sub.text = tr("lvl %d   ·   %s   ·   %d / 18 skills learned") % [lvl, exp_text, Wallet.skills_of(char_id).size()]
 	_points.text = "%d/%d" % [Wallet.skill_points_total(char_id), Wallet.MAX_LEVEL]
 	var free := Wallet.skill_points_free(char_id)
-	_points_free.text = "%d to spend" % free
+	_points_free.text = tr("%d to spend") % free
 	_points_free.add_theme_color_override("font_color", Color(0.6, 1.0, 0.55) if free > 0 else Color(0.7, 0.65, 0.6))
 	if _lock_overlay:
 		_lock_overlay.visible = SkillTree.category_locked(char_id, "Special")
@@ -308,9 +308,18 @@ func _refresh() -> void:
 		_info_cost.text = "Learned"
 		_info_cost.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
 	else:
-		_info_cost.text = "%s  ·  Costs 1 skill point%s" % [info["category"], ("   ·   " + why) if why != "" else ""]
+		_info_cost.text = tr("%s  ·  Costs 1 skill point") % tr(info["category"]) + (("   ·   " + _reason_text(info, why)) if why != "" else "")
 		_info_cost.add_theme_color_override("font_color", Color(0.85, 0.75, 0.55) if why == "" else Color(1.0, 0.5, 0.4))
 	_learn.disabled = why != ""
+
+
+## SkillTree.blocked_reason gives English (it's also compared against); this is the shown text.
+func _reason_text(info: Dictionary, why: String) -> String:
+	if why.begins_with("Unlocks at level"):
+		return tr("Unlocks at level %d") % SkillTree.SPECIAL_LEVEL
+	if why.begins_with("Learn a"):
+		return tr("Learn a %s skill from the first row first") % tr(String(info["category"])).to_lower()
+	return tr(why)
 
 
 func _unhandled_input(event: InputEvent) -> void:

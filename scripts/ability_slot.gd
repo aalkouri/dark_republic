@@ -169,7 +169,7 @@ func _draw_locked(r: Rect2, c: Vector2) -> void:
 	draw_rect(Rect2(c + Vector2(-13, -2), Vector2(26, 19)), lock_col)
 	draw_circle(c + Vector2(0, 6), 2.5, Color(0.1, 0.1, 0.1))
 	var font := get_theme_default_font()
-	var txt := "Lv %d" % unlock_level
+	var txt := tr("Lv %d") % unlock_level
 	var tw := font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
 	draw_string_outline(font, Vector2(c.x - tw * 0.5, size.y - 7), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, 4, Color.BLACK)
 	draw_string(font, Vector2(c.x - tw * 0.5, size.y - 7), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(1.0, 0.85, 0.4))

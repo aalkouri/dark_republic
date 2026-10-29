@@ -487,11 +487,11 @@ func _update_label() -> void:
 	if done:
 		_label.text = "Complete"
 	elif progress > 0.0:
-		_label.text = "%.1f / %d s" % [progress, int(REQUIRED_TIME)]
+		_label.text = tr("%.1f / %d s") % [progress, int(REQUIRED_TIME)]
 	else:
-		_label.text = "%s Shrine" % tier_name()
+		_label.text = tr("%s Shrine") % tr(tier_name())
 
 
 func describe() -> String:
 	var stars := "★".repeat(difficulty) + "☆".repeat(3 - difficulty)
-	return "%s  %s" % ["Chain Shrine" if pattern == CHAINS else "Storm Shrine", stars]
+	return "%s  %s" % [tr("Chain Shrine") if pattern == CHAINS else tr("Storm Shrine"), stars]

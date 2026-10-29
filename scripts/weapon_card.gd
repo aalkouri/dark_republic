@@ -90,7 +90,7 @@ func _build(char_name: String, weapon: Dictionary, ribbon: String) -> void:
 	var banner := PanelContainer.new()
 	banner.add_theme_stylebox_override("panel", _box(cover.darkened(0.2), GOLD, 2, 8))
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	banner.add_child(_label(char_name.to_upper(), _px(16, 12), Color(1.0, 0.92, 0.75), true))
+	banner.add_child(_label(tr(char_name).to_upper(), _px(16, 12), Color(1.0, 0.92, 0.75), true))
 	v.add_child(banner)
 	# Art window: the weapon's emblem on a glowing field in its colours
 	var art := Panel.new()

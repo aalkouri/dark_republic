@@ -175,16 +175,16 @@ func describe(i: int) -> String:
 	if roster:
 		lines = KitDB.describe_lines(kit, i)
 		if not is_equal_approx(dmg, 1.0):
-			lines.append("[color=#9be37a]Damage stat: %+d%% to flat damage[/color]" % roundi((dmg - 1.0) * 100.0))
+			lines.append("[color=#9be37a]%s[/color]" % tr("Damage stat: %+d%% to flat damage") % roundi((dmg - 1.0) * 100.0))
 	else:
 		lines = describe_lines(i, dmg)
 	lines.append("")
 	if not is_unlocked(i):
-		lines.append("[color=#ff7060]Locked: unlocks at level %d[/color]" % int(defs()[i]["unlock_level"]))
+		lines.append("[color=#ff7060]%s[/color]" % tr("Locked: unlocks at level %d") % int(defs()[i]["unlock_level"]))
 	elif cooldown[i] > 0.0:
-		lines.append("[color=#cccccc]Ready in %s[/color]" % _fmt_cd(cooldown[i]))
+		lines.append("[color=#cccccc]%s[/color]" % tr("Ready in %s") % _fmt_cd(cooldown[i]))
 	else:
-		lines.append("[color=#7dff7d]Ready[/color]")
+		lines.append("[color=#7dff7d]%s[/color]" % tr("Ready"))
 	return "\n".join(lines)
 
 
@@ -192,29 +192,29 @@ func describe(i: int) -> String:
 ## the character select screen can show the same text outside a run.
 static func describe_lines(i: int, dmg_mult := 1.0) -> Array[String]:
 	var d: Dictionary = DEFS[i]
-	var bonus := "" if is_equal_approx(dmg_mult, 1.0) else "  [color=#9be37a](+%d%% from Damage)[/color]" % roundi((dmg_mult - 1.0) * 100.0)
+	var bonus := "" if is_equal_approx(dmg_mult, 1.0) else "  [color=#9be37a](%s)[/color]" % I18n.t("+%d%% from Damage") % roundi((dmg_mult - 1.0) * 100.0)
 	var hot := "[color=#ffb347]%s[/color]"
 	var lines: Array[String] = []
-	var title := "[font_size=22][b]%s[/b][/font_size]" % d["name"]
+	var title := "[font_size=22][b]%s[/b][/font_size]" % I18n.t(d["name"])
 	if d["ult"]:
-		title += "  [color=#ffd23f][ULTIMATE][/color]"
+		title += "  [color=#ffd23f][%s][/color]" % I18n.t("ULTIMATE")
 	lines.append(title)
-	lines.append("[color=#aaaaaa]Key %s  ·  Cooldown %s[/color]" % [d["key"], _fmt_cd(float(d["cooldown"]))])
+	lines.append("[color=#aaaaaa]%s[/color]" % I18n.f("Key %s  ·  Cooldown %s", [d["key"], _fmt_cd(float(d["cooldown"]))]))
 	lines.append("")
 	match i:
 		INFERNO:
-			lines.append("Sets [b]every enemy[/b] on fire.")
-			lines.append("• Burn: %s of max HP per second for %s (%s total)" % [hot % ("%d%%" % roundi(INFERNO_BURN_DPS * 100.0)), hot % ("%d s" % roundi(INFERNO_BURN_TIME)), hot % ("%d%%" % roundi(INFERNO_BURN_DPS * INFERNO_BURN_TIME * 100.0))])
-			lines.append("• Burning enemies that die explode for %s of their max HP to enemies within %s; explosions chain" % [hot % ("%d%%" % roundi(INFERNO_EXPLODE_FRAC * 100.0)), hot % "2 yd"])
+			lines.append(I18n.t("Sets [b]every enemy[/b] on fire."))
+			lines.append(I18n.f("• Burn: %s of max HP per second for %s (%s total)", [hot % ("%d%%" % roundi(INFERNO_BURN_DPS * 100.0)), hot % I18n.f("%d s", roundi(INFERNO_BURN_TIME)), hot % ("%d%%" % roundi(INFERNO_BURN_DPS * INFERNO_BURN_TIME * 100.0))]))
+			lines.append(I18n.f("• Burning enemies that die explode for %s of their max HP to enemies within %s; explosions chain", [hot % ("%d%%" % roundi(INFERNO_EXPLODE_FRAC * 100.0)), hot % I18n.t("2 yd")]))
 		SHOCKWAVE:
-			lines.append("A ring of fire bursts out from the ground under you.")
-			lines.append("• %s damage to every enemy within %s%s" % [hot % str(roundi(SHOCK_DAMAGE * dmg_mult)), hot % ("%d m" % roundi(SHOCK_RADIUS)), bonus])
-			lines.append("• Knocks them back %s" % (hot % "5 yd"))
+			lines.append(I18n.t("A ring of fire bursts out from the ground under you."))
+			lines.append(I18n.f("• %s damage to every enemy within %s", [hot % str(roundi(SHOCK_DAMAGE * dmg_mult)), hot % I18n.f("%d m", roundi(SHOCK_RADIUS))]) + bonus)
+			lines.append(I18n.f("• Knocks them back %s", hot % I18n.t("5 yd")))
 		METEOR:
-			lines.append("You vanish and become a giant flaming copy of your own head. [b]Invulnerable[/b] while falling.")
-			lines.append("• Crashes where you aim after %s: %s damage within %s%s, plus knockback" % [hot % ("%d s" % roundi(METEOR_FALL_TIME)), hot % str(roundi(METEOR_DAMAGE * dmg_mult)), hot % ("%d m" % roundi(METEOR_RADIUS)), bonus])
-			lines.append("• You reappear at the crash site")
-			lines.append("• The ground burns for %s: %s of max HP per second within %s" % [hot % ("%d s" % roundi(SCORCH_TIME)), hot % ("%d%%" % roundi(SCORCH_DPS * 100.0)), hot % ("%d m" % roundi(SCORCH_RADIUS))])
+			lines.append(I18n.t("You vanish and become a giant flaming copy of your own head. [b]Invulnerable[/b] while falling."))
+			lines.append(I18n.f("• Crashes where you aim after %s: %s damage within %s, plus knockback", [hot % I18n.f("%d s", roundi(METEOR_FALL_TIME)), hot % str(roundi(METEOR_DAMAGE * dmg_mult)), hot % I18n.f("%d m", roundi(METEOR_RADIUS))]) + bonus)
+			lines.append(I18n.t("• You reappear at the crash site"))
+			lines.append(I18n.f("• The ground burns for %s: %s of max HP per second within %s", [hot % I18n.f("%d s", roundi(SCORCH_TIME)), hot % ("%d%%" % roundi(SCORCH_DPS * 100.0)), hot % I18n.f("%d m", roundi(SCORCH_RADIUS))]))
 	return lines
 
 
@@ -222,8 +222,8 @@ static func _fmt_cd(secs: float) -> String:
 	if secs >= 60.0:
 		var m := int(secs) / 60
 		var s := int(ceil(secs)) % 60
-		return "%d min" % m if s == 0 else "%d:%02d" % [m, s]
-	return "%d s" % ceili(secs)
+		return I18n.f("%d min", m) if s == 0 else "%d:%02d" % [m, s]
+	return I18n.f("%d s", ceili(secs))
 
 
 func is_unlocked(i: int) -> bool:

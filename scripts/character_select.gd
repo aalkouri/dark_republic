@@ -31,8 +31,10 @@ var _req_box: PanelContainer
 var _req_rows: HBoxContainer
 var _big_icon: CharacterIcon
 var _view_box: SubViewportContainer
-var _card_slot: Control            # the shown character's weapon card (beside the model)
-const CARD_W := 236.0
+var _weapon_box: VBoxContainer     # top right of the preview: weapon icon, name, short text
+var _weapon_icon: UpgradeIcon
+var _weapon_name: Label
+var _weapon_short: Label
 var _model_pivot: Node3D
 var _hero_preview: Node3D
 var _previews := {}          # character id -> RosterModel (built on first view)
@@ -114,7 +116,7 @@ func requirements(k: int) -> Array:
 	var c: Dictionary = characters[k]
 	var out := []
 	if price_of(k) > 0:
-		out.append({"text": "%s coins" % Wallet.fmt(price_of(k)), "met": Wallet.coins >= price_of(k)})
+		out.append({"text": tr("%s coins") % Wallet.fmt(price_of(k)), "met": Wallet.coins >= price_of(k)})
 	var boss := str(c.get("requires_boss", ""))
 	if boss != "":
 		out.append({"text": BOSS_NAMES.get(boss, "Defeat " + boss), "met": Wallet.has_defeated(boss)})
@@ -300,11 +302,11 @@ func refresh_levels() -> void:
 		(b.get_meta("icon") as CharacterIcon).locked = not unlocked and not mystery
 		var lvl := Wallet.char_level(characters[k]["id"])
 		var l := b.get_meta("lvl") as Label
-		l.text = "lvl %d" % lvl
+		l.text = tr("lvl %d") % lvl
 		l.visible = unlocked and lvl > 0
 		(b.get_meta("price") as Control).visible = not unlocked and not mystery and price_of(k) > 0
 	if _count_label:
-		_count_label.text = "%d of %d unlocked" % [count, characters.size()]
+		_count_label.text = tr("%d of %d unlocked") % [count, characters.size()]
 
 
 func _build_panel() -> void:
@@ -323,17 +325,10 @@ func _build_panel() -> void:
 	v.add_theme_constant_override("separation", 8)
 	panel.add_child(v)
 
-	# Preview row: 3D model (or a large portrait) on the left, the weapon card on the right
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 14)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_child(row)
+	# Preview area: 3D model or a large portrait, same footprint
 	var stage := Control.new()
-	stage.custom_minimum_size = Vector2(380, CARD_W / WeaponCard.SIZE.x * WeaponCard.SIZE.y)
-	row.add_child(stage)
-	_card_slot = Control.new()
-	_card_slot.custom_minimum_size = WeaponCard.SIZE * (CARD_W / WeaponCard.SIZE.x)
-	row.add_child(_card_slot)
+	stage.custom_minimum_size = Vector2(640, 262)
+	v.add_child(stage)
 	_view_box = SubViewportContainer.new()
 	_view_box.stretch = true
 	_view_box.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -347,8 +342,9 @@ func _build_panel() -> void:
 	_big_icon = CharacterIcon.new()
 	_big_icon.custom_minimum_size = Vector2(280, 280)
 	_big_icon.size = Vector2(280, 280)
-	_big_icon.position = Vector2((380 - 280) * 0.5, 20)
+	_big_icon.position = Vector2((640 - 280) * 0.5, 5)
 	stage.add_child(_big_icon)
+	_build_weapon_box(stage)
 
 	_name = _label("", 44, Color(1.0, 0.86, 0.6), true)
 	_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -371,6 +367,35 @@ func _build_panel() -> void:
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_status)
 	_build_requirements(v)
+
+
+## Top-right corner of the preview: the signature weapon's icon, its name and a few words.
+func _build_weapon_box(stage: Control) -> void:
+	_weapon_box = VBoxContainer.new()
+	_weapon_box.add_theme_constant_override("separation", 2)
+	_weapon_box.position = Vector2(640 - 150, 0)
+	_weapon_box.size = Vector2(150, 0)
+	_weapon_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stage.add_child(_weapon_box)
+	var head := _label("SIGNATURE WEAPON", 11, Color(0.8, 0.68, 0.5, 0.8), true)
+	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_weapon_box.add_child(head)
+	_weapon_icon = UpgradeIcon.create({}, "weapon")
+	_weapon_icon.custom_minimum_size = Vector2(76, 76)
+	_weapon_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_weapon_box.add_child(_weapon_icon)
+	_weapon_name = _label("", 16, Color(1.0, 0.85, 0.5), true)
+	_weapon_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_weapon_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_weapon_name.custom_minimum_size.x = 150
+	_weapon_box.add_child(_weapon_name)
+	_weapon_short = _label("", 13, Color(0.85, 0.8, 0.72))
+	_weapon_short.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_weapon_short.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_weapon_short.custom_minimum_size.x = 150
+	_weapon_box.add_child(_weapon_short)
+	for l in [head, _weapon_name, _weapon_short]:
+		(l as Label).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 ## Under "Unlock Requirements:": one chip per requirement with a tick or a cross (coins, and for
@@ -454,9 +479,9 @@ static func ability_tooltip(i: int, char_id := "fire_wizard") -> String:
 	var lvl := int(Abilities.DEFS[i]["unlock_level"])
 	lines.append("")
 	if lvl <= 1:
-		lines.append("[color=#7dff7d]Available from the start of every run[/color]")
+		lines.append("[color=#7dff7d]%s[/color]" % I18n.t("Available from the start of every run"))
 	else:
-		lines.append("[color=#ffb347]Unlocks at level %d during a run[/color]" % lvl)
+		lines.append("[color=#ffb347]%s[/color]" % I18n.f("Unlocks at level %d during a run", lvl))
 	return "\n".join(lines)
 
 
@@ -606,13 +631,15 @@ func _show(k: int) -> void:
 	if c["id"] != "fire_wizard" and has_abilities:
 		weapon = KitDB.weapon_line(c["id"])
 	_kit.text = weapon if has_abilities else ("  ·  ".join(kit) if ready else "")
-	# The weapon card replaces the "Weapon: ..." line (it carries the same name and text)
-	for ch in _card_slot.get_children():
-		ch.queue_free()
+	# The weapon corner (icon, name, a few words) replaces the "Weapon: ..." line
 	var w: Dictionary = KitDB.kit(c["id"]).get("weapon", {})
-	_card_slot.visible = not mystery and not w.is_empty()
-	if _card_slot.visible:
-		_card_slot.add_child(WeaponCard.create(str(c["name"]), w, "SIGNATURE WEAPON", _font, _font_bold, CARD_W))
+	_weapon_box.visible = not mystery and not w.is_empty()
+	if _weapon_box.visible:
+		var ic: Dictionary = w.get("icon", {})
+		_weapon_icon.set_icon(ic, "weapon")
+		_weapon_name.text = str(w.get("name", ""))
+		_weapon_name.add_theme_color_override("font_color", Color.html(str(ic.get("tint", "#ffb020"))).lerp(Color.WHITE, 0.35))
+		_weapon_short.text = str(w.get("short", ""))
 		if has_abilities:
 			_kit.text = ""
 	_kit.visible = _kit.text != ""
@@ -624,8 +651,8 @@ func _show(k: int) -> void:
 		var cid: String = c["id"]
 		var next := Wallet.next_level_exp(cid)
 		var head := ("SELECTED" if Settings.selected_character == cid else "Press Enter to choose") if ready else "UNLOCKED  ·  playable soon"
-		_status.text = head + "   ·   lvl %d   ·   %s" % [Wallet.char_level(cid),
-			("%s / %s EXP" % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else "max level"]
+		_status.text = tr(head) + "   ·   " + tr("lvl %d") % Wallet.char_level(cid) + "   ·   " + \
+			((tr("%s / %s EXP") % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else tr("max level"))
 		_status.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
 	else:
 		var ok := can_unlock(k)

@@ -45,9 +45,9 @@ static func weapon_line(id: String) -> String:
 	var w: Dictionary = kit(id).get("weapon", {})
 	if w.is_empty():
 		return ""
-	var s := "Weapon: %s" % w["name"]
+	var s := I18n.f("Weapon: %s", I18n.t(w["name"]))
 	if w.has("desc"):
-		s += "  -  %s" % w["desc"]
+		s += "  -  %s" % I18n.t(w["desc"])
 	return s
 
 
@@ -76,16 +76,16 @@ static func describe_lines(id: String, i: int) -> Array[String]:
 	var lines: Array[String] = []
 	if a.is_empty():
 		return lines
-	var title := "[font_size=22][b]%s[/b][/font_size]" % a["name"]
+	var title := "[font_size=22][b]%s[/b][/font_size]" % I18n.t(a["name"])
 	if is_ult(i):
-		title += "  [color=#ffd23f][ULTIMATE][/color]"
+		title += "  [color=#ffd23f][%s][/color]" % I18n.t("ULTIMATE")
 	lines.append(title)
-	lines.append("[color=#aaaaaa]Key %s  ·  Cooldown %s[/color]" % [KEYS[i], fmt_cd(float(a.get("cooldown", 0)))])
+	lines.append("[color=#aaaaaa]%s[/color]" % I18n.f("Key %s  ·  Cooldown %s", [KEYS[i], fmt_cd(float(a.get("cooldown", 0)))]))
 	lines.append("")
 	if a.has("text"):
-		lines.append(str(a["text"]))
+		lines.append(I18n.t(a["text"]))
 	for l in a.get("lines", []):
-		lines.append("• " + highlight(str(l)))
+		lines.append("• " + highlight(I18n.t(l)))
 	return lines
 
 
@@ -93,5 +93,5 @@ static func fmt_cd(secs: float) -> String:
 	if secs >= 60.0:
 		var m := int(secs) / 60
 		var sec := int(ceil(secs)) % 60
-		return "%d min" % m if sec == 0 else "%d:%02d" % [m, sec]
-	return "%d s" % ceili(secs)
+		return I18n.f("%d min", m) if sec == 0 else "%d:%02d" % [m, sec]
+	return I18n.f("%d s", ceili(secs))

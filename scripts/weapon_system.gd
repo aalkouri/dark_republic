@@ -178,12 +178,12 @@ static func add_signature_weapons(db: UpgradeDB, stats: Stats, own_style: String
 		var who := str(STYLE_CHAR[sty]).replace("_", " ").capitalize()
 		for k in SIG_BASE:
 			stats.define("%s_%s" % [sid, k], SIG_BASE[k])
-		db.stat_names["%s_damage" % sid] = "%s Damage" % c["name"]
+		db.stat_names["%s_damage" % sid] = ["%s Damage", c["name"]]
 		db.stat_names["%s_count" % sid] = c["name"]
-		db.stat_names["%s_pierce" % sid] = "%s Pierce" % c["name"]
+		db.stat_names["%s_pierce" % sid] = ["%s Pierce", c["name"]]
 		db.defs[sid] = {
 			"id": sid, "kind": "weapon", "name": c["name"], "icon": c["icon"],
-			"desc": "LEGENDARY: the %s's weapon. %s" % [who, c["desc"]],
+			"desc": ["LEGENDARY: the %s's weapon. %s", who, c["desc"]],
 			"weight": SIG_WEIGHT, "max_level": SIG_MAX_LEVEL, "fixed": true, "rarity_fixed": SIG_RARITY,
 			"signature": sty,
 			"per_level": [

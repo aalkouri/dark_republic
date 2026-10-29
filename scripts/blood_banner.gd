@@ -28,7 +28,7 @@ func _init() -> void:
 
 
 func show_text(t: String) -> void:
-	text = t
+	text = tr(t)
 	_t = 0.0
 	visible = true
 	_drips.clear()

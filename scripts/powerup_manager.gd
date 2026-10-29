@@ -277,5 +277,5 @@ func status_text() -> String:
 	var parts: Array[String] = []
 	for kind in [FEAR, DAMAGE, SPEED]:
 		if active[kind] > 0.0:
-			parts.append("[color=#%s]%s %ds[/color]" % [COLORS[kind].to_html(false), NAMES[kind].to_upper(), ceili(active[kind])])
+			parts.append("[color=#%s]%s %ds[/color]" % [COLORS[kind].to_html(false), tr(NAMES[kind]).to_upper(), ceili(active[kind])])
 	return "   ".join(parts)
