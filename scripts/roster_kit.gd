@@ -277,7 +277,7 @@ func _freeze_burst() -> void:
 	_ice_spikes(at, FREEZE_RADIUS, 22)
 	fx.burst(at + Vector3(0, 1.0, 0), 5.0, _light, 0.4)
 	player.add_shake(0.4)
-	print_verbose("Flash Freeze froze %d goblins" % n)
+	print_verbose("Flash Freeze froze %d enemies" % n)
 
 
 func _on_shattered(at: Vector3, radius: float) -> void:

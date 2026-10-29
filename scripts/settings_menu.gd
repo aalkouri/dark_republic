@@ -127,7 +127,7 @@ func _sound_tab() -> Control:
 	_volume_row(vb, "Music", "music_volume", "music_muted")
 	_volume_row(vb, "All other audio", "sfx_volume", "sfx_muted")
 	var note := Label.new()
-	note.text = "\"All other audio\" covers goblin voices, hits and effects."
+	note.text = "\"All other audio\" covers enemy sounds, hits and effects."
 	note.modulate.a = 0.6
 	note.add_theme_font_size_override("font_size", 15)
 	vb.add_child(note)

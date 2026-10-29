@@ -203,12 +203,12 @@ static func describe_lines(i: int, dmg_mult := 1.0) -> Array[String]:
 	lines.append("")
 	match i:
 		INFERNO:
-			lines.append("Sets [b]every goblin[/b] on fire.")
+			lines.append("Sets [b]every enemy[/b] on fire.")
 			lines.append("• Burn: %s of max HP per second for %s (%s total)" % [hot % ("%d%%" % roundi(INFERNO_BURN_DPS * 100.0)), hot % ("%d s" % roundi(INFERNO_BURN_TIME)), hot % ("%d%%" % roundi(INFERNO_BURN_DPS * INFERNO_BURN_TIME * 100.0))])
-			lines.append("• Burning goblins that die explode for %s of their max HP to goblins within %s; explosions chain" % [hot % ("%d%%" % roundi(INFERNO_EXPLODE_FRAC * 100.0)), hot % "2 yd"])
+			lines.append("• Burning enemies that die explode for %s of their max HP to enemies within %s; explosions chain" % [hot % ("%d%%" % roundi(INFERNO_EXPLODE_FRAC * 100.0)), hot % "2 yd"])
 		SHOCKWAVE:
 			lines.append("A ring of fire bursts out from the ground under you.")
-			lines.append("• %s damage to every goblin within %s%s" % [hot % str(roundi(SHOCK_DAMAGE * dmg_mult)), hot % ("%d m" % roundi(SHOCK_RADIUS)), bonus])
+			lines.append("• %s damage to every enemy within %s%s" % [hot % str(roundi(SHOCK_DAMAGE * dmg_mult)), hot % ("%d m" % roundi(SHOCK_RADIUS)), bonus])
 			lines.append("• Knocks them back %s" % (hot % "5 yd"))
 		METEOR:
 			lines.append("You vanish and become a giant flaming copy of your own head. [b]Invulnerable[/b] while falling.")

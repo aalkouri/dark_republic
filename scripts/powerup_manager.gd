@@ -15,7 +15,7 @@ enum { MAGNET, FEAR, DAMAGE, SPEED }
 const DROP_BASE := 0.02
 const DROP_PER_LUCK := 0.01
 const NAMES := ["Magnet", "Fear Idol", "5x Damage", "Movement Enhancer"]
-const PICKUP_TEXT := ["MAGNET! All orbs incoming", "FEAR IDOL! Goblins flee for 15 s", "5x DAMAGE for 10 s!", "MOVEMENT +80% for 15 s!"]
+const PICKUP_TEXT := ["MAGNET! All orbs incoming", "FEAR IDOL! Enemies flee for 15 s", "5x DAMAGE for 10 s!", "MOVEMENT +80% for 15 s!"]
 const DURATION := [0.0, 15.0, 10.0, 15.0]
 const COLORS := [Color(1.0, 0.25, 0.2), Color(0.65, 0.3, 1.0), Color(1.0, 0.55, 0.1), Color(0.3, 1.0, 0.45)]
 const DAMAGE_MULT := 5.0

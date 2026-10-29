@@ -20,7 +20,7 @@
 
   "upgrades": [
     { "id": "weapon_orb", "kind": "weapon", "icon": { "glyph": "fireball", "cover": "#7a2a10", "tint": "#ff9a30" }, "name": "Fireballs", "weight": 10, "max_level": 8,
-      "desc": "Hurls fireballs from your staff at the nearest goblins.",
+      "desc": "Hurls fireballs from your staff at the nearest enemies.",
       "per_level": [
         { "stat": "orb_damage", "op": "add", "value": 0.2 },
         { "stat": "orb_count", "op": "flat", "value": 0.5 },

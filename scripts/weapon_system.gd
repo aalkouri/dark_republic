@@ -51,13 +51,13 @@ const CURSE_CHANCE := 0.2        # ...and curse (+25% damage taken)...
 const CURSE_TIME := 4.0          # ...for 4 s
 ## Level-up card for the starting weapon, per style.
 const CARDS := {
-	"fire": {"name": "Fireballs", "desc": "Hurls fireballs from your staff at the nearest goblins.",
+	"fire": {"name": "Fireballs", "desc": "Hurls fireballs from your staff at the nearest enemies.",
 		"icon": {"glyph": "fireball", "cover": "#7a2a10", "tint": "#ff9a30"}},
-	"ice": {"name": "Frost Shards", "desc": "Hurls icicles from your staff that slow the goblins they hit.",
+	"ice": {"name": "Frost Shards", "desc": "Hurls icicles from your staff that slow the enemies they hit.",
 		"icon": {"glyph": "shard", "cover": "#1d4a6e", "tint": "#bfe9ff"}},
-	"thunder": {"name": "Chain Lightning", "desc": "Lightning arcs from your staff and jumps between goblins.",
+	"thunder": {"name": "Chain Lightning", "desc": "Lightning arcs from your staff and jumps between enemies.",
 		"icon": {"glyph": "chainbolt", "cover": "#3a2a6e", "tint": "#fff27a"}},
-	"dark": {"name": "Shadow Bolts", "desc": "Slow bolts of shadow that pierce and curse the goblins they hit.",
+	"dark": {"name": "Shadow Bolts", "desc": "Slow bolts of shadow that pierce and curse the enemies they hit.",
 		"icon": {"glyph": "shadowbolt", "cover": "#2a1236", "tint": "#c45bff"}},
 }
 

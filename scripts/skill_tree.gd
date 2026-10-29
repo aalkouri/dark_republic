@@ -43,7 +43,7 @@ const POOL := {
 		],
 		[
 			{"id": "volley", "name": "Volley", "desc": "+1 projectile", "icon": "burst", "fx": [["projectile_count", "flat", 1.0]]},
-			{"id": "pierce", "name": "Piercing", "desc": "Projectiles pierce 1 more goblin", "icon": "arrow", "fx": [["orb_pierce", "flat", 1.0]]},
+			{"id": "pierce", "name": "Piercing", "desc": "Projectiles pierce 1 more enemy", "icon": "arrow", "fx": [["orb_pierce", "flat", 1.0]]},
 			{"id": "brutal", "name": "Brutality", "desc": "+25% damage", "icon": "blade", "fx": [["damage", "add", 0.25]]},
 			{"id": "frenzy", "name": "Frenzy", "desc": "+25% attack speed", "icon": "clock", "fx": [["attack_speed", "add", 0.25]]},
 			{"id": "colossal", "name": "Colossal", "desc": "+35% area", "icon": "burst", "fx": [["area", "add", 0.35]]},
@@ -59,7 +59,7 @@ const POOL := {
 		],
 		[
 			{"id": "haste", "name": "Time Warp", "desc": "Abilities recharge 20% faster", "icon": "clock", "fx": [["ability_cdr", "mult", 0.8]]},
-			{"id": "fortune", "name": "Fortune", "desc": "+2 luck (more epic goblins and drops)", "icon": "clover", "fx": [["luck", "flat", 2.0]]},
+			{"id": "fortune", "name": "Fortune", "desc": "+2 luck (more epic enemies and drops)", "icon": "clover", "fx": [["luck", "flat", 2.0]]},
 			{"id": "midas", "name": "Midas Touch", "desc": "+40% coins from runs", "icon": "coin", "fx": [["coin_gain", "add", 0.4]]},
 			{"id": "sprinter", "name": "Sprinter", "desc": "+20% move speed", "icon": "boot", "fx": [["move_speed", "add", 0.2]]},
 			{"id": "sage", "name": "Sage", "desc": "+35% XP", "icon": "book", "fx": [["xp_gain", "add", 0.35]]},
@@ -90,7 +90,7 @@ const AUTHORED := {
 			],
 			[
 				{"id": "wildfire", "name": "Wildfire", "desc": "+1 fireball", "icon": "burst", "fx": [["projectile_count", "flat", 1.0]]},
-				{"id": "searing", "name": "Searing Pierce", "desc": "Fireballs pierce 1 more goblin", "icon": "arrow", "fx": [["orb_pierce", "flat", 1.0]]},
+				{"id": "searing", "name": "Searing Pierce", "desc": "Fireballs pierce 1 more enemy", "icon": "arrow", "fx": [["orb_pierce", "flat", 1.0]]},
 				{"id": "inferno_mastery", "name": "Pyromastery", "desc": "+25% damage", "icon": "flame", "fx": [["damage", "add", 0.25]]},
 			],
 		],
@@ -103,7 +103,7 @@ const AUTHORED := {
 			[
 				{"id": "time_warp", "name": "Time Warp", "desc": "Abilities recharge 20% faster", "icon": "clock", "fx": [["ability_cdr", "mult", 0.8]]},
 				{"id": "ember_magnet", "name": "Ember Pull", "desc": "+50% pickup range", "icon": "magnet", "fx": [["pickup_range", "add", 0.5]]},
-				{"id": "fortunes_flame", "name": "Fortune's Flame", "desc": "+2 luck (more epic goblins and drops)", "icon": "clover", "fx": [["luck", "flat", 2.0]]},
+				{"id": "fortunes_flame", "name": "Fortune's Flame", "desc": "+2 luck (more epic enemies and drops)", "icon": "clover", "fx": [["luck", "flat", 2.0]]},
 			],
 		],
 	},
