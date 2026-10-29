@@ -141,7 +141,8 @@ func _build_world() -> void:
 			var env: Environment = (n as WorldEnvironment).environment
 			env.fog_density = 0.028
 			env.ambient_light_energy = 1.25   # a touch brighter than the title, so the action reads
-			env.glow_intensity = 1.1
+			env.glow_intensity = 0.55   # softer bloom: flame sprites read as flames, not orbs
+			env.glow_bloom = 0.0
 
 
 func _build_camp() -> void:
@@ -159,10 +160,10 @@ func _build_camp() -> void:
 	fire_mi.mesh = mb.commit()
 	fire_mi.position = _g(FIRE)
 	add_child(fire_mi)
-	var flames := Abilities._flame_particles(0.55, 0.8, 70)
+	var flames := Abilities._flame_particles(0.4, 0.55, 80)   # small and short-lived: they stay in the fire
 	flames.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
 	flames.emission_sphere_radius = 0.25
-	flames.gravity = Vector3(0, 2.2, 0)
+	flames.gravity = Vector3(0, 1.6, 0)
 	flames.position = _g(FIRE, 0.25)
 	add_child(flames)
 	var embers := Abilities._flame_particles(0.08, 2.4, 30)
@@ -172,6 +173,16 @@ func _build_camp() -> void:
 	embers.gravity = Vector3(0, 1.0, 0)
 	embers.position = _g(FIRE, 0.6)
 	add_child(embers)
+	# Flame/ember sprites that drift near the lens become huge soft orbs: fade them out
+	# within a few metres of the camera
+	for ps in [flames, embers]:
+		var mat := (ps as CPUParticles3D).mesh.surface_get_material(0) as StandardMaterial3D
+		if mat == null:
+			mat = ((ps as CPUParticles3D).mesh as PrimitiveMesh).material as StandardMaterial3D
+		if mat:
+			mat.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+			mat.distance_fade_min_distance = 2.0
+			mat.distance_fade_max_distance = 4.5
 	_fire_light = OmniLight3D.new()
 	_fire_light.light_color = Color(1.0, 0.55, 0.2)
 	_fire_light.light_energy = 2.4
@@ -858,9 +869,12 @@ func _update_camera() -> void:
 	elif t < 11.0:
 		var face := _wizard.position + Vector3(0, 1.55, 0)
 		var dir := (_g(RACK) - _wizard.position).normalized()
-		var side := Vector3(-dir.z, 0, dir.x)   # the side away from the campfire (no flames in the lens)
+		# In front of him, on the far side from the campfire: the fire glows behind him instead of
+		# filling the lens
+		var away := Vector3(_wizard.position.x - _g(FIRE).x, 0, _wizard.position.z - _g(FIRE).z).normalized()
+		var side := Vector3(-away.z, 0, away.x)
 		var k := _ease((t - 8.0) / 3.0)
-		eye = face + (side * 2.2 + Vector3(0, 0.15, 0)).lerp(side * 1.5 + dir * 0.4, k)
+		eye = face + (away * 2.4 + side * 0.9 + Vector3(0, 0.1, 0)).lerp(away * 1.7 + side * 0.5 + dir * 0.3, k)
 		look = face
 	elif t < 14.0:
 		var k := _ease((t - 11.0) / 3.0)
