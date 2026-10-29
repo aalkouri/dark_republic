@@ -44,9 +44,11 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_check("Play asks which map", title._picker != null and title._picker.visible and not title._menu.visible, "")
 	var cards: Array = title._picker._cards
-	_check("map cards: Swamp, Magical Forest, Castle (all playable)", cards.size() == 3 and cards[0].get_meta("id") == "swamp"
+	_check("map cards: Swamp, then the Forest and Castle locked until Thog is beaten", cards.size() == 3 and cards[0].get_meta("id") == "swamp"
 		and cards[1].get_meta("id") == "forest" and cards[2].get_meta("id") == "castle"
-		and not cards[0].disabled and not cards[1].disabled and not cards[2].disabled, "%d" % cards.size())
+		and not cards[0].disabled and cards[1].disabled and cards[2].disabled, "%d" % cards.size())
+	title._picker.choose("forest")
+	_check("a locked map can't be picked", Settings.selected_map != "forest", Settings.selected_map)
 	title._picker.cancelled.emit()
 	await get_tree().process_frame
 	_check("Esc on the map choice goes back to the menu", title._picker == null and title._menu.visible, "")

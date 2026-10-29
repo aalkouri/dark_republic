@@ -391,7 +391,7 @@ func _tick_zero(dt: float) -> void:
 		_zero_tick = TICK
 		for i in enemies.query_radius(at + Vector3(0, 0.8, 0), ZERO_RADIUS, false):
 			enemies.slow(i, ZERO_SLOW, TICK + 0.3)
-			enemies.dot_damage(i, enemies.hp_max[i] * ZERO_DPS * TICK)
+			enemies.dot_damage(i, enemies.hp_max[i] * ZERO_DPS * TICK * enemies.pct_scale(i))
 	if _zero_t <= 0.0:
 		_zero_end(at)
 
@@ -693,7 +693,7 @@ func _tick_siphon(dt: float) -> void:
 		_siphon_tick += TICK
 		var near := enemies.query_radius(at + Vector3(0, 0.8, 0), SIPHON_RADIUS, false)
 		for i in near:
-			enemies.dot_damage(i, enemies.hp_max[i] * SIPHON_DPS * TICK)
+			enemies.dot_damage(i, enemies.hp_max[i] * SIPHON_DPS * TICK * enemies.pct_scale(i))
 		var shown := 0
 		for i in near:   # streams of life flowing back to the caster
 			if shown >= 14:

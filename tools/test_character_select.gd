@@ -150,7 +150,9 @@ func _ready() -> void:
 	var iw: int = cs.index_of("ice_wizard")
 	cs._tiles[iw].grab_focus()
 	await get_tree().process_frame
-	_check("locked: Play becomes Unlock, disabled without coins", cs._play_btn.text == "UNLOCK" and cs._play_btn.disabled and "2,000" in cs._status.text, cs._status.text)
+	_check("locked: Play becomes Unlock, disabled without coins", cs._play_btn.text == "UNLOCK" and cs._play_btn.disabled, cs._status.text)
+	_check("locked: a TO UNLOCK panel lists the coins, not yet met", cs._req_box.visible and cs._req_rows.get_child_count() == 1
+		and not cs.requirements(iw)[0]["met"] and "2,000" in cs.requirements(iw)[0]["text"], str(cs.requirements(iw)))
 	Wallet.coins = 2500
 	cs._shown = -1
 	cs._show(iw)
@@ -167,6 +169,22 @@ func _ready() -> void:
 	cs._show(mi)
 	_check("unlocked Merlin: Skills open, Play waits for his kit", not cs._skills_btn.disabled and cs._play_btn.disabled and "playable soon" in cs._status.text, cs._status.text)
 	Wallet.unlocked_chars.erase("merlin")
+	# Thog: coins AND beating him in the Swamp
+	var th: int = cs.index_of("thog")
+	Wallet.coins = 20000
+	Wallet.bosses_defeated = []
+	cs._shown = -1
+	cs._show(th)
+	await get_tree().process_frame
+	var reqs: Array = cs.requirements(th)
+	_check("Thog needs coins and his defeat", reqs.size() == 2 and reqs[0]["met"] and not reqs[1]["met"] and "Thog" in reqs[1]["text"]
+		and cs._req_rows.get_child_count() == 2, str(reqs))
+	_check("coins alone don't unlock Thog", cs._play_btn.disabled and not cs.unlock(th), "")
+	Wallet.bosses_defeated = ["thog"]
+	cs._shown = -1
+	cs._show(th)
+	_check("after beating him, Thog can be bought", not cs._play_btn.disabled and cs.requirements(th)[1]["met"], "")
+	Wallet.bosses_defeated = []
 	Wallet.unlocked_chars = []
 	Wallet.coins = 0
 	cs.refresh_levels()
@@ -222,7 +240,11 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_check("Play asks which map", cs2._picker != null and cs2._picker.visible, "")
 	cs2._picker.choose("forest")
+	_check("the Forest is locked until Thog is beaten", cs2._picker != null and Settings.selected_map != "forest", Settings.selected_map)
+	Wallet.bosses_defeated = ["thog"]
+	cs2._picker.choose("forest")
 	await get_tree().scene_changed
+	Wallet.bosses_defeated = []
 	_check("Play starts a run on the chosen map", get_tree().current_scene.name == "Main" and Settings.selected_map == "forest"
 		and get_tree().current_scene.find_children("*", "BushField", true, false).size() == 1, get_tree().current_scene.name)
 	Settings.selected_map = "swamp"

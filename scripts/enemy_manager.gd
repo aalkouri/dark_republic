@@ -27,6 +27,8 @@ const BOSS_KNOCKBACK_SCALE := 0.25
 const EPIC_SIZE := 1.5
 const EPIC_HP := 4.0
 const EPIC_TINT := Color(0.72, 0.25, 1.0)
+const PCT_BOSS := 0.08                     # Thog takes this share of "% of max HP" damage (burn, scorch...)
+const THOG_HP := 5200.0                    # x the run's HP multiplier when he arrives (8:00)
 const GOBLIN_VAT := "res://models/goblin"   # baked vertex animation (tools/bake_vat.gd)
 const GOBLIN_HEIGHT := 0.95                 # model height at scale 1
 const STRIDE_LEN := 0.9                     # metres covered per run cycle at scale 1
@@ -58,6 +60,8 @@ var bonus_mult := 1.0           # ability damage buffs (Eclipse), on top of dama
 #   stun   can't move or hit you                   (Thunderclap, Rewind...)
 #   curse  takes +curse_bonus damage               (Shadow Bolts)
 var skeletons: SkeletonCrowd     # draws skeletons, throws their bones, scatters them on death
+var troll_busy := false          # Thog is mid-attack: he stands still
+var _trolls := 0                 # live Thog rows (hidden from the goblin mesh and bars)
 var player: Node3D              # set by main: the target of thrown bones
 var throw_t := PackedFloat32Array()     # skeletons: seconds until they may throw again
 var throw_anim := PackedFloat32Array()  # skeletons: > 0 while winding up a throw (they stand still)
@@ -159,7 +163,7 @@ var buf := PackedFloat32Array()
 var bar_mm: MultiMesh
 var bar_buf := PackedFloat32Array()
 
-enum { GRUNT, RUNNER, TANK, BOSS, SKELETON }   # SKELETON: castle; its epic is the Armored Skeleton
+enum { GRUNT, RUNNER, TANK, BOSS, SKELETON, TROLL }   # SKELETON: castle (epic: Armored Skeleton); TROLL: Thog, the Swamp boss (drawn by ThogBoss)
 
 
 func _ready() -> void:
@@ -203,6 +207,9 @@ func _ready() -> void:
 	# Skeleton: human height, a bit tougher than a goblin, throws bones (SkeletonCrowd)
 	_add_type("Skeleton", 14.0, 3.9, 0.42, 1.0, 14.0, 1.5, Color(0.85, 0.82, 0.74))
 	t_height[SKELETON] = SkeletonCrowd.HEIGHT
+	# Thog the Troll: the Swamp's boss. A crowd row (so every weapon and ability hits him) that
+	# isn't drawn here: ThogBoss draws the giant, picks his attacks and holds him still for them.
+	_add_type("Thog the Troll", THOG_HP, 3.4, 3.4, 10.5, 55.0, 400.0, Color(0.3, 0.5, 0.8))
 	skeletons = SkeletonCrowd.new()
 	skeletons.em = self
 	add_child(skeletons)
@@ -294,6 +301,8 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	curse_t[i] = 0.0
 	throw_t[i] = rng.randf_range(1.0, 3.0) if rng != null else 2.0
 	throw_anim[i] = 0.0
+	if t == TROLL:
+		_trolls += 1
 	return i
 
 
@@ -338,14 +347,14 @@ func slow(i: int, factor: float, secs: float) -> void:
 func freeze(i: int, secs: float) -> void:
 	if dead[i]:
 		return
-	freeze_t[i] = maxf(freeze_t[i], secs * (0.34 if typ[i] == BOSS else 1.0))
+	freeze_t[i] = maxf(freeze_t[i], secs * (0.34 if typ[i] == BOSS or typ[i] == TROLL else 1.0))
 	vel[i] = Vector3.ZERO
 
 
 func stun(i: int, secs: float) -> void:
 	if dead[i]:
 		return
-	stun_t[i] = maxf(stun_t[i], secs * (0.5 if typ[i] == BOSS else 1.0))
+	stun_t[i] = maxf(stun_t[i], secs * (0.5 if typ[i] == BOSS else (0.25 if typ[i] == TROLL else 1.0)))
 	vel[i] = Vector3.ZERO
 
 
@@ -372,6 +381,8 @@ func _kill(i: int) -> void:
 	_dead_count += 1
 	if typ[i] == SKELETON:   # falls apart into bones instead of a corpse
 		skeletons.scatter(pos[i], t_scale[SKELETON] * sz[i], epic[i] == 1)
+	elif typ[i] == TROLL:   # ThogBoss plays his fall
+		_trolls -= 1
 	elif corpses != null:
 		var t := typ[i]
 		var col: Color = t_color[t]
@@ -386,6 +397,12 @@ func _kill(i: int) -> void:
 	if freeze_t[i] > 0.0 and shatter_frac > 0.0:
 		_shatters.append(Vector3(pos[i].x, pos[i].z, hp_max[i] * shatter_frac))
 	Events.enemy_killed.emit(pos[i], typ[i])
+
+
+## Multiplier for damage worked out as a % of this enemy's max HP: tiny for Thog, so burns and
+## auras that melt goblins don't melt a boss with 30,000 HP in seconds.
+func pct_scale(i: int) -> float:
+	return PCT_BOSS if typ[i] == TROLL else 1.0
 
 
 ## Damage over time (burning ground etc.): no hit flash, numbers totalled twice a second.
@@ -417,6 +434,8 @@ func knock(i: int, dir: Vector3, distance: float, duration := 0.25) -> void:
 		dir = Vector3(rng.randf() - 0.5, 0.0, rng.randf() - 0.5)
 	if typ[i] == BOSS:
 		distance *= BOSS_KNOCKBACK_SCALE
+	elif typ[i] == TROLL:
+		return   # nothing shoves a troll that size
 	kb_vel[i] = dir.normalized() * (distance / duration)
 	kb_t[i] = duration
 	vel[i] = Vector3.ZERO
@@ -553,7 +572,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		var tz := player_pos.z - p.z
 		var d2 := tx * tx + tz * tz
 
-		if d2 > reloc2 and t != BOSS and not fear:
+		if d2 > reloc2 and t != BOSS and t != TROLL and not fear:
 			if nav_on:   # indoors: only somewhere the player can be reached from
 				var q := nav.reachable_point(player_pos, 28.0, 36.0, rng)
 				if q != Vector3.INF:
@@ -572,7 +591,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		var burning := burn_t[i] > 0.0
 		if burning and not dead[i]:
 			burn_t[i] -= dt
-			var bd := hp_max[i] * burn_dps_frac * dt * damage_mult
+			var bd := hp_max[i] * burn_dps_frac * dt * damage_mult * (PCT_BOSS if t == TROLL else 1.0)
 			hp[i] -= bd
 			burn_acc[i] += bd
 			burn_num_t[i] -= dt
@@ -696,11 +715,11 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			var sp := t_speed[t] * (WATER_SPEED_MULT if p.y < -0.15 else 1.0)
 			if slow_t[i] > 0.0:
 				sp *= slow_f[i]
-			if throw_anim[i] > 0.0:
-				sp = 0.0   # a skeleton winding up a throw stands still
+			if throw_anim[i] > 0.0 or (t == TROLL and troll_busy):
+				sp = 0.0   # a skeleton winding up a throw / Thog mid-attack stands still
 			if fear:
 				sp = -sp   # run away from the player
-			elif lost and t != BOSS:
+			elif lost and t != BOSS and t != TROLL:
 				# Lost in the dark: amble along a slowly turning heading of their own
 				var wa := float(uid[i]) * 2.399 + _time * 0.35
 				fx = cos(wa)
@@ -806,6 +825,11 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		buf[b + 19] = fxc
 
 	buf = skeletons.sync(dt, buf, player)
+	if _trolls > 0:   # Thog is drawn by ThogBoss, not as a goblin
+		for i in n:
+			if typ[i] == TROLL:
+				for k in 12:
+					buf[i * STRIDE + k] = 0.0
 	mm.buffer = buf
 	mm.visible_instance_count = n
 	_write_bars(n)
@@ -815,7 +839,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 func _write_bars(n: int) -> void:
 	for i in n:
 		var b := i * BAR_STRIDE
-		var s := clampf(t_scale[typ[i]] * sz[i], 1.0, 3.0)
+		var s := clampf(t_scale[typ[i]] * sz[i], 1.0, 3.0) if typ[i] != TROLL else 0.0   # Thog's bar is on the HUD
 		var p := pos[i]
 		bar_buf[b] = s
 		bar_buf[b + 3] = p.x

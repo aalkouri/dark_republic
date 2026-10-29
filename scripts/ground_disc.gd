@@ -15,6 +15,8 @@ uniform float h_size = 1.0;
 uniform float has_height = 0.0;
 uniform float lift = 0.1;
 uniform float inner = 0.0;   // > 0: a ring (band from inner to 1)
+uniform float arc = 4.0;     // < PI: only a wedge this many radians either side of local -Z
+uniform float fill = 1.0;    // < 1: a telegraph, solid out to `fill` of the radius, faint beyond
 varying vec2 local_uv;
 
 void vertex() {
@@ -29,6 +31,12 @@ void fragment() {
 	float d = length(local_uv - 0.5) * 2.0;
 	float a = color.a * (1.0 - smoothstep(0.96, 1.0, d));
 	if (inner > 0.0) { a *= smoothstep(inner - 0.04, inner, d); }
+	if (arc < 3.14) {
+		vec2 q = local_uv - 0.5;
+		float ang = acos(clamp(dot(normalize(q + vec2(0.00001)), vec2(0.0, -1.0)), -1.0, 1.0));
+		a *= 1.0 - smoothstep(arc - 0.03, arc, ang);
+	}
+	if (fill < 1.0) { a *= d < fill ? 1.0 : (d > 0.93 ? 0.9 : 0.28); }
 	if (a <= 0.001) { discard; }
 	ALBEDO = color.rgb;
 	ALPHA = a;
@@ -53,6 +61,16 @@ var _mat: ShaderMaterial
 ## Make it a ring: only the band from `fraction` of the radius out to the edge is drawn.
 func set_ring(fraction: float) -> void:
 	_mat.set_shader_parameter("inner", fraction)
+
+
+## Only draw a wedge `half_angle` radians either side of the disc's forward (-Z).
+func set_arc(half_angle: float) -> void:
+	_mat.set_shader_parameter("arc", half_angle)
+
+
+## Telegraph fill: solid out to `f` of the radius, a faint area with a bright rim beyond it.
+func set_fill(f: float) -> void:
+	_mat.set_shader_parameter("fill", f)
 
 
 func set_lift(metres: float) -> void:

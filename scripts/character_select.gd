@@ -27,6 +27,8 @@ var _tooltip: PanelContainer
 var _tooltip_text: RichTextLabel
 var _hover_slot := -1
 var _status: Label
+var _req_box: PanelContainer
+var _req_rows: HBoxContainer
 var _big_icon: CharacterIcon
 var _view_box: SubViewportContainer
 var _model_pivot: Node3D
@@ -100,6 +102,31 @@ func is_ready(k: int) -> bool:
 
 func price_of(k: int) -> int:
 	return int(characters[k].get("price", 0))
+
+
+const BOSS_NAMES := {"thog": "Defeat Thog the Troll in the Swamp"}
+
+
+## What a locked character needs: [{text, met}], coins first, then any boss to beat.
+func requirements(k: int) -> Array:
+	var c: Dictionary = characters[k]
+	var out := []
+	if price_of(k) > 0:
+		out.append({"text": "%s coins" % Wallet.fmt(price_of(k)), "met": Wallet.coins >= price_of(k)})
+	var boss := str(c.get("requires_boss", ""))
+	if boss != "":
+		out.append({"text": BOSS_NAMES.get(boss, "Defeat " + boss), "met": Wallet.has_defeated(boss)})
+	return out
+
+
+## Every requirement met: Unlock can be pressed.
+func can_unlock(k: int) -> bool:
+	if is_unlocked(k) or is_mystery(k):
+		return false
+	for r in requirements(k):
+		if not r["met"]:
+			return false
+	return true
 
 
 # ------------------------------------------------------------------ building
@@ -334,6 +361,20 @@ func _build_panel() -> void:
 	_status = _label("", 20, Color(0.7, 0.68, 0.64))
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_status)
+	_build_requirements(v)
+
+
+## Under "LOCKED · TO UNLOCK": one chip per requirement with a tick or a cross (coins, and for
+## Thog, beating him in the Swamp), side by side.
+func _build_requirements(parent: Control) -> void:
+	_req_box = PanelContainer.new()
+	_req_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_req_box.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	parent.add_child(_req_box)
+	_req_rows = HBoxContainer.new()
+	_req_rows.add_theme_constant_override("separation", 14)
+	_req_rows.alignment = BoxContainer.ALIGNMENT_CENTER
+	_req_box.add_child(_req_rows)
 
 
 ## The character's three abilities, drawn exactly like the in-run ability bar (square, key,
@@ -561,9 +602,9 @@ func _show(k: int) -> void:
 			("%s / %s EXP" % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else "max level"]
 		_status.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
 	else:
-		var afford := Wallet.coins >= price_of(k)
-		_status.text = "LOCKED  ·  Unlock for %s coins%s" % [Wallet.fmt(price_of(k)), "" if afford else "  (not enough coins)"]
-		_status.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45) if afford else Color(0.85, 0.5, 0.45))
+		var ok := can_unlock(k)
+		_status.text = "LOCKED  ·  " + ("ready to unlock" if ok else "to unlock:")
+		_status.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45) if ok else Color(0.85, 0.5, 0.45))
 		_play_btn.text = "UNLOCK"
 	# Playable characters get the live model; everyone else a big portrait
 	# 3D preview: the Fire Wizard's playable model, or a roster model if one has been made
@@ -582,10 +623,34 @@ func _show(k: int) -> void:
 	_big_icon.set_icon(c["icon"])
 	for j in _tiles.size():
 		(_tiles[j].get_meta("icon") as CharacterIcon).animate = j == k
+	_req_box.visible = not unlocked and not mystery
+	for r in _req_rows.get_children():
+		r.queue_free()
+	if _req_box.visible:
+		for req in requirements(k):
+			var chip := PanelContainer.new()
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = Color(0.06, 0.04, 0.03, 0.85)
+			sb.border_color = Color(0.35, 0.6, 0.3, 0.9) if req["met"] else Color(0.6, 0.25, 0.18, 0.9)
+			sb.set_border_width_all(2)
+			sb.set_corner_radius_all(8)
+			sb.content_margin_left = 10
+			sb.content_margin_right = 14
+			sb.content_margin_top = 5
+			sb.content_margin_bottom = 5
+			chip.add_theme_stylebox_override("panel", sb)
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation", 8)
+			chip.add_child(row)
+			var mark := ReqMark.new()
+			mark.met = req["met"]
+			row.add_child(mark)
+			row.add_child(_label(req["text"], 16, Color(0.75, 0.95, 0.7) if req["met"] else Color(0.95, 0.85, 0.76)))
+			_req_rows.add_child(chip)
 	if mystery:
 		_play_btn.disabled = true
 	elif not unlocked:
-		_play_btn.disabled = Wallet.coins < price_of(k)
+		_play_btn.disabled = not can_unlock(k)
 	else:
 		_play_btn.disabled = not ready
 	_skills_btn.disabled = not unlocked or mystery
@@ -593,7 +658,7 @@ func _show(k: int) -> void:
 
 ## Buy a locked character with coins.
 func unlock(k: int) -> bool:
-	if is_unlocked(k) or is_mystery(k) or not Wallet.spend(price_of(k)):
+	if not can_unlock(k) or not Wallet.spend(price_of(k)):
 		return false
 	Wallet.unlock_char(characters[k]["id"])
 	refresh_levels()
@@ -610,7 +675,7 @@ func unlock(k: int) -> bool:
 
 func _choose(k: int) -> void:
 	_show(k)
-	if not is_unlocked(k) and not is_mystery(k) and Wallet.coins >= price_of(k):
+	if can_unlock(k):
 		_play_btn.grab_focus()   # "Unlock" is ready to press
 		return
 	if not is_unlocked(k) or not is_ready(k):
@@ -737,3 +802,23 @@ func _shot_tick() -> void:
 	get_viewport().get_texture().get_image().save_png(path)
 	print("SHOT saved ", path)
 	get_tree().quit()
+
+
+## A tick (met) or a cross (not yet) in front of an unlock requirement.
+class ReqMark extends Control:
+	var met := false
+
+	func _init() -> void:
+		custom_minimum_size = Vector2(22, 22)
+		size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var c := Vector2(11, 11)
+		draw_circle(c, 10.5, Color(0.25, 0.55, 0.22) if met else Color(0.45, 0.14, 0.1))
+		draw_arc(c, 10.5, 0, TAU, 24, Color(0.75, 0.95, 0.65) if met else Color(0.95, 0.45, 0.35), 1.5, true)
+		if met:
+			draw_polyline(PackedVector2Array([Vector2(6, 11.5), Vector2(9.5, 15), Vector2(16, 7.5)]), Color.WHITE, 2.5, true)
+		else:
+			draw_line(Vector2(7, 7), Vector2(15, 15), Color.WHITE, 2.5, true)
+			draw_line(Vector2(15, 7), Vector2(7, 15), Color.WHITE, 2.5, true)

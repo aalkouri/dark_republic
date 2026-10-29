@@ -24,6 +24,7 @@ var coins := 0                         # banked total
 var char_exp := {}                     # character id -> total EXP (1 per kill)
 var char_skills := {}                  # character id -> Array of learned skill ids
 var unlocked_chars: Array = []         # character ids bought with coins
+var bosses_defeated: Array = []        # boss ids beaten at least once ("thog": the Swamp's)
 var displayed := 0.0                   # what the counter shows (lags during a payout)
 var persist := true                    # off for test/screenshot runs
 
@@ -112,6 +113,20 @@ func unlock_char(id: String) -> void:
 	if not id in unlocked_chars:
 		unlocked_chars.append(id)
 	_save()
+
+
+## Bosses: beating one unlocks the next map, and a character (Thog).
+func has_defeated(boss: String) -> bool:
+	return boss in bosses_defeated
+
+
+## Returns true the first time this boss is beaten.
+func defeat_boss(boss: String) -> bool:
+	if boss in bosses_defeated:
+		return false
+	bosses_defeated.append(boss)
+	_save()
+	return true
 
 
 func has_skill(id: String, skill: String) -> bool:
@@ -366,6 +381,7 @@ func _load() -> void:
 		char_exp = cfg.get_value("characters", "exp", {})
 		char_skills = cfg.get_value("characters", "skills", {})
 		unlocked_chars = cfg.get_value("characters", "unlocked", [])
+		bosses_defeated = cfg.get_value("progress", "bosses", [])
 
 
 func _save() -> void:
@@ -377,4 +393,5 @@ func _save() -> void:
 	cfg.set_value("characters", "exp", char_exp)
 	cfg.set_value("characters", "skills", char_skills)
 	cfg.set_value("characters", "unlocked", unlocked_chars)
+	cfg.set_value("progress", "bosses", bosses_defeated)
 	cfg.save(PATH)

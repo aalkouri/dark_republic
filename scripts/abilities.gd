@@ -560,7 +560,7 @@ func _update_scorches(dt: float) -> void:
 		if t <= SCORCH_TIME:
 			var c: Vector3 = z["center"]
 			for i in enemies.query_radius(Vector3(c.x, 0.8, c.z), SCORCH_RADIUS, false):
-				enemies.dot_damage(i, enemies.hp_max[i] * SCORCH_DPS * dt)
+				enemies.dot_damage(i, enemies.hp_max[i] * SCORCH_DPS * dt * enemies.pct_scale(i))
 
 
 func scorch_count() -> int:

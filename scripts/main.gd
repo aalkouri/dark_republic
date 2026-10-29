@@ -9,6 +9,7 @@ extends Node3D
 const ARENA_HALF := 220.0   # 440 m across
 const RUN_LENGTH := 600.0
 const BOSS_TIME := 300.0
+const THOG_TIME := RUN_LENGTH - 120.0   # the Swamp's boss arrives with 2 minutes left
 const MAX_WEAPONS := 3
 const SWAMP_MUSIC := "res://audio/music/tension_drop.mp3"   # loops for the whole swamp run
 const MUSIC_VOLUME_DB := -6.0
@@ -60,6 +61,16 @@ var pending_levels := 0
 var current_draft: Array = []
 var _spawn_budget := 0.0
 var _boss_spawned := false
+var thog: ThogBoss                 # the Swamp boss once he's arrived
+var boss_map := false              # this map has a boss you must kill to win (the Swamp)
+var boss_won := false              # the run was won by killing the boss
+var first_boss_kill := false       # ...for the first time (unlocks shown on the end screen)
+var _thog_at := THOG_TIME
+var _shot_thog := false
+var _thog_enraged := false
+var _smoke_wall_ms := 600000
+var _shot_thog_dist := 9.0
+var _shot_thog_side := 0.0
 var _next_swarm := 60.0
 
 var perf := {"enemies": 0.0, "weapons": 0.0, "gems": 0.0}
@@ -127,6 +138,17 @@ func _ready() -> void:
 			Settings.selected_character = a.split("=")[1]
 		elif a.begins_with("--map="):   # play on this map (tests, screenshots)
 			Settings.selected_map = a.split("=")[1]
+		elif a.begins_with("--thog-at="):   # bring Thog early (tests, screenshots)
+			_thog_at = float(a.split("=")[1])
+		elif a.begins_with("--smoke-wall="):   # wall-clock limit for long smoke runs (seconds)
+			_smoke_wall_ms = int(a.split("=")[1]) * 1000
+		elif a == "--thog-enraged":   # Thog arrives already enraged (screenshots)
+			_thog_enraged = true
+		elif a.begins_with("--shot-thog"):   # --shot-thog[=distance[,side angle in degrees]]
+			_shot_thog = true
+			var v := a.split("=")[1].split(",") if a.contains("=") else PackedStringArray()
+			_shot_thog_dist = float(v[0]) if v.size() > 0 else 9.0
+			_shot_thog_side = deg_to_rad(float(v[1])) if v.size() > 1 else 0.0
 		elif a.begins_with("--shot="):
 			shot_path = a.split("=")[1]
 		elif a.begins_with("--shot-at="):
@@ -205,6 +227,7 @@ func _ready() -> void:
 	db = UpgradeDB.new("res://data/upgrades.json", rng)
 
 	water = WorldBuilder.build(self, rng, ARENA_HALF, Settings.selected_map)
+	boss_map = Settings.selected_map == "swamp"
 
 	fx = FxManager.new()
 	add_child(fx)
@@ -403,8 +426,8 @@ func _physics_process(dt: float) -> void:
 	_contact_damage()
 	if gained > 0.0:
 		_add_xp(gained * stats.value("xp_gain"))
-	if run_time >= RUN_LENGTH and state == "playing":
-		_end_run(true)
+	if run_time >= RUN_LENGTH and state == "playing" and not boss_map:
+		_end_run(true)   # boss maps are won by killing the boss instead
 
 
 func _track_perf(e: float, w: float, g: float) -> void:
@@ -499,7 +522,10 @@ func _spawn_director(dt: float) -> void:
 			_spawn_enemy(EnemyManager.RUNNER if CastleNav.current == null or rng.randf() > SKELETON_SHARE else EnemyManager.SKELETON, p, hpm)
 		hud.flash_message("SWARM!", 2.0)
 
-	if not _boss_spawned and run_time >= BOSS_TIME:
+	if boss_map:
+		if thog == null and run_time >= _thog_at:
+			spawn_thog()
+	elif not _boss_spawned and run_time >= BOSS_TIME:
 		_boss_spawned = true
 		enemies.spawn(EnemyManager.BOSS, _spawn_point(30.0, 32.0), hpm)
 		hud.flash_message("A GOBLIN WARLORD APPROACHES", 4.0)
@@ -534,6 +560,35 @@ func _spawn_point(min_d: float, max_d: float) -> Vector3:
 	var q := Vector3(clampf(p.x, -ARENA_HALF + 2, ARENA_HALF - 2), 0, clampf(p.z, -ARENA_HALF + 2, ARENA_HALF - 2))
 	q.y = water.ground_height(q.x, q.z)
 	return q
+
+
+## Thog the Troll walks out of the fog with 2 minutes left (Swamp only).
+func spawn_thog() -> ThogBoss:
+	thog = ThogBoss.new()
+	thog.setup(self, _spawn_point(34.0, 38.0), hp_mult())
+	add_child(thog)
+	thog.defeated.connect(_on_thog_defeated)
+	if _thog_enraged:
+		thog.alive_time = ThogBoss.ENRAGE_AFTER
+	hud.intro_banner.show_text("THOG THE TROLL")
+	hud.flash_message("THOG THE TROLL APPROACHES", 4.0)
+	return thog
+
+
+func _on_thog_defeated() -> void:
+	gems.magnetise_all()
+	first_boss_kill = Wallet.defeat_boss("thog")
+	hud.flash_message("THOG IS DEFEATED!", 4.0)
+	await get_tree().create_timer(4.0, true).timeout   # he topples; gems fly in
+	if state == "levelup":   # no point picking upgrades now: straight to the victory
+		hud.hide_draft()
+		pending_levels = 0
+		state = "playing"
+	while state == "paused" or state == "inspect":
+		await get_tree().process_frame
+	if state == "playing":
+		boss_won = true
+		_end_run(true)
 
 
 func _on_enemy_killed(p: Vector3, type_id: int) -> void:
@@ -749,7 +804,7 @@ static func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> v
 # ------------------------------------------------------------------ smoke test
 
 func _smoke_tick(dt: float) -> void:
-	if Time.get_ticks_msec() - _smoke_wall_start > 600000:
+	if Time.get_ticks_msec() - _smoke_wall_start > _smoke_wall_ms:
 		print("SMOKE FAIL: wall-clock timeout")
 		get_tree().quit(1)
 		return
@@ -770,6 +825,8 @@ func _smoke_tick(dt: float) -> void:
 			if _smoke_log_t >= 20.0:
 				_smoke_log_t = 0.0
 				_smoke_report("t=%5.1f" % run_time)
+				if thog != null:
+					print("SMOKE thog hp %.0f%% enraged %s state %s attacks %s" % [thog.hp_fraction() * 100.0, str(thog.is_enraged), thog.state, str(thog.counts)])
 			if run_time >= smoke_seconds:
 				_smoke_phase = 1
 				_smoke_phase_t = 0.0
@@ -809,6 +866,14 @@ func _smoke_tick(dt: float) -> void:
 func _shot_tick() -> void:
 	player.god_mode = true
 	player.face_offset = _shot_turn
+	if _shot_thog and thog != null and thog.row() >= 0:   # --shot-thog: stand near Thog and watch him
+		var tp := enemies.pos[thog.row()]
+		var to := tp - player.global_position
+		to.y = 0.0
+		if to.length() > _shot_thog_dist + 1.0 or to.length() < _shot_thog_dist - 3.0:
+			var p := tp - to.normalized() * _shot_thog_dist
+			player.global_position = Vector3(p.x, water.ground_height(p.x, p.z) + 0.5, p.z)
+		player.cam_yaw = atan2(-to.x, -to.z) + _shot_thog_side
 	if _shot_zoom > 0.0:
 		player.spring.spring_length = _shot_zoom
 		Player.zoom = _shot_zoom

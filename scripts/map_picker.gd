@@ -1,7 +1,9 @@
 class_name MapPicker
 extends Control
 ## "Choose your battleground": shown after Play (title screen and character select). One card
-## per map with a preview picture (a card can be marked "locked": true for a map not built yet). The choice is
+## per map with a preview picture. The Forest and the Castle are locked until Thog the Troll, the
+## Swamp's boss, has been beaten ("requires"); a character can be barred from a map ("banned_maps"
+## in data/characters.json: Thog can't fight in the Swamp, he's its boss). The choice is
 ## kept (Settings.selected_map), so Restart and the next Play default to it. Esc goes back.
 
 signal chosen(map: String)
@@ -9,11 +11,15 @@ signal cancelled
 
 const MAPS := [
 	{"id": "swamp", "name": "The Swamp", "blurb": "Fog, cypress trees and stinking pools.", "image": "res://images/maps/swamp.png"},
-	{"id": "forest", "name": "Magical Forest", "blurb": "Neon trees, glowing ponds and bushes that rustle.", "image": "res://images/maps/forest.png"},
-	{"id": "castle", "name": "The Castle", "blurb": "Torch-lit halls, a feast to trample, skeletons.", "image": "res://images/maps/castle.png"},
+	# The Castle will need the Forest's boss once it has one; until then Thog opens both.
+	{"id": "forest", "name": "Magical Forest", "blurb": "Neon trees, glowing ponds and bushes that rustle.", "image": "res://images/maps/forest.png", "requires": "thog"},
+	{"id": "castle", "name": "The Castle", "blurb": "Torch-lit halls, a feast to trample, skeletons.", "image": "res://images/maps/castle.png", "requires": "thog"},
 ]
 
+const BOSS_NAMES := {"thog": "Thog the Troll in the Swamp"}
+
 var _font: Font
+static var _banned := {}   # character id -> maps it can't play (from data/characters.json)
 var _cards: Array[Button] = []
 
 
@@ -49,10 +55,46 @@ func _ready() -> void:
 	var hint := _label("Enter: choose   ·   Esc: back", 18, Color(0.8, 0.75, 0.68, 0.7))
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(hint)
-	# Focus the saved choice
+	# Focus the saved choice (or the first open map)
+	var focus: Button = null
 	for c in _cards:
-		if c.get_meta("id") == Settings.selected_map:
-			c.grab_focus.call_deferred()
+		if not c.disabled and (focus == null or c.get_meta("id") == Settings.selected_map):
+			focus = c
+	if focus:
+		focus.grab_focus.call_deferred()
+
+
+## Why `map` can't be played right now with `char_id`, or "" if it can.
+static func lock_reason(map: String, char_id: String = "") -> String:
+	if char_id == "":
+		char_id = Settings.selected_character
+	for m in MAPS:
+		if m["id"] != map:
+			continue
+		var boss: String = m.get("requires", "")
+		if boss != "" and not Wallet.has_defeated(boss):
+			return "Defeat %s to unlock" % BOSS_NAMES.get(boss, boss)
+		if map in banned_maps(char_id):
+			return "%s can't fight here: this is his home turf" % _char_name(char_id)
+		return ""
+	return "Unknown map"
+
+
+static func banned_maps(char_id: String) -> Array:
+	if _banned.is_empty():
+		var f := FileAccess.open("res://data/characters.json", FileAccess.READ)
+		var data = JSON.parse_string(f.get_as_text()) if f else null
+		_banned["_loaded"] = []
+		if data is Dictionary:
+			for c in data.get("characters", []):
+				_banned[c["id"]] = c.get("banned_maps", [])
+				_banned["name:" + str(c["id"])] = c.get("name", c["id"])
+	return _banned.get(char_id, [])
+
+
+static func _char_name(char_id: String) -> String:
+	banned_maps(char_id)
+	return str(_banned.get("name:" + char_id, char_id)).split(" ")[0]
 
 
 func _label(text: String, size: int, color: Color) -> Label:
@@ -68,7 +110,8 @@ func _label(text: String, size: int, color: Color) -> Label:
 
 
 func _card(m: Dictionary) -> Button:
-	var locked: bool = m.get("locked", false)
+	var reason := lock_reason(m["id"])
+	var locked := reason != ""
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(380, 330)
 	b.focus_mode = Control.FOCUS_ALL
@@ -106,15 +149,16 @@ func _card(m: Dictionary) -> Button:
 	if img != "" and ResourceLoader.exists(img):
 		pic.texture = load(img)
 	v.add_child(pic)
-	if locked:   # a dark card with a padlock-ish "?"
-		var q := _label("?", 120, Color(0.5, 0.45, 0.4, 0.8))
+	if locked:   # the picture darkened, with LOCKED across it
+		pic.modulate = Color(0.32, 0.3, 0.3)
+		var q := _label("LOCKED", 40, Color(0.85, 0.8, 0.72, 0.95))
 		q.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		q.position = Vector2(0, 20)
+		q.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		q.size = Vector2(352, 198)
 		pic.add_child(q)
 	var name := _label(str(m["name"]).to_upper(), 26, Color(0.95, 0.88, 0.75) if not locked else Color(0.6, 0.55, 0.5))
 	v.add_child(name)
-	var blurb := _label(m["blurb"], 17, Color(0.82, 0.76, 0.68) if not locked else Color(0.55, 0.5, 0.46))
+	var blurb := _label(m["blurb"] if not locked else reason + ".", 17, Color(0.82, 0.76, 0.68) if not locked else Color(1.0, 0.55, 0.4))
 	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(blurb)
 	b.mouse_entered.connect(func(): if not b.disabled: b.grab_focus())
@@ -125,7 +169,7 @@ func _card(m: Dictionary) -> Button:
 
 func choose(id: String) -> void:
 	for m in MAPS:
-		if m["id"] == id and not m.get("locked", false):
+		if m["id"] == id and lock_reason(id) == "":
 			Settings.selected_map = id
 			chosen.emit(id)
 			return   # unknown and locked maps are ignored
