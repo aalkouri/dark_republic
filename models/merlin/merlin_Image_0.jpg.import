@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c5fqhjdv0na5i"
-path="res://.godot/imported/merlin_Image_0.jpg-6517aa18a0ed6e3a29882cfaf1779374.ctex"
+path.s3tc="res://.godot/imported/merlin_Image_0.jpg-6517aa18a0ed6e3a29882cfaf1779374.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "93f80539e8b07c21a929e55bcef0dc47"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://models/merlin/merlin_Image_0.jpg"
-dest_files=["res://.godot/imported/merlin_Image_0.jpg-6517aa18a0ed6e3a29882cfaf1779374.ctex"]
+dest_files=["res://.godot/imported/merlin_Image_0.jpg-6517aa18a0ed6e3a29882cfaf1779374.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

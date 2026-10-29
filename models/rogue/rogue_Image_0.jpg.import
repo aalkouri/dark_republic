@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://wuuh1sbsimbx"
-path="res://.godot/imported/rogue_Image_0.jpg-b6d3f47fc4b18baa783c4b7622cd160a.ctex"
+path.s3tc="res://.godot/imported/rogue_Image_0.jpg-b6d3f47fc4b18baa783c4b7622cd160a.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ed9c30d52fbc0359953b9c5393e16d36"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://models/rogue/rogue_Image_0.jpg"
-dest_files=["res://.godot/imported/rogue_Image_0.jpg-b6d3f47fc4b18baa783c4b7622cd160a.ctex"]
+dest_files=["res://.godot/imported/rogue_Image_0.jpg-b6d3f47fc4b18baa783c4b7622cd160a.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
