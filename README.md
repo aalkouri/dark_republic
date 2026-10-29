@@ -131,6 +131,8 @@ Coins are saved between sessions (`user://progress.cfg`, autoload `Wallet`), and
 
 Quitting a run from the pause menu forfeits its coins.
 
+**Testing cheat:** press **F8** on the title screen for +100,000 coins (`title.gd`, `CHEAT_COINS`); remove it before release.
+
 ## Pause menu and settings
 
 **Esc** opens the pause menu: Resume, Settings, Restart run, Quit to desktop. Changes apply live so you can try them, but they're only saved (to `user://settings.cfg`, applied on startup) when you press **Apply**. Leaving with Back or Esc puts everything back as it was.
