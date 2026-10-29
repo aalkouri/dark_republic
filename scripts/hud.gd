@@ -18,8 +18,9 @@ var intro_banner: BloodBanner
 ## Level-up / reward-card sounds (tools/gen_ui_sounds.py makes all the candidates in audio/ui/).
 const UI_SOUNDS := {
 	"levelup": "res://audio/ui/levelup_chime.wav",
-	"hover": "res://audio/ui/hover_page.wav",
-	"pick": "res://audio/ui/pick_shing.wav",
+	"hover": "res://audio/ui/hover_tick.wav",
+	"pick": "res://audio/ui/pick_shing.wav",        # weapons and items
+	"pick_tome": "res://audio/ui/pick_slam.wav",    # tomes: a heavy book slam
 }
 var _ui_players := {}
 var pause_root: Control
@@ -781,7 +782,7 @@ func _land_burst(card: Control) -> void:
 	get_tree().create_timer(1.0, true).timeout.connect(p.queue_free)
 
 
-## Plays a UI sound ("levelup", "hover", "pick") on the SFX bus; works while paused.
+## Plays a UI sound ("levelup", "hover", "pick", "pick_tome") on the SFX bus; works while paused.
 func play_ui(kind: String) -> void:
 	if not _ui_players.has(kind):
 		var p := AudioStreamPlayer.new()

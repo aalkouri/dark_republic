@@ -647,8 +647,9 @@ func _open_draft(chained := false) -> void:
 func choose_upgrade(i: int) -> void:
 	if state != "levelup" or i < 0 or i >= current_draft.size():
 		return
+	var is_tome: bool = db.defs[current_draft[i]["id"]]["kind"] == "tome"
 	db.apply(current_draft[i], stats)
-	hud.play_ui("pick")
+	hud.play_ui("pick_tome" if is_tome else "pick")
 	pending_levels -= 1
 	if pending_levels > 0:
 		state = "playing"
