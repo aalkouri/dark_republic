@@ -31,7 +31,8 @@ func _ready() -> void:
 	var unique := {}
 	for p in puns:
 		unique[p] = true
-	_check("50 different D&D puns for the tagline", puns.size() == 50 and unique.size() == 50 and puns.has(title._tagline.text), title._tagline.text)
+	var dice := puns.filter(func(t): return (t as String).to_lower().contains("dice") or (t as String).to_lower().contains("roll") or (t as String).contains("20") or (t as String).to_lower().contains("polyhedral"))
+	_check("44 different D&D puns for the tagline, none about dice", puns.size() == 44 and unique.size() == 44 and dice.is_empty() and puns.has(title._tagline.text), str(dice))
 	var first: String = title._tagline.text
 	title._update_tagline(title.TAGLINE_TIME + 0.01)
 	_check("the tagline rotates to another pun", title._tagline.text != first and puns.has(title._tagline.text), title._tagline.text)
