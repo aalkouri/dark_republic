@@ -201,7 +201,7 @@ Picking one up while it's active refreshes its timer; active power-ups and their
 
 ## Maps
 
-**Play** (on the title screen or character select) first asks which map: **The Swamp**, the **Magical Forest** or **The Castle** (`scripts/map_picker.gd`, previews in `images/maps/`). The Forest and the Castle are **locked until you beat Thog the Troll**, the Swamp's boss (the Castle will move behind a Forest boss once that exists); locked cards are darkened, carry a gold padlock and say what's needed. The first time the picker opens after a map is unlocked, its card starts locked, then the padlock rattles, the shackle springs open and the lock tumbles off the bottom of the screen as the card lights up and becomes selectable (each reveal plays once: `Wallet.seen_unlocks`). A character can be barred from a map (`banned_maps` in `data/characters.json`): Thog can't play the Swamp, since it's his home turf. The choice is kept for Restart and the next Play (`Settings.selected_map`). Test and screenshot runs take `--map=swamp|forest|castle`, `--shot-nohud` hides the HUD for clean pictures and `--shot-pos=x,y,z[,yaw]` puts the wizard somewhere.
+**Play** (on the title screen or character select) first asks which map: **The Swamp**, the **Magical Forest** or **The Castle** (`scripts/map_picker.gd`, previews in `images/maps/`). The Forest is **locked until you beat Thog the Troll**, the Swamp's boss, and the Castle until you beat **the Toadstool Knight**, the Forest's boss; locked cards are darkened, carry a gold padlock and say what's needed. The first time the picker opens after a map is unlocked, its card starts locked, then the padlock rattles, the shackle springs open and the lock tumbles off the bottom of the screen as the card lights up and becomes selectable (each reveal plays once: `Wallet.seen_unlocks`). A character can be barred from a map (`banned_maps` in `data/characters.json`): each boss can't play its own map, since it's their home turf (Thog the Swamp, the Toadstool Knight the Forest, the Arachnid the Castle). The choice is kept for Restart and the next Play (`Settings.selected_map`). Test and screenshot runs take `--map=swamp|forest|castle`, `--shot-nohud` hides the HUD for clean pictures and `--shot-pos=x,y,z[,yaw]` puts the wizard somewhere.
 
 The two outdoor maps share the same 440 m arena, terrain generator (hills, berm, level pads, 1 m height grid), counts and placement rules, so they play the same: 180 trees, 72 fallen logs, 24 landmarks, 14 pools, grass, walls and the shrine pads. `WorldBuilder.build(..., map)` picks the look.
 
@@ -274,16 +274,53 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 `scripts/thog_boss.gd`, body in `scripts/thog_model.gd`. With **2 minutes left (8:00)** a 10 m blue troll with a studded club walks out of the swamp (the Goblin Warlord no longer comes on the Swamp). A health bar appears under the timer with a countdown to his enrage.
 
 - **Must be killed to win:** the 10:00 mark no longer ends a Swamp run; you win when Thog falls (he topples backwards into the bog, gems fly to you, and the end screen says **THOG DEFEATED!**). Any level-up choice still open then is skipped.
-- **Enrage:** if he's alive 2 minutes after arriving (10:00) he **enrages**: his attacks come **twice as fast** (animations, wind-ups and the pauses between them), his skin smoulders red and flames pour off him, and the bar turns red.
+- **Enrage:** if he's alive 2 minutes after arriving (10:00) he **enrages**: his attacks come **twice as fast** (animations, wind-ups and the pauses between them), though every telegraph still gives at least 1 s of warning, his skin smoulders red and flames pour off him, and the bar turns red.
 - **Three attacks,** each telegraphed on the ground in red that fills up until it lands:
   - **Slam** (close): both fists overhead and down into the ground in front of him: 40 damage in the marked circle, then a **shockwave ring** rolls out to 20 m (22 damage; **jump over it**).
   - **Sweep** (close): his club swung across a 130° wedge in front of him, 14 m long: 32 damage and a big sideways knockback.
   - **Bellow** (at range, every 14 s): a roar that calls a ring of 14 goblins and a brute around you.
 - **Under the hood:** Thog is a crowd row in `EnemyManager` (type `TROLL`, 5,200 HP x the 8:00 HP multiplier, about 33,000), so every weapon, burn, freeze, curse and ability hits him; he isn't drawn as a goblin. Knockback doesn't move him, freezes last a third as long and stuns a quarter. Frozen or stunned he can't start an attack. He mostly alternates slam and sweep.
 - **Model:** a stand-in until Thog gets his own: the Ogre's rigged model with its skin re-tinted troll blue (`models/ogre/thog_skin.jpg`) and the Ogre's club, scaled up 4.4x. Slam, sweep and bellow are segments of the Ogre's attack, ability and hit clips (`tools/render_thog.tscn` renders contact sheets of them).
-- **Rewards:** beating him the first time unlocks the Magical Forest and the Castle, and makes Thog buyable (10,000 coins). The end screen shows an **UNLOCKED!** block: one card per unlock (NEW MAP / NEW CHAMPION, with a hint for what to do next), each flying in from off screen on a swirling, spinning spiral trailing sparks, then landing in its slot with a pop, a flash, a burst of sparks and a ding. The list is read from the data (maps that `require` the boss, characters with `requires_boss`), so future bosses get it for free. Screenshot: `--map=swamp --shot-boss-win=1,3`. Saved in `user://progress.cfg` (`Wallet.bosses_defeated`).
+- **Rewards:** beating him the first time unlocks the Magical Forest and makes Thog buyable (10,000 coins). The end screen shows an **UNLOCKED!** block: one card per unlock (NEW MAP / NEW CHAMPION, with a hint for what to do next), each flying in from off screen on a swirling, spinning spiral trailing sparks, then landing in its slot with a pop, a flash, a burst of sparks and a ding. The list is read from the data (maps that `require` the boss, characters with `requires_boss`), so future bosses get it for free. Screenshot: `--map=swamp --shot-boss-win=1,3`. Saved in `user://progress.cfg` (`Wallet.bosses_defeated`).
 - **Sounds:** roar, slam, sweep, footsteps and the fall are synthesised by `tools/gen_thog_sounds.py`.
 - **Tests:** `godot --headless --path . res://tools/test_boss.tscn`. Screenshots: `--map=swamp --thog-at=0.2 --shot-thog=distance,side-angle [--thog-enraged]`.
+
+## The Toadstool Knight (the Magical Forest boss)
+
+`scripts/toadstool_boss.gd`, body in `scripts/toadstool_model.gd`. At **8:00** a 6 m mushroom-capped knight marches out of the neon trees. Like Thog, he enrages 2 minutes after arriving and must be killed to win the Forest.
+
+- **Spore Slash** (close): an overhead cut across a 120° wedge in front of him (34 damage). It leaves a violet spore cloud that hurts while you stand in it.
+- **Fairy Ring:** a ring of mushrooms bursts out of the ground around you (30 damage). The red band shows where it will burst, so step into the middle or out past it.
+- **Spore Mortar** (at range): he lobs 5 spore pods (7 when enraged) at and around you. Each flies in an arc onto its own filling circle (20 damage) and leaves a small poison puddle.
+- **Fungus Court** (every 24 s, from 25 s in): three 4.5 m toadstool guardians rise at marked spots around you for 12 s, each slamming the marked ground around itself every 3 s.
+- **Model:** a stand-in until he gets his own. It's Gaiden's rigged swordsman polished up into silver plate, with a huge glossy red toadstool cap with white spots (built in code on the Head bone) and a blade that glows violet. Slash and cast are segments of Gaiden's attack and ability clips (`tools/render_clips.tscn` renders contact sheets).
+- **Rewards:** beating him the first time unlocks **the Castle** and makes him buyable (10,000 coins). He can't play the Forest; it's his home turf.
+
+## The Arachnid (the Castle boss)
+
+`scripts/arachnid_boss.gd`, body in `scripts/spider_model.gd`. At **8:00** a 10 m spider scuttles in. She enrages after 2 minutes and must be killed to win the Castle.
+
+- **Climbing (new):** every 16 s or so she bounds to the nearest wall of the room you're in, avoiding doorways, and runs up it. She then scuttles along the wall 16 m up, staying level with you:
+  - Touching her can't hurt you up there.
+  - Her hitbox reaches her, so your shots still connect.
+  - From the wall she shoots webs and venom down at you.
+- **Coming down:** after a while she either drops from the wall onto a marked spot, or crawls out across the ceiling upside down until she's over you and then drops. Either way a big circle fills under her first (45 damage), and a brood of spiderlings scatters from the impact.
+- **Lunge** (close): a red lane appears in front of her, then she dashes down it fangs first (38 damage).
+- **Venom Spit:** globs (3, enraged 5) arc onto marked circles and leave poison puddles.
+- **Web Shot** (from the wall): a web lands on a marked circle. Standing in it slows you to 40% for 5 s.
+- **Brood:** an egg sac is laid at a marked spot and hatches spiderlings 2 s later.
+- **Model:** built entirely in code. A glossy black-violet body with a red hourglass, eight red eyes and fangs, and eight two-jointed legs that walk themselves: each foot stays planted until the body has moved on, then steps, in alternating groups of four. Two-bone IK bends the knees away from whatever she's standing on, so the same legs work on the floor, a wall or the ceiling (`tools/render_spider.tscn` previews it).
+- **Rewards:** beating her makes her buyable (10,000 coins). She can't play the Castle.
+
+## Boss rules (all bosses)
+
+`scripts/map_boss.gd` (`MapBoss`) holds what the Forest and Castle bosses share: the crowd row (type `TROLL` with each boss's own numbers), the HUD health bar and enrage countdown, sounds, and the attack helpers.
+- **Fair warning:** every attack that lands somewhere is marked on the ground first (circles, wedges, lanes and rings), filling up red until the hit lands. It never fills in less than **1 second** (`MapBoss.MIN_WARN`), even when enraged; enraged bosses are faster, but never faster than that. Thog follows the same rule.
+- **Projectiles:** lobbed projectiles land exactly when their marker fills.
+- **Lingering zones:** spore clouds, puddles and webs are drawn for as long as they last.
+- **Sounds:** synthesised by `tools/gen_boss_sounds.py` (`audio/bosses/`).
+- **Tests:** `godot --headless --path . res://tools/test_bosses.tscn`.
+- **Screenshots:** `--map=forest|castle --boss-at=0.3 --shot-thog=distance,angle`.
 
 ## Shrines
 
@@ -411,6 +448,9 @@ godot --headless --path . --fixed-fps 60 res://tools/test_shrines.tscn
 
 # Title flow (splash -> title -> settings -> play -> main menu)
 godot --headless --path . res://tools/test_title.tscn
+
+# The Forest and Castle bosses (telegraphs, minimum warning, wall climbing, unlocks)
+godot --headless --path . res://tools/test_bosses.tscn
 
 # Thog the Troll (arrives at 8:00, attacks, enrage, must die to win, unlocks)
 godot --headless --path . res://tools/test_boss.tscn

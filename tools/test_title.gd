@@ -70,12 +70,13 @@ func _ready() -> void:
 	_check("a locked map can't be picked", Settings.selected_map != "forest", Settings.selected_map)
 	var lk: Array = cards.filter(func(c): return c.has_meta("lock"))
 	_check("locked maps show a padlock", lk.size() == 2, str(lk.size()))
-	# Thog beaten: the next time the picker opens, the padlocks spring open and fall away
+	# Thog and the Toadstool Knight beaten: the next time the picker opens, the padlocks spring
+	# open and fall away
 	cs._picker.cancelled.emit()
 	await get_tree().process_frame
 	var was_persist := Wallet.persist
 	Wallet.persist = false
-	Wallet.bosses_defeated = ["thog"]
+	Wallet.bosses_defeated = ["thog", "toadstool_knight"]
 	Wallet.seen_unlocks = []
 	cs._play()
 	await get_tree().process_frame

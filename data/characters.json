@@ -24,7 +24,7 @@
 
     {"id": "dr_croc", "name": "Dr. Croc", "epithet": "Swamp Scientist", "bio": "A crocodile with a PhD, a lab coat and absolutely no bedside manner.", "icon": {"bg": ["#163a33", "#04100d"], "body": "coat", "body_col": "#e9ecef", "skin": "#4f8a3a", "head": "croc", "hat": "goggles", "hat_col": "#c08a2a", "eyes": "#ffe05a", "item": "flask", "fx": "bubbles"}, "price": 10000},
 
-    {"id": "arachnid", "name": "The Arachnid", "epithet": "Eight-Legged Nightmare", "bio": "Spins webs between the cypress trees and eats goblins for breakfast. And lunch.", "icon": {"bg": ["#2a1430", "#09040b"], "body": "spider", "body_col": "#2a2230", "skin": "#2a2230", "head": "none", "hat": "none", "eyes": "#ff3040", "eyes_many": true, "item": "web", "fx": "none"}, "price": 10000},
+    {"id": "arachnid", "name": "The Arachnid", "epithet": "Eight-Legged Nightmare", "bio": "Spins webs between the cypress trees and eats goblins for breakfast. And lunch.", "icon": {"bg": ["#2a1430", "#09040b"], "body": "spider", "body_col": "#2a2230", "skin": "#2a2230", "head": "none", "hat": "none", "eyes": "#ff3040", "eyes_many": true, "item": "web", "fx": "none"}, "price": 10000, "requires_boss": "arachnid", "banned_maps": ["castle"]},
 
     {"id": "blob", "name": "Blob", "epithet": "The Hungry Puddle", "bio": "Absorbs goblins. Doesn't digest them very well. They're still in there, waving.", "icon": {"bg": ["#1e3a12", "#060f03"], "body": "blob", "body_col": "#7ad13a", "skin": "#7ad13a", "head": "none", "hat": "none", "eyes": "#ffffff", "item": "none", "fx": "bubbles"}, "price": 10000},
 
@@ -44,7 +44,7 @@
 
     {"id": "bog_witch", "name": "Bog Witch", "epithet": "Brewer of Foul Things", "bio": "Has lived in this swamp for three hundred years and is furious about the noise.", "icon": {"bg": ["#22381a", "#070d05"], "body": "robe", "body_col": "#2a3a22", "skin": "#8db36a", "head": "round", "hat": "witch", "hat_col": "#1b2216", "hair": "#4a4a4a", "eyes": "#ffd84a", "item": "ladle", "fx": "bubbles"}, "price": 10000},
 
-    {"id": "toadstool_knight", "name": "Toadstool Knight", "epithet": "Sworn Shield of the Fungus Court", "bio": "Small. Brave. Slightly poisonous. Do not lick.", "icon": {"bg": ["#3a1a14", "#0f0605"], "body": "slim", "body_col": "#9da4ad", "skin": "#e7d8c0", "head": "round", "hat": "mushroom", "hat_col": "#c0261c", "eyes": "#1a1a1a", "item": "sword", "fx": "spores"}, "price": 10000},
+    {"id": "toadstool_knight", "name": "Toadstool Knight", "epithet": "Sworn Shield of the Fungus Court", "bio": "Small. Brave. Slightly poisonous. Do not lick.", "icon": {"bg": ["#3a1a14", "#0f0605"], "body": "slim", "body_col": "#9da4ad", "skin": "#e7d8c0", "head": "round", "hat": "mushroom", "hat_col": "#c0261c", "eyes": "#1a1a1a", "item": "sword", "fx": "spores"}, "price": 10000, "requires_boss": "toadstool_knight", "banned_maps": ["forest"]},
 
     {"id": "kong", "name": "Kong", "epithet": "Escapee of the Menagerie", "bio": "Broke out of the zoo, swam the river and found the swamp to his liking. Still wears the shackles. Uses them.", "icon": {"bg": ["#3a4428", "#0e1208"], "body": "bulky", "body_col": "#3e3834", "skin": "#56504a", "head": "gorilla", "hat": "none", "eyes": "#d98a2a", "item": "chains", "fx": "none"}, "price": 10000},
 

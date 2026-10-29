@@ -1,0 +1,19 @@
+{
+"%s  ·  ENRAGED": ["%s  ·  FURIOSO", "%s  ·  ENRAGÉ", "%s  ·  هائج", "%s  ·  RASEND", "%s  ·  狂暴", "%s  ·  激怒"],
+"%s  ·  enrages in %d:%02d": ["%s  ·  se enfurece en %d:%02d", "%s  ·  enragé dans %d:%02d", "%s  ·  يهيج بعد %d:%02d", "%s  ·  rast in %d:%02d", "%s  ·  %d:%02d 后狂暴", "%s  ·  激怒まで %d:%02d"],
+"%s APPROACHES": ["SE ACERCA %s", "%s APPROCHE", "%s يقترب", "%s NAHT", "%s来袭", "%sが迫る"],
+"%s DEFEATED!": ["¡%s DERROTADO!", "%s VAINCU !", "هُزم %s!", "%s BESIEGT!", "%s已被击败！", "%s撃破！"],
+"%s IS DEFEATED!": ["¡%s HA SIDO DERROTADO!", "%s EST VAINCU !", "لقد هُزم %s!", "%s IST BESIEGT!", "%s被击败了！", "%sは倒れた！"],
+"%s IS ENRAGED!": ["¡%s ESTÁ FURIOSO!", "%s EST ENRAGÉ !", "%s في حالة هياج!", "%s IST RASEND!", "%s狂暴了！", "%sが激怒した！"],
+"%s can't fight here: it's home turf": ["%s no puede luchar aquí: es su territorio", "%s ne peut pas combattre ici : c'est son territoire", "%s لا يستطيع القتال هنا: هذه أرضه", "%s kann hier nicht kämpfen: Das ist das eigene Revier", "%s 不能在这里战斗：这是其地盘", "%sはここでは戦えない：縄張りだ"],
+"BOSS": ["JEFE", "BOSS", "الزعيم", "BOSS", "首领", "ボス"],
+"Defeat the Arachnid in the Castle": ["Derrota a la Arácnida en el Castillo", "Battez l'Arachnide dans le Château", "اهزم العنكبوتة في القلعة", "Besiege die Spinne in der Burg", "在城堡击败蛛魔", "城でアラクニドを倒す"],
+"Defeat the Toadstool Knight in the Magical Forest": ["Derrota al Caballero Seta en el Bosque mágico", "Battez le Chevalier Champignon dans la Forêt magique", "اهزم فارس الفطر في الغابة السحرية", "Besiege den Fliegenpilzritter im Zauberwald", "在魔法森林击败毒菇骑士", "魔法の森でキノコの騎士を倒す"],
+"THE ARACHNID": ["LA ARÁCNIDA", "L'ARACHNIDE", "العنكبوتة", "DIE SPINNE", "蛛魔", "アラクニド"],
+"THE ARACHNID CLIMBS THE WALLS!": ["¡LA ARÁCNIDA TREPA POR LOS MUROS!", "L'ARACHNIDE GRIMPE AUX MURS !", "العنكبوتة تتسلق الجدران!", "DIE SPINNE KLETTERT DIE WÄNDE HOCH!", "蛛魔爬上了墙壁！", "アラクニドが壁を登る！"],
+"THE FUNGUS COURT RISES!": ["¡SE ALZA LA CORTE FÚNGICA!", "LA COUR FONGIQUE SE LÈVE !", "بلاط الفطر ينهض!", "DER PILZHOF ERHEBT SICH!", "真菌宫廷崛起！", "菌類の宮廷が立ち上がる！"],
+"THE TOADSTOOL KNIGHT": ["EL CABALLERO SETA", "LE CHEVALIER CHAMPIGNON", "فارس الفطر", "DER FLIEGENPILZRITTER", "毒菇骑士", "キノコの騎士"],
+"THOG": ["THOG", "THOG", "ثوغ", "THOG", "索格", "ソグ"],
+"the Arachnid in the Castle": ["la Arácnida en el Castillo", "l'Arachnide dans le Château", "العنكبوتة في القلعة", "die Spinne in der Burg", "城堡中的蛛魔", "城のアラクニド"],
+"the Toadstool Knight in the Magical Forest": ["el Caballero Seta en el Bosque mágico", "le Chevalier Champignon dans la Forêt magique", "فارس الفطر في الغابة السحرية", "den Fliegenpilzritter im Zauberwald", "魔法森林中的毒菇骑士", "魔法の森のキノコの騎士"]
+}

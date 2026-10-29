@@ -112,7 +112,7 @@ func price_of(k: int) -> int:
 	return int(characters[k].get("price", 0))
 
 
-const BOSS_NAMES := {"thog": "Defeat Thog the Troll in the Swamp"}
+const BOSS_NAMES := {"thog": "Defeat Thog the Troll in the Swamp", "toadstool_knight": "Defeat the Toadstool Knight in the Magical Forest", "arachnid": "Defeat the Arachnid in the Castle"}
 const FEAT_NAMES := {"unrelenting_swamp_15": "Survive 15:00 in the Swamp on Unrelenting"}
 
 

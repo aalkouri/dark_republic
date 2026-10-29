@@ -1,7 +1,7 @@
 extends Node
 ## Thog the Troll, the Swamp boss: arrives at 8:00 (the Warlord no longer comes), is drawn as a
 ## giant (not a goblin), slams / sweeps / bellows with telegraphs, enrages after 2 minutes
-## (attacks twice as fast), must be killed to win, and unlocks the Forest, the Castle and Thog.
+## (attacks faster, never under 1 s of warning), must be killed to win, and unlocks the Forest and Thog (the Castle waits for the Forest's boss).
 ##   godot --headless --path . res://tools/test_boss.tscn
 
 var fails := 0
@@ -85,7 +85,7 @@ func _ready() -> void:
 	_check("he bellows from range and calls goblins", thog.counts["bellow"] > bel and em.alive_count() >= before + ThogBoss.BELLOW_GOBLINS - 2,
 		"%d -> %d, bellows %d, state %s %s landed %s" % [before, em.alive_count(), thog.counts["bellow"] - bel, thog.state, thog.attack, thog._landed])
 
-	# Enrage after 2 minutes: attacks twice as fast
+	# Enrage after 2 minutes: attacks faster (but never under MapBoss.MIN_WARN of warning)
 	await _wait_idle(thog)
 	thog._start("slam")
 	var calm_windup := thog._windup
@@ -95,7 +95,7 @@ func _ready() -> void:
 	_check("he enrages 2 minutes after arriving", thog.is_enraged, "")
 	await _wait_idle(thog)
 	thog._start("slam")
-	_check("enraged: attacks come twice as fast", absf(thog._windup - calm_windup * 0.5) < 0.05, "%.2f vs %.2f" % [thog._windup, calm_windup])
+	_check("enraged: attacks come faster, but always with at least %.1f s of warning" % MapBoss.MIN_WARN, thog._windup < calm_windup - 0.2 and thog._windup >= MapBoss.MIN_WARN - 0.001, "%.2f vs %.2f" % [thog._windup, calm_windup])
 
 	# Frozen solid: no new attacks
 	await _wait_idle(thog)
@@ -122,7 +122,7 @@ func _ready() -> void:
 	await _secs(0.3)
 	_check("he falls when killed", dead[0] and thog.state == "dying", thog.state)
 	_check("beating him is remembered", Wallet.has_defeated("thog"), "")
-	_check("the Forest and Castle unlock", MapPicker.lock_reason("forest", "fire_wizard") == "" and MapPicker.lock_reason("castle", "fire_wizard") == "", "")
+	_check("the Forest unlocks (the Castle still needs the Toadstool Knight)", MapPicker.lock_reason("forest", "fire_wizard") == "" and MapPicker.lock_reason("castle", "fire_wizard") != "", "")
 	for f in 60 * 6:
 		await get_tree().physics_frame
 		if main.state == "won":
@@ -133,9 +133,9 @@ func _ready() -> void:
 	for c in hud.unlock_cards:
 		names.append((c.find_children("*", "Label", true, false)[1] as Label).text)
 	_check("the end screen says so", hud.end_title.text == "THOG DEFEATED!", hud.end_title.text)
-	_check("it lists what was unlocked: 2 maps and Thog", hud.end_unlocks.visible and hud.unlock_cards.size() == 3
-		and "MAGICAL FOREST" in names and "THE CASTLE" in names and "THOG THE TROLL" in names, str(names))
-	var start_far: bool = hud.unlock_cards[2].modulate.a < 0.05
+	_check("it lists what was unlocked: the Forest and Thog", hud.end_unlocks.visible and hud.unlock_cards.size() == 2
+		and "MAGICAL FOREST" in names and "THOG THE TROLL" in names, str(names))
+	var start_far: bool = hud.unlock_cards[-1].modulate.a < 0.05
 	await get_tree().create_timer(4.0, true).timeout
 	var landed := true
 	for k in hud.unlock_cards.size():

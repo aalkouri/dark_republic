@@ -213,6 +213,10 @@ func _start(kind: String) -> void:
 	var at: float = {"slam": SLAM_AT, "sweep": SWEEP_AT, "bellow": BELLOW_AT}[kind]
 	_total = ThogModel.seg_time(kind, speed)
 	_windup = _total * at
+	if kind != "bellow" and _windup < MapBoss.MIN_WARN:   # enraged or not, always time to get out
+		speed *= _windup / MapBoss.MIN_WARN
+		_total = ThogModel.seg_time(kind, speed)
+		_windup = _total * at
 	model.play(kind, speed)
 	# Face the player now and lock the aim for this attack
 	var i := row()

@@ -18,10 +18,10 @@ const MAPS := [
 	{"id": "swamp", "name": "The Swamp", "blurb": "Fog, cypress trees and stinking pools.", "image": "res://images/maps/swamp.png"},
 	# The Castle will need the Forest's boss once it has one; until then Thog opens both.
 	{"id": "forest", "name": "Magical Forest", "blurb": "Neon trees, glowing ponds and bushes that rustle.", "image": "res://images/maps/forest.png", "requires": "thog"},
-	{"id": "castle", "name": "The Castle", "blurb": "Torch-lit halls, a feast to trample, skeletons.", "image": "res://images/maps/castle.png", "requires": "thog"},
+	{"id": "castle", "name": "The Castle", "blurb": "Torch-lit halls, a feast to trample, skeletons.", "image": "res://images/maps/castle.png", "requires": "toadstool_knight"},
 ]
 
-const BOSS_NAMES := {"thog": "Thog the Troll in the Swamp"}
+const BOSS_NAMES := {"thog": "Thog the Troll in the Swamp", "toadstool_knight": "the Toadstool Knight in the Magical Forest", "arachnid": "the Arachnid in the Castle"}
 
 var _font: Font
 static var _banned := {}   # character id -> maps it can't play (from data/characters.json)
@@ -87,7 +87,7 @@ static func lock_reason(map: String, char_id: String = "") -> String:
 		if boss != "" and not Wallet.has_defeated(boss):
 			return I18n.f("Defeat %s to unlock", I18n.t(BOSS_NAMES.get(boss, boss)))
 		if map in banned_maps(char_id):
-			return I18n.f("%s can't fight here: this is his home turf", _char_name(char_id))
+			return I18n.f("%s can't fight here: it's home turf", _char_name(char_id))
 		return ""
 	return "Unknown map"
 

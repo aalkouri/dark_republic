@@ -55,6 +55,9 @@ var meteor_form := false
 const BURN_TIME := 2.0
 const BURN_FRAC := 0.05
 var burn_left := 0.0
+var slow_t := 0.0             # boss hazards (webs, spores): move at slow_f speed for slow_t s
+var slow_f := 1.0
+var root_t := 0.0             # cocooned: can't move or jump for root_t s
 var _collider: CollisionShape3D
 const SPRING_NORMAL := 6.5
 const SPRING_METEOR := 14.0
@@ -209,6 +212,14 @@ func _physics_process(dt: float) -> void:
 	in_water = water != null and water.in_water(global_position)
 	if in_water:
 		move_speed *= WATER_SPEED_MULT
+	if slow_t > 0.0:
+		slow_t -= dt
+		move_speed *= slow_f
+	if root_t > 0.0:
+		root_t -= dt
+		wishdir = Vector3.ZERO
+		wish_len = 0.0
+		jump_pressed = false
 
 	if jump_pressed:
 		_jump_buf = JUMP_BUFFER
@@ -457,6 +468,17 @@ func knockback(dir: Vector3) -> void:
 	if is_on_floor():
 		velocity.y = KNOCK_POP
 	sliding = false
+
+
+## Slow the player to `factor` of their speed for `secs` (the strongest slow wins).
+func apply_slow(factor: float, secs: float) -> void:
+	slow_f = minf(slow_f, factor) if slow_t > 0.0 else factor
+	slow_t = maxf(slow_t, secs)
+
+
+## Root the player in place (no moving or jumping) for `secs`.
+func root(secs: float) -> void:
+	root_t = maxf(root_t, secs)
 
 
 func add_shield(amount: float) -> void:

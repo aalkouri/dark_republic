@@ -60,7 +60,8 @@ var bonus_mult := 1.0           # ability damage buffs (Eclipse), on top of dama
 #   stun   can't move or hit you                   (Thunderclap, Rewind...)
 #   curse  takes +curse_bonus damage               (Shadow Bolts)
 var skeletons: SkeletonCrowd     # draws skeletons, throws their bones, scatters them on death
-var troll_busy := false          # Thog is mid-attack: he stands still
+var troll_busy := false          # the map boss (Thog etc.) is mid-attack: he stands still
+var boss_contact := true         # false: touching the map boss doesn't hurt (the Arachnid up a wall)
 var _trolls := 0                 # live Thog rows (hidden from the goblin mesh and bars)
 var player: Node3D              # set by main: the target of thrown bones
 var throw_t := PackedFloat32Array()     # skeletons: seconds until they may throw again
@@ -253,6 +254,19 @@ func _make_bars() -> void:
 	bi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	bi.custom_aabb = AABB(Vector3(-500, -50, -500), Vector3(1000, 100, 1000))
 	add_child(bi)
+
+
+## Map bosses share the TROLL row type (one per run, drawn by their own scene, health bar on
+## the HUD). Each boss sets its own numbers before spawning: {name, hp, speed, radius, height,
+## damage, xp}.
+func set_boss_stats(s: Dictionary) -> void:
+	type_names[TROLL] = s.get("name", type_names[TROLL])
+	t_hp[TROLL] = s.get("hp", t_hp[TROLL])
+	t_speed[TROLL] = s.get("speed", t_speed[TROLL])
+	t_radius[TROLL] = s.get("radius", t_radius[TROLL])
+	t_height[TROLL] = s.get("height", t_height[TROLL])
+	t_damage[TROLL] = s.get("damage", t_damage[TROLL])
+	t_xp[TROLL] = s.get("xp", t_xp[TROLL])
 
 
 func _add_type(n: String, p_hp: float, speed: float, radius: float, scale: float, damage: float, xp: float, color: Color) -> void:

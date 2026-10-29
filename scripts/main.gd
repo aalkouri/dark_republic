@@ -62,7 +62,12 @@ var current_draft: Array = []
 var _spawn_budget := 0.0
 var _boss_spawned := false
 var thog: ThogBoss                 # the Swamp boss once he's arrived
-var boss_map := false              # this map has a boss you must kill to win (the Swamp)
+var boss_map := false              # this map has a boss you must kill to win
+## Each map's boss (also the Wallet.bosses_defeated id, and the character it unlocks)
+const MAP_BOSS := {"swamp": "thog", "forest": "toadstool_knight", "castle": "arachnid"}
+var boss_id := ""                  # this run's boss
+var boss_name := "THOG"            # for "%s DEFEATED!"
+var map_boss: MapBoss              # the Forest's / Castle's boss once it has arrived
 var boss_won := false              # the run was won by killing the boss
 ## Unrelenting mode: no time limit (the clock counts up), spawns never stop, upgrades have no
 ## level cap, and past 10:00 enemies hit harder and drop less XP the longer you last.
@@ -150,7 +155,7 @@ func _ready() -> void:
 			Settings.selected_character = a.split("=")[1]
 		elif a.begins_with("--map="):   # play on this map (tests, screenshots)
 			Settings.selected_map = a.split("=")[1]
-		elif a.begins_with("--thog-at="):   # bring Thog early (tests, screenshots)
+		elif a.begins_with("--thog-at=") or a.begins_with("--boss-at="):   # bring the map's boss early (tests, screenshots)
 			_thog_at = float(a.split("=")[1])
 		elif a.begins_with("--smoke-wall="):   # wall-clock limit for long smoke runs (seconds)
 			_smoke_wall_ms = int(a.split("=")[1]) * 1000
@@ -249,7 +254,8 @@ func _ready() -> void:
 	db = UpgradeDB.new("res://data/upgrades.json", rng)
 
 	water = WorldBuilder.build(self, rng, ARENA_HALF, Settings.selected_map)
-	boss_map = Settings.selected_map == "swamp"
+	boss_id = MAP_BOSS.get(Settings.selected_map, "")
+	boss_map = boss_id != ""
 	endless = Settings.game_mode == "unrelenting"
 	db.uncapped = endless
 
@@ -507,6 +513,8 @@ func _contact_damage() -> void:
 		for i in hits:
 			if enemies.is_held(i):
 				continue   # frozen or stunned goblins can't hit
+			if enemies.typ[i] == EnemyManager.TROLL and not enemies.boss_contact:
+				continue
 			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult())
 			var away := enemies.pos[i] - me
 			away.y = 0.0
@@ -573,8 +581,11 @@ func _spawn_director(dt: float) -> void:
 		hud.flash_message("SWARM!", 2.0)
 
 	if boss_map:
-		if thog == null and run_time >= _thog_at:
-			spawn_thog()
+		if boss_id == "thog":
+			if thog == null and run_time >= _thog_at:
+				spawn_thog()
+		elif map_boss == null and run_time >= _thog_at:
+			spawn_map_boss()
 	elif not _boss_spawned and run_time >= BOSS_TIME:
 		_boss_spawned = true
 		enemies.spawn(EnemyManager.BOSS, _spawn_point(30.0, 32.0), hpm)
@@ -625,10 +636,33 @@ func spawn_thog() -> ThogBoss:
 	return thog
 
 
+## The Forest's Toadstool Knight / the Castle's Arachnid walks in with 2 minutes left.
+func spawn_map_boss() -> MapBoss:
+	map_boss = ArachnidBoss.new() if boss_id == "arachnid" else ToadstoolBoss.new()
+	map_boss.setup(self, _spawn_point(34.0, 38.0), hp_mult())
+	add_child(map_boss)
+	map_boss.defeated.connect(_on_boss_defeated)
+	if _thog_enraged:
+		map_boss.alive_time = MapBoss.ENRAGE_AFTER
+	boss_name = map_boss.display_name()
+	hud.intro_banner.show_text(boss_name)
+	hud.flash_message(tr("%s APPROACHES") % tr(boss_name), 4.0)
+	return map_boss
+
+
 func _on_thog_defeated() -> void:
+	boss_name = "THOG"
+	_on_boss_defeated()
+
+
+## A map boss has fallen: gems fly in, first kills unlock things, and the run is won.
+func _on_boss_defeated() -> void:
 	gems.magnetise_all()
-	first_boss_kill = Wallet.defeat_boss("thog")
-	hud.flash_message("THOG IS DEFEATED!", 4.0)
+	first_boss_kill = Wallet.defeat_boss(boss_id)
+	if boss_id == "thog":
+		hud.flash_message("THOG IS DEFEATED!", 4.0)
+	else:
+		hud.flash_message(tr("%s IS DEFEATED!") % tr(boss_name), 4.0)
 	if endless:
 		_thog_at = INF   # Unrelenting: the run goes on (he doesn't come back)
 		return
@@ -955,8 +989,9 @@ func _smoke_tick(dt: float) -> void:
 func _shot_tick() -> void:
 	player.god_mode = true
 	player.face_offset = _shot_turn
-	if _shot_thog and thog != null and thog.row() >= 0:   # --shot-thog: stand near Thog and watch him
-		var tp := enemies.pos[thog.row()]
+	var boss_row := thog.row() if thog != null else (map_boss.row() if map_boss != null else -1)
+	if _shot_thog and boss_row >= 0:   # --shot-thog: stand near the map's boss and watch it
+		var tp := enemies.pos[boss_row]
 		var to := tp - player.global_position
 		to.y = 0.0
 		if to.length() > _shot_thog_dist + 1.0 or to.length() < _shot_thog_dist - 3.0:
