@@ -278,6 +278,7 @@ func _ready() -> void:
 	weapons = WeaponSystem.new()
 	weapons.style = WeaponSystem.style_of(who)
 	WeaponSystem.retheme_card(db, weapons.style)
+	WeaponSystem.add_signature_weapons(db, stats, weapons.style)   # unlocked characters' weapons
 	weapons.setup(stats, db, enemies, player)
 	add_child(weapons)
 

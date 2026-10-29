@@ -247,8 +247,7 @@ func _build_ui() -> void:
 	_menu.position = Vector2(92, 340)
 	_menu.add_theme_constant_override("separation", 10)
 	root.add_child(_menu)
-	var play := _menu_button("Play", _play)
-	_menu_button("Characters", _characters)
+	var play := _menu_button("Play", _play)   # -> character select -> map choice -> run
 	_menu_button("Settings", _open_settings)
 	_menu_button("Quit", func(): get_tree().quit())
 	play.grab_focus.call_deferred()
@@ -267,7 +266,7 @@ func _build_ui() -> void:
 
 	_settings = SettingsMenu.new()
 	_settings.visible = false
-	_settings.closed.connect(func(): _menu.visible = true; (_menu.get_child(2) as Button).grab_focus())
+	_settings.closed.connect(func(): _menu.visible = true; (_menu.get_child(1) as Button).grab_focus())
 	root.add_child(_settings)
 
 	_fade = ColorRect.new()
@@ -314,26 +313,8 @@ func _open_settings() -> void:
 	_settings.open()
 
 
-var _picker: MapPicker
-
-
-## Play: pick a map first (MapPicker), then start the run.
+## Play: choose your character (the character select screen then asks for the map).
 func _play() -> void:
-	if _picker != null or _leaving:
-		return
-	_menu.visible = false
-	_picker = MapPicker.create(_font)
-	_ui.get_child(0).add_child(_picker)
-	_ui.get_child(0).move_child(_picker, _fade.get_index())   # under the fade
-	_picker.chosen.connect(func(_m: String): _leave(GAME_SCENE, 0.7))
-	_picker.cancelled.connect(func():
-		_picker.queue_free()
-		_picker = null
-		_menu.visible = true
-		(_menu.get_child(0) as Button).grab_focus())
-
-
-func _characters() -> void:
 	_leave(CHARACTER_SCENE, 0.45)
 
 

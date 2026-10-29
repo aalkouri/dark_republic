@@ -670,7 +670,22 @@ func unlock(k: int) -> bool:
 	tw.tween_property(b, "scale", Vector2(1.12, 1.12), 0.1)
 	tw.tween_property(b, "scale", Vector2.ONE, 0.18)
 	_skills_btn.grab_focus()
+	_reveal_weapon(k)
 	return true
+
+
+## "UNLOCKED <weapon>" with the character's weapon as a game card.
+var reveal: UnlockReveal
+
+func _reveal_weapon(k: int) -> void:
+	var id: String = characters[k]["id"]
+	var w: Dictionary = KitDB.kit(id).get("weapon", {})
+	if w.is_empty():
+		return
+	var ribbon := "SIGNATURE WEAPON"
+	if WeaponSystem.STYLE_CHAR.values().has(id):
+		ribbon = "NEW LEGENDARY LEVEL-UP REWARD"
+	reveal = UnlockReveal.show_for(self, str(characters[k]["name"]), w, ribbon, _font, _font_bold)
 
 
 func _choose(k: int) -> void:
@@ -738,8 +753,8 @@ func _open_skills() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if skills.visible:
-		return   # the skill screen handles its own Esc
+	if skills.visible or is_instance_valid(reveal):
+		return   # the skill screen / unlock reveal handle their own input
 	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		_back()
 		get_viewport().set_input_as_handled()
@@ -786,6 +801,13 @@ func _shot_setup() -> void:
 		elif a.begins_with("--shot-ability="):   # show ability i's hover tooltip
 			var i := int(a.split("=")[1])
 			(func(): _on_slot_hover(i, true)).call_deferred()
+		elif a.begins_with("--shot-unlock="):   # buy this character (not saved) to show the weapon reveal
+			var k := index_of(a.split("=")[1])
+			if k >= 0:
+				Wallet.coins = maxi(Wallet.coins, price_of(k))
+				(func():
+					_show(k)
+					unlock(k)).call_deferred()
 		elif a.begins_with("--shot-char="):
 			var k := index_of(a.split("=")[1])
 			if k >= 0:

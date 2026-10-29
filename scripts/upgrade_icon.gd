@@ -39,7 +39,12 @@ func set_icon(icon: Dictionary, kind := "tome") -> void:
 	queue_redraw()
 
 
+func _ready() -> void:
+	_layout()   # sizes set before entering the tree don't emit `resized`
+
+
 func _layout() -> void:
+	_emblem.queue_redraw()
 	var s := minf(size.x, size.y) / 64.0
 	var o := (size - Vector2(64, 64) * s) * 0.5
 	match frame:

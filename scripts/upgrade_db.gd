@@ -71,6 +71,8 @@ func draft(n: int, luck: float, max_weapons: int) -> Array:
 		var d: Dictionary = defs[chosen]
 		var is_unlock: bool = d["kind"] == "weapon" and level_of(chosen) == 0
 		var rarity := 0 if (is_unlock or d.get("fixed", false)) else roll_rarity(luck)
+		if d.has("rarity_fixed"):   # signature weapons are always Legendary
+			rarity = int(d["rarity_fixed"])
 		picks.append({"id": chosen, "rarity": rarity})
 	return picks
 

@@ -24,7 +24,7 @@ func _ready() -> void:
 	var labels := []
 	for b in title._menu.get_children():
 		labels.append((b as Button).text.strip_edges())
-	_check("menu: Play / Characters / Settings / Quit", labels == ["PLAY", "CHARACTERS", "SETTINGS", "QUIT"], str(labels))
+	_check("menu: Play / Settings / Quit (no separate Characters)", labels == ["PLAY", "SETTINGS", "QUIT"], str(labels))
 	_check("Play has keyboard/gamepad focus", (title._menu.get_child(0) as Button).has_focus(), "")
 	_check("title text", title._title.text == "DARK REPUBLIC", title._title.text)
 	var puns: Array = title.load_taglines()
@@ -42,7 +42,7 @@ func _ready() -> void:
 	_check("title music plays on the Music bus, looping", m.playing and m.bus == Settings.MUSIC_BUS and m.stream.get("loop") == true, m.bus)
 	_check("title plays Menu of Shadows", m == MenuMusic.player and MenuMusic.TRACK.ends_with("menu_of_shadows.mp3"), "")
 
-	(title._menu.get_child(2) as Button).pressed.emit()
+	(title._menu.get_child(1) as Button).pressed.emit()
 	await get_tree().process_frame
 	_check("Settings opens", title._settings.visible and not title._menu.visible, "")
 	title._settings.close()
@@ -50,26 +50,32 @@ func _ready() -> void:
 	_check("Settings closes back to the menu", not title._settings.visible and title._menu.visible, "")
 
 	(title._menu.get_child(0) as Button).pressed.emit()
+	await get_tree().scene_changed
+	for f in 5:
+		await get_tree().process_frame
+	var cs: Node = get_tree().current_scene
+	_check("Play goes to character select", cs.name == "CharacterSelect", cs.name)
+	cs._play()
 	await get_tree().process_frame
-	_check("Play asks which map", title._picker != null and title._picker.visible and not title._menu.visible, "")
-	var cards: Array = title._picker._cards
+	_check("its Play asks which map", cs._picker != null and cs._picker.visible, "")
+	var cards: Array = cs._picker._cards
 	_check("map cards: Swamp, then the Forest and Castle locked until Thog is beaten", cards.size() == 3 and cards[0].get_meta("id") == "swamp"
 		and cards[1].get_meta("id") == "forest" and cards[2].get_meta("id") == "castle"
 		and not cards[0].disabled and cards[1].disabled and cards[2].disabled, "%d" % cards.size())
-	title._picker.choose("forest")
+	cs._picker.choose("forest")
 	_check("a locked map can't be picked", Settings.selected_map != "forest", Settings.selected_map)
 	var lk: Array = cards.filter(func(c): return c.has_meta("lock"))
 	_check("locked maps show a padlock", lk.size() == 2, str(lk.size()))
 	# Thog beaten: the next time the picker opens, the padlocks spring open and fall away
-	title._picker.cancelled.emit()
+	cs._picker.cancelled.emit()
 	await get_tree().process_frame
 	var was_persist := Wallet.persist
 	Wallet.persist = false
 	Wallet.bosses_defeated = ["thog"]
 	Wallet.seen_unlocks = []
-	(title._menu.get_child(0) as Button).pressed.emit()
+	cs._play()
 	await get_tree().process_frame
-	var pk: MapPicker = title._picker
+	var pk: MapPicker = cs._picker
 	_check("newly unlocked maps start locked for their reveal", pk.revealing and pk._cards[1].disabled and pk._cards[1].has_meta("lock"), "")
 	var lock1: Control = pk._cards[1].get_meta("lock")
 	var fell_off := [false]
@@ -83,24 +89,24 @@ func _ready() -> void:
 	_check("the reveal is remembered", Wallet.unlock_seen("map:forest") and Wallet.unlock_seen("map:castle"), "")
 	pk.cancelled.emit()
 	await get_tree().process_frame
-	(title._menu.get_child(0) as Button).pressed.emit()
+	cs._play()
 	await get_tree().process_frame
-	_check("next time: open straight away, no padlocks", not title._picker.revealing and not title._picker._cards[1].disabled and not title._picker._cards[1].has_meta("lock"), "")
-	title._picker.cancelled.emit()
+	_check("next time: open straight away, no padlocks", not cs._picker.revealing and not cs._picker._cards[1].disabled and not cs._picker._cards[1].has_meta("lock"), "")
+	cs._picker.cancelled.emit()
 	await get_tree().process_frame
 	Wallet.bosses_defeated = []
 	Wallet.seen_unlocks = []
 	Wallet.persist = was_persist
-	(title._menu.get_child(0) as Button).pressed.emit()
+	cs._play()
 	await get_tree().process_frame
-	title._picker.cancelled.emit()
+	cs._picker.cancelled.emit()
 	await get_tree().process_frame
-	_check("Esc on the map choice goes back to the menu", title._picker == null and title._menu.visible, "")
-	(title._menu.get_child(0) as Button).pressed.emit()
+	_check("Esc on the map choice goes back to character select", cs._picker == null and get_tree().current_scene == cs, "")
+	cs._play()
 	await get_tree().process_frame
-	title._picker.choose("dungeon")
-	_check("an unknown map can't be picked", Settings.selected_map != "dungeon" and title._picker != null, Settings.selected_map)
-	(title._picker._cards[0] as Button).pressed.emit()   # The Swamp
+	cs._picker.choose("dungeon")
+	_check("an unknown map can't be picked", Settings.selected_map != "dungeon" and cs._picker != null, Settings.selected_map)
+	(cs._picker._cards[0] as Button).pressed.emit()   # The Swamp
 	await get_tree().scene_changed
 	await get_tree().process_frame
 	var game: Node = get_tree().current_scene

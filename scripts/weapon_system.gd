@@ -9,9 +9,21 @@ extends Node3D
 ##   ice      Frost Shards     icicles that slow goblins (SHARD_SLOW for SHARD_SLOW_TIME)
 ##   thunder  Chain Lightning  instant arcs that jump CHAIN_JUMPS (+ pierce) times, losing 20% each
 ##   dark     Shadow Bolts     slow, extra-piercing bolts; CURSE_CHANCE to curse for CURSE_TIME
+##
+## Signature weapons: once a character is unlocked, their weapon can turn up for everyone
+## else as a rare Legendary level-up reward ("sig_<style>", stats sig_<style>_*). It runs
+## alongside the starting weapon; each projectile remembers its own style.
 
 const P_MAX := 400
-const P_STRIDE := 12
+const P_STRIDE := 16      # 12 transform + 4 colour (per-projectile style colour)
+const STYLES := ["fire", "ice", "thunder", "dark"]
+const STYLE_CHAR := {"fire": "fire_wizard", "ice": "ice_wizard", "thunder": "thunder_wizard", "dark": "dark_wizard"}
+const SIG_WEIGHT := 0.45        # vs 3-10 for normal rewards: a rare find
+const SIG_RARITY := 3           # always Legendary
+const SIG_MAX_LEVEL := 5
+const SIG_BASE := {"damage": 16.0, "cooldown": 1.0, "count": 1.0, "pierce": 0.0}
+const CORE_COLORS := {"fire": Color(1.0, 0.78, 0.3), "ice": Color(0.85, 0.97, 1.0), "thunder": Color(1.0, 0.95, 0.5), "dark": Color(0.35, 0.08, 0.5)}
+const TAIL_COLORS := {"fire": Color(1.0, 0.32, 0.05, 0.75), "ice": Color(0.3, 0.7, 1.0, 0.6), "thunder": Color(1.0, 0.9, 0.3, 0.6), "dark": Color(0.6, 0.15, 1.0, 0.7)}
 
 var stats: Stats
 var db: UpgradeDB
@@ -25,6 +37,7 @@ var p_life := PackedFloat32Array()
 var p_dmg := PackedFloat32Array()
 var p_pierce := PackedInt32Array()
 var p_hits: Array = []     # PackedInt32Array of enemy uids already hit, per projectile
+var p_style := PackedByteArray()   # index into STYLES
 
 const SHARD_SLOW := 0.7          # Frost Shards: goblins move at 70% speed...
 const SHARD_SLOW_TIME := 2.0     # ...for 2 s
@@ -38,6 +51,8 @@ const CURSE_CHANCE := 0.2        # ...and curse (+25% damage taken)...
 const CURSE_TIME := 4.0          # ...for 4 s
 ## Level-up card for the starting weapon, per style.
 const CARDS := {
+	"fire": {"name": "Fireballs", "desc": "Hurls fireballs from your staff at the nearest goblins.",
+		"icon": {"glyph": "fireball", "cover": "#7a2a10", "tint": "#ff9a30"}},
 	"ice": {"name": "Frost Shards", "desc": "Hurls icicles from your staff that slow the goblins they hit.",
 		"icon": {"glyph": "shard", "cover": "#1d4a6e", "tint": "#bfe9ff"}},
 	"thunder": {"name": "Chain Lightning", "desc": "Lightning arcs from your staff and jumps between goblins.",
@@ -49,6 +64,7 @@ const CARDS := {
 var style := "fire"              # set by main from the selected character, before _ready
 var lightning: LightningFx
 var orb_t := 0.3
+var sig_t := {}                  # signature weapon id -> seconds to next shot
 var aura_t := 0.0
 var slam_t := 1.5
 
@@ -77,6 +93,7 @@ func _ready() -> void:
 	p_dmg.resize(P_MAX)
 	p_pierce.resize(P_MAX)
 	p_hits.resize(P_MAX)
+	p_style.resize(P_MAX)
 	buf.resize(P_MAX * P_STRIDE)
 
 	# Fireballs: a hot core, plus a flame tail (second MultiMesh) stretched along the flight path
@@ -87,7 +104,7 @@ func _ready() -> void:
 	orb.rings = 5
 	var orb_mat := StandardMaterial3D.new()
 	orb_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	orb_mat.albedo_color = {"ice": Color(0.85, 0.97, 1.0), "dark": Color(0.35, 0.08, 0.5)}.get(style, Color(1.0, 0.78, 0.3))
+	orb_mat.vertex_color_use_as_albedo = true   # colour per projectile (style)
 	orb.material = orb_mat
 	var tail := SphereMesh.new()
 	tail.radius = 0.5
@@ -99,10 +116,11 @@ func _ready() -> void:
 	tail_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	tail_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	tail_mat.disable_fog = true   # additive + fog = pale grey halos
-	tail_mat.albedo_color = {"ice": Color(0.3, 0.7, 1.0, 0.6), "dark": Color(0.6, 0.15, 1.0, 0.7)}.get(style, Color(1.0, 0.32, 0.05, 0.75))
+	tail_mat.vertex_color_use_as_albedo = true
 	tail.material = tail_mat
 	tail_mm = MultiMesh.new()
 	tail_mm.transform_format = MultiMesh.TRANSFORM_3D
+	tail_mm.use_colors = true
 	tail_mm.mesh = tail
 	tail_mm.instance_count = P_MAX
 	tail_mm.visible_instance_count = 0
@@ -114,6 +132,7 @@ func _ready() -> void:
 	add_child(tmi)
 	mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
 	mm.mesh = orb
 	mm.instance_count = P_MAX
 	mm.visible_instance_count = 0
@@ -148,6 +167,46 @@ static func style_of(char_id: String) -> String:
 	return {"ice_wizard": "ice", "thunder_wizard": "thunder", "dark_wizard": "dark"}.get(char_id, "fire")
 
 
+## Adds the signature weapons of every unlocked character (except your own, which you already
+## carry) to the level-up pool as rare Legendary rewards, and defines their stats.
+static func add_signature_weapons(db: UpgradeDB, stats: Stats, own_style: String) -> void:
+	for sty in STYLES:
+		if sty == own_style or not char_unlocked(STYLE_CHAR[sty]):
+			continue
+		var c: Dictionary = CARDS[sty]
+		var sid: String = "sig_" + str(sty)
+		var who := str(STYLE_CHAR[sty]).replace("_", " ").capitalize()
+		for k in SIG_BASE:
+			stats.define("%s_%s" % [sid, k], SIG_BASE[k])
+		db.stat_names["%s_damage" % sid] = "%s Damage" % c["name"]
+		db.stat_names["%s_count" % sid] = c["name"]
+		db.stat_names["%s_pierce" % sid] = "%s Pierce" % c["name"]
+		db.defs[sid] = {
+			"id": sid, "kind": "weapon", "name": c["name"], "icon": c["icon"],
+			"desc": "LEGENDARY: the %s's weapon. %s" % [who, c["desc"]],
+			"weight": SIG_WEIGHT, "max_level": SIG_MAX_LEVEL, "fixed": true, "rarity_fixed": SIG_RARITY,
+			"signature": sty,
+			"per_level": [
+				{"stat": sid + "_damage", "op": "add", "value": 0.25},
+				{"stat": sid + "_count", "op": "flat", "value": 0.5},
+				{"stat": sid + "_pierce", "op": "flat", "value": 0.34},
+			],
+		}
+		db.order.append(sid)
+
+
+## Unlocked = free from the start (characters.json) or bought with coins.
+static func char_unlocked(char_id: String) -> bool:
+	if Wallet.is_char_unlocked(char_id):
+		return true
+	var d = JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
+	if d is Dictionary:
+		for c in d.get("characters", []):
+			if c["id"] == char_id:
+				return bool(c.get("unlocked", false))
+	return false
+
+
 static func _fx_material(c: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -168,8 +227,17 @@ func tick(dt: float) -> void:
 	if db.level_of("weapon_orb") > 0:
 		orb_t -= dt
 		if orb_t <= 0.0:
-			var fired := _fire_chain(chest, dmg_mult) if style == "thunder" else _fire_orbs(chest, dmg_mult)
+			var fired := _fire_chain(chest, dmg_mult, "orb") if style == "thunder" else _fire_orbs(chest, dmg_mult, style, "orb")
 			orb_t = stats.value("orb_cooldown") / haste if fired else 0.1
+	# --- Signature weapons (other characters' weapons, Legendary rewards)
+	for sid in db.levels:
+		if not str(sid).begins_with("sig_") or db.levels[sid] <= 0:
+			continue
+		var sty: String = db.defs[sid]["signature"]
+		sig_t[sid] = float(sig_t.get(sid, 0.4)) - dt
+		if sig_t[sid] <= 0.0:
+			var ok := _fire_chain(chest, dmg_mult, sid) if sty == "thunder" else _fire_orbs(chest, dmg_mult, sty, sid)
+			sig_t[sid] = stats.value(sid + "_cooldown") / haste if ok else 0.1
 	_update_projectiles(dt)
 
 	# --- Stink Aura: damage ticks in a radius
@@ -203,16 +271,18 @@ func tick(dt: float) -> void:
 	_update_rings(dt)
 
 
-func _fire_orbs(origin: Vector3, dmg_mult: float) -> bool:
-	var n := maxi(1, int(stats.value("orb_count")) + int(stats.value("projectile_count")))
+## Projectile weapons. `sty` picks the look/behaviour, `pre` the stat prefix ("orb" for the
+## starting weapon, "sig_<style>" for a signature weapon).
+func _fire_orbs(origin: Vector3, dmg_mult: float, sty := "fire", pre := "orb") -> bool:
+	var n := maxi(1, int(stats.value(pre + "_count")) + int(stats.value("projectile_count")))
 	var targets := enemies.nearest_k(origin, 28.0, n)
 	if targets.is_empty():
 		return false
 	var speed := stats.value("orb_speed") * stats.value("projectile_speed")
-	var dmg := stats.value("orb_damage") * dmg_mult
-	var pierce := int(stats.value("orb_pierce"))
+	var dmg := stats.value(pre + "_damage") * dmg_mult
+	var pierce := int(stats.value(pre + "_pierce"))
 	var life := 1.6
-	if style == "dark":
+	if sty == "dark":
 		speed *= DARK_SPEED
 		pierce += DARK_PIERCE
 		life /= DARK_SPEED
@@ -225,20 +295,20 @@ func _fire_orbs(origin: Vector3, dmg_mult: float) -> bool:
 		if k >= targets.size():  # more orbs than targets: fan out
 			var spread := 0.22 * float(k - targets.size() + 1) * (1.0 if k % 2 == 0 else -1.0)
 			dir = dir.rotated(Vector3.UP, spread)
-		_spawn_projectile(origin, dir * speed, life, dmg, pierce)
+		_spawn_projectile(origin, dir * speed, life, dmg, pierce, STYLES.find(sty))
 	return true
 
 
 ## Chain Lightning: an instant arc from the staff to each target, jumping on to nearby goblins.
-func _fire_chain(origin: Vector3, dmg_mult: float) -> bool:
-	var n := maxi(1, int(stats.value("orb_count")) + int(stats.value("projectile_count")))
+func _fire_chain(origin: Vector3, dmg_mult: float, pre := "orb") -> bool:
+	var n := maxi(1, int(stats.value(pre + "_count")) + int(stats.value("projectile_count")))
 	var targets := enemies.nearest_k(origin, CHAIN_REACH, n)
 	if targets.is_empty():
 		return false
 	if player.model != null:
 		origin = player.model.attack(enemies.center_of(targets[0]))
-	var dmg := stats.value("orb_damage") * dmg_mult
-	var jumps := CHAIN_JUMPS + int(stats.value("orb_pierce"))
+	var dmg := stats.value(pre + "_damage") * dmg_mult
+	var jumps := CHAIN_JUMPS + int(stats.value(pre + "_pierce"))
 	var col := RosterHero.color("thunder_wizard", "main")
 	var hit := {}
 	for t in targets:
@@ -269,9 +339,10 @@ func _fire_chain(origin: Vector3, dmg_mult: float) -> bool:
 	return true
 
 
-func _spawn_projectile(p: Vector3, v: Vector3, life: float, dmg: float, pierce: int) -> void:
+func _spawn_projectile(p: Vector3, v: Vector3, life: float, dmg: float, pierce: int, sty_i := 0) -> void:
 	if pc >= P_MAX:
 		return
+	p_style[pc] = maxi(sty_i, 0)
 	p_pos[pc] = p
 	p_vel[pc] = v
 	p_life[pc] = life
@@ -296,9 +367,10 @@ func _update_projectiles(dt: float) -> void:
 					continue
 				hl.append(u)
 				enemies.damage(e, p_dmg[i], p_vel[i].normalized() * 2.5)
-				if style == "ice":
+				var ps: int = p_style[i]
+				if ps == 1:
 					enemies.slow(e, SHARD_SLOW, SHARD_SLOW_TIME)
-				elif style == "dark" and randf() < CURSE_CHANCE:
+				elif ps == 3 and randf() < CURSE_CHANCE:
 					enemies.curse(e, CURSE_TIME)
 				p_pierce[i] -= 1
 				if p_pierce[i] < 0:
@@ -313,6 +385,7 @@ func _update_projectiles(dt: float) -> void:
 			p_dmg[i] = p_dmg[last]
 			p_pierce[i] = p_pierce[last]
 			p_hits[i] = p_hits[last]
+			p_style[i] = p_style[last]
 			pc -= 1
 			continue
 		var b := i * P_STRIDE
@@ -332,14 +405,19 @@ func _update_projectiles(dt: float) -> void:
 		tail_buf[b + 4] = tb.x.y; tail_buf[b + 5] = tb.y.y; tail_buf[b + 6] = tb.z.y; tail_buf[b + 7] = tc.y
 		tail_buf[b + 8] = tb.x.z; tail_buf[b + 9] = tb.y.z; tail_buf[b + 10] = tb.z.z; tail_buf[b + 11] = tc.z
 		# Core: a round fireball / shadow orb, or a long thin icicle along the flight path
+		var sty: String = STYLES[p_style[i]]
 		var cb := Basis.IDENTITY
-		if style == "ice":
+		if sty == "ice":
 			cb = Basis(side * 0.45, up * 0.45, fwd * 2.2)
-		elif style == "dark":
+		elif sty == "dark":
 			cb = Basis.IDENTITY.scaled(Vector3.ONE * (1.15 + 0.15 * sin(p_life[i] * 25.0)))
 		buf[b] = cb.x.x; buf[b + 1] = cb.y.x; buf[b + 2] = cb.z.x; buf[b + 3] = p.x
 		buf[b + 4] = cb.x.y; buf[b + 5] = cb.y.y; buf[b + 6] = cb.z.y; buf[b + 7] = p.y
 		buf[b + 8] = cb.x.z; buf[b + 9] = cb.y.z; buf[b + 10] = cb.z.z; buf[b + 11] = p.z
+		var cc: Color = CORE_COLORS[sty]
+		var tcl: Color = TAIL_COLORS[sty]
+		buf[b + 12] = cc.r; buf[b + 13] = cc.g; buf[b + 14] = cc.b; buf[b + 15] = 1.0
+		tail_buf[b + 12] = tcl.r; tail_buf[b + 13] = tcl.g; tail_buf[b + 14] = tcl.b; tail_buf[b + 15] = tcl.a
 		i += 1
 	mm.buffer = buf
 	mm.visible_instance_count = pc

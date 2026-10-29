@@ -3,7 +3,7 @@
   "kits": {
     "fire_wizard": {
       "role": "Burn-and-explode area caster",
-      "weapon": { "name": "Fireballs", "desc": "Auto-aimed fireballs that pierce" },
+      "weapon": { "name": "Fireballs", "icon": { "glyph": "fireball", "cover": "#7a2a10", "tint": "#ff9a30" }, "desc": "Auto-aimed fireballs that pierce" },
       "abilities": [
         { "name": "Inferno", "cooldown": 30, "icon": { "glyph": "flame", "color": "#ff7a2a" } },
         { "name": "Fire Nova", "cooldown": 45, "icon": { "glyph": "ring", "color": "#ff9a30" } },
@@ -13,7 +13,7 @@
 
     "ice_wizard": {
       "role": "Crowd control: slows, freezes and shatters",
-      "weapon": { "name": "Frost Shards", "desc": "Piercing icicles that slow goblins 30% for 2 s" },
+      "weapon": { "name": "Frost Shards", "icon": { "glyph": "shard", "cover": "#1d4a6e", "tint": "#bfe9ff" }, "desc": "Piercing icicles that slow goblins 30% for 2 s" },
       "abilities": [
         { "name": "Flash Freeze", "cooldown": 30, "icon": { "glyph": "snowflake", "color": "#9fe8ff" },
           "text": "Freezes every goblin around you solid.",
@@ -32,7 +32,7 @@
 
     "merlin": {
       "role": "Control mage who bends time",
-      "weapon": { "name": "Arcane Bolts", "desc": "Homing bolts that bounce to 2 more goblins" },
+      "weapon": { "name": "Arcane Bolts", "icon": { "glyph": "orb", "cover": "#22306e", "tint": "#8fb8ff" }, "desc": "Homing bolts that bounce to 2 more goblins" },
       "abilities": [
         { "name": "Time Warp", "cooldown": 35, "icon": { "glyph": "hourglass", "color": "#9fb8ff" },
           "text": "Slows time for everyone but you.",
@@ -52,7 +52,7 @@
 
     "thunder_wizard": {
       "role": "Fast, mobile chain-lightning caster",
-      "weapon": { "name": "Chain Lightning", "desc": "Arcs to 4 goblins, losing 20% damage per jump" },
+      "weapon": { "name": "Chain Lightning", "icon": { "glyph": "chainbolt", "cover": "#3a2a6e", "tint": "#fff27a" }, "desc": "Arcs to 4 goblins, losing 20% damage per jump" },
       "abilities": [
         { "name": "Overcharge", "cooldown": 30, "icon": { "glyph": "bolt", "color": "#fff27a" },
           "text": "Never stands still. Now he really can't.",
@@ -71,7 +71,7 @@
 
     "dark_wizard": {
       "role": "Life-drain and undead summoner",
-      "weapon": { "name": "Shadow Bolts", "desc": "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)" },
+      "weapon": { "name": "Shadow Bolts", "icon": { "glyph": "shadowbolt", "cover": "#2a1236", "tint": "#c45bff" }, "desc": "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)" },
       "abilities": [
         { "name": "Siphon", "cooldown": 30, "icon": { "glyph": "drop", "color": "#c45bff" },
           "text": "Drains the life out of everything nearby.",
@@ -91,7 +91,7 @@
 
     "ogre": {
       "role": "Close-range bruiser with huge cleaves",
-      "weapon": { "name": "Tree Trunk", "desc": "Wide 120° cleave in front of you (3 m), heavy knockback" },
+      "weapon": { "name": "Tree Trunk", "icon": { "glyph": "slam", "cover": "#4a3a2a", "tint": "#c8955a" }, "desc": "Wide 120° cleave in front of you (3 m), heavy knockback" },
       "abilities": [
         { "name": "Bellow", "cooldown": 30, "icon": { "glyph": "ring", "color": "#c8d86a" },
           "text": "GET OUT OF MY SWAMP.",
@@ -111,7 +111,7 @@
 
     "ghast": {
       "role": "Untouchable spirit that terrifies the horde",
-      "weapon": { "name": "Wail", "desc": "8 m cone of sound in front of you that pierces everything and slows 25%" },
+      "weapon": { "name": "Wail", "icon": { "glyph": "burst", "cover": "#2a3a40", "tint": "#d8f4ff" }, "desc": "8 m cone of sound in front of you that pierces everything and slows 25%" },
       "abilities": [
         { "name": "Phase", "cooldown": 25, "icon": { "glyph": "ghost", "color": "#cfe9ea" },
           "text": "Drift through goblins, trees and walls.",
@@ -130,7 +130,7 @@
 
     "vampire_hunter": {
       "role": "Precise ranged hunter, deadly to big targets",
-      "weapon": { "name": "Silver Bolts", "desc": "Heavy crossbow bolts that pierce 3 goblins; double damage to epics" },
+      "weapon": { "name": "Silver Bolts", "icon": { "glyph": "arrow", "cover": "#2e2e38", "tint": "#e6e8f0" }, "desc": "Heavy crossbow bolts that pierce 3 goblins; double damage to epics" },
       "abilities": [
         { "name": "Holy Water", "cooldown": 30, "icon": { "glyph": "drop", "color": "#a8d8ff" },
           "text": "A flask of blessed water, thrown where you aim.",
@@ -150,7 +150,7 @@
 
     "vicki": {
       "role": "Aerial lancer who dives on the horde",
-      "weapon": { "name": "Valkyrie Spear", "desc": "Thrusts in a 6 m piercing line; every 4th throw is a javelin that flies 25 m" },
+      "weapon": { "name": "Valkyrie Spear", "icon": { "glyph": "arrow", "cover": "#1f3a5a", "tint": "#f0d070" }, "desc": "Thrusts in a 6 m piercing line; every 4th throw is a javelin that flies 25 m" },
       "abilities": [
         { "name": "Shield Wall", "cooldown": 30, "icon": { "glyph": "shield", "color": "#c9d3dd" },
           "text": "Brace behind your shield.",
@@ -170,7 +170,7 @@
 
     "rogue": {
       "role": "Evasive striker with bleeds and bursts",
-      "weapon": { "name": "Twin Daggers", "desc": "Fast, short-range throws in pairs; hits bleed for 3% of max HP per second for 3 s" },
+      "weapon": { "name": "Twin Daggers", "icon": { "glyph": "blade", "cover": "#1d2a22", "tint": "#d0d6dc" }, "desc": "Fast, short-range throws in pairs; hits bleed for 3% of max HP per second for 3 s" },
       "abilities": [
         { "name": "Smoke Bomb", "cooldown": 25, "icon": { "glyph": "cloud", "color": "#9aa49a" },
           "text": "Vanish in a puff of smoke.",
@@ -189,7 +189,7 @@
 
     "gaiden": {
       "role": "Teleporting ninja duelist",
-      "weapon": { "name": "Katana", "desc": "Fast 3-hit combo in a 3 m arc; the 3rd hit sends a wind slash 10 m" },
+      "weapon": { "name": "Katana", "icon": { "glyph": "blade", "cover": "#3a1010", "tint": "#f2f4f8" }, "desc": "Fast 3-hit combo in a 3 m arc; the 3rd hit sends a wind slash 10 m" },
       "abilities": [
         { "name": "Shadow Step", "cooldown": 20, "icon": { "glyph": "moon", "color": "#7a8aa8" },
           "text": "Appear behind your target. They won't hear you.",
@@ -209,7 +209,7 @@
 
     "dr_croc": {
       "role": "Alchemist who melts goblins with acid",
-      "weapon": { "name": "Volatile Flasks", "desc": "Lobbed flasks that burst for 30 damage in 3 m and leave acid (4% of max HP per second for 3 s)" },
+      "weapon": { "name": "Volatile Flasks", "icon": { "glyph": "bomb", "cover": "#1f3a1a", "tint": "#8cff5a" }, "desc": "Lobbed flasks that burst for 30 damage in 3 m and leave acid (4% of max HP per second for 3 s)" },
       "abilities": [
         { "name": "Mutagen", "cooldown": 30, "icon": { "glyph": "flask", "color": "#8cff6a" },
           "text": "Drinks his own experiment. Side effects include winning.",
@@ -228,7 +228,7 @@
 
     "arachnid": {
       "role": "Trapper who poisons and cocoons",
-      "weapon": { "name": "Venom Spit", "desc": "Fast globs that poison for 3% of max HP per second for 4 s, stacking 3 times" },
+      "weapon": { "name": "Venom Spit", "icon": { "glyph": "fang", "cover": "#1a2a10", "tint": "#9cff40" }, "desc": "Fast globs that poison for 3% of max HP per second for 4 s, stacking 3 times" },
       "abilities": [
         { "name": "Web Trap", "cooldown": 25, "icon": { "glyph": "web", "color": "#e8e8e8" },
           "text": "Shoots a web where you aim.",
@@ -247,7 +247,7 @@
 
     "blob": {
       "role": "Tanky puddle that eats goblins",
-      "weapon": { "name": "Acid Body", "desc": "Burns goblins touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size" },
+      "weapon": { "name": "Acid Body", "icon": { "glyph": "bubble", "cover": "#1f3a14", "tint": "#a8ff5a" }, "desc": "Burns goblins touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size" },
       "abilities": [
         { "name": "Engulf", "cooldown": 30, "icon": { "glyph": "ring", "color": "#7cf08a" },
           "text": "Swallows the goblins closest to you.",
@@ -267,7 +267,7 @@
 
     "death": {
       "role": "Executioner who reaps the weak",
-      "weapon": { "name": "Scythe Sweep", "desc": "360° spin every 1.5 s (4 m): 35 damage, instantly reaps goblins under 10% HP" },
+      "weapon": { "name": "Scythe Sweep", "icon": { "glyph": "blade", "cover": "#16141a", "tint": "#b8b0c8" }, "desc": "360° spin every 1.5 s (4 m): 35 damage, instantly reaps goblins under 10% HP" },
       "abilities": [
         { "name": "Harvest", "cooldown": 30, "icon": { "glyph": "blade", "color": "#b8b8c8" },
           "text": "Collects what's owed.",
@@ -286,7 +286,7 @@
 
     "billy_bulldog": {
       "role": "Scrappy melee dog with taunts and stuns",
-      "weapon": { "name": "Bite", "desc": "Lunges at the nearest goblin (2 m) for 25 damage; every 5th bite shakes it for 3x" },
+      "weapon": { "name": "Bite", "icon": { "glyph": "fang", "cover": "#3a2414", "tint": "#fff0dc" }, "desc": "Lunges at the nearest goblin (2 m) for 25 damage; every 5th bite shakes it for 3x" },
       "abilities": [
         { "name": "Fetch!", "cooldown": 25, "icon": { "glyph": "bone", "color": "#f0e6c8" },
           "text": "Throws his bone. The goblins want it more.",
@@ -305,7 +305,7 @@
 
     "cowboy": {
       "role": "Gunslinger with bursts of precise damage",
-      "weapon": { "name": "Six-Shooter", "desc": "6 rapid shots of 40 damage (pierce 1), then a 1.5 s reload" },
+      "weapon": { "name": "Six-Shooter", "icon": { "glyph": "triple", "cover": "#3a2614", "tint": "#ffcf6a" }, "desc": "6 rapid shots of 40 damage (pierce 1), then a 1.5 s reload" },
       "abilities": [
         { "name": "Lasso", "cooldown": 25, "icon": { "glyph": "ring", "color": "#d8a86a" },
           "text": "Ropes the biggest goblin and uses it as a weapon.",
@@ -324,7 +324,7 @@
 
     "loco_robotico": {
       "role": "Party robot that stuns crowds, then lasers them",
-      "weapon": { "name": "Maraca Blasters", "desc": "Alternating sonic pulses in a 6 m cone: 20 damage each, faster while you keep moving" },
+      "weapon": { "name": "Maraca Blasters", "icon": { "glyph": "burst", "cover": "#3a1f40", "tint": "#ff9ae8" }, "desc": "Alternating sonic pulses in a 6 m cone: 20 damage each, faster while you keep moving" },
       "abilities": [
         { "name": "Party Mode", "cooldown": 30, "icon": { "glyph": "note", "color": "#ff5ad8" },
           "text": "Drops a disco ball. Everyone dances.",
@@ -343,7 +343,7 @@
 
     "singe": {
       "role": "Fast fire imp who sets the ground ablaze",
-      "weapon": { "name": "Cinder Toss", "desc": "Lobbed hot coals that leave small fires (10 damage per second for 2 s)" },
+      "weapon": { "name": "Cinder Toss", "icon": { "glyph": "flame", "cover": "#3a1408", "tint": "#ff8a2a" }, "desc": "Lobbed hot coals that leave small fires (10 damage per second for 2 s)" },
       "abilities": [
         { "name": "Hotfoot", "cooldown": 25, "icon": { "glyph": "flame", "color": "#ff8a2a" },
           "text": "Runs around leaving scorch marks on everything.",
@@ -362,7 +362,7 @@
 
     "argyle_sock": {
       "role": "Odd little whirlwind with static shocks",
-      "weapon": { "name": "Static Cling", "desc": "Zaps the 3 nearest goblins for 18 damage; builds up to 2x damage while you keep moving" },
+      "weapon": { "name": "Static Cling", "icon": { "glyph": "chainbolt", "cover": "#2a2440", "tint": "#fff27a" }, "desc": "Zaps the 3 nearest goblins for 18 damage; builds up to 2x damage while you keep moving" },
       "abilities": [
         { "name": "Spin Cycle", "cooldown": 30, "icon": { "glyph": "swirl", "color": "#e05a8a" },
           "text": "Spins like it's back in the machine.",
@@ -381,7 +381,7 @@
 
     "platypus": {
       "role": "Poison-kicking scholar with sleep and eggs",
-      "weapon": { "name": "Venom Spur", "desc": "Melee kick that poisons for 2% of max HP per second; each stack slows 10% (max 5)" },
+      "weapon": { "name": "Venom Spur", "icon": { "glyph": "fang", "cover": "#2a2018", "tint": "#d0ff6a" }, "desc": "Melee kick that poisons for 2% of max HP per second; each stack slows 10% (max 5)" },
       "abilities": [
         { "name": "Electro-Bill", "cooldown": 30, "icon": { "glyph": "bolt", "color": "#7ad8ff" },
           "text": "Senses every goblin nearby. Then shocks them.",
@@ -400,7 +400,7 @@
 
     "bog_witch": {
       "role": "Hexer who curses and drowns the horde",
-      "weapon": { "name": "Ladle of Bile", "desc": "Lobs bile that splashes for 25 damage in 3 m and slows 20%" },
+      "weapon": { "name": "Ladle of Bile", "icon": { "glyph": "stink", "cover": "#2a3010", "tint": "#c8e04a" }, "desc": "Lobs bile that splashes for 25 damage in 3 m and slows 20%" },
       "abilities": [
         { "name": "Bubbling Cauldron", "cooldown": 35, "icon": { "glyph": "cauldron", "color": "#7ad85a" },
           "text": "Sets down her cauldron. It spits.",
@@ -419,7 +419,7 @@
 
     "toadstool_knight": {
       "role": "Brave little defender with spores and summons",
-      "weapon": { "name": "Spore Blade", "desc": "Sword slash in a 3 m arc: 30 damage, leaves a spore cloud (2% of max HP per second)" },
+      "weapon": { "name": "Spore Blade", "icon": { "glyph": "blade", "cover": "#2a1f2e", "tint": "#d89aff" }, "desc": "Sword slash in a 3 m arc: 30 damage, leaves a spore cloud (2% of max HP per second)" },
       "abilities": [
         { "name": "Fungal Shield", "cooldown": 30, "icon": { "glyph": "shield", "color": "#d84a3a" },
           "text": "Raises a shield cap.",
@@ -438,7 +438,7 @@
 
     "kong": {
       "role": "Brawler who throws the swamp at goblins",
-      "weapon": { "name": "Shackle Swing", "desc": "Swings his chains around him (4 m): 30 damage and knockback" },
+      "weapon": { "name": "Shackle Swing", "icon": { "glyph": "slam", "cover": "#2e2a26", "tint": "#d8d0c0" }, "desc": "Swings his chains around him (4 m): 30 damage and knockback" },
       "abilities": [
         { "name": "Chest Pound", "cooldown": 30, "icon": { "glyph": "fist", "color": "#a87a5a" },
           "text": "Three pounds. Three shockwaves.",
@@ -458,7 +458,7 @@
 
     "thog": {
       "role": "Slow, heavy smasher who controls space",
-      "weapon": { "name": "Big Club", "desc": "Overhead smash in a 4 m cone: 50 damage, slow but with heavy knockback" },
+      "weapon": { "name": "Big Club", "icon": { "glyph": "slam", "cover": "#14304a", "tint": "#8ab8ff" }, "desc": "Overhead smash in a 4 m cone: 50 damage, slow but with heavy knockback" },
       "abilities": [
         { "name": "Toll Booth", "cooldown": 30, "icon": { "glyph": "crown", "color": "#6a9ad8" },
           "text": "None shall pass. Without paying.",

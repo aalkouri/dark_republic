@@ -69,12 +69,12 @@ func _ready() -> void:
 	for f in 3:
 		await get_tree().process_frame
 	var title: Node = get_tree().current_scene
-	(title._menu.get_child(1) as Button).pressed.emit()
+	(title._menu.get_child(0) as Button).pressed.emit()
 	await get_tree().scene_changed
 	for f in 5:
 		await get_tree().process_frame
 	var cs: Node = get_tree().current_scene
-	_check("Characters opens the select screen", cs.name == "CharacterSelect", cs.name)
+	_check("Play opens the select screen", cs.name == "CharacterSelect", cs.name)
 	_check("30 tiles", cs._tiles.size() == 30, "%d" % cs._tiles.size())
 	_check("wizard tile focused first", cs._tiles[0].has_focus() and cs._shown == 0, "")
 	_check("wizard previews as a live 3D model", cs._view_box.visible and not cs._big_icon.visible
@@ -163,6 +163,13 @@ func _ready() -> void:
 	_check("unlocked tile: no padlock or price", not (cs._tiles[iw].get_meta("icon") as CharacterIcon).locked and not (cs._tiles[iw].get_meta("price") as Control).visible, "")
 	_check("unlocked Ice Wizard is playable: Skills and Play", not cs._skills_btn.disabled and not cs._play_btn.disabled and "playable soon" not in cs._status.text, cs._status.text)
 	_check("unlock count updates", cs._count_label.text == "2 of 30 unlocked", cs._count_label.text)
+	var rv: UnlockReveal = cs.reveal
+	_check("buying shows 'UNLOCKED FROST SHARDS' with the weapon's game card", is_instance_valid(rv) and rv.title.text == "UNLOCKED FROST SHARDS"
+		and rv.card != null and rv.card.find_children("*", "UpgradeIcon", true, false).size() == 1, rv.title.text if is_instance_valid(rv) else "none")
+	await get_tree().create_timer(0.6).timeout
+	rv.close()
+	await get_tree().create_timer(0.3).timeout
+	_check("click closes the reveal", not is_instance_valid(cs.reveal), "")
 	var mi: int = cs.index_of("merlin")
 	Wallet.unlocked_chars.append("merlin")
 	cs._shown = -1
@@ -231,7 +238,7 @@ func _ready() -> void:
 
 	for f in 3:
 		await get_tree().process_frame
-	(get_tree().current_scene._menu.get_child(1) as Button).pressed.emit()
+	(get_tree().current_scene._menu.get_child(0) as Button).pressed.emit()
 	await get_tree().scene_changed
 	for f in 3:
 		await get_tree().process_frame

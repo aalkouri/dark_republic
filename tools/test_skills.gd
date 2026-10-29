@@ -149,6 +149,25 @@ func _ready() -> void:
 	for id in db.defs:
 		if db.describe({"id": id, "rarity": 0})["icon"].is_empty():
 			missing.append(id)
+	# Unlocked characters' weapons join the pool as rare Legendary rewards
+	var sdb := UpgradeDB.new("res://data/upgrades.json", RandomNumberGenerator.new())
+	var sst := Stats.new()
+	var was_unlocked: Array = Wallet.unlocked_chars.duplicate()
+	Wallet.unlocked_chars = ["dark_wizard"]
+	WeaponSystem.add_signature_weapons(sdb, sst, "ice")
+	Wallet.unlocked_chars = was_unlocked
+	_check("unlocked characters' weapons become rewards (not your own, not locked ones)", sdb.defs.has("sig_fire") and sdb.defs.has("sig_dark")
+		and not sdb.defs.has("sig_ice") and not sdb.defs.has("sig_thunder"), str(sdb.defs.keys().filter(func(k): return str(k).begins_with("sig_"))))
+	var sig_seen := 0
+	var drafts := 0
+	var legendary := true
+	for k in 2000:
+		for pk in sdb.draft(3, 0.0, 3):
+			drafts += 1
+			if str(pk["id"]).begins_with("sig_"):
+				sig_seen += 1
+				legendary = legendary and int(pk["rarity"]) == 3
+	_check("they're rare (a few % of cards) and always Legendary", legendary and sig_seen > 0 and float(sig_seen) / drafts < 0.04, "%d / %d cards" % [sig_seen, drafts])
 	db.banned["tome_damage"] = true
 	var seen_banned := false
 	for k in 300:
