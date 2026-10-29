@@ -26,7 +26,11 @@ var _kit_char := "fire_wizard"     # whose abilities the bar and tooltips show
 var _tooltip: PanelContainer
 var _tooltip_text: RichTextLabel
 var _hover_slot := -1
-var _status: Label
+var _status: Label             # locked characters only: "Unlock Requirements:" / "Ready to unlock"
+var _level_box: VBoxContainer   # top left of the preview: level, EXP and a bar
+var _level_label: Label
+var _exp_label: Label
+var _exp_bar: ProgressBar
 var _req_box: PanelContainer
 var _req_rows: HBoxContainer
 var _big_icon: CharacterIcon
@@ -354,14 +358,15 @@ func _build_panel() -> void:
 	_big_icon.position = Vector2((640 - 280) * 0.5, 5)
 	stage.add_child(_big_icon)
 	_build_weapon_box(stage)
+	_build_level_box(stage)
 
-	_name = _label("", 44, Color(1.0, 0.86, 0.6), true)
+	_name = _label("", 54, Color(1.0, 0.86, 0.6), true)
 	_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_name)
-	_epithet = _label("", 22, Color(1.0, 0.55, 0.2))
+	_epithet = _label("", 27, Color(1.0, 0.55, 0.2))
 	_epithet.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_epithet)
-	_bio = _label("", 17, Color(0.86, 0.8, 0.7))
+	_bio = _label("", 21, Color(0.86, 0.8, 0.7))
 	_bio.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_bio.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_bio.custom_minimum_size = Vector2(640, 0)
@@ -372,21 +377,50 @@ func _build_panel() -> void:
 	_kit.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_kit.custom_minimum_size = Vector2(640, 0)
 	v.add_child(_kit)
-	_status = _label("", 20, Color(0.7, 0.68, 0.64))
+	_status = _label("", 24, Color(0.7, 0.68, 0.64))
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(_status)
 	_build_requirements(v)
+
+
+## Top-left corner of the preview: "LVL 3", the EXP towards the next level, and a thin bar.
+func _build_level_box(stage: Control) -> void:
+	_level_box = VBoxContainer.new()
+	_level_box.position = Vector2(4, 0)
+	_level_box.add_theme_constant_override("separation", 2)
+	_level_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stage.add_child(_level_box)
+	_level_label = _label("", 34, Color(1.0, 0.82, 0.4), true)
+	_level_box.add_child(_level_label)
+	_exp_label = _label("", 18, Color(0.9, 0.84, 0.74))
+	_level_box.add_child(_exp_label)
+	_exp_bar = ProgressBar.new()
+	_exp_bar.show_percentage = false
+	_exp_bar.custom_minimum_size = Vector2(170, 8)
+	_exp_bar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.1, 0.07, 0.05, 0.9)
+	bg.border_color = Color(0.55, 0.35, 0.15, 0.8)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(4)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(1.0, 0.65, 0.2)
+	fill.set_corner_radius_all(4)
+	_exp_bar.add_theme_stylebox_override("background", bg)
+	_exp_bar.add_theme_stylebox_override("fill", fill)
+	_exp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_level_box.add_child(_exp_bar)
 
 
 ## Top-right corner of the preview: the signature weapon's icon, its name and a few words.
 func _build_weapon_box(stage: Control) -> void:
 	_weapon_box = VBoxContainer.new()
 	_weapon_box.add_theme_constant_override("separation", 2)
-	_weapon_box.position = Vector2(640 - 150, 0)
-	_weapon_box.size = Vector2(150, 0)
+	_weapon_box.position = Vector2(640 - 176, 0)
+	_weapon_box.size = Vector2(176, 0)
 	_weapon_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stage.add_child(_weapon_box)
-	var head := _label("SIGNATURE WEAPON", 11, Color(0.8, 0.68, 0.5, 0.8), true)
+	var head := _label("SIGNATURE WEAPON", 13, Color(0.8, 0.68, 0.5, 0.8), true)
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_weapon_box.add_child(head)
 	_weapon_icon = UpgradeIcon.create({}, "weapon")
@@ -396,10 +430,10 @@ func _build_weapon_box(stage: Control) -> void:
 	_weapon_icon.mouse_entered.connect(func(): _on_slot_hover(WEAPON_HOVER, true))
 	_weapon_icon.mouse_exited.connect(func(): _on_slot_hover(WEAPON_HOVER, false))
 	_weapon_box.add_child(_weapon_icon)
-	_weapon_name = _label("", 16, Color(1.0, 0.85, 0.5), true)
+	_weapon_name = _label("", 19, Color(1.0, 0.85, 0.5), true)
 	_weapon_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_weapon_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_weapon_name.custom_minimum_size.x = 150
+	_weapon_name.custom_minimum_size.x = 176
 	_weapon_box.add_child(_weapon_name)
 	_weapon_short = _label("", 13, Color(0.85, 0.8, 0.72))
 	_weapon_short.visible = false   # the details are in the hover tooltip
@@ -478,9 +512,9 @@ func _build_ability_bar(parent: Control) -> void:
 	_tooltip_text.bbcode_enabled = true
 	_tooltip_text.fit_content = true
 	_tooltip_text.scroll_active = false
-	_tooltip_text.custom_minimum_size = Vector2(400, 0)
-	_tooltip_text.add_theme_font_size_override("normal_font_size", 16)
-	_tooltip_text.add_theme_font_size_override("bold_font_size", 16)
+	_tooltip_text.custom_minimum_size = Vector2(460, 0)
+	_tooltip_text.add_theme_font_size_override("normal_font_size", 18)
+	_tooltip_text.add_theme_font_size_override("bold_font_size", 18)
 	_tooltip_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tooltip.add_child(_tooltip_text)
 	add_child.call_deferred(_tooltip)   # on top of the panel
@@ -616,9 +650,6 @@ func _build_footer() -> void:
 	row.add_child(_skills_btn)
 	_play_btn = _footer_button("Play", _play)
 	row.add_child(_play_btn)
-	var hint := _label("Enter: choose   ·   Esc: back", 16, Color(0.75, 0.7, 0.62, 0.6))
-	hint.position = Vector2(66, 818)
-	add_child(hint)
 
 
 func _footer_button(text: String, cb: Callable) -> Button:
@@ -686,16 +717,21 @@ func _show(k: int) -> void:
 			_kit.text = ""
 	_kit.visible = _kit.text != ""
 	_play_btn.text = "PLAY"
-	_status.visible = not mystery
+	# Level and EXP sit in the preview's top-left corner (unlocked characters); the only text
+	# under the abilities is for locked ones: what it takes to unlock them
+	_status.visible = not mystery and not unlocked
+	_level_box.visible = unlocked and not mystery
 	if mystery:
 		_status.text = ""
 	elif unlocked:
 		var cid: String = c["id"]
 		var next := Wallet.next_level_exp(cid)
-		var head := ("SELECTED" if Settings.selected_character == cid else "Press Enter to choose") if ready else "UNLOCKED  ·  playable soon"
-		_status.text = tr(head) + "   ·   " + tr("lvl %d") % Wallet.char_level(cid) + "   ·   " + \
-			((tr("%s / %s EXP") % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else tr("max level"))
-		_status.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
+		var ex := Wallet.char_exp_of(cid)
+		_level_label.text = tr("LVL %d") % Wallet.char_level(cid)
+		_exp_label.text = (tr("%s / %s EXP") % [Wallet.fmt(ex), Wallet.fmt(next)]) if next >= 0 else tr("max level")
+		_exp_bar.max_value = maxf(1.0, float(next)) if next >= 0 else 1.0
+		_exp_bar.value = float(ex) if next >= 0 else 1.0
+		_status.text = ""
 	else:
 		var ok := can_unlock(k)
 		_status.text = "Ready to unlock" if ok else "Unlock Requirements:"
@@ -740,7 +776,7 @@ func _show(k: int) -> void:
 			var mark := ReqMark.new()
 			mark.met = req["met"]
 			row.add_child(mark)
-			row.add_child(_label(req["text"], 16, Color(0.75, 0.95, 0.7) if req["met"] else Color(0.95, 0.85, 0.76)))
+			row.add_child(_label(req["text"], 19, Color(0.75, 0.95, 0.7) if req["met"] else Color(0.95, 0.85, 0.76)))
 			_req_rows.add_child(chip)
 	if mystery:
 		_play_btn.disabled = true

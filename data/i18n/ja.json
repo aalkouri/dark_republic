@@ -406,6 +406,7 @@
 "LEVEL UP!  lvl %d   ·   +%d skill points": "レベルアップ！  Lv %d   ·   スキルポイント +%d",
 "LV %d": "LV %d",
 "LV 1": "LV 1",
+"LVL %d": "LV %d",
 "Ladle of Bile": "胆汁のおたま",
 "Landing deals {160} damage within {7 m} and stuns for {2 s}": "着地で{7 m}以内に{160}ダメージ、{2秒}スタン",
 "Lands where you aim, sucks in every enemy within {10 m} and washes them for {4 s}: {10%} of max HP per second": "狙った場所に落ち、{10 m}以内の敵を吸い込み{4秒}洗う：毎秒最大HPの{10%}",

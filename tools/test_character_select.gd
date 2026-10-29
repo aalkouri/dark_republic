@@ -163,7 +163,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_check("unlocking spends the price", Wallet.coins == 500 and Wallet.is_char_unlocked("ice_wizard"), "%d" % Wallet.coins)
 	_check("unlocked tile: no padlock or price", not (cs._tiles[iw].get_meta("icon") as CharacterIcon).locked and not (cs._tiles[iw].get_meta("price") as Control).visible, "")
-	_check("unlocked Ice Wizard is playable: Skills and Play", not cs._skills_btn.disabled and not cs._play_btn.disabled and "playable soon" not in cs._status.text, cs._status.text)
+	_check("unlocked Ice Wizard is playable: Skills and Play", not cs._skills_btn.disabled and not cs._play_btn.disabled and cs._level_box.visible and not cs._status.visible, cs._exp_label.text)
 	_check("unlock count updates", cs._count_label.text == "2 of 30 unlocked", cs._count_label.text)
 	var rv: UnlockReveal = cs.reveal
 	_check("buying shows 'UNLOCKED FROST SHARDS' with the weapon's game card", is_instance_valid(rv) and rv.title.text == "UNLOCKED FROST SHARDS"
@@ -176,7 +176,7 @@ func _ready() -> void:
 	Wallet.unlocked_chars.append("merlin")
 	cs._shown = -1
 	cs._show(mi)
-	_check("unlocked Merlin: Skills open, Play waits for his kit", not cs._skills_btn.disabled and cs._play_btn.disabled and "playable soon" in cs._status.text, cs._status.text)
+	_check("unlocked Merlin: Skills open, Play waits for his kit", not cs._skills_btn.disabled and cs._play_btn.disabled and cs._level_box.visible, "")
 	Wallet.unlocked_chars.erase("merlin")
 	# Thog: coins AND beating him in the Swamp
 	var th: int = cs.index_of("thog")
@@ -229,7 +229,9 @@ func _ready() -> void:
 	cs._tiles[0].pressed.emit()
 	await get_tree().process_frame
 	_check("choosing the wizard selects him and moves focus to Play", Settings.selected_character == "fire_wizard"
-		and cs._play_btn.has_focus() and not cs._play_btn.disabled and cs._status.text.begins_with("SELECTED"), cs._status.text)
+		and cs._play_btn.has_focus() and not cs._play_btn.disabled, "")
+	_check("level top-left with EXP under it; no text under the abilities", cs._level_box.visible and cs._level_label.text.begins_with("LVL") and "EXP" in cs._exp_label.text and not cs._status.visible
+		and cs._level_box.get_global_rect().position.x < cs._name.get_global_rect().position.x + 40, cs._level_label.text + " / " + cs._exp_label.text)
 
 	var esc := InputEventAction.new()
 	esc.action = "pause"

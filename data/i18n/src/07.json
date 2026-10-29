@@ -118,5 +118,13 @@
 "Intro beim Start abspielen",
 "启动时播放开场动画",
 "起動時にイントロを再生"
+],
+"LVL %d": [
+"NV %d",
+"NIV %d",
+"مستوى %d",
+"ST. %d",
+"等级 %d",
+"LV %d"
 ]
 }

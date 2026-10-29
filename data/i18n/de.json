@@ -406,6 +406,7 @@
 "LEVEL UP!  lvl %d   ·   +%d skill points": "STUFENAUFSTIEG!  St. %d   ·   +%d Fertigkeitspunkte",
 "LV %d": "ST. %d",
 "LV 1": "ST. 1",
+"LVL %d": "ST. %d",
 "Ladle of Bile": "Kelle voll Galle",
 "Landing deals {160} damage within {7 m} and stuns for {2 s}": "Die Landung verursacht {160} Schaden im Umkreis von {7 m} und betäubt {2 s}",
 "Lands where you aim, sucks in every enemy within {10 m} and washes them for {4 s}: {10%} of max HP per second": "Landet, wo du zielst, saugt jeden Gegner im Umkreis von {10 m} ein und wäscht ihn {4 s}: {10 %} der max. LP pro Sekunde",

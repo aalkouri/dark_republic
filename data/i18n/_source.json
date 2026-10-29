@@ -16,7 +16,7 @@
   "kit_db.gd:96"
  ],
  "%d of %d unlocked": [
-  "character_select.gd:318"
+  "character_select.gd:322"
  ],
  "%d s": [
   "(runtime)"
@@ -38,7 +38,7 @@
   "skill_screen.gd:100"
  ],
  "%s / %s EXP": [
-  "character_select.gd:697",
+  "character_select.gd:731",
   "hud.gd:693"
  ],
  "%s Chest": [
@@ -57,7 +57,7 @@
   "map_picker.gd:90"
  ],
  "%s coins": [
-  "character_select.gd:120"
+  "character_select.gd:124"
  ],
  "+%d shield": [
   "hud.gd:1029"
@@ -336,7 +336,7 @@
   "abilities.json"
  ],
  "Available from the start of every run": [
-  "character_select.gd:515"
+  "character_select.gd:549"
  ],
  "BAN  ·  %d coins": [
   "hud.gd:275"
@@ -348,7 +348,7 @@
   "hud.gd:1064"
  ],
  "Back": [
-  "character_select.gd:613",
+  "character_select.gd:647",
   "settings_menu.gd:63"
  ],
  "Bans left: %d / %d   ·   %d coins each": [
@@ -458,7 +458,7 @@
   "map_picker.gd:53"
  ],
  "CHOOSE YOUR CHAMPION": [
-  "character_select.gd:206"
+  "character_select.gd:210"
  ],
  "Caller of the Storm": [
   "characters.json"
@@ -559,7 +559,7 @@
   "abilities.gd:178"
  ],
  "Damage: %s": [
-  "character_select.gd:499"
+  "character_select.gd:533"
  ],
  "Dancing enemies take {5%} of max HP per second": [
   "abilities.json"
@@ -590,7 +590,7 @@
   "map_picker.gd:129"
  ],
  "Defeat Thog the Troll in the Swamp": [
-  "character_select.gd:111"
+  "character_select.gd:115"
  ],
  "Defense": [
   "skill_tree.gd:11",
@@ -775,7 +775,6 @@
   "abilities.json"
  ],
  "Enter: choose   ·   Esc: back": [
-  "character_select.gd:619",
   "map_picker.gd:62"
  ],
  "Epic": [
@@ -1251,6 +1250,9 @@
  "LV 1": [
   "hud.gd:86"
  ],
+ "LVL %d": [
+  "character_select.gd:730"
+ ],
  "Ladle of Bile": [
   "abilities.json"
  ],
@@ -1469,7 +1471,7 @@
   "hud.gd:735"
  ],
  "NEW LEGENDARY LEVEL-UP REWARD": [
-  "character_select.gd:782"
+  "character_select.gd:818"
  ],
  "NEW MAP": [
   "hud.gd:729"
@@ -1519,7 +1521,7 @@
   "characters.json"
  ],
  "One attack every %s": [
-  "character_select.gd:501"
+  "character_select.gd:535"
  ],
  "Orc-estrating total chaos": [
   "taglines.json"
@@ -1546,7 +1548,7 @@
   "hud.gd:472"
  ],
  "PLAY": [
-  "character_select.gd:688"
+  "character_select.gd:719"
  ],
  "Padding": [
   "skill_tree.gd:25"
@@ -1603,7 +1605,7 @@
   "skill_tree.gd:23"
  ],
  "Play": [
-  "character_select.gd:617",
+  "character_select.gd:651",
   "title.gd:252"
  ],
  "Poison kick, slows": [
@@ -1617,9 +1619,6 @@
  ],
  "Press Apply to switch the language.": [
   "settings_menu.gd:165"
- ],
- "Press Enter to choose": [
-  "character_select.gd:695"
  ],
  "Press a key...": [
   "settings_menu.gd:286"
@@ -1688,7 +1687,8 @@
   "abilities.gd:185"
  ],
  "Ready to unlock": [
-  "character_select.gd:701"
+  "character_select.gd:29",
+  "character_select.gd:737"
  ],
  "Reaps every enemy within {12 m} below {30%} HP (not the boss)": [
   "abilities.json"
@@ -1761,9 +1761,6 @@
  "Runs around leaving scorch marks on everything.": [
   "abilities.json"
  ],
- "SELECTED": [
-  "character_select.gd:695"
- ],
  "SETTINGS": [
   "settings_menu.gd:47"
  ],
@@ -1771,9 +1768,9 @@
   "main.gd:320"
  ],
  "SIGNATURE WEAPON": [
-  "character_select.gd:389",
-  "character_select.gd:498",
-  "character_select.gd:780"
+  "character_select.gd:423",
+  "character_select.gd:532",
+  "character_select.gd:816"
  ],
  "SKILL POINTS": [
   "skill_screen.gd:108"
@@ -1867,7 +1864,7 @@
   "enemy_manager.gd:208"
  ],
  "Skills": [
-  "character_select.gd:615"
+  "character_select.gd:649"
  ],
  "Skills  →   +%s coins": [
   "hud.gd:706"
@@ -2017,7 +2014,7 @@
   "abilities.json"
  ],
  "Survive 15:00 in the Swamp on Unrelenting": [
-  "character_select.gd:112"
+  "character_select.gd:116"
  ],
  "Survived %s   →   %s coins": [
   "hud.gd:704"
@@ -2326,10 +2323,7 @@
   "kit_db.gd:81"
  ],
  "UNLOCK": [
-  "character_select.gd:703"
- ],
- "UNLOCKED  ·  playable soon": [
-  "character_select.gd:695"
+  "character_select.gd:739"
  ],
  "UNLOCKED %s": [
   "unlock_reveal.gd:33"
@@ -2339,8 +2333,8 @@
   "hud.gd:753"
  ],
  "UNRELENTING": [
-  "character_select.gd:218",
-  "character_select.gd:219",
+  "character_select.gd:222",
+  "character_select.gd:223",
   "main.gd:405"
  ],
  "Ultimate - Meteor": [
@@ -2356,10 +2350,11 @@
   "settings_menu.gd:193"
  ],
  "Unlock": [
-  "character_select.gd:789"
+  "character_select.gd:825"
  ],
  "Unlock Requirements:": [
-  "character_select.gd:701"
+  "character_select.gd:29",
+  "character_select.gd:737"
  ],
  "Unlocks at level %d": [
   "skill_screen.gd:135",
@@ -2367,7 +2362,7 @@
   "skill_tree.gd:158"
  ],
  "Unlocks at level %d during a run": [
-  "character_select.gd:517"
+  "character_select.gd:551"
  ],
  "Unrelenting": [
   "mode_menu.gd:16"
@@ -2550,14 +2545,13 @@
   "abilities.json"
  ],
  "lvl %d": [
-  "character_select.gd:314",
-  "character_select.gd:696"
+  "character_select.gd:318"
  ],
  "lvl %d   ·   %s   ·   %d / 18 skills learned": [
   "skill_screen.gd:264"
  ],
  "max level": [
-  "character_select.gd:697",
+  "character_select.gd:731",
   "hud.gd:693"
  ],
  "needs row 1": [
