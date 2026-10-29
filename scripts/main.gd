@@ -64,6 +64,14 @@ var _boss_spawned := false
 var thog: ThogBoss                 # the Swamp boss once he's arrived
 var boss_map := false              # this map has a boss you must kill to win (the Swamp)
 var boss_won := false              # the run was won by killing the boss
+## Unrelenting mode: no time limit (the clock counts up), spawns never stop, upgrades have no
+## level cap, and past 10:00 enemies hit harder and drop less XP the longer you last.
+var endless := false
+const ENDLESS_FROM := RUN_LENGTH              # the extra ramp starts where a normal run ends
+const ENDLESS_DMG_PER_MIN := 0.12             # +12% enemy contact damage per minute past 10:00
+const ENDLESS_XP_PER_MIN := 0.06              # XP drops shrink: 1 / (1 + 0.06 per minute past 10:00)
+const GHAST_FEAT := "unrelenting_swamp_15"
+const GHAST_FEAT_TIME := 900.0                # 15:00 in the Swamp on Unrelenting
 var first_boss_kill := false       # ...for the first time (unlocks shown on the end screen)
 var _thog_at := THOG_TIME
 var _shot_thog := false
@@ -242,6 +250,8 @@ func _ready() -> void:
 
 	water = WorldBuilder.build(self, rng, ARENA_HALF, Settings.selected_map)
 	boss_map = Settings.selected_map == "swamp"
+	endless = Settings.game_mode == "unrelenting"
+	db.uncapped = endless
 
 	fx = FxManager.new()
 	add_child(fx)
@@ -355,13 +365,17 @@ func _ready() -> void:
 		if castle_doors:
 			player.global_position = CastleBuilder.INSIDE + Vector3(0, 0.5, 0)
 			castle_doors.close_now()
-		hud.intro_banner.show_text("SURVIVE 10 MINUTES")
+		hud.intro_banner.show_text(_banner_text())
 	elif castle_doors:
 		intro = true
+		if not endless:
+			hud.start_clock_spin()
 		player.global_position = CastleBuilder.PORCH + Vector3(0, 0.5, 0)
 		_walk_in = true
 	else:
 		intro = true
+		if not endless:
+			hud.start_clock_spin()
 		abilities.entrance_landed.connect(_on_entrance_landed, CONNECT_ONE_SHOT)
 		abilities.entrance_meteor(Vector3(0, water.ground_height(0, 0), 0))
 
@@ -384,7 +398,25 @@ func _castle_intro() -> void:
 
 func _on_entrance_landed() -> void:
 	intro = false
-	hud.intro_banner.show_text("SURVIVE 10 MINUTES")
+	hud.intro_banner.show_text(_banner_text())
+
+
+func _banner_text() -> String:
+	return "UNRELENTING" if endless else "SURVIVE 10 MINUTES"
+
+
+## Unrelenting: enemy contact damage multiplier (1 until 10:00, then climbing).
+func enemy_damage_mult() -> float:
+	if not endless:
+		return 1.0
+	return 1.0 + maxf(0.0, run_time - ENDLESS_FROM) / 60.0 * ENDLESS_DMG_PER_MIN
+
+
+## Unrelenting: XP gem value multiplier (1 until 10:00, then shrinking).
+func xp_drop_mult() -> float:
+	if not endless:
+		return 1.0
+	return 1.0 / (1.0 + maxf(0.0, run_time - ENDLESS_FROM) / 60.0 * ENDLESS_XP_PER_MIN)
 
 
 func _exit_tree() -> void:
@@ -441,7 +473,10 @@ func _physics_process(dt: float) -> void:
 	_contact_damage()
 	if gained > 0.0:
 		_add_xp(gained * stats.value("xp_gain"))
-	if run_time >= RUN_LENGTH and state == "playing" and not boss_map:
+	if endless:
+		if Settings.selected_map == "swamp" and run_time >= GHAST_FEAT_TIME and Wallet.earn_feat(GHAST_FEAT):
+			hud.flash_message("15:00 IN THE SWAMP!  Ghast can now be unlocked", 5.0)
+	elif run_time >= RUN_LENGTH and state == "playing" and not boss_map:
 		_end_run(true)   # boss maps are won by killing the boss instead
 
 
@@ -472,7 +507,7 @@ func _contact_damage() -> void:
 		for i in hits:
 			if enemies.is_held(i):
 				continue   # frozen or stunned goblins can't hit
-			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]])
+			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult())
 			var away := enemies.pos[i] - me
 			away.y = 0.0
 			push -= away.normalized() if away.length_squared() > 0.0001 else Vector3.ZERO
@@ -594,6 +629,9 @@ func _on_thog_defeated() -> void:
 	gems.magnetise_all()
 	first_boss_kill = Wallet.defeat_boss("thog")
 	hud.flash_message("THOG IS DEFEATED!", 4.0)
+	if endless:
+		_thog_at = INF   # Unrelenting: the run goes on (he doesn't come back)
+		return
 	await get_tree().create_timer(4.0, true).timeout   # he topples; gems fly in
 	if state == "levelup":   # no point picking upgrades now: straight to the victory
 		hud.hide_draft()
@@ -608,7 +646,7 @@ func _on_thog_defeated() -> void:
 
 func _on_enemy_killed(p: Vector3, type_id: int) -> void:
 	kills += 1
-	gems.spawn(p + Vector3(0, 0.5, 0), enemies.t_xp[type_id])
+	gems.spawn(p + Vector3(0, 0.5, 0), enemies.t_xp[type_id] * xp_drop_mult())
 	if type_id == EnemyManager.BOSS:
 		gems.magnetise_all()
 		hud.flash_message("GOBLIN WARLORD SLAIN!", 4.0)

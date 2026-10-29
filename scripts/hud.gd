@@ -24,7 +24,17 @@ const UI_SOUNDS := {
 	"pick": "res://audio/ui/pick_shing.wav",        # weapons and items
 	"pick_tome": "res://audio/ui/pick_slam.wav",    # tomes: a heavy book slam
 	"ban": "res://audio/ui/ban_stamp.wav",          # BAN: stamp + "denied" drone
+	"timer_tick": "res://audio/ui/timer_tick.wav",  # run clock spinning up (digital blip)
+	"timer_set": "res://audio/ui/timer_set.wav",    # ...and locking in at 10:00
 }
+
+## Run clock: counts DOWN from 10:00. While the entrance plays it spins up from 00:00 to
+## 10:00 in SPIN_TIME with digital blips, then locks in. Unrelenting mode counts UP instead.
+const SPIN_DELAY := 0.35
+const SPIN_TIME := 1.9
+const TICK_EVERY := 0.05
+var _spin_t := -1.0          # time since the spin-up started; -1 = no spin (clock is live)
+var _tick_cd := 0.0
 var _ui_players := {}
 var pause_root: Control
 var settings_menu: SettingsMenu
@@ -958,6 +968,45 @@ func toggle_debug() -> void:
 	debug_label.visible = show_debug
 
 
+## Start the 00:00 -> 10:00 spin-up (main calls this when the entrance begins).
+func start_clock_spin() -> void:
+	_spin_t = 0.0
+	_tick_cd = 0.0
+
+
+func _clock_text(dt: float) -> String:
+	if main.endless:
+		return _fmt_time(main.run_time)
+	if _spin_t >= 0.0:
+		_spin_t += dt
+		var k := clampf((_spin_t - SPIN_DELAY) / SPIN_TIME, 0.0, 1.0)
+		if k >= 1.0:
+			if timer_label.scale == Vector2.ONE and not timer_label.has_meta("locked"):
+				timer_label.set_meta("locked", true)
+				play_ui("timer_set")
+				timer_label.pivot_offset = timer_label.size * 0.5
+				var tw := create_tween()
+				tw.tween_property(timer_label, "scale", Vector2.ONE * 1.35, 0.08)
+				tw.tween_property(timer_label, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			if not main.intro:
+				_spin_t = -1.0   # the run has started: the clock is live
+			return _fmt_time(main.RUN_LENGTH)
+		if k > 0.0:
+			_tick_cd -= dt
+			if _tick_cd <= 0.0:
+				_tick_cd = TICK_EVERY
+				var tp: AudioStreamPlayer = _ui_players.get("timer_tick")
+				if tp:
+					tp.pitch_scale = 0.9 + 0.5 * k
+				play_ui("timer_tick")
+		# ease-out: races at first, slows as it nears 10:00 (whole seconds, like a real counter)
+		return _fmt_time(floorf(main.RUN_LENGTH * (1.0 - pow(1.0 - k, 2.2))))
+	var left := maxf(0.0, main.RUN_LENGTH - main.run_time)
+	if left <= 0.0:
+		timer_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.3))
+	return _fmt_time(ceilf(left))
+
+
 static func _fmt_time(t: float) -> String:
 	return "%02d:%02d" % [int(t) / 60, int(t) % 60]
 
@@ -983,7 +1032,7 @@ func _process(dt: float) -> void:
 	xp_bar.max_value = main.xp_next
 	xp_bar.value = main.xp
 	level_label.text = tr("LV %d") % main.level
-	timer_label.text = _fmt_time(main.run_time)
+	timer_label.text = _clock_text(get_process_delta_time())
 	info_label.text = tr("Kills %d\nEnemies %d\nSpeed %.1f m/s") % [main.kills, main.enemies.alive_count(), p.horizontal_speed()]
 	if Settings.show_fps:
 		info_label.text += "\nFPS %d" % Engine.get_frames_per_second()

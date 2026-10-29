@@ -1,7 +1,8 @@
 extends Node
 ## Title-screen checks: splash leads to the title; the title shows the menu (Play / Settings /
 ## Quit) with Play focused, the wizard diorama and lurking goblins, plays looping music on the
-## Music bus; Settings opens and closes; Play starts the game; Main menu returns to the title.
+## Music bus; Settings opens and closes; Play > Classic leads to character select and the game;
+## Main menu returns to the title.
 ##   godot --headless --path . res://tools/test_title.tscn
 
 var fails := 0
@@ -9,7 +10,7 @@ var fails := 0
 
 func _ready() -> void:
 	var splash_src: String = load("res://scripts/splash.gd").source_code
-	_check("splash leads to the title", "res://scenes/title.tscn" in splash_src, "")
+	_check("splash leads to the intro, then the title", "res://scenes/intro.tscn" in splash_src and "res://scenes/title.tscn" in splash_src, "")
 
 	# Survive scene changes: hand "current scene" to a throwaway node
 	var stand_in := Node.new()
@@ -50,6 +51,9 @@ func _ready() -> void:
 	_check("Settings closes back to the menu", not title._settings.visible and title._menu.visible, "")
 
 	(title._menu.get_child(0) as Button).pressed.emit()
+	await get_tree().create_timer(0.8).timeout
+	_check("Play opens the mode cards", title._modes.is_open(), "")
+	title._modes.cards[1].pressed.emit()   # Classic
 	await get_tree().scene_changed
 	for f in 5:
 		await get_tree().process_frame

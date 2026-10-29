@@ -9,6 +9,9 @@
   audio/ui/pick_shing.wav        magical "shing": bright sweep into a ringing bell
   audio/ui/pick_slam.wav         heavy book slam with a sparkle on top
   audio/ui/pick_rune.wav         low rune "thrum" with a rising chime
+  audio/ui/timer_tick.wav        digital counter blip (the run clock spinning up to 10:00)
+  audio/ui/timer_set.wav         two digital beeps as the clock locks in
+  audio/ui/menu_reveal.wav       Play submenu: rising whoosh, thump and sparkle
   audio/ui/ban_stamp.wav         BAN: a heavy rubber-stamp thunk and a falling, "denied" two-note drone
 
     python3 tools/gen_ui_sounds.py
@@ -190,6 +193,120 @@ def ban_stamp():
     finish(buf, "ban_stamp.wav", peak=0.85)
 
 
-for f in [levelup_chime, levelup_fanfare, levelup_flame, hover_tick, hover_glass, hover_page, pick_shing, pick_slam, pick_rune, ban_stamp]:
+def timer_tick():
+    # digital clock "blip": short square wave with a click, like an LED counter rolling
+    tt = t_of(0.035)
+    sq = np.sign(np.sin(2 * np.pi * 1850 * tt)) * 0.6 + np.sin(2 * np.pi * 3700 * tt) * 0.2
+    x = lp(sq, 7000) * np.exp(-tt * 70) * np.minimum(1, tt / 0.001)
+    finish(x, "timer_tick.wav", peak=0.5)
+
+
+def timer_set():
+    # the counter locks in at 10:00: two quick digital beeps, the second higher
+    buf = np.zeros(int(SR * 0.4))
+    for at, f in [(0.0, 1320.0), (0.11, 1760.0)]:
+        tt = t_of(0.09)
+        sq = np.sign(np.sin(2 * np.pi * f * tt)) * 0.5 + np.sin(2 * np.pi * f * tt) * 0.5
+        place(buf, lp(sq, 6000) * np.minimum(1, tt / 0.002) * np.exp(-tt * 18), at)
+    finish(buf, "timer_set.wav", peak=0.6)
+
+
+def menu_reveal():
+    # Play submenu: a rising magical whoosh, a low thump as the panels land, and sparkle
+    d = 1.1
+    t = t_of(d)
+    noise = rng.normal(0, 1, t.size)
+    sweep = np.zeros_like(t)
+    lo = 300 + 2600 * np.clip(t / 0.45, 0, 1) ** 2
+    for i in range(0, t.size, 512):   # time-varying band (blockwise)
+        j = min(t.size, i + 512)
+        f = lo[i]
+        sweep[i:j] = bp(noise[max(0, i - 2048):j], f * 0.7, min(f * 1.5, SR / 2 - 100))[-(j - i):]
+    sweep *= np.clip(t / 0.3, 0, 1) * np.exp(-np.clip(t - 0.4, 0, None) * 9)
+    thump = np.sin(2 * np.pi * np.cumsum(45 + 90 * np.exp(-np.clip(t - 0.42, 0, None) / 0.03)) / SR) * np.exp(-np.clip(t - 0.42, 0, None) * 10) * (t > 0.42)
+    buf = sweep * 0.8 + thump * 0.9
+    for k, f in enumerate([1568.0, 2093.0, 2637.0, 3136.0]):
+        place(buf, bell(f, 0.5, decay=6.0) * 0.18, 0.44 + k * 0.05)
+    finish(buf, "menu_reveal.wav", peak=0.85, stereo_spread=0.006)
+
+
+
+def _chord(freqs, d, attack=0.02, decay=2.0, saw=0.0):
+    t = t_of(d)
+    out = np.zeros_like(t)
+    for f in freqs:
+        ph = 2 * np.pi * f * t
+        tone = np.sin(ph) + 0.35 * np.sin(2 * ph) + 0.15 * np.sin(3 * ph)
+        if saw:
+            tone += saw * (2 * ((f * t) % 1.0) - 1)
+        out += tone
+    env = np.minimum(1, t / attack) * np.exp(-t * decay)
+    return out * env / len(freqs)
+
+
+def levelup_ascend():
+    # "Arcane Ascension": rising airy swell into a warm major chord with sparkles
+    d = 1.6
+    buf = np.zeros(int(SR * d))
+    t = t_of(0.45)
+    noise = rng.normal(0, 1, t.size)
+    swell = hp(lp(noise, 6000), 800) * (t / 0.45) ** 2 * 0.5
+    place(buf, swell, 0.0)
+    place(buf, _chord([261.63, 329.63, 392.0, 523.25], 1.15, attack=0.01, decay=2.6) * 1.2, 0.42)
+    for k, f in enumerate([1046.5, 1318.5, 1568.0, 2093.0, 2637.0]):
+        place(buf, bell(f, 0.6, decay=5.0) * 0.22, 0.44 + k * 0.045)
+    finish(buf, "levelup_ascend.wav", peak=0.85, stereo_spread=0.008)
+
+
+def levelup_surge():
+    # "Power Surge": low punch + bright synth stab + shimmer tail (short and punchy)
+    d = 1.0
+    t = t_of(d)
+    boom = np.sin(2 * np.pi * np.cumsum(55 + 160 * np.exp(-t / 0.03)) / SR) * np.exp(-t * 9)
+    stab = lp(_chord([392.0, 493.88, 587.33, 783.99], d, attack=0.004, decay=5.0, saw=0.5), 5000)
+    shimmer = bp(rng.normal(0, 1, t.size), 5000, 11000) * np.exp(-t * 4) * 0.12
+    finish(boom * 0.9 + stab * 1.1 + shimmer, "levelup_surge.wav", peak=0.85, stereo_spread=0.006)
+
+
+def levelup_retro():
+    # "Coin-op": classic 8-bit arpeggio C-E-G-C with a square wave and a little vibrato tail
+    buf = np.zeros(int(SR * 0.75))
+    notes = [523.25, 659.25, 783.99, 1046.5]
+    for k, f in enumerate(notes):
+        dur = 0.075 if k < 3 else 0.42
+        tt = t_of(dur)
+        vib = 1 + (0.006 * np.sin(2 * np.pi * 7 * tt) if k == 3 else 0)
+        sq = np.sign(np.sin(2 * np.pi * f * vib * tt)) * 0.5
+        env = np.minimum(1, tt / 0.003) * (np.exp(-tt * 4) if k == 3 else 1.0)
+        place(buf, lp(sq * env, 7000), k * 0.075)
+    finish(buf, "levelup_retro.wav", peak=0.6)
+
+
+def levelup_horn():
+    # "Heroic Horn": a short brass call, up a fourth, with a soft timpani hit
+    buf = np.zeros(int(SR * 1.2))
+    for at, f, dur in [(0.0, 392.0, 0.16), (0.17, 523.25, 0.8)]:
+        tt = t_of(dur)
+        tone = sum(np.sin(2 * np.pi * f * h * tt) * a for h, a in [(1, 1.0), (2, 0.6), (3, 0.45), (4, 0.3), (5, 0.18), (6, 0.1)])
+        env = np.minimum(1, tt / 0.03) * np.exp(-np.clip(tt - dur * 0.6, 0, None) * 6)
+        place(buf, lp(tone * env, 2600), at)
+    tt = t_of(0.6)
+    timp = np.sin(2 * np.pi * 98 * tt) * np.exp(-tt * 7) + bp(rng.normal(0, 1, tt.size), 80, 400) * np.exp(-tt * 20) * 0.4
+    place(buf, timp * 0.7, 0.17)
+    finish(buf, "levelup_horn.wav", peak=0.85, stereo_spread=0.005)
+
+
+def levelup_bloom():
+    # "Bell Bloom": a reversed swell into one deep, warm bell (calm, not busy)
+    d = 1.8
+    buf = np.zeros(int(SR * d))
+    b = bell(392.0, 1.4, decay=1.6, bright=0.6) + np.pad(bell(784.0, 1.0, decay=2.5, bright=0.4), (0, int(SR * 1.4) - int(SR * 1.0))) * 0.4
+    rev = b[: int(SR * 0.4)][::-1] * np.linspace(0, 1, int(SR * 0.4)) ** 2 * 0.6
+    place(buf, rev, 0.0)
+    place(buf, b, 0.4)
+    finish(buf, "levelup_bloom.wav", peak=0.8, stereo_spread=0.01)
+
+
+for f in [levelup_chime, levelup_fanfare, levelup_flame, hover_tick, hover_glass, hover_page, pick_shing, pick_slam, pick_rune, ban_stamp, timer_tick, timer_set, menu_reveal, levelup_ascend, levelup_surge, levelup_retro, levelup_horn, levelup_bloom]:
     f()
 print("wrote audio/ui/*.wav")

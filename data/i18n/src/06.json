@@ -1,0 +1,842 @@
+{
+"ULTIMATE": [
+"DEFINITIVA",
+"ULTIME",
+"الخارقة",
+"ULTIMATIV",
+"终极技",
+"アルティメット"
+],
+"UNLOCK": [
+"DESBLOQUEAR",
+"DÉBLOQUER",
+"فتح",
+"FREISCHALTEN",
+"解锁",
+"解放"
+],
+"UNLOCKED  ·  playable soon": [
+"DESBLOQUEADO  ·  jugable pronto",
+"DÉBLOQUÉ  ·  jouable bientôt",
+"مفتوح  ·  قابل للعب قريبًا",
+"FREIGESCHALTET  ·  bald spielbar",
+"已解锁  ·  即将可玩",
+"解放済み  ·  近日プレイ可能"
+],
+"UNLOCKED %s": [
+"%s DESBLOQUEADO",
+"%s DÉBLOQUÉ",
+"تم فتح %s",
+"%s FREIGESCHALTET",
+"已解锁 %s",
+"%s 解放"
+],
+"UNLOCKED!": [
+"¡DESBLOQUEADO!",
+"DÉBLOQUÉ !",
+"تم الفتح!",
+"FREIGESCHALTET!",
+"已解锁！",
+"解放！"
+],
+"Ultimate - Meteor": [
+"Definitiva - Meteoro",
+"Ultime - Météore",
+"الخارقة - النيزك",
+"Ultimativ - Meteor",
+"终极技 - 陨石",
+"アルティメット - メテオ"
+],
+"Unknown map": [
+"Mapa desconocido",
+"Carte inconnue",
+"خريطة مجهولة",
+"Unbekannte Karte",
+"未知地图",
+"不明なマップ"
+],
+"Unknown skill": [
+"Habilidad desconocida",
+"Compétence inconnue",
+"مهارة مجهولة",
+"Unbekannte Fertigkeit",
+"未知技能",
+"不明なスキル"
+],
+"Unlimited": [
+"Ilimitado",
+"Illimité",
+"غير محدود",
+"Unbegrenzt",
+"无限制",
+"無制限"
+],
+"Unlock": [
+"Desbloquear",
+"Débloquer",
+"فتح",
+"Freischalten",
+"解锁",
+"解放"
+],
+"Unlock Requirements:": [
+"Requisitos de desbloqueo:",
+"Conditions de déblocage :",
+"متطلبات الفتح:",
+"Freischaltbedingungen:",
+"解锁条件：",
+"解放条件："
+],
+"Unlocks at level %d": [
+"Se desbloquea en el nivel %d",
+"Se débloque au niveau %d",
+"تُفتح في المستوى %d",
+"Wird auf Stufe %d freigeschaltet",
+"%d 级解锁",
+"Lv %d で解放"
+],
+"Unlocks at level %d during a run": [
+"Se desbloquea en el nivel %d durante la partida",
+"Se débloque au niveau %d pendant la partie",
+"تُفتح في المستوى %d أثناء الجولة",
+"Wird im Lauf auf Stufe %d freigeschaltet",
+"局内 %d 级解锁",
+"ラン中 Lv %d で解放"
+],
+"Up to {40} enemies within {20 m} become frogs for {8 s} (not the boss)": [
+"Hasta {40} enemigos a {20 m} se convierten en ranas durante {8 s} (no el jefe)",
+"Jusqu'à {40} ennemis à {20 m} deviennent des grenouilles pendant {8 s} (pas le boss)",
+"حتى {40} عدوًا ضمن {20 م} يتحولون إلى ضفادع لمدة {8 ث} (ليس الزعيم)",
+"Bis zu {40} Gegner im Umkreis von {20 m} werden {8 s} lang zu Fröschen (nicht der Boss)",
+"{20 米} 内最多 {40} 个敌人变成青蛙 {8 秒}（首领除外）",
+"{20 m}以内の敵最大{40}体が{8秒}カエルになる（ボス以外）"
+],
+"Updraft": [
+"Corriente ascendente",
+"Courant ascendant",
+"التيار الصاعد",
+"Aufwind",
+"上升气流",
+"上昇気流"
+],
+"VICKI": [
+"VICKI",
+"VICKI",
+"فيكي",
+"VICKI",
+"维琪",
+"ヴィッキー"
+],
+"Valkyrie Spear": [
+"Lanza de valquiria",
+"Lance de Walkyrie",
+"رمح الفالكيري",
+"Walkürenspeer",
+"女武神之矛",
+"ワルキューレの槍"
+],
+"Valkyrie of the Marsh": [
+"Valquiria de la ciénaga",
+"Walkyrie des marais",
+"فالكيري المستنقع",
+"Walküre des Marschlands",
+"沼泽女武神",
+"沼地のワルキューレ"
+],
+"Vampire Fang": [
+"Colmillo de vampiro",
+"Croc de vampire",
+"ناب مصاص الدماء",
+"Vampirzahn",
+"吸血鬼之牙",
+"吸血鬼の牙"
+],
+"Vampire Hunter": [
+"Cazavampiros",
+"Chasseur de vampires",
+"صائد مصاصي الدماء",
+"Vampirjäger",
+"吸血鬼猎人",
+"ヴァンパイアハンター"
+],
+"Vanish in a puff of smoke.": [
+"Desaparece en una nube de humo.",
+"Disparaissez dans un nuage de fumée.",
+"اختفِ في نفخة دخان.",
+"Verschwinde in einer Rauchwolke.",
+"在一阵烟雾中消失。",
+"煙とともに消える。"
+],
+"Velocity": [
+"Velocidad",
+"Vélocité",
+"الانطلاق",
+"Geschwindigkeit",
+"迅速",
+"弾速"
+],
+"Venom Spit": [
+"Escupitajo venenoso",
+"Crachat venimeux",
+"بصقة السم",
+"Giftspucke",
+"毒液喷吐",
+"毒吐き"
+],
+"Venom Spur": [
+"Espolón venenoso",
+"Ergot venimeux",
+"مهماز السم",
+"Giftsporn",
+"毒距",
+"毒の蹴爪"
+],
+"Venomous, egg-laying, bill-having and extremely well-read.": [
+"Venenoso, ovíparo, con pico y extremadamente culto.",
+"Venimeux, ovipare, pourvu d'un bec et extrêmement cultivé.",
+"سامّ، يبيض، له منقار، ومثقف للغاية.",
+"Giftig, eierlegend, schnabeltragend und äußerst belesen.",
+"有毒、下蛋、长嘴，而且博览群书。",
+"有毒、卵生、くちばし付き、そして大変な読書家。"
+],
+"Vicki": [
+"Vicki",
+"Vicki",
+"فيكي",
+"Vicki",
+"维琪",
+"ヴィッキー"
+],
+"Video": [
+"Vídeo",
+"Vidéo",
+"الفيديو",
+"Grafik",
+"视频",
+"映像"
+],
+"Volatile Flasks": [
+"Frascos volátiles",
+"Fioles volatiles",
+"القوارير المتطايرة",
+"Flüchtige Flaschen",
+"挥发药瓶",
+"揮発性フラスコ"
+],
+"Volley": [
+"Andanada",
+"Salve",
+"الوابل",
+"Salve",
+"齐射",
+"一斉射撃"
+],
+"WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns": [
+"WASD mover · Espacio saltar · Shift/Ctrl deslizarse · 1/2/3 habilidades · Rueda zoom · mantén Alt inspeccionar · Esc pausa\nF1 depuración · F2 generar 200 · F3 reiniciar enfriamientos",
+"ZQSD/WASD déplacer · Espace sauter · Maj/Ctrl glisser · 1/2/3 capacités · Molette zoom · Alt maintenu inspecter · Échap pause\nF1 débogage · F2 faire apparaître 200 · F3 réinitialiser les recharges",
+"WASD حركة · Space قفز · Shift/Ctrl انزلاق · 1/2/3 قدرات · العجلة تكبير · اضغط Alt للفحص · Esc إيقاف\nF1 تصحيح · F2 إظهار 200 · F3 تصفير التهدئة",
+"WASD bewegen · Leertaste springen · Shift/Strg rutschen · 1/2/3 Fähigkeiten · Mausrad Zoom · Alt halten ansehen · Esc Pause\nF1 Debug · F2 200 erzeugen · F3 Abklingzeiten zurücksetzen",
+"WASD 移动 · 空格 跳跃 · Shift/Ctrl 滑铲 · 1/2/3 技能 · 滚轮 缩放 · 按住 Alt 查看 · Esc 暂停\nF1 调试 · F2 生成 200 · F3 重置冷却",
+"WASD 移動 · Space ジャンプ · Shift/Ctrl スライディング · 1/2/3 アビリティ · ホイール ズーム · Alt長押し 確認 · Esc 一時停止\nF1 デバッグ · F2 200体出現 · F3 クールダウンリセット"
+],
+"Wail": [
+"Lamento",
+"Plainte",
+"النواح",
+"Heulen",
+"哀嚎",
+"嘆き"
+],
+"Warden of the Frozen Fen": [
+"Guardián de la ciénaga helada",
+"Gardien de la tourbière gelée",
+"حارس المستنقع المتجمد",
+"Wächter des gefrorenen Fenns",
+"冰封沼地的守望者",
+"凍てつく沼の番人"
+],
+"Warlock and load": [
+"Brujo y cargado",
+"Occultiste, armez",
+"مشعوذ وجاهز",
+"Hexenmeister, durchladen",
+"术士上膛",
+"ウォーロック、装填完了"
+],
+"Was just passing through. Decided to stay for the overtime.": [
+"Solo estaba de paso. Decidió quedarse a hacer horas extra.",
+"Ne faisait que passer. A décidé de rester pour les heures sup.",
+"كان مارًا فقط. وقرر البقاء من أجل الوقت الإضافي.",
+"War nur auf der Durchreise. Hat beschlossen, für die Überstunden zu bleiben.",
+"本来只是路过，决定留下来加班。",
+"通りすがりだった。残業のために残ることにした。"
+],
+"Weapon": [
+"Arma",
+"Arme",
+"سلاح",
+"Waffe",
+"武器",
+"武器"
+],
+"Weapon: %s": [
+"Arma: %s",
+"Arme : %s",
+"السلاح: %s",
+"Waffe: %s",
+"武器：%s",
+"武器：%s"
+],
+"Web Trap": [
+"Trampa de telaraña",
+"Piège de toile",
+"فخ الشبكة",
+"Netzfalle",
+"蛛网陷阱",
+"蜘蛛の罠"
+],
+"When it breaks or runs out, it bursts into spores: {60} damage within {8 m}, plus poison": [
+"Al romperse o agotarse, estalla en esporas: {60} de daño en {8 m}, más veneno",
+"Quand il se brise ou expire, il éclate en spores : {60} dégâts dans un rayon de {8 m}, plus du poison",
+"عندما ينكسر أو ينتهي، ينفجر أبواغًا: {60} ضرر ضمن {8 م} مع سمّ",
+"Wenn er bricht oder ausläuft, zerplatzt er in Sporen: {60} Schaden im Umkreis von {8 m}, plus Gift",
+"破裂或结束时爆出孢子：{8 米} 内 {60} 伤害，并中毒",
+"壊れるか切れると胞子が弾ける：{8 m}以内に{60}ダメージと毒"
+],
+"When it ends, every enemy inside freezes for {2 s}, then shatters for {200} damage": [
+"Al terminar, todos los enemigos dentro se congelan {2 s} y luego se rompen con {200} de daño",
+"À la fin, chaque ennemi à l'intérieur gèle {2 s}, puis vole en éclats pour {200} dégâts",
+"عند انتهائها، يتجمد كل عدو داخلها لمدة {2 ث} ثم يتحطم بضرر {200}",
+"Am Ende friert jeder Gegner darin {2 s} ein und zerspringt dann für {200} Schaden",
+"结束时，其中每个敌人冻结 {2 秒}，然后碎裂造成 {200} 伤害",
+"終了時、中の敵はすべて{2秒}凍り、砕けて{200}ダメージ"
+],
+"When their time is up they explode for {60} damage within {3 m}": [
+"Cuando se les acaba el tiempo explotan con {60} de daño en {3 m}",
+"Quand leur temps est écoulé, ils explosent pour {60} dégâts dans un rayon de {3 m}",
+"عندما ينتهي وقتهم ينفجرون بضرر {60} ضمن {3 م}",
+"Wenn ihre Zeit um ist, explodieren sie mit {60} Schaden im Umkreis von {3 m}",
+"时间到时它们爆炸，{3 米} 内 {60} 伤害",
+"時間切れになると{3 m}以内に{60}ダメージで爆発"
+],
+"When you pull back together, survivors are flung out {6 yd}": [
+"Al recomponerte, los supervivientes salen despedidos {6 m}",
+"Quand vous vous reformez, les survivants sont projetés à {6 m}",
+"عندما تتجمع من جديد، يُقذف الناجون {6 م}",
+"Wenn du dich wieder zusammenziehst, werden Überlebende {6 m} weggeschleudert",
+"当你重新聚合时，幸存者被甩出 {6 米}",
+"元に戻ると、生き残りは{6 m}吹き飛ぶ"
+],
+"Whisperer in the Reeds": [
+"Susurro entre los juncos",
+"Murmure dans les roseaux",
+"الهامس بين القصب",
+"Flüsterer im Schilf",
+"芦苇中的低语者",
+"葦の囁き"
+],
+"White-Hot Orbs": [
+"Orbes al rojo blanco",
+"Orbes chauffés à blanc",
+"كرات متوهجة",
+"Weißglühende Kugeln",
+"白热火球",
+"白熱のオーブ"
+],
+"Who's a Good Boy": [
+"¿Quién es un buen chico?",
+"C'est qui le bon chien ?",
+"من الولد المطيع؟",
+"Wer ist ein braver Junge",
+"谁是乖狗狗",
+"いい子は誰だ"
+],
+"Wide 120° cleave in front of you (3 m), heavy knockback": [
+"Tajo amplio de 120° delante de ti (3 m), gran retroceso",
+"Large balayage à 120° devant vous (3 m), fort recul",
+"ضربة واسعة 120° أمامك (3 م)، دفع قوي",
+"Weiter 120°-Hieb vor dir (3 m), starker Rückstoß",
+"前方 120° 大范围劈砍（3 米），强力击退",
+"前方120°の広い薙ぎ払い（3 m）、強いノックバック"
+],
+"Wide Swings": [
+"Golpes amplios",
+"Larges coups",
+"ضربات واسعة",
+"Weite Schwünge",
+"大幅挥击",
+"大振り"
+],
+"Wide cleave, knockback": [
+"Tajo amplio, retroceso",
+"Large balayage, recul",
+"ضربة واسعة، دفع",
+"Weiter Hieb, Rückstoß",
+"大范围劈砍，击退",
+"広い薙ぎ払い、ノックバック"
+],
+"Wildfire": [
+"Fuego salvaje",
+"Feu de forêt",
+"النار الهائجة",
+"Lauffeuer",
+"野火",
+"野火"
+],
+"Windowed": [
+"Ventana",
+"Fenêtré",
+"نافذة",
+"Fenster",
+"窗口",
+"ウィンドウ"
+],
+"Wings of Valhalla": [
+"Alas del Valhalla",
+"Ailes du Valhalla",
+"أجنحة فالهالا",
+"Schwingen Walhallas",
+"瓦尔哈拉之翼",
+"ヴァルハラの翼"
+],
+"Wizard of ahhh!": [
+"¡El mago de ahhh!",
+"Le magicien d'ahhh !",
+"ساحر آآآه!",
+"Der Zauberer von Ahhh!",
+"啊啊啊的魔法师！",
+"アアア！の魔法使い"
+],
+"Wraps everything nearby. Breakfast. And lunch.": [
+"Envuelve todo lo cercano. Desayuno. Y almuerzo.",
+"Emballe tout ce qui est proche. Petit-déjeuner. Et déjeuner.",
+"تلفّ كل ما هو قريب. فطور. وغداء.",
+"Wickelt alles in der Nähe ein. Frühstück. Und Mittagessen.",
+"把附近的一切包起来。早餐。还有午餐。",
+"近くのものを全部包む。朝食。そして昼食。"
+],
+"XP Gain": [
+"Ganancia de XP",
+"Gain d'XP",
+"كسب الخبرة",
+"EP-Gewinn",
+"经验获取",
+"経験値獲得"
+],
+"YOU DIED": [
+"HAS MUERTO",
+"VOUS ÊTES MORT",
+"لقد متّ",
+"DU BIST GESTORBEN",
+"你死了",
+"死亡"
+],
+"YOU SURVIVED!": [
+"¡HAS SOBREVIVIDO!",
+"VOUS AVEZ SURVÉCU !",
+"لقد نجوت!",
+"DU HAST ÜBERLEBT!",
+"你活下来了！",
+"生き延びた！"
+],
+"You deal {+100%} damage": [
+"Infliges {+100%} de daño",
+"Vous infligez {+100 %} de dégâts",
+"تُحدث {+100%} ضررًا",
+"Du verursachst {+100 %} Schaden",
+"你造成的伤害 {+100%}",
+"与ダメージ{+100%}"
+],
+"You deal {+100%} damage and kills drop {2x} XP": [
+"Infliges {+100%} de daño y las muertes dan {2x} XP",
+"Vous infligez {+100 %} de dégâts et les éliminations donnent {2x} XP",
+"تُحدث {+100%} ضررًا والقتلى يُسقطون {2x} خبرة",
+"Du verursachst {+100 %} Schaden und Kills geben {2x} EP",
+"你造成的伤害 {+100%}，击杀掉落 {2 倍} 经验",
+"与ダメージ{+100%}、撃破で経験値{2倍}"
+],
+"You gain {+30%} armor for {6 s}": [
+"Ganas {+30%} de armadura durante {6 s}",
+"Vous gagnez {+30 %} d'armure pendant {6 s}",
+"تكسب {+30%} درعًا لمدة {6 ث}",
+"Du erhältst {6 s} lang {+30 %} Rüstung",
+"获得 {+30%} 护甲，持续 {6 秒}",
+"{6秒}間アーマー{+30%}"
+],
+"You heal {1} HP per enemy drained per second, up to {5%} of your max HP per second": [
+"Te curas {1} PV por cada enemigo drenado por segundo, hasta el {5%} de tus PV máx. por segundo",
+"Vous récupérez {1} PV par ennemi drainé par seconde, jusqu'à {5 %} de vos PV max par seconde",
+"تُشفى {1} صحة لكل عدو مستنزَف في الثانية، حتى {5%} من صحتك القصوى في الثانية",
+"Du heilst {1} LP pro ausgesaugtem Gegner pro Sekunde, bis zu {5 %} deiner max. LP pro Sekunde",
+"每吸取一个敌人每秒回复 {1} 生命，最多每秒 {5%} 最大生命",
+"吸収中の敵1体につき毎秒{1}HP回復、最大で毎秒最大HPの{5%}"
+],
+"You heal {2%} of max HP per second while standing next to it": [
+"Te curas un {2%} de PV máx. por segundo mientras estás a su lado",
+"Vous récupérez {2 %} des PV max par seconde en restant à côté",
+"تُشفى {2%} من الصحة القصوى في الثانية بالوقوف بجانبه",
+"Du heilst {2 %} der max. LP pro Sekunde, solange du daneben stehst",
+"站在旁边时每秒回复 {2%} 最大生命",
+"そばにいる間、毎秒最大HPの{2%}回復"
+],
+"You vanish and become a giant flaming copy of your own head. [b]Invulnerable[/b] while falling.": [
+"Desapareces y te conviertes en una copia gigante y en llamas de tu propia cabeza. [b]Invulnerable[/b] durante la caída.",
+"Vous disparaissez et devenez une copie géante et enflammée de votre propre tête. [b]Invulnérable[/b] pendant la chute.",
+"تختفي وتصبح نسخة عملاقة مشتعلة من رأسك. [b]منيع[/b] أثناء السقوط.",
+"Du verschwindest und wirst zu einer riesigen brennenden Kopie deines eigenen Kopfes. [b]Unverwundbar[/b] im Fall.",
+"你消失并变成自己脑袋的巨大燃烧复制品。下落期间[b]无敌[/b]。",
+"姿を消し、自分の頭の巨大な燃える複製になる。落下中は[b]無敵[/b]。"
+],
+"Your attack speed is {+50%} while it lasts": [
+"Tu velocidad de ataque es {+50%} mientras dura",
+"Votre vitesse d'attaque est de {+50 %} pendant la durée",
+"سرعة هجومك {+50%} طوال مدتها",
+"Dein Angriffstempo ist währenddessen {+50 %}",
+"持续期间攻击速度 {+50%}",
+"効果中は攻撃速度{+50%}"
+],
+"Your bolts lock on to the {3} enemies with the most HP and deal {3x} damage": [
+"Tus virotes fijan a los {3} enemigos con más PV e infligen {3x} daño",
+"Vos carreaux ciblent les {3} ennemis avec le plus de PV et infligent {3x} dégâts",
+"سهامك تَقفل على الأعداء الـ{3} الأكثر صحة وتُحدث ضرر {3x}",
+"Deine Bolzen zielen auf die {3} Gegner mit den meisten LP und verursachen {3x} Schaden",
+"你的弩箭锁定生命最高的 {3} 个敌人，造成 {3 倍} 伤害",
+"矢がHPの最も高い敵{3}体を狙い{3倍}ダメージ"
+],
+"Your cleave hits all the way around you ({360°})": [
+"Tu tajo golpea a todo tu alrededor ({360°})",
+"Votre balayage frappe tout autour de vous ({360°})",
+"ضربتك تصيب كل ما حولك ({360°})",
+"Dein Hieb trifft rundherum ({360°})",
+"你的劈砍覆盖你四周（{360°}）",
+"薙ぎ払いが全周に当たる（{360°}）"
+],
+"Your dust trail deals {30} damage per second and knocks enemies back": [
+"Tu estela de polvo inflige {30} de daño por segundo y hace retroceder a los enemigos",
+"Votre traînée de poussière inflige {30} dégâts par seconde et repousse les ennemis",
+"أثر غبارك يسبب {30} ضرر في الثانية ويدفع الأعداء",
+"Deine Staubspur verursacht {30} Schaden pro Sekunde und stößt Gegner zurück",
+"你的扬尘每秒造成 {30} 伤害并击退敌人",
+"土煙の跡が毎秒{30}ダメージを与え敵を押し返す"
+],
+"Your first attack after the smoke deals {3x} damage": [
+"Tu primer ataque tras el humo inflige {3x} daño",
+"Votre première attaque après la fumée inflige {3x} dégâts",
+"هجومك الأول بعد الدخان يسبب ضرر {3x}",
+"Dein erster Angriff nach dem Rauch verursacht {3x} Schaden",
+"烟雾后你的第一次攻击造成 {3 倍} 伤害",
+"煙の後の最初の攻撃は{3倍}ダメージ"
+],
+"Your ice trail lasts {5 s}: enemies on it are slowed {60%} and take {15} damage per second": [
+"Tu rastro de hielo dura {5 s}: los enemigos sobre él se ralentizan un {60%} y reciben {15} de daño por segundo",
+"Votre traînée de glace dure {5 s} : les ennemis dessus sont ralentis de {60 %} et subissent {15} dégâts par seconde",
+"يدوم أثرك الجليدي {5 ث}: الأعداء عليه يبطؤون {60%} ويتلقون {15} ضرر في الثانية",
+"Deine Eisspur hält {5 s}: Gegner darauf werden um {60 %} verlangsamt und erleiden {15} Schaden pro Sekunde",
+"你的冰道持续 {5 秒}：上面的敌人减速 {60%} 并每秒受到 {15} 伤害",
+"氷の跡は{5秒}続く：上の敵は{60%}減速し毎秒{15}ダメージ"
+],
+"Your partner sock fights beside you for {15 s}": [
+"Tu calcetín compañero lucha a tu lado {15 s}",
+"Votre chaussette jumelle se bat à vos côtés pendant {15 s}",
+"جوربك الشريك يقاتل بجانبك لمدة {15 ث}",
+"Deine Partnersocke kämpft {15 s} an deiner Seite",
+"你的另一只袜子在你身边战斗 {15 秒}",
+"片割れの靴下が{15秒}隣で戦う"
+],
+"Zaps 3, builds charge": [
+"Electrocuta a 3, acumula carga",
+"Électrocute 3 cibles, se charge",
+"يصعق 3، ويشحن",
+"Schockt 3, lädt sich auf",
+"电击 3 个，积蓄电荷",
+"3体に電撃、帯電する"
+],
+"Zaps the 3 nearest enemies for 18 damage; builds up to 2x damage while you keep moving": [
+"Electrocuta a los 3 enemigos más cercanos con 18 de daño; acumula hasta 2x daño mientras te mueves",
+"Électrocute les 3 ennemis les plus proches pour 18 dégâts ; monte jusqu'à 2x dégâts tant que vous bougez",
+"يصعق أقرب 3 أعداء بضرر 18؛ ويتراكم حتى ضرر 2x ما دمت تتحرك",
+"Schockt die 3 nächsten Gegner für 18 Schaden; steigert sich auf bis zu 2x Schaden, solange du dich bewegst",
+"电击最近的 3 个敌人造成 18 伤害；持续移动时伤害最多累积至 2 倍",
+"最も近い敵3体に18ダメージの電撃；移動し続けると最大2倍まで蓄積"
+],
+"Zoomies": [
+"Correteo loco",
+"Folie des zoomies",
+"نوبة الركض",
+"Zoomies",
+"疯跑时间",
+"ズーミーズ"
+],
+"lvl %d": [
+"nv %d",
+"niv %d",
+"مستوى %d",
+"St. %d",
+"%d 级",
+"Lv %d"
+],
+"lvl %d   ·   %s   ·   %d / 18 skills learned": [
+"nv %d   ·   %s   ·   %d / 18 habilidades aprendidas",
+"niv %d   ·   %s   ·   %d / 18 compétences apprises",
+"مستوى %d   ·   %s   ·   %d / 18 مهارة مكتسبة",
+"St. %d   ·   %s   ·   %d / 18 Fertigkeiten gelernt",
+"%d 级   ·   %s   ·   已学 %d / 18 技能",
+"Lv %d   ·   %s   ·   スキル習得 %d / 18"
+],
+"max level": [
+"nivel máximo",
+"niveau max",
+"أقصى مستوى",
+"Höchststufe",
+"已满级",
+"最大レベル"
+],
+"needs row 1": [
+"requiere fila 1",
+"nécessite la rangée 1",
+"يتطلب الصف 1",
+"benötigt Reihe 1",
+"需要第 1 排",
+"1列目が必要"
+],
+"{+100%} move speed for {6 s}": [
+"{+100%} de velocidad durante {6 s}",
+"{+100 %} de vitesse pendant {6 s}",
+"{+100%} سرعة حركة لمدة {6 ث}",
+"{+100 %} Lauftempo für {6 s}",
+"移动速度 {+100%}，持续 {6 秒}",
+"{6秒}間移動速度{+100%}"
+],
+"{+40%} move speed for {6 s}, leaving burning footprints that last {4 s}": [
+"{+40%} de velocidad durante {6 s}, dejando huellas ardientes que duran {4 s}",
+"{+40 %} de vitesse pendant {6 s}, en laissant des empreintes brûlantes qui durent {4 s}",
+"{+40%} سرعة حركة لمدة {6 ث}، تاركًا آثار أقدام مشتعلة تدوم {4 ث}",
+"{+40 %} Lauftempo für {6 s}, hinterlässt brennende Fußspuren für {4 s}",
+"移动速度 {+40%}，持续 {6 秒}，留下持续 {4 秒} 的燃烧脚印",
+"{6秒}間移動速度{+40%}、{4秒}燃える足跡を残す"
+],
+"{+40%} move speed for {8 s}": [
+"{+40%} de velocidad durante {8 s}",
+"{+40 %} de vitesse pendant {8 s}",
+"{+40%} سرعة حركة لمدة {8 ث}",
+"{+40 %} Lauftempo für {8 s}",
+"移动速度 {+40%}，持续 {8 秒}",
+"{8秒}間移動速度{+40%}"
+],
+"{+50%} attack speed and {+30%} move speed for {8 s}": [
+"{+50%} de velocidad de ataque y {+30%} de velocidad durante {8 s}",
+"{+50 %} de vitesse d'attaque et {+30 %} de vitesse pendant {8 s}",
+"{+50%} سرعة هجوم و{+30%} سرعة حركة لمدة {8 ث}",
+"{+50 %} Angriffstempo und {+30 %} Lauftempo für {8 s}",
+"攻击速度 {+50%}，移动速度 {+30%}，持续 {8 秒}",
+"{8秒}間攻撃速度{+50%}、移動速度{+30%}"
+],
+"{+60%} move speed for {6 s}": [
+"{+60%} de velocidad durante {6 s}",
+"{+60 %} de vitesse pendant {6 s}",
+"{+60%} سرعة حركة لمدة {6 ث}",
+"{+60 %} Lauftempo für {6 s}",
+"移动速度 {+60%}，持续 {6 秒}",
+"{6秒}間移動速度{+60%}"
+],
+"{10 m} web: enemies in it are stuck for {4 s}": [
+"Telaraña de {10 m}: los enemigos quedan atrapados {4 s}",
+"Toile de {10 m} : les ennemis dedans sont englués {4 s}",
+"شبكة بقطر {10 م}: يعلق الأعداء فيها لمدة {4 ث}",
+"{10-m}-Netz: Gegner darin kleben {4 s} fest",
+"{10 米} 蛛网：其中的敌人被困 {4 秒}",
+"{10 m}の巣：中の敵は{4秒}動けない"
+],
+"{120} damage each, and they're stunned for {1.5 s}": [
+"{120} de daño a cada uno, y quedan aturdidos {1,5 s}",
+"{120} dégâts chacun, et ils sont étourdis {1,5 s}",
+"{120} ضرر لكل منهم، ويُصعقون لمدة {1.5 ث}",
+"Je {120} Schaden, und sie sind {1,5 s} betäubt",
+"各 {120} 伤害，并眩晕 {1.5 秒}",
+"各{120}ダメージ、{1.5秒}スタン"
+],
+"{120} damage to every enemy it flattens": [
+"{120} de daño a cada enemigo que aplasta",
+"{120} dégâts à chaque ennemi écrasé",
+"{120} ضرر لكل عدو يسحقه",
+"{120} Schaden an jedem Gegner, den er plättet",
+"对压扁的每个敌人造成 {120} 伤害",
+"押しつぶした敵それぞれに{120}ダメージ"
+],
+"{12} bolts strike the enemies with the most HP within {25 m}": [
+"{12} rayos golpean a los enemigos con más PV a {25 m}",
+"{12} éclairs frappent les ennemis avec le plus de PV à {25 m}",
+"{12} صاعقة تضرب الأعداء الأكثر صحة ضمن {25 م}",
+"{12} Blitze treffen die Gegner mit den meisten LP im Umkreis von {25 m}",
+"{12} 道闪电劈向 {25 米} 内生命最高的敌人",
+"{12}本の雷が{25 m}以内のHPが高い敵に落ちる"
+],
+"{12} spiderlings hatch and leap onto enemies for {15 s}": [
+"{12} crías de araña eclosionan y saltan sobre los enemigos durante {15 s}",
+"{12} bébés araignées éclosent et sautent sur les ennemis pendant {15 s}",
+"{12} عنكبوتًا صغيرًا تفقس وتقفز على الأعداء لمدة {15 ث}",
+"{12} Spinnenjunge schlüpfen und springen {15 s} lang auf Gegner",
+"{12} 只小蜘蛛孵化，扑向敌人 {15 秒}",
+"子グモ{12}匹が孵り{15秒}敵に飛びかかる"
+],
+"{180} damage to every enemy on each pass": [
+"{180} de daño a cada enemigo en cada pasada",
+"{180} dégâts à chaque ennemi à chaque passage",
+"{180} ضرر لكل عدو في كل مرور",
+"{180} Schaden an jedem Gegner bei jedem Durchgang",
+"每次穿过对每个敌人造成 {180} 伤害",
+"通過ごとに各敵へ{180}ダメージ"
+],
+"{20} candy bombs rain out: {60} damage each within {3 m}": [
+"Llueven {20} bombas de caramelo: {60} de daño cada una en {3 m}",
+"{20} bombes de bonbons pleuvent : {60} dégâts chacune dans un rayon de {3 m}",
+"تمطر {20} قنبلة حلوى: {60} ضرر لكل منها ضمن {3 م}",
+"{20} Bonbonbomben regnen herab: je {60} Schaden im Umkreis von {3 m}",
+"{20} 颗糖果炸弹倾泻而出：每颗 {3 米} 内 {60} 伤害",
+"キャンディ爆弾{20}個が降る：各{3 m}以内に{60}ダメージ"
+],
+"{25 m} blizzard centred on you for {8 s}: enemies inside are slowed {80%} and take {4%} of max HP per second": [
+"Ventisca de {25 m} centrada en ti durante {8 s}: los enemigos dentro se ralentizan un {80%} y pierden {4%} de PV máx. por segundo",
+"Blizzard de {25 m} centré sur vous pendant {8 s} : ennemis ralentis de {80 %} et perdant {4 %} des PV max par seconde",
+"عاصفة ثلجية بقطر {25 م} حولك لمدة {8 ث}: يبطؤ الأعداء داخلها {80%} ويفقدون {4%} من الصحة القصوى في الثانية",
+"{25-m}-Schneesturm um dich für {8 s}: Gegner darin werden um {80 %} verlangsamt und verlieren {4 %} der max. LP pro Sekunde",
+"以你为中心的 {25 米} 暴风雪持续 {8 秒}：其中敌人减速 {80%}，每秒损失 {4%} 最大生命",
+"自分中心に{25 m}の吹雪が{8秒}：中の敵は{80%}減速し毎秒最大HPの{4%}を失う"
+],
+"{2} mini-blobs split off for {10 s} and chase enemies": [
+"{2} miniblobs se separan durante {10 s} y persiguen a los enemigos",
+"{2} mini-blobs se détachent pendant {10 s} et pourchassent les ennemis",
+"ينفصل {2} بلوب صغير لمدة {10 ث} ويطاردان الأعداء",
+"{2} Mini-Blobs spalten sich {10 s} lang ab und jagen Gegner",
+"分裂出 {2} 个小史莱姆，持续 {10 秒}，追击敌人",
+"ミニブロブ{2}体が{10秒}分裂し敵を追う"
+],
+"{3} rings of {12} shuriken over {2 s}": [
+"{3} anillos de {12} shuriken en {2 s}",
+"{3} anneaux de {12} shuriken en {2 s}",
+"{3} حلقات من {12} شوريكن خلال {2 ث}",
+"{3} Ringe aus {12} Shuriken in {2 s}",
+"{2 秒} 内射出 {3} 圈，每圈 {12} 枚手里剑",
+"{2秒}で{12}枚の手裏剣の輪を{3}つ"
+],
+"{3} shockwaves to {10 m}: {50} damage each": [
+"{3} ondas de choque hasta {10 m}: {50} de daño cada una",
+"{3} ondes de choc jusqu'à {10 m} : {50} dégâts chacune",
+"{3} موجات صدمة حتى {10 م}: {50} ضرر لكل منها",
+"{3} Schockwellen bis {10 m}: je {50} Schaden",
+"{3} 道冲击波，范围 {10 米}：每道 {50} 伤害",
+"{10 m}まで衝撃波{3}回：各{50}ダメージ"
+],
+"{40} damage every {0.5 s} to enemies inside": [
+"{40} de daño cada {0,5 s} a los enemigos dentro",
+"{40} dégâts toutes les {0,5 s} aux ennemis à l'intérieur",
+"{40} ضرر كل {0.5 ث} للأعداء داخلها",
+"{40} Schaden alle {0,5 s} an Gegnern darin",
+"每 {0.5 秒} 对其中敌人造成 {40} 伤害",
+"中の敵に{0.5秒}ごとに{40}ダメージ"
+],
+"{50} damage each; they pierce": [
+"{50} de daño cada uno; perforan",
+"{50} dégâts chacun ; ils transpercent",
+"{50} ضرر لكل منها؛ وتخترق",
+"Je {50} Schaden; sie durchschlagen",
+"每个 {50} 伤害；可穿透",
+"各{50}ダメージ；貫通する"
+],
+"{50} damage every {0.25 s} while held; they're flung away at the end": [
+"{50} de daño cada {0,25 s} mientras lo sujetas; sale despedido al final",
+"{50} dégâts toutes les {0,25 s} tant qu'il est tenu ; projeté au loin à la fin",
+"{50} ضرر كل {0.25 ث} أثناء الإمساك؛ ويُقذف بعيدًا في النهاية",
+"{50} Schaden alle {0,25 s}, solange gehalten; am Ende weggeschleudert",
+"抓住期间每 {0.25 秒} {50} 伤害；结束时被甩飞",
+"掴んでいる間{0.25秒}ごとに{50}ダメージ；最後に投げ飛ばす"
+],
+"{60} damage to every enemy it hits, then you hurl it {15 m}": [
+"{60} de daño a cada enemigo que golpea, y luego lo lanzas {15 m}",
+"{60} dégâts à chaque ennemi touché, puis vous le projetez à {15 m}",
+"{60} ضرر لكل عدو يصيبه، ثم تقذفه {15 م}",
+"{60} Schaden an jedem getroffenen Gegner, dann schleuderst du ihn {15 m}",
+"对撞到的每个敌人造成 {60} 伤害，然后把它扔出 {15 米}",
+"当たった敵それぞれに{60}ダメージ、その後{15 m}投げ飛ばす"
+],
+"{6} giant toadstool guardians rise in a {12 m} ring around you for {15 s}": [
+"{6} guardianes seta gigantes surgen en un anillo de {12 m} a tu alrededor durante {15 s}",
+"{6} gardiens champignons géants se dressent en cercle de {12 m} autour de vous pendant {15 s}",
+"{6} حراس فطر عملاقين ينهضون في حلقة بقطر {12 م} حولك لمدة {15 ث}",
+"{6} riesige Pilzwächter erheben sich {15 s} lang in einem {12-m}-Ring um dich",
+"{6} 个巨型毒菇守卫在你周围 {12 米} 环形升起，持续 {15 秒}",
+"巨大キノコの守護者{6}体が周囲{12 m}の輪に{15秒}現れる"
+],
+"{8 m} smoke cloud; you're invisible for {4 s} and enemies lose track of you": [
+"Nube de humo de {8 m}; eres invisible {4 s} y los enemigos te pierden el rastro",
+"Nuage de fumée de {8 m} ; vous êtes invisible {4 s} et les ennemis perdent votre trace",
+"سحابة دخان بقطر {8 م}؛ تصبح غير مرئي لمدة {4 ث} ويفقد الأعداء أثرك",
+"{8-m}-Rauchwolke; du bist {4 s} unsichtbar und Gegner verlieren deine Spur",
+"{8 米} 烟雾；你隐身 {4 秒}，敌人失去你的踪迹",
+"{8 m}の煙；{4秒}透明になり敵はあなたを見失う"
+],
+"{8%} of max HP per second to enemies in the beams; {+50%} armor": [
+"{8%} de PV máx. por segundo a los enemigos en los rayos; {+50%} de armadura",
+"{8 %} des PV max par seconde aux ennemis dans les rayons ; {+50 %} d'armure",
+"{8%} من الصحة القصوى في الثانية للأعداء في الأشعة؛ {+50%} درع",
+"{8 %} der max. LP pro Sekunde für Gegner in den Strahlen; {+50 %} Rüstung",
+"光束中的敌人每秒损失 {8%} 最大生命；护甲 {+50%}",
+"ビーム内の敵に毎秒最大HPの{8%}；アーマー{+50%}"
+],
+"• %s damage to every enemy within %s": [
+"• %s de daño a cada enemigo a %s",
+"• %s dégâts à chaque ennemi dans un rayon de %s",
+"• %s ضرر لكل عدو ضمن %s",
+"• %s Schaden an jedem Gegner im Umkreis von %s",
+"• %s 伤害，作用于 %s 内的每个敌人",
+"• %sダメージ（%s以内のすべての敵）"
+],
+"• Burn: %s of max HP per second for %s (%s total)": [
+"• Quemadura: %s de PV máx. por segundo durante %s (%s en total)",
+"• Brûlure : %s des PV max par seconde pendant %s (%s au total)",
+"• حرق: %s من الصحة القصوى في الثانية لمدة %s (%s إجمالًا)",
+"• Brand: %s der max. LP pro Sekunde für %s (%s insgesamt)",
+"• 燃烧：每秒 %s 最大生命，持续 %s（共 %s）",
+"• 炎上：毎秒最大HPの%s、%s間（合計%s）"
+],
+"• Burning enemies that die explode for %s of their max HP to enemies within %s; explosions chain": [
+"• Los enemigos en llamas que mueren explotan con %s de sus PV máx. a enemigos a %s; en cadena",
+"• Les ennemis en feu qui meurent explosent pour %s de leurs PV max aux ennemis à %s ; en chaîne",
+"• الأعداء المحترقون الذين يموتون ينفجرون بـ%s من صحتهم القصوى على الأعداء ضمن %s؛ والانفجارات تتسلسل",
+"• Brennende Gegner explodieren beim Tod mit %s ihrer max. LP auf Gegner im Umkreis von %s; Kettenreaktion",
+"• 燃烧中的敌人死亡时爆炸，造成其最大生命 %s 的伤害（范围 %s）；可连锁",
+"• 炎上中の敵が死ぬと最大HPの%sで爆発（%s以内）；連鎖する"
+],
+"• Crashes where you aim after %s: %s damage within %s, plus knockback": [
+"• Cae donde apuntas tras %s: %s de daño en %s, más retroceso",
+"• S'écrase là où vous visez après %s : %s dégâts dans un rayon de %s, plus recul",
+"• يرتطم حيث تصوّب بعد %s: %s ضرر ضمن %s مع دفع",
+"• Schlägt nach %s dort ein, wohin du zielst: %s Schaden im Umkreis von %s, plus Rückstoß",
+"• %s 后坠落在瞄准处：%s 伤害（范围 %s），并击退",
+"• %s後に狙った場所へ落下：%sダメージ（%s以内）とノックバック"
+],
+"• Knocks them back %s": [
+"• Los hace retroceder %s",
+"• Les repousse de %s",
+"• يدفعهم للخلف %s",
+"• Stößt sie %s zurück",
+"• 将它们击退 %s",
+"• %s吹き飛ばす"
+],
+"• The ground burns for %s: %s of max HP per second within %s": [
+"• El suelo arde durante %s: %s de PV máx. por segundo en %s",
+"• Le sol brûle pendant %s : %s des PV max par seconde dans un rayon de %s",
+"• تحترق الأرض لمدة %s: %s من الصحة القصوى في الثانية ضمن %s",
+"• Der Boden brennt %s lang: %s der max. LP pro Sekunde im Umkreis von %s",
+"• 地面燃烧 %s：每秒 %s 最大生命（范围 %s）",
+"• 地面が%s燃える：毎秒最大HPの%s（%s以内）"
+],
+"• You reappear at the crash site": [
+"• Reapareces en el punto de impacto",
+"• Vous réapparaissez au point d'impact",
+"• تعود للظهور في موقع الارتطام",
+"• Du erscheinst an der Einschlagstelle wieder",
+"• 你在坠落点重新出现",
+"• 落下地点に再出現する"
+]
+}

@@ -34,7 +34,7 @@ def is_text(s: str, line: str) -> bool:
         return False
     if "no-i18n" in line or "debug_label" in line or "_smoke_report" in line or "print_verbose" in line or "save_jpg" in line:
         return False
-    if s in SKIP_TEXT or s.startswith(("shader_type", "parameters/", "[center]", "[color=#%s]", "[font_size")):
+    if s in SKIP_TEXT or s.startswith(("shader_type", "parameters/", "[center]", "[color=#", "  [color=#", "[font_size")):
         return False
     if not re.search(r"[A-Za-z]{2}", re.sub(r"%[-+0-9.]*[sdf]", "", s)):   # formats with no words
         return False

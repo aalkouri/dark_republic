@@ -51,6 +51,8 @@ var _title: Label
 var _title_mat: ShaderMaterial
 var _menu: VBoxContainer
 var _settings: SettingsMenu
+var _modes: ModeMenu
+var _reveal_sfx: AudioStreamPlayer
 var _fade: ColorRect
 var _leaving := false
 var _font: FontVariation
@@ -247,7 +249,7 @@ func _build_ui() -> void:
 	_menu.position = Vector2(92, 340)
 	_menu.add_theme_constant_override("separation", 10)
 	root.add_child(_menu)
-	var play := _menu_button("Play", _play)   # -> character select -> map choice -> run
+	var play := _menu_button("Play", _play)   # -> the mode cards (ModeMenu) -> character select...
 	_menu_button("Settings", _open_settings)
 	_menu_button("Quit", func(): get_tree().quit())
 	play.grab_focus.call_deferred()
@@ -264,6 +266,15 @@ func _build_ui() -> void:
 	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	root.add_child(credit)
 
+	_modes = ModeMenu.create(_font, _font)
+	_modes.chosen.connect(_on_mode)
+	_modes.cancelled.connect(_on_modes_closed)
+	root.add_child(_modes)
+	_reveal_sfx = AudioStreamPlayer.new()
+	_reveal_sfx.bus = Settings.SFX_BUS
+	_reveal_sfx.stream = load("res://audio/ui/menu_reveal.wav")
+	add_child(_reveal_sfx)
+
 	_settings = SettingsMenu.new()
 	_settings.visible = false
 	_settings.closed.connect(func(): _menu.visible = true; (_menu.get_child(1) as Button).grab_focus())
@@ -279,7 +290,7 @@ func _build_ui() -> void:
 
 func _menu_button(text: String, cb: Callable) -> Button:
 	var b := Button.new()
-	b.text = "  " + text.to_upper()
+	b.text = "  " + tr(text).to_upper()
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.flat = true
 	b.focus_mode = Control.FOCUS_ALL
@@ -313,9 +324,77 @@ func _open_settings() -> void:
 	_settings.open()
 
 
-## Play: choose your character (the character select screen then asks for the map).
+## Play: the mode cards burst out of the button (Quickplay / Classic / Unrelenting).
 func _play() -> void:
-	_leave(CHARACTER_SCENE, 0.45)
+	if _modes.is_open() or _leaving:
+		return
+	var play := _menu.get_child(0) as Button
+	for i in range(1, _menu.get_child_count()):
+		var b := _menu.get_child(i) as Button
+		b.disabled = true
+		b.focus_mode = Control.FOCUS_NONE
+		create_tween().tween_property(b, "modulate:a", 0.25, 0.2)
+	play.add_theme_color_override("font_color", Color(1.0, 0.62, 0.2))
+	var r := play.get_global_rect()
+	_modes.open(Vector2(r.position.x + 300.0, r.get_center().y))
+	_reveal_sfx.play()
+
+
+func _on_modes_closed() -> void:
+	var play := _menu.get_child(0) as Button
+	play.remove_theme_color_override("font_color")
+	play.add_theme_color_override("font_color", Color(0.88, 0.82, 0.72))
+	for i in range(1, _menu.get_child_count()):
+		var b := _menu.get_child(i) as Button
+		b.disabled = false
+		b.focus_mode = Control.FOCUS_ALL
+		create_tween().tween_property(b, "modulate:a", 1.0, 0.2)
+	play.grab_focus()
+
+
+## Classic and Unrelenting go to character select (which then asks for the map); Quickplay
+## picks a random playable character and a random map open to them and starts the run.
+func _on_mode(mode: String) -> void:
+	if mode == "quickplay":
+		var pick := quickplay_pick(rng_seed())
+		Settings.game_mode = "classic"
+		Settings.selected_character = pick["character"]
+		Settings.selected_map = pick["map"]
+		_leave(GAME_SCENE, 0.6)
+	else:
+		Settings.game_mode = mode
+		_leave(CHARACTER_SCENE, 0.45)
+
+
+func rng_seed() -> int:
+	return int(Time.get_ticks_usec())
+
+
+## Quickplay's choice: {character, map} - an unlocked, playable character and a random map
+## that's unlocked and open to them. (There are no difficulty settings yet; when there are,
+## Quickplay should pick the hardest one unlocked.)
+static func quickplay_pick(seed_value: int) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var chars := []
+	var data = JSON.parse_string(FileAccess.get_file_as_string("res://data/characters.json"))
+	for c in (data["characters"] if data is Dictionary else []):
+		var id: String = c["id"]
+		if c.get("mystery", false):
+			continue
+		var unlocked: bool = bool(c.get("unlocked", false)) or Wallet.is_char_unlocked(id)
+		if unlocked and (c.has("kit") or RosterHero.is_playable(id)):
+			chars.append(id)
+	if chars.is_empty():
+		chars = ["fire_wizard"]
+	var who: String = chars[rng.randi() % chars.size()]
+	var maps := []
+	for m in MapPicker.MAPS:
+		if MapPicker.lock_reason(m["id"], who) == "":
+			maps.append(m["id"])
+	if maps.is_empty():
+		maps = ["swamp"]
+	return {"character": who, "map": maps[rng.randi() % maps.size()]}
 
 
 func _leave(scene: String, fade: float) -> void:
@@ -331,6 +410,8 @@ func _leave(scene: String, fade: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _modes.is_open():
+		return   # ModeMenu handles its own Esc
 	if event.is_action_pressed("pause") and _settings.visible:
 		_settings.handle_escape()
 		get_viewport().set_input_as_handled()
@@ -350,8 +431,8 @@ func _shot_setup() -> void:
 			_shot_path = a.split("=")[1]
 		elif a.begins_with("--shot-at="):
 			_shot_at = float(a.split("=")[1])
-		elif a == "--shot-maps":   # the map choice
-			_play.call_deferred()
+		elif a == "--shot-modes":   # the Play submenu (mode cards)
+			get_tree().create_timer(1.3).timeout.connect(_play)
 		elif a == "--shot-thog-beaten":   # as if Thog was just beaten (screenshot runs don't save)
 			Wallet.bosses_defeated = ["thog"]
 			Wallet.seen_unlocks = []

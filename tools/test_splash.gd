@@ -11,7 +11,7 @@ func _ready() -> void:
 	add_child(splash)
 	await get_tree().process_frame
 	_check("logo plays on start", splash._player != null and splash._player.is_playing(), "")
-	_check("next scene exists", ResourceLoader.exists(splash.NEXT_SCENE), splash.NEXT_SCENE)
+	_check("next scenes exist (intro, title)", ResourceLoader.exists(splash.NEXT_SCENE) and ResourceLoader.exists(splash.TITLE_SCENE), splash.NEXT_SCENE)
 	# Any key skips (without actually changing scene in the test)
 	var ev := InputEventKey.new()
 	ev.physical_keycode = KEY_SPACE

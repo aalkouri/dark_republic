@@ -1,9 +1,11 @@
 extends Control
-## Startup splash: plays the AtomAI studio logo, then goes to the next scene.
+## Startup splash: plays the AtomAI studio logo, then the intro cinematic (scenes/intro.tscn,
+## unless turned off in Settings > Gameplay), then the title.
 ## Any key, mouse click or gamepad button skips it. Test/screenshot runs skip it automatically.
 
 const LOGO := "res://video/atomai_logo.ogv"
-const NEXT_SCENE := "res://scenes/title.tscn"
+const NEXT_SCENE := "res://scenes/intro.tscn"
+const TITLE_SCENE := "res://scenes/title.tscn"
 const GAME_SCENE := "res://scenes/main.tscn"
 const FADE_OUT := 0.35
 
@@ -17,8 +19,8 @@ func _ready() -> void:
 		if a == "--smoketest" or a.begins_with("--shot"):
 			get_tree().change_scene_to_file.call_deferred(GAME_SCENE)   # tests go straight in
 			return
-		if a == "--skip-intro":
-			_go.call_deferred()
+		if a == "--skip-intro":   # straight to the title (no logo, no cinematic)
+			get_tree().change_scene_to_file.call_deferred(TITLE_SCENE)
 			return
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Wallet.set_shown(false)   # the coin counter appears from the title screen on
@@ -58,6 +60,10 @@ func _go() -> void:
 	if _player and _player.is_playing():
 		var tw := create_tween()
 		tw.tween_property(self, "modulate", Color.BLACK, FADE_OUT)
-		tw.tween_callback(func(): get_tree().change_scene_to_file(NEXT_SCENE))
+		tw.tween_callback(func(): get_tree().change_scene_to_file(next_scene()))
 	else:
-		get_tree().change_scene_to_file(NEXT_SCENE)
+		get_tree().change_scene_to_file(next_scene())
+
+
+func next_scene() -> String:
+	return NEXT_SCENE if Settings.play_intro else TITLE_SCENE

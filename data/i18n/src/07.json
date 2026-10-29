@@ -1,0 +1,122 @@
+{
+"Quickplay": [
+"Partida rápida",
+"Partie rapide",
+"لعب سريع",
+"Schnellspiel",
+"快速游戏",
+"クイックプレイ"
+],
+"Classic": [
+"Clásico",
+"Classique",
+"كلاسيكي",
+"Klassisch",
+"经典",
+"クラシック"
+],
+"Unrelenting": [
+"Implacable",
+"Implacable",
+"بلا هوادة",
+"Gnadenlos",
+"无尽",
+"アンリレンティング"
+],
+"UNRELENTING": [
+"IMPLACABLE",
+"IMPLACABLE",
+"بلا هوادة",
+"GNADENLOS",
+"无尽模式",
+"アンリレンティング"
+],
+"Random character, random unlocked map. Straight into the fight.": [
+"Personaje aleatorio, mapa desbloqueado aleatorio. Directo a la pelea.",
+"Personnage aléatoire, carte débloquée aléatoire. Droit au combat.",
+"شخصية عشوائية وخريطة مفتوحة عشوائية. مباشرة إلى القتال.",
+"Zufälliger Charakter, zufällige freigeschaltete Karte. Direkt in den Kampf.",
+"随机角色，随机已解锁地图。直接开战。",
+"ランダムなキャラ、解放済みのランダムなマップ。すぐに戦闘へ。"
+],
+"Choose your champion and map. Survive 10 minutes.": [
+"Elige a tu campeón y tu mapa. Sobrevive 10 minutos.",
+"Choisissez votre champion et votre carte. Survivez 10 minutes.",
+"اختر بطلك وخريطتك. انجُ 10 دقائق.",
+"Wähle Champion und Karte. Überlebe 10 Minuten.",
+"选择勇士与地图。存活 10 分钟。",
+"チャンピオンとマップを選び、10分間生き延びろ。"
+],
+"No time limit. Endless enemies that keep getting deadlier. No upgrade caps.": [
+"Sin límite de tiempo. Enemigos sin fin, cada vez más letales. Mejoras sin tope.",
+"Aucune limite de temps. Des ennemis sans fin, toujours plus mortels. Améliorations sans plafond.",
+"بلا حد زمني. أعداء لا ينتهون ويزدادون فتكًا. ترقيات بلا حدود.",
+"Kein Zeitlimit. Endlose Gegner, die immer tödlicher werden. Keine Upgrade-Obergrenze.",
+"没有时间限制。敌人无穷无尽且越来越致命。升级无上限。",
+"時間制限なし。敵は尽きず、どんどん凶悪に。強化に上限なし。"
+],
+"Esc: back": [
+"Esc: atrás",
+"Échap : retour",
+"Esc: رجوع",
+"Esc: zurück",
+"Esc：返回",
+"Esc：戻る"
+],
+"Survive 15:00 in the Swamp on Unrelenting": [
+"Sobrevive 15:00 en el Pantano en modo Implacable",
+"Survivez 15:00 dans le Marais en mode Implacable",
+"انجُ 15:00 في المستنقع في وضع بلا هوادة",
+"Überlebe 15:00 im Sumpf auf Gnadenlos",
+"在无尽模式的沼泽中存活 15:00",
+"アンリレンティングの沼で15:00生き延びる"
+],
+"15:00 IN THE SWAMP!  Ghast can now be unlocked": [
+"¡15:00 EN EL PANTANO!  Ya puedes desbloquear a Ghast",
+"15:00 DANS LE MARAIS !  Ghast peut maintenant être débloqué",
+"15:00 في المستنقع!  يمكنك الآن فتح غاست",
+"15:00 IM SUMPF!  Ghast kann jetzt freigeschaltet werden",
+"沼泽 15:00！  现在可以解锁怨灵了",
+"沼で15:00！  ガストが解放可能になった"
+],
+"Weapon: %s": [
+"Arma: %s",
+"Arme : %s",
+"السلاح: %s",
+"Waffe: %s",
+"武器：%s",
+"武器：%s"
+],
+"Damage: %s": [
+"Daño: %s",
+"Dégâts : %s",
+"الضرر: %s",
+"Schaden: %s",
+"伤害：%s",
+"ダメージ：%s"
+],
+"One attack every %s": [
+"Un ataque cada %s",
+"Une attaque toutes les %s",
+"هجمة كل %s",
+"Ein Angriff alle %s",
+"每 %s 攻击一次",
+"%sごとに1回攻撃"
+],
+"%s s": [
+"%s s",
+"%s s",
+"%s ث",
+"%s s",
+"%s 秒",
+"%s秒"
+],
+"Play intro on startup": [
+"Reproducir intro al iniciar",
+"Lire l'intro au démarrage",
+"تشغيل المقدمة عند البدء",
+"Intro beim Start abspielen",
+"启动时播放开场动画",
+"起動時にイントロを再生"
+]
+}

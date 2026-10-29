@@ -160,6 +160,7 @@ func _gameplay_tab() -> Control:
 	_lang.selected = _lang_index(Settings.language)
 	_lang.item_selected.connect(func(i: int): Settings.set_value("language", Settings.LANGUAGES[i][0]))
 	_row(vb, "Language", _lang)
+	_row(vb, "Play intro on startup", _check(Settings.play_intro, func(on: bool): Settings.set_value("play_intro", on)))
 	var note := Label.new()
 	note.text = "Press Apply to switch the language."
 	note.modulate.a = 0.6

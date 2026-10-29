@@ -1,0 +1,2656 @@
+{
+ "\nFPS %d": [
+  "hud.gd:1038"
+ ],
+ "\"All other audio\" covers enemy sounds, hits and effects.": [
+  "settings_menu.gd:206"
+ ],
+ "%.1f / %d s": [
+  "(runtime)"
+ ],
+ "%d m": [
+  "(runtime)"
+ ],
+ "%d min": [
+  "abilities.gd:225",
+  "kit_db.gd:96"
+ ],
+ "%d of %d unlocked": [
+  "character_select.gd:318"
+ ],
+ "%d s": [
+  "(runtime)"
+ ],
+ "%d to spend": [
+  "skill_screen.gd:267"
+ ],
+ "%s  Lv %d": [
+  "hud.gd:928",
+  "hud.gd:1044"
+ ],
+ "%s  ·  %.1f / %d s": [
+  "(runtime)"
+ ],
+ "%s  ·  Costs 1 skill point": [
+  "skill_screen.gd:311"
+ ],
+ "%s  ·  Skills": [
+  "skill_screen.gd:100"
+ ],
+ "%s / %s EXP": [
+  "character_select.gd:697",
+  "hud.gd:693"
+ ],
+ "%s Chest": [
+  "chest.gd:52"
+ ],
+ "%s Damage": [
+  "weapon_system.gd:181"
+ ],
+ "%s Pierce": [
+  "weapon_system.gd:183"
+ ],
+ "%s Shrine": [
+  "shrine.gd:492"
+ ],
+ "%s can't fight here: this is his home turf": [
+  "map_picker.gd:90"
+ ],
+ "%s coins": [
+  "character_select.gd:120"
+ ],
+ "+%d shield": [
+  "hud.gd:1029"
+ ],
+ "+%d%% from Damage": [
+  "abilities.gd:195"
+ ],
+ "+0.5 luck: better rewards, more epic enemies and power-ups (like 5 Tomes of Luck)": [
+  "skill_tree.gd:62",
+  "skill_tree.gd:106"
+ ],
+ "+1 air jump": [
+  "skill_tree.gd:55",
+  "skill_tree.gd:100"
+ ],
+ "+1 fireball": [
+  "skill_tree.gd:92"
+ ],
+ "+1 projectile": [
+  "skill_tree.gd:45"
+ ],
+ "+10 armor": [
+  "skill_tree.gd:30"
+ ],
+ "+10% attack speed": [
+  "skill_tree.gd:39",
+  "skill_tree.gd:88"
+ ],
+ "+10% damage": [
+  "skill_tree.gd:38",
+  "skill_tree.gd:87"
+ ],
+ "+10% move speed": [
+  "skill_tree.gd:54",
+  "skill_tree.gd:99"
+ ],
+ "+15% XP": [
+  "skill_tree.gd:58"
+ ],
+ "+15% area": [
+  "skill_tree.gd:41"
+ ],
+ "+15% coins from runs": [
+  "skill_tree.gd:56",
+  "skill_tree.gd:101"
+ ],
+ "+15% max HP, +5 armor": [
+  "skill_tree.gd:33"
+ ],
+ "+20 max HP": [
+  "skill_tree.gd:22",
+  "skill_tree.gd:75"
+ ],
+ "+20% move speed": [
+  "skill_tree.gd:64"
+ ],
+ "+20% projectile speed": [
+  "skill_tree.gd:42"
+ ],
+ "+25% attack speed": [
+  "skill_tree.gd:48"
+ ],
+ "+25% damage": [
+  "skill_tree.gd:47",
+  "skill_tree.gd:94"
+ ],
+ "+25% max HP": [
+  "skill_tree.gd:29",
+  "skill_tree.gd:80"
+ ],
+ "+3 armor, +10 max HP": [
+  "skill_tree.gd:25"
+ ],
+ "+35% XP": [
+  "skill_tree.gd:65"
+ ],
+ "+35% area": [
+  "skill_tree.gd:49"
+ ],
+ "+4 armor": [
+  "skill_tree.gd:23",
+  "skill_tree.gd:76"
+ ],
+ "+4 fireball damage": [
+  "skill_tree.gd:89"
+ ],
+ "+4 projectile damage": [
+  "skill_tree.gd:40"
+ ],
+ "+40% coins from runs": [
+  "skill_tree.gd:63"
+ ],
+ "+50% pickup range": [
+  "skill_tree.gd:57",
+  "skill_tree.gd:105"
+ ],
+ "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
+  "main.gd:478"
+ ],
+ "2 yd": [
+  "abilities.gd:208"
+ ],
+ "3-hit combo, wind slash": [
+  "abilities.json"
+ ],
+ "360° spin every 1.5 s (4 m): 35 damage, instantly reaps enemies under 10% HP": [
+  "abilities.json"
+ ],
+ "360° spin, executes": [
+  "abilities.json"
+ ],
+ "5 yd": [
+  "abilities.gd:212"
+ ],
+ "5x DAMAGE for 10 s!": [
+  "powerup_manager.gd:18"
+ ],
+ "5x Damage": [
+  "powerup_manager.gd:17"
+ ],
+ "6 rapid shots of 40 damage (pierce 1), then a 1.5 s reload": [
+  "abilities.json"
+ ],
+ "8 m cone of sound in front of you that pierces everything and slows 25%": [
+  "abilities.json"
+ ],
+ "A GOBLIN WARLORD APPROACHES": [
+  "main.gd:581"
+ ],
+ "A Monotreme of Distinction": [
+  "characters.json"
+ ],
+ "A big blue troll with a bigger club. Retired from bridge duty after a goat incident. Not retired from smashing.": [
+  "characters.json"
+ ],
+ "A blizzard swallows everything around you.": [
+  "abilities.json"
+ ],
+ "A cauldron stands for {15 s}, spitting a glob at an enemy within {15 m} every second: {50} damage": [
+  "abilities.json"
+ ],
+ "A crocodile with a PhD, a lab coat and absolutely no bedside manner.": [
+  "characters.json"
+ ],
+ "A flask of blessed water, thrown where you aim.": [
+  "abilities.json"
+ ],
+ "A grumpy old pyromancer who wandered into the swamp to dry his socks and never left. Hurls fireballs, sets enemies ablaze and occasionally becomes a giant flaming version of his own head.": [
+  "characters.json"
+ ],
+ "A hexed enemy that dies passes the hex on to {2} neighbours": [
+  "abilities.json"
+ ],
+ "A little imp made of hot coals. Leaves scorch marks on everything, especially furniture.": [
+  "characters.json"
+ ],
+ "A malfunctioning party robot. Its only settings are DANCE and DESTROY.": [
+  "characters.json"
+ ],
+ "A piñata lands where you aim; enemies swarm it, and it bursts after {3 s}": [
+  "abilities.json"
+ ],
+ "A ring of fire bursts out from the ground under you.": [
+  "abilities.gd:210"
+ ],
+ "A ring of mushrooms springs up around you.": [
+  "abilities.json"
+ ],
+ "A scream nobody survives hearing twice.": [
+  "abilities.json"
+ ],
+ "A silent swamp ninja. The splash you didn't hear was him.": [
+  "characters.json"
+ ],
+ "A spectral winged horse charges through the horde {3} times in the direction you aim": [
+  "abilities.json"
+ ],
+ "A stone bridge crashes down on a {25 m} line where you aim: {350} damage": [
+  "abilities.json"
+ ],
+ "A thunderstorm follows you around.": [
+  "abilities.json"
+ ],
+ "A washing machine falls from the sky.": [
+  "abilities.json"
+ ],
+ "A {10 m} ring lasts {10 s}": [
+  "abilities.json"
+ ],
+ "A {20 m} flood of acid around you for {10 s}: {4%} of max HP per second": [
+  "abilities.json"
+ ],
+ "Abilities recharge 20% faster": [
+  "skill_tree.gd:61",
+  "skill_tree.gd:104"
+ ],
+ "Ability 1 - Inferno": [
+  "settings.gd:25"
+ ],
+ "Ability 2 - Fire Nova": [
+  "settings.gd:25"
+ ],
+ "Absolute Zero": [
+  "abilities.json"
+ ],
+ "Absorbs goblins. Doesn't digest them very well. They're still in there, waving.": [
+  "characters.json"
+ ],
+ "Absorbs up to {20} enemies within {6 m} (not the boss)": [
+  "abilities.json"
+ ],
+ "Acid Body": [
+  "abilities.json"
+ ],
+ "Aegis": [
+  "skill_tree.gd:32"
+ ],
+ "After {5 s} each takes {400} damage": [
+  "abilities.json"
+ ],
+ "Afterwards you're a tiny cinder with {+50%} move speed for {5 s}": [
+  "abilities.json"
+ ],
+ "All other audio": [
+  "settings_menu.gd:204"
+ ],
+ "Alternating sonic pulses in a 6 m cone: 20 damage each, faster while you keep moving": [
+  "abilities.json"
+ ],
+ "An Argyle Sock": [
+  "characters.json"
+ ],
+ "An egg sac hatches. Lunch is served.": [
+  "abilities.json"
+ ],
+ "Appear behind your target. They won't hear you.": [
+  "abilities.json"
+ ],
+ "Apply": [
+  "settings_menu.gd:69"
+ ],
+ "Arcane Bolts": [
+  "abilities.json"
+ ],
+ "Arcs to 4 enemies, losing 20% damage per jump": [
+  "abilities.json"
+ ],
+ "Area": [
+  "upgrades.json"
+ ],
+ "Armor": [
+  "upgrades.json"
+ ],
+ "Ashen Ward": [
+  "skill_tree.gd:76"
+ ],
+ "Attack Speed": [
+  "upgrades.json"
+ ],
+ "Attack faster.": [
+  "upgrades.json"
+ ],
+ "Aura Damage": [
+  "upgrades.json"
+ ],
+ "Aura Size": [
+  "upgrades.json"
+ ],
+ "Aura Tick Rate": [
+  "upgrades.json"
+ ],
+ "Auto-aimed fireballs that pierce": [
+  "abilities.json"
+ ],
+ "Auto-aimed, piercing": [
+  "abilities.json"
+ ],
+ "Available from the start of every run": [
+  "character_select.gd:515"
+ ],
+ "BAN  ·  %d coins": [
+  "hud.gd:275"
+ ],
+ "BANNED": [
+  "hud.gd:296"
+ ],
+ "BURNING": [
+  "hud.gd:1064"
+ ],
+ "Back": [
+  "character_select.gd:613",
+  "settings_menu.gd:63"
+ ],
+ "Bans left: %d / %d   ·   %d coins each": [
+  "hud.gd:660"
+ ],
+ "Banshee Scream": [
+  "abilities.json"
+ ],
+ "Bard to the bone": [
+  "taglines.json"
+ ],
+ "Bastion": [
+  "skill_tree.gd:30"
+ ],
+ "Become a whirlwind for {5 s}, pulling enemies within {6 m} in": [
+  "abilities.json"
+ ],
+ "Become a {20 m} puddle for {6 s}: you can't move, but you're invulnerable": [
+  "abilities.json"
+ ],
+ "Beholder of the year": [
+  "taglines.json"
+ ],
+ "Bellow": [
+  "abilities.json"
+ ],
+ "Belly Flop": [
+  "abilities.json"
+ ],
+ "Better rarity rolls.": [
+  "upgrades.json"
+ ],
+ "Big Club": [
+  "abilities.json"
+ ],
+ "Big Swamp Grumbo": [
+  "characters.json"
+ ],
+ "Bigger everything.": [
+  "upgrades.json"
+ ],
+ "Billy Bulldog": [
+  "characters.json"
+ ],
+ "Bite": [
+  "abilities.json"
+ ],
+ "Blast Bomb": [
+  "upgrades.json"
+ ],
+ "Blink from enemy to enemy faster than they can blink.": [
+  "abilities.json"
+ ],
+ "Blob": [
+  "characters.json"
+ ],
+ "Blue Potion: +10% shield": [
+  "potion_manager.gd:17"
+ ],
+ "Bog Witch": [
+  "characters.json"
+ ],
+ "Borderless fullscreen": [
+  "settings_menu.gd:182"
+ ],
+ "Brace behind your shield.": [
+  "abilities.json"
+ ],
+ "Brewer of Foul Things": [
+  "characters.json"
+ ],
+ "Bridge Collapse": [
+  "abilities.json"
+ ],
+ "Bridge Keeper Emeritus": [
+  "characters.json"
+ ],
+ "Brings his old bridge down on them.": [
+  "abilities.json"
+ ],
+ "Broke out of the zoo, swam the river and found the swamp to his liking. Still wears the shackles. Uses them.": [
+  "characters.json"
+ ],
+ "Bronze": [
+  "chest.gd:8",
+  "shrine.gd:27"
+ ],
+ "Brood": [
+  "abilities.json"
+ ],
+ "Brutality": [
+  "skill_tree.gd:47"
+ ],
+ "Bubbling Cauldron": [
+  "abilities.json"
+ ],
+ "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size": [
+  "abilities.json"
+ ],
+ "Burns on touch, grows": [
+  "abilities.json"
+ ],
+ "Bursts, leaves acid": [
+  "abilities.json"
+ ],
+ "CHOOSE YOUR BATTLEGROUND": [
+  "map_picker.gd:53"
+ ],
+ "CHOOSE YOUR CHAMPION": [
+  "character_select.gd:206"
+ ],
+ "Caller of the Storm": [
+  "characters.json"
+ ],
+ "Came for the vampires. Settled for goblins. Is not happy about it.": [
+  "characters.json"
+ ],
+ "Chain Lightning": [
+  "weapon_system.gd:58",
+  "abilities.json"
+ ],
+ "Chain Shrine": [
+  "shrine.gd:497"
+ ],
+ "Chain spin, knockback": [
+  "abilities.json"
+ ],
+ "Chance to heal when you kill an enemy.": [
+  "upgrades.json"
+ ],
+ "Chaotic neat": [
+  "taglines.json"
+ ],
+ "Charge {20 m} headfirst where you aim": [
+  "abilities.json"
+ ],
+ "Chest Pound": [
+  "abilities.json"
+ ],
+ "Choose it after Play": [
+  "hud.gd:729"
+ ],
+ "Choose your champion and map. Survive 10 minutes.": [
+  "mode_menu.gd:15"
+ ],
+ "Cinder Shell": [
+  "skill_tree.gd:81"
+ ],
+ "Cinder Toss": [
+  "abilities.json"
+ ],
+ "Classic": [
+  "mode_menu.gd:15"
+ ],
+ "Click or press any key to skip": [
+  "intro.gd:374"
+ ],
+ "Click to continue": [
+  "unlock_reveal.gd:52"
+ ],
+ "Cocoon": [
+  "abilities.json"
+ ],
+ "Cocooned enemies take {25%} of their max HP; you heal {1%} of max HP per cocoon": [
+  "abilities.json"
+ ],
+ "Collects what's owed.": [
+  "abilities.json"
+ ],
+ "Colossal": [
+  "skill_tree.gd:49"
+ ],
+ "Common": [
+  "upgrades.json"
+ ],
+ "Complete": [
+  "shrine.gd:488"
+ ],
+ "Constantly damages enemies around you.": [
+  "upgrades.json"
+ ],
+ "Controls": [
+  "settings_menu.gd:233"
+ ],
+ "Cooldowns reset": [
+  "main.gd:844"
+ ],
+ "Cowboy": [
+  "characters.json"
+ ],
+ "Critical hits, critical misses, critical vibes": [
+  "taglines.json"
+ ],
+ "DARK REPUBLIC": [
+  "intro.gd:363",
+  "title.gd:199"
+ ],
+ "DESTROY Mode": [
+  "abilities.json"
+ ],
+ "DR. CROC": [
+  "intro.gd:436"
+ ],
+ "Damage": [
+  "upgrades.json"
+ ],
+ "Damage stat: %+d%% to flat damage": [
+  "abilities.gd:178"
+ ],
+ "Damage: %s": [
+  "character_select.gd:499"
+ ],
+ "Dancing enemies take {5%} of max HP per second": [
+  "abilities.json"
+ ],
+ "Dark Wizard": [
+  "characters.json"
+ ],
+ "Dash through the crowd and help yourself.": [
+  "abilities.json"
+ ],
+ "Dash {12 m} through up to {10} enemies: {70} damage each": [
+  "abilities.json"
+ ],
+ "Death": [
+  "characters.json"
+ ],
+ "Death Roll": [
+  "abilities.json"
+ ],
+ "Death by a Thousand Cuts": [
+  "abilities.json"
+ ],
+ "Death saves are for the dead": [
+  "taglines.json"
+ ],
+ "Defeat %s to unlock": [
+  "map_picker.gd:88",
+  "map_picker.gd:129"
+ ],
+ "Defeat Thog the Troll in the Swamp": [
+  "character_select.gd:111"
+ ],
+ "Defense": [
+  "skill_tree.gd:11",
+  "skill_tree.gd:20",
+  "skill_tree.gd:73"
+ ],
+ "Display mode": [
+  "settings_menu.gd:186"
+ ],
+ "Diving down deals {140} damage within {6 m}": [
+  "abilities.json"
+ ],
+ "Don't split the party. Split the goblins.": [
+  "taglines.json"
+ ],
+ "Done": [
+  "skill_screen.gd:176"
+ ],
+ "Dr. Croc": [
+  "characters.json"
+ ],
+ "Dragon my feet since level 1": [
+  "taglines.json"
+ ],
+ "Dragonborn this way": [
+  "taglines.json"
+ ],
+ "Drains the life out of everything nearby.": [
+  "abilities.json"
+ ],
+ "Drift through enemies, trees and walls.": [
+  "abilities.json"
+ ],
+ "Drifts through walls, goblins and occasionally its own sentences.": [
+  "characters.json"
+ ],
+ "Drinks his own experiment. Side effects include winning.": [
+  "abilities.json"
+ ],
+ "Drops a disco ball. Everyone dances.": [
+  "abilities.json"
+ ],
+ "Druid you hear that?": [
+  "taglines.json"
+ ],
+ "Dungeon Master of none": [
+  "taglines.json"
+ ],
+ "Dwarfed by the competition": [
+  "taglines.json"
+ ],
+ "Dynamite": [
+  "abilities.json"
+ ],
+ "EXP %s  ·  max level": [
+  "skill_screen.gd:263"
+ ],
+ "EXP %s / %s to lvl %d": [
+  "skill_screen.gd:263"
+ ],
+ "EXP +%s   ·   lvl %d  (%s)": [
+  "hud.gd:694"
+ ],
+ "Each bolt deals {90} damage and chains to {3} more enemies": [
+  "abilities.json"
+ ],
+ "Each deals {20} damage per second and applies poison": [
+  "abilities.json"
+ ],
+ "Each draws enemies to it and slams every {1.5 s}: {80} damage within {4 m}": [
+  "abilities.json"
+ ],
+ "Each enemy you pass drops an extra XP gem": [
+  "abilities.json"
+ ],
+ "Each eruption leaves a fresh fire behind": [
+  "abilities.json"
+ ],
+ "Each explodes after {1.5 s} for {120} damage within {5 m}": [
+  "abilities.json"
+ ],
+ "Each has its own Acid Body at {60%} damage": [
+  "abilities.json"
+ ],
+ "Each kill heals {1%} of your max HP": [
+  "abilities.json"
+ ],
+ "Each kill heals {2%} of your max HP": [
+  "abilities.json"
+ ],
+ "Each one that pays drops an XP gem": [
+  "abilities.json"
+ ],
+ "Each puggle explodes for {80} damage within {4 m} and poisons": [
+  "abilities.json"
+ ],
+ "Each soul gives {+2%} damage for {20 s}, up to {+50%}": [
+  "abilities.json"
+ ],
+ "Eclipse": [
+  "abilities.json"
+ ],
+ "Egg Clutch": [
+  "abilities.json"
+ ],
+ "Eight-Legged Nightmare": [
+  "characters.json"
+ ],
+ "Electric pulse to {15 m}: {60} damage": [
+  "abilities.json"
+ ],
+ "Electro-Bill": [
+  "abilities.json"
+ ],
+ "Elf-help for adventurers": [
+  "taglines.json"
+ ],
+ "Ember Hide": [
+  "skill_tree.gd:75"
+ ],
+ "Ember Pull": [
+  "skill_tree.gd:105"
+ ],
+ "Enemies below {20%} HP die instantly (not the boss)": [
+  "abilities.json"
+ ],
+ "Enemies have a chance to explode on death.": [
+  "upgrades.json"
+ ],
+ "Enemies hit are pinned to the ground for {2 s}": [
+  "abilities.json"
+ ],
+ "Enemies hit are stunned for {1.5 s}": [
+  "abilities.json"
+ ],
+ "Enemies hit take {120} damage and are thrown {8 yd}": [
+  "abilities.json"
+ ],
+ "Enemies in it are slowed {90%} and take {6%} of max HP per second": [
+  "abilities.json"
+ ],
+ "Enemies in it take {25} damage per second and are slowed {40%}": [
+  "abilities.json"
+ ],
+ "Enemies that cross it take {50} damage and wander confused for {3 s}": [
+  "abilities.json"
+ ],
+ "Enemies that die in it burst for {30%} of their max HP within {3 m}": [
+  "abilities.json"
+ ],
+ "Enemies that hit you while it holds take {2x} their contact damage back": [
+  "abilities.json"
+ ],
+ "Enemies that touch them burn for {4%} of max HP per second for {3 s}": [
+  "abilities.json"
+ ],
+ "Enemies within {12 m} lose {6%} of max HP per second for {4 s}": [
+  "abilities.json"
+ ],
+ "Enemies within {14 m} flee in terror for {4 s}": [
+  "abilities.json"
+ ],
+ "Enemies within {15 m} are forced to dance for {6 s} (they can't move or attack)": [
+  "abilities.json"
+ ],
+ "Enemies within {15 m} are frozen for {3 s} and take {+50%} damage while frozen": [
+  "abilities.json"
+ ],
+ "Enemies within {20 m} are hexed for {8 s} and take {+40%} damage": [
+  "abilities.json"
+ ],
+ "Enemies within {20 m} move and attack {70%} slower for {5 s}": [
+  "abilities.json"
+ ],
+ "Enemies within {30 m} take {15%} of their max HP and flee for {6 s}": [
+  "abilities.json"
+ ],
+ "Enemies you pass through take {30} damage and are slowed {50%} for {2 s}": [
+  "abilities.json"
+ ],
+ "Engulf": [
+  "abilities.json"
+ ],
+ "Enter: choose   ·   Esc: back": [
+  "character_select.gd:619",
+  "map_picker.gd:62"
+ ],
+ "Epic": [
+  "upgrades.json"
+ ],
+ "Esc: back": [
+  "mode_menu.gd:58"
+ ],
+ "Escapee of the Menagerie": [
+  "characters.json"
+ ],
+ "Every chest is a mimic until proven innocent": [
+  "taglines.json"
+ ],
+ "Every enemy within {20 m} stops to pet you for {4 s}; you're invulnerable": [
+  "abilities.json"
+ ],
+ "Every enemy within {25 m} falls asleep for {6 s} (the boss is only slowed)": [
+  "abilities.json"
+ ],
+ "Every enemy within {25 m} is flung back {10 yd} and stunned for {2 s}": [
+  "abilities.json"
+ ],
+ "Every enemy within {25 m} is wrapped in silk for {5 s} (the boss is only slowed)": [
+  "abilities.json"
+ ],
+ "Every fire he's lit goes off at once.": [
+  "abilities.json"
+ ],
+ "Every fire on the ground erupts: {100} damage within {3 m} of each": [
+  "abilities.json"
+ ],
+ "Every jump and every landing releases a shock: {40} damage within {6 m}": [
+  "abilities.json"
+ ],
+ "Every kill releases a shadow wisp that seeks an enemy for {60} damage": [
+  "abilities.json"
+ ],
+ "Every projectile weapon fires more.": [
+  "upgrades.json"
+ ],
+ "Every second, hands drag the {3} nearest enemies under (elites and the boss take {25%} of max HP instead)": [
+  "abilities.json"
+ ],
+ "Every {3rd} step quakes for {60} damage within {6 m}": [
+  "abilities.json"
+ ],
+ "Explode Chance": [
+  "upgrades.json"
+ ],
+ "Explosion Damage": [
+  "upgrades.json"
+ ],
+ "Extra Jumps": [
+  "upgrades.json"
+ ],
+ "FEAR IDOL! Enemies flee for 15 s": [
+  "powerup_manager.gd:18"
+ ],
+ "FPS limit": [
+  "settings_menu.gd:196"
+ ],
+ "Fairy Ring": [
+  "abilities.json"
+ ],
+ "Fast 3-hit combo in a 3 m arc; the 3rd hit sends a wind slash 10 m": [
+  "abilities.json"
+ ],
+ "Fast globs that poison for 3% of max HP per second for 4 s, stacking 3 times": [
+  "abilities.json"
+ ],
+ "Fast throws, bleed": [
+  "abilities.json"
+ ],
+ "Fast, short-range throws in pairs; hits bleed for 3% of max HP per second for 3 s": [
+  "abilities.json"
+ ],
+ "Fast, stacking poison": [
+  "abilities.json"
+ ],
+ "Faster projectiles.": [
+  "upgrades.json"
+ ],
+ "Fastest Gun in the Bayou": [
+  "characters.json"
+ ],
+ "Fear Idol": [
+  "powerup_manager.gd:17"
+ ],
+ "Feather": [
+  "upgrades.json"
+ ],
+ "Fetch!": [
+  "abilities.json"
+ ],
+ "Field of view": [
+  "settings_menu.gd:189"
+ ],
+ "Fiesta-Grade Machine": [
+  "characters.json"
+ ],
+ "Finds its missing partner. Briefly.": [
+  "abilities.json"
+ ],
+ "Fire Nova": [
+  "abilities.gd:85",
+  "abilities.json"
+ ],
+ "Fireball Cooldown": [
+  "upgrades.json"
+ ],
+ "Fireball Damage": [
+  "upgrades.json"
+ ],
+ "Fireball Pierce": [
+  "upgrades.json"
+ ],
+ "Fireball solves most problems. And starts the rest.": [
+  "taglines.json"
+ ],
+ "Fireballs": [
+  "weapon_system.gd:54",
+  "abilities.json",
+  "upgrades.json",
+  "upgrades.json"
+ ],
+ "Fireballs pierce 1 more enemy": [
+  "skill_tree.gd:93"
+ ],
+ "Fires {16} stakes in a ring: {90} damage each": [
+  "abilities.json"
+ ],
+ "Flash Freeze": [
+  "abilities.json"
+ ],
+ "Flashover": [
+  "abilities.json"
+ ],
+ "Fleet Feet": [
+  "skill_tree.gd:54",
+  "skill_tree.gd:99"
+ ],
+ "Fog, cypress trees and stinking pools.": [
+  "map_picker.gd:18"
+ ],
+ "For {10 s}, a bolt strikes an enemy within {18 m} every {0.25 s}": [
+  "abilities.json"
+ ],
+ "For {10 s}, enemies move at half speed": [
+  "abilities.json"
+ ],
+ "For {12 s}, twin lasers sweep around you to {20 m}": [
+  "abilities.json"
+ ],
+ "For {12 s}: {+80%} damage and {+50%} move speed": [
+  "abilities.json"
+ ],
+ "For {12 s}: {50%} bigger, {+60%} damage and immune to knockback": [
+  "abilities.json"
+ ],
+ "For {8 s}, enemies lose track of you and wander": [
+  "abilities.json"
+ ],
+ "For {8 s}, every enemy that comes within {6 m} pays the toll: {80} damage": [
+  "abilities.json"
+ ],
+ "Fortune": [
+  "skill_tree.gd:62"
+ ],
+ "Fortune's Flame": [
+  "skill_tree.gd:106"
+ ],
+ "Four of him. None of them make a sound.": [
+  "abilities.json"
+ ],
+ "Freezes every enemy around you solid.": [
+  "abilities.json"
+ ],
+ "Freezes the swamp solid and skates circles around the horde.": [
+  "characters.json"
+ ],
+ "Frenzy": [
+  "skill_tree.gd:48"
+ ],
+ "Frogs are harmless, take {double} damage and give {2x} XP if killed": [
+  "abilities.json"
+ ],
+ "Frost Shards": [
+  "weapon_system.gd:56",
+  "abilities.json"
+ ],
+ "Frozen enemies that die shatter for {40%} of their max HP to enemies within {2 yd}; shatters chain": [
+  "abilities.json"
+ ],
+ "Fullscreen": [
+  "settings_menu.gd:182"
+ ],
+ "Fungal Shield": [
+  "abilities.json"
+ ],
+ "GAIDEN": [
+  "intro.gd:429"
+ ],
+ "GET OUT OF MY SWAMP.": [
+  "abilities.json"
+ ],
+ "GHAST": [
+  "intro.gd:435"
+ ],
+ "GOBLIN WARLORD SLAIN!": [
+  "main.gd:652"
+ ],
+ "Gaiden": [
+  "characters.json"
+ ],
+ "Gain a shield worth {15%} of max HP for {6 s}": [
+  "abilities.json"
+ ],
+ "Gain a shield worth {20%} of max HP for {8 s}": [
+  "abilities.json"
+ ],
+ "Gain more XP.": [
+  "upgrades.json"
+ ],
+ "Gameplay": [
+  "settings_menu.gd:155"
+ ],
+ "Gelatinous cube: the dungeon's mop": [
+  "taglines.json"
+ ],
+ "Gets very, very hot.": [
+  "abilities.json"
+ ],
+ "Ghast": [
+  "characters.json"
+ ],
+ "Giant's Heart": [
+  "skill_tree.gd:29"
+ ],
+ "Glacial Path": [
+  "abilities.json"
+ ],
+ "Glow white-hot for {3 s} (you take no damage), then explode: {300} damage within {25 m}, plus a {3 s} burn": [
+  "abilities.json"
+ ],
+ "Goat Charge": [
+  "abilities.json"
+ ],
+ "Goblin": [
+  "enemy_manager.gd:203"
+ ],
+ "Goblin Brute": [
+  "enemy_manager.gd:205"
+ ],
+ "Goblin Scamp": [
+  "enemy_manager.gd:204"
+ ],
+ "Goblin Warlord": [
+  "enemy_manager.gd:206"
+ ],
+ "Gold": [
+  "chest.gd:8",
+  "shrine.gd:27"
+ ],
+ "Gold Sense": [
+  "skill_tree.gd:101"
+ ],
+ "Greed": [
+  "skill_tree.gd:56"
+ ],
+ "Ground Slam": [
+  "upgrades.json"
+ ],
+ "Grows bigger and angrier.": [
+  "abilities.json"
+ ],
+ "Guarded Start": [
+  "skill_tree.gd:26"
+ ],
+ "HP Regen/s": [
+  "upgrades.json"
+ ],
+ "Halfling? Wholly heroic.": [
+  "taglines.json"
+ ],
+ "Harvest": [
+  "abilities.json"
+ ],
+ "Has already stolen something from you. You just haven't noticed yet.": [
+  "characters.json"
+ ],
+ "Has lived in this swamp for three hundred years and is furious about the noise.": [
+  "characters.json"
+ ],
+ "Has seen this whole goblin business before. Several times. Mostly in reverse.": [
+  "characters.json"
+ ],
+ "Haunt": [
+  "abilities.json"
+ ],
+ "He decided to stay a little longer.": [
+  "abilities.json"
+ ],
+ "He learned this one from the goat.": [
+  "abilities.json"
+ ],
+ "He's seen this before. Turn the clock back.": [
+  "abilities.json"
+ ],
+ "Heal-on-Kill Chance": [
+  "upgrades.json"
+ ],
+ "Hearthfire": [
+  "skill_tree.gd:82"
+ ],
+ "Heavy Hitter": [
+  "skill_tree.gd:40"
+ ],
+ "Heavy crossbow bolts that pierce 3 enemies; double damage to epics": [
+  "abilities.json"
+ ],
+ "Heavy smash, knockback": [
+  "abilities.json"
+ ],
+ "Her horse comes back. Just this once.": [
+  "abilities.json"
+ ],
+ "Hex of Silence": [
+  "abilities.json"
+ ],
+ "High Noon": [
+  "abilities.json"
+ ],
+ "His liege lords arrive.": [
+  "abilities.json"
+ ],
+ "Hit harder.": [
+  "upgrades.json"
+ ],
+ "Hit points are more of a suggestion": [
+  "taglines.json"
+ ],
+ "Hobgoblin up the competition": [
+  "taglines.json"
+ ],
+ "Holds {2} charges": [
+  "abilities.json"
+ ],
+ "Holy Water": [
+  "abilities.json"
+ ],
+ "Homing bolts that bounce to 2 more enemies": [
+  "abilities.json"
+ ],
+ "Homing, bouncing": [
+  "abilities.json"
+ ],
+ "Hotfoot": [
+  "abilities.json"
+ ],
+ "Hunter's Night": [
+  "abilities.json"
+ ],
+ "Hurls a log that rolls {30 m} where you aim": [
+  "abilities.json"
+ ],
+ "Hurls fireballs from your staff at the nearest enemies.": [
+  "weapon_system.gd:54",
+  "upgrades.json"
+ ],
+ "Hurls icicles from your staff that slow the enemies they hit.": [
+  "weapon_system.gd:56"
+ ],
+ "I cast Magic Missile at the darkness!": [
+  "taglines.json"
+ ],
+ "Ice Wizard": [
+  "characters.json"
+ ],
+ "Inferno": [
+  "abilities.gd:84",
+  "abilities.json"
+ ],
+ "Inspect abilities (hold)": [
+  "settings.gd:27"
+ ],
+ "Intangible for {4 s}: no contact damage, and you pass through everything": [
+  "abilities.json"
+ ],
+ "Invulnerable for {1.5 s} afterwards": [
+  "abilities.json"
+ ],
+ "Invulnerable throughout; you return to where you started": [
+  "abilities.json"
+ ],
+ "Iron Will": [
+  "skill_tree.gd:33"
+ ],
+ "It copies your attacks, and when both of you zap the same enemy it takes {2x} damage": [
+  "abilities.json"
+ ],
+ "It fights the horde with {3x} damage, then bursts for {50%} of its max HP within {4 m}": [
+  "abilities.json"
+ ],
+ "It's high noon somewhere.": [
+  "abilities.json"
+ ],
+ "Item": [
+  "(runtime)"
+ ],
+ "Jump": [
+  "settings.gd:24"
+ ],
+ "Jump again in mid-air.": [
+  "upgrades.json"
+ ],
+ "Jumps between enemies": [
+  "abilities.json"
+ ],
+ "Katana": [
+  "intro.gd:429",
+  "abilities.json"
+ ],
+ "Keeper of the Ember Staff": [
+  "characters.json"
+ ],
+ "Key %s  ·  Cooldown %s": [
+  "abilities.gd:202",
+  "kit_db.gd:83"
+ ],
+ "Key bindings  (click, then press a key; Esc cancels)": [
+  "settings_menu.gd:236"
+ ],
+ "Kills %d\nEnemies %d\nSpeed %.1f m/s": [
+  "hud.gd:1036"
+ ],
+ "Kills %s   →   +%s bonus": [
+  "hud.gd:702"
+ ],
+ "Kills %s   →   +0 bonus  (100 coins per 1,000 kills)": [
+  "hud.gd:703"
+ ],
+ "Kills during the ride heal you {1%} of max HP": [
+  "abilities.json"
+ ],
+ "Kindling": [
+  "skill_tree.gd:87"
+ ],
+ "Knocks over the whole lab.": [
+  "abilities.json"
+ ],
+ "Kobold as brass": [
+  "taglines.json"
+ ],
+ "Kong": [
+  "characters.json"
+ ],
+ "LEGENDARY: the %s's weapon. %s": [
+  "weapon_system.gd:186"
+ ],
+ "LEVEL UP!": [
+  "hud.gd:253"
+ ],
+ "LEVEL UP!  lvl %d   ·   +%d skill point": [
+  "hud.gd:696"
+ ],
+ "LEVEL UP!  lvl %d   ·   +%d skill points": [
+  "hud.gd:696"
+ ],
+ "LV %d": [
+  "hud.gd:1034"
+ ],
+ "LV 1": [
+  "hud.gd:86"
+ ],
+ "Ladle of Bile": [
+  "abilities.json"
+ ],
+ "Landing deals {160} damage within {7 m} and stuns for {2 s}": [
+  "abilities.json"
+ ],
+ "Lands where you aim, sucks in every enemy within {10 m} and washes them for {4 s}: {10%} of max HP per second": [
+  "abilities.json"
+ ],
+ "Language": [
+  "settings_menu.gd:162"
+ ],
+ "Lasso": [
+  "abilities.json"
+ ],
+ "Lasso the enemy with the most HP within {20 m} and swing it around you for {3 s}": [
+  "abilities.json"
+ ],
+ "Launches a piñata. It's full of explosives.": [
+  "abilities.json"
+ ],
+ "Laundry Day": [
+  "abilities.json"
+ ],
+ "Lawful good at running away": [
+  "taglines.json"
+ ],
+ "Lays eggs. Monotremes do that.": [
+  "abilities.json"
+ ],
+ "Lays {4} eggs around you that hatch after {2 s}": [
+  "abilities.json"
+ ],
+ "Leap and land on them. All of him.": [
+  "abilities.json"
+ ],
+ "Leap high and glide for up to {4 s} (steer as you go)": [
+  "abilities.json"
+ ],
+ "Leap up to {20 m} to where you aim": [
+  "abilities.json"
+ ],
+ "Learn": [
+  "skill_screen.gd:173"
+ ],
+ "Learn a %s skill from the first row first": [
+  "skill_screen.gd:321",
+  "skill_tree.gd:165"
+ ],
+ "Learned": [
+  "skill_screen.gd:307",
+  "skill_screen.gd:308",
+  "skill_tree.gd:156"
+ ],
+ "Leaves a {8 m} pool for {6 s}": [
+  "abilities.json"
+ ],
+ "Legendary": [
+  "upgrades.json"
+ ],
+ "Leveled up. Still lost.": [
+  "taglines.json"
+ ],
+ "Lich and let lich": [
+  "taglines.json"
+ ],
+ "Light Fingers, Sharp Knives": [
+  "characters.json"
+ ],
+ "Lightning arcs from your staff and jumps between enemies.": [
+  "weapon_system.gd:58"
+ ],
+ "Lightning finds the toughest enemies.": [
+  "abilities.json"
+ ],
+ "Lives in a bog, hates visitors, swings a tree trunk like a toothpick.": [
+  "characters.json"
+ ],
+ "Lobbed coals, fires": [
+  "abilities.json"
+ ],
+ "Lobbed flasks that burst for 30 damage in 3 m and leave acid (4% of max HP per second for 3 s)": [
+  "abilities.json"
+ ],
+ "Lobbed hot coals that leave small fires (10 damage per second for 2 s)": [
+  "abilities.json"
+ ],
+ "Lobs bile that splashes for 25 damage in 3 m and slows 20%": [
+  "abilities.json"
+ ],
+ "Locked: unlocks at level %d": [
+  "abilities.gd:183"
+ ],
+ "Loco Robotico": [
+  "characters.json"
+ ],
+ "Log Toss": [
+  "abilities.json"
+ ],
+ "Lost Pair": [
+  "abilities.json"
+ ],
+ "Lost his horse in the swamp. Kept his hat. Priorities.": [
+  "characters.json"
+ ],
+ "Lost in the Wash": [
+  "characters.json"
+ ],
+ "Luck": [
+  "upgrades.json"
+ ],
+ "Lunges at the nearest enemy (2 m) for 25 damage; every 5th bite shakes it for 3x": [
+  "abilities.json"
+ ],
+ "Lunging bites, shakes": [
+  "abilities.json"
+ ],
+ "Lv %d": [
+  "ability_slot.gd:172",
+  "hud.gd:640"
+ ],
+ "Lv %d → %d": [
+  "upgrade_db.gd:138"
+ ],
+ "MAGNET! All orbs incoming": [
+  "powerup_manager.gd:18"
+ ],
+ "MOVEMENT +80% for 15 s!": [
+  "powerup_manager.gd:18"
+ ],
+ "Mage against the machine": [
+  "taglines.json"
+ ],
+ "Magical Forest": [
+  "map_picker.gd:20"
+ ],
+ "Magnet": [
+  "powerup_manager.gd:17"
+ ],
+ "Magnetism": [
+  "skill_tree.gd:57"
+ ],
+ "Main menu": [
+  "hud.gd:221",
+  "hud.gd:613"
+ ],
+ "Maraca Blasters": [
+  "abilities.json"
+ ],
+ "Mark of the Inevitable": [
+  "abilities.json"
+ ],
+ "Marks the {8} enemies with the most HP within {30 m}": [
+  "abilities.json"
+ ],
+ "Max HP": [
+  "upgrades.json"
+ ],
+ "Melee kick that poisons for 2% of max HP per second; each stack slows 10% (max 5)": [
+  "abilities.json"
+ ],
+ "Mending": [
+  "skill_tree.gd:24"
+ ],
+ "Merlin": [
+  "characters.json"
+ ],
+ "Meteor": [
+  "abilities.gd:86",
+  "abilities.json"
+ ],
+ "Midas Touch": [
+  "skill_tree.gd:63"
+ ],
+ "More health.": [
+  "upgrades.json"
+ ],
+ "Mouse sensitivity": [
+  "settings_menu.gd:234"
+ ],
+ "Move Speed": [
+  "upgrades.json"
+ ],
+ "Move back": [
+  "settings.gd:22"
+ ],
+ "Move forward": [
+  "settings.gd:22"
+ ],
+ "Move left": [
+  "settings.gd:23"
+ ],
+ "Move right": [
+  "settings.gd:23"
+ ],
+ "Movement Enhancer": [
+  "powerup_manager.gd:17"
+ ],
+ "Music": [
+  "settings.gd:17",
+  "settings_menu.gd:203"
+ ],
+ "Mutagen": [
+  "abilities.json"
+ ],
+ "Mute": [
+  "settings_menu.gd:220"
+ ],
+ "NEW": [
+  "upgrade_db.gd:138"
+ ],
+ "NEW ABILITY UNLOCKED: %s  [%s]": [
+  "main.gd:673"
+ ],
+ "NEW CHAMPION": [
+  "hud.gd:735"
+ ],
+ "NEW LEGENDARY LEVEL-UP REWARD": [
+  "character_select.gd:782"
+ ],
+ "NEW MAP": [
+  "hud.gd:729"
+ ],
+ "NEW WEAPON": [
+  "upgrade_db.gd:131"
+ ],
+ "Neon trees, glowing ponds and bushes that rustle.": [
+  "map_picker.gd:20"
+ ],
+ "Never stands still. Neither does anything near him.": [
+  "characters.json"
+ ],
+ "Never stands still. Now he really can't.": [
+  "abilities.json"
+ ],
+ "No skill points (earn one each level)": [
+  "skill_tree.gd:167"
+ ],
+ "No time limit. Endless enemies that keep getting deadlier. No upgrade caps.": [
+  "mode_menu.gd:16"
+ ],
+ "Nobody can resist. Then he barks.": [
+  "abilities.json"
+ ],
+ "Nobody has seen his face. The goblins say that's a mercy.": [
+  "characters.json"
+ ],
+ "Nobody knows how it got here. Nobody knows why it fights. It just does.": [
+  "characters.json"
+ ],
+ "None shall pass. Without paying.": [
+  "abilities.json"
+ ],
+ "Now for sale in Characters: %s coins": [
+  "hud.gd:736"
+ ],
+ "OGRE": [
+  "intro.gd:418"
+ ],
+ "Offense": [
+  "skill_tree.gd:11",
+  "skill_tree.gd:36",
+  "skill_tree.gd:85"
+ ],
+ "Ogre": [
+  "characters.json"
+ ],
+ "One attack every %s": [
+  "character_select.gd:501"
+ ],
+ "Orc-estrating total chaos": [
+  "taglines.json"
+ ],
+ "Over {3 s}, strike the {20} nearest enemies: {120} damage each, plus a bleed": [
+  "abilities.json"
+ ],
+ "Overcharge": [
+  "abilities.json"
+ ],
+ "Overhead smash in a 4 m cone: 50 damage, slow but with heavy knockback": [
+  "abilities.json"
+ ],
+ "Overtime": [
+  "abilities.json"
+ ],
+ "Owlbear with me": [
+  "taglines.json"
+ ],
+ "PAUSED": [
+  "hud.gd:215"
+ ],
+ "PAUSED  ·  hover an ability for details  ·  release Alt to resume": [
+  "hud.gd:472"
+ ],
+ "PLAY": [
+  "character_select.gd:688"
+ ],
+ "Padding": [
+  "skill_tree.gd:25"
+ ],
+ "Paladin? I hardly know 'im!": [
+  "taglines.json"
+ ],
+ "Party Mode": [
+  "abilities.json"
+ ],
+ "Pause / menu": [
+  "settings.gd:26"
+ ],
+ "Periodically slams the ground, knocking enemies back.": [
+  "upgrades.json"
+ ],
+ "Phase": [
+  "abilities.json"
+ ],
+ "Phoenix Heart": [
+  "skill_tree.gd:80"
+ ],
+ "Pick up XP from further away.": [
+  "upgrades.json"
+ ],
+ "Pickpocket": [
+  "abilities.json"
+ ],
+ "Pickup Range": [
+  "upgrades.json"
+ ],
+ "Piercing": [
+  "skill_tree.gd:46"
+ ],
+ "Piercing icicles that slow enemies 30% for 2 s": [
+  "abilities.json"
+ ],
+ "Piercing thrusts, javelins": [
+  "abilities.json"
+ ],
+ "Piercing, curses": [
+  "abilities.json"
+ ],
+ "Piercing, slows": [
+  "abilities.json"
+ ],
+ "Piercing, strong vs epics": [
+  "abilities.json"
+ ],
+ "Piñata Drop": [
+  "abilities.json"
+ ],
+ "Plating": [
+  "skill_tree.gd:23"
+ ],
+ "Play": [
+  "character_select.gd:617",
+  "title.gd:252"
+ ],
+ "Poison kick, slows": [
+  "abilities.json"
+ ],
+ "Polymorph": [
+  "abilities.json"
+ ],
+ "Possess the biggest enemy around.": [
+  "abilities.json"
+ ],
+ "Press Apply to switch the language.": [
+  "settings_menu.gd:165"
+ ],
+ "Press Enter to choose": [
+  "character_select.gd:695"
+ ],
+ "Press a key...": [
+  "settings_menu.gd:286"
+ ],
+ "Projectile Speed": [
+  "upgrades.json"
+ ],
+ "Projectiles": [
+  "upgrades.json"
+ ],
+ "Projectiles pierce 1 more enemy": [
+  "skill_tree.gd:46"
+ ],
+ "Purple Potion: cooldowns -30%": [
+  "potion_manager.gd:17"
+ ],
+ "Pyromastery": [
+  "skill_tree.gd:94"
+ ],
+ "Quick Hands": [
+  "skill_tree.gd:39"
+ ],
+ "Quickfire": [
+  "skill_tree.gd:88"
+ ],
+ "Quickplay": [
+  "mode_menu.gd:14"
+ ],
+ "Quit": [
+  "title.gd:254"
+ ],
+ "Quit to desktop": [
+  "hud.gd:222"
+ ],
+ "Rage against the dungeon": [
+  "taglines.json"
+ ],
+ "Raise Dead": [
+  "abilities.json"
+ ],
+ "Raises a shield cap.": [
+  "abilities.json"
+ ],
+ "Rampage": [
+  "abilities.json"
+ ],
+ "Random character, random unlocked map. Straight into the fight.": [
+  "mode_menu.gd:14"
+ ],
+ "Ranger danger": [
+  "taglines.json"
+ ],
+ "Rapid shots, reload": [
+  "abilities.json"
+ ],
+ "Rare": [
+  "upgrades.json"
+ ],
+ "Reads aloud from his treatise on monotremes.": [
+  "abilities.json"
+ ],
+ "Ready": [
+  "abilities.gd:187"
+ ],
+ "Ready in %s": [
+  "abilities.gd:185"
+ ],
+ "Ready to unlock": [
+  "character_select.gd:701"
+ ],
+ "Reaps every enemy within {12 m} below {30%} HP (not the boss)": [
+  "abilities.json"
+ ],
+ "Red Potion: +10% health": [
+  "potion_manager.gd:17"
+ ],
+ "Reed Clones": [
+  "abilities.json"
+ ],
+ "Regenerate 0.6 HP/s": [
+  "skill_tree.gd:24",
+  "skill_tree.gd:77"
+ ],
+ "Regenerate 1.5 HP/s": [
+  "skill_tree.gd:31",
+  "skill_tree.gd:82"
+ ],
+ "Render scale": [
+  "settings_menu.gd:188"
+ ],
+ "Reset keys to defaults": [
+  "settings_menu.gd:247"
+ ],
+ "Resets the cooldowns of your other two abilities": [
+  "abilities.json"
+ ],
+ "Restart  [R]": [
+  "hud.gd:608"
+ ],
+ "Restart run": [
+  "hud.gd:220"
+ ],
+ "Restores your HP and shield to what they were {8 s} ago": [
+  "abilities.json"
+ ],
+ "Resume": [
+  "hud.gd:218"
+ ],
+ "Rewind": [
+  "abilities.json"
+ ],
+ "Ride of the Valkyries": [
+  "abilities.json"
+ ],
+ "Rings of shuriken spiral out from you.": [
+  "abilities.json"
+ ],
+ "Rips up a log and bowls it at them.": [
+  "abilities.json"
+ ],
+ "Rode a winged horse into the swamp. The horse refused to come back.": [
+  "characters.json"
+ ],
+ "Rogue one, rogue all": [
+  "taglines.json"
+ ],
+ "Roll {15 m} where you aim, grabbing enemies in your path": [
+  "abilities.json"
+ ],
+ "Ropes the biggest enemy and uses it as a weapon.": [
+  "abilities.json"
+ ],
+ "Row %d  ·  1 point each": [
+  "skill_screen.gd:145"
+ ],
+ "Run faster.": [
+  "upgrades.json"
+ ],
+ "Runs around leaving scorch marks on everything.": [
+  "abilities.json"
+ ],
+ "SELECTED": [
+  "character_select.gd:695"
+ ],
+ "SETTINGS": [
+  "settings_menu.gd:47"
+ ],
+ "SHRINE COMPLETE!  %s chest": [
+  "main.gd:320"
+ ],
+ "SIGNATURE WEAPON": [
+  "character_select.gd:389",
+  "character_select.gd:498",
+  "character_select.gd:780"
+ ],
+ "SKILL POINTS": [
+  "skill_screen.gd:108"
+ ],
+ "SURVIVE 10 MINUTES": [
+  "main.gd:405"
+ ],
+ "SWARM!": [
+  "main.gd:573"
+ ],
+ "Sage": [
+  "skill_tree.gd:65"
+ ],
+ "Scholar": [
+  "skill_tree.gd:58"
+ ],
+ "Scythe Sweep": [
+  "abilities.json"
+ ],
+ "Searing Pierce": [
+  "skill_tree.gd:93"
+ ],
+ "Select a skill": [
+  "skill_screen.gd:166",
+  "skill_screen.gd:297"
+ ],
+ "Senses every enemy nearby. Then shocks them.": [
+  "abilities.json"
+ ],
+ "Sentient Platypus": [
+  "characters.json"
+ ],
+ "Sets [b]every enemy[/b] on fire.": [
+  "abilities.gd:206"
+ ],
+ "Sets down her cauldron. It spits.": [
+  "abilities.json"
+ ],
+ "Settings": [
+  "hud.gd:219",
+  "title.gd:253"
+ ],
+ "Shackle Swing": [
+  "abilities.json"
+ ],
+ "Shadow Bolts": [
+  "weapon_system.gd:60",
+  "abilities.json"
+ ],
+ "Shadow Step": [
+  "abilities.json"
+ ],
+ "Shadow of the Reeds": [
+  "characters.json"
+ ],
+ "Sharpen": [
+  "skill_tree.gd:38"
+ ],
+ "Shield Wall": [
+  "abilities.json"
+ ],
+ "Shoots a web where you aim.": [
+  "abilities.json"
+ ],
+ "Shuriken Storm": [
+  "abilities.json"
+ ],
+ "Side effect: you take {+10%} damage while it lasts": [
+  "abilities.json"
+ ],
+ "Silver": [
+  "chest.gd:8",
+  "shrine.gd:27"
+ ],
+ "Silver Bolts": [
+  "abilities.json"
+ ],
+ "Singe": [
+  "characters.json"
+ ],
+ "Siphon": [
+  "abilities.json"
+ ],
+ "Six-Shooter": [
+  "abilities.json"
+ ],
+ "Skate across the swamp on a trail of ice.": [
+  "abilities.json"
+ ],
+ "Skeleton": [
+  "enemy_manager.gd:208"
+ ],
+ "Skills": [
+  "character_select.gd:615"
+ ],
+ "Skills  →   +%s coins": [
+  "hud.gd:706"
+ ],
+ "Skills last for every run with this character.": [
+  "skill_screen.gd:298"
+ ],
+ "Slam Cooldown": [
+  "upgrades.json"
+ ],
+ "Slam Damage": [
+  "upgrades.json"
+ ],
+ "Slam Size": [
+  "upgrades.json"
+ ],
+ "Slash, spore cloud": [
+  "abilities.json"
+ ],
+ "Sleeping enemies take {double} poison damage; the first hit wakes them for {3x} damage": [
+  "abilities.json"
+ ],
+ "Slide": [
+  "settings.gd:24"
+ ],
+ "Slow bolts of shadow that pierce and curse the enemies they hit.": [
+  "weapon_system.gd:60"
+ ],
+ "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)": [
+  "abilities.json"
+ ],
+ "Slowly heal over time.": [
+  "upgrades.json"
+ ],
+ "Slows time for everyone but you.": [
+  "abilities.json"
+ ],
+ "Small. Brave. Slightly poisonous. Do not lick.": [
+  "characters.json"
+ ],
+ "Smoke Bomb": [
+  "abilities.json"
+ ],
+ "Smoulder Mend": [
+  "skill_tree.gd:77"
+ ],
+ "Snaps his shackles. Uses the pieces.": [
+  "abilities.json"
+ ],
+ "Sneak attack is just a hug with extra steps": [
+  "taglines.json"
+ ],
+ "Sonic cone, faster moving": [
+  "abilities.json"
+ ],
+ "Sound": [
+  "settings_menu.gd:202"
+ ],
+ "Sound cone, slows": [
+  "abilities.json"
+ ],
+ "Special": [
+  "skill_screen.gd:132",
+  "skill_screen.gd:270",
+  "skill_tree.gd:11",
+  "skill_tree.gd:52",
+  "skill_tree.gd:97",
+  "skill_tree.gd:147"
+ ],
+ "Spell check: fireball, fireball, fireball": [
+  "taglines.json"
+ ],
+ "Spell slots sold separately": [
+  "taglines.json"
+ ],
+ "Spin Cycle": [
+  "abilities.json"
+ ],
+ "Spins forward, dragging enemies with him.": [
+  "abilities.json"
+ ],
+ "Spins like it's back in the machine.": [
+  "abilities.json"
+ ],
+ "Spins webs between the cypress trees and eats goblins for breakfast. And lunch.": [
+  "characters.json"
+ ],
+ "Splash, slows": [
+  "abilities.json"
+ ],
+ "Split": [
+  "abilities.json"
+ ],
+ "Spore Blade": [
+  "abilities.json"
+ ],
+ "Spreads out flat across the swamp.": [
+  "abilities.json"
+ ],
+ "Spring Step": [
+  "skill_tree.gd:55"
+ ],
+ "Sprinter": [
+  "skill_tree.gd:64"
+ ],
+ "Sprints in circles for no reason.": [
+  "abilities.json"
+ ],
+ "Stake & Silver": [
+  "characters.json"
+ ],
+ "Stake Volley": [
+  "abilities.json"
+ ],
+ "Stakes fly out in every direction.": [
+  "abilities.json"
+ ],
+ "Start each run with a shield worth 15% max HP": [
+  "skill_tree.gd:26"
+ ],
+ "Start each run with a shield worth 35% max HP": [
+  "skill_tree.gd:32",
+  "skill_tree.gd:81"
+ ],
+ "Static Cling": [
+  "abilities.json"
+ ],
+ "Stink Aura": [
+  "upgrades.json"
+ ],
+ "Storm Lord": [
+  "abilities.json"
+ ],
+ "Storm Shrine": [
+  "shrine.gd:497"
+ ],
+ "Stubby legs, spiked collar, unbreakable will. Will fetch goblins on command.": [
+  "characters.json"
+ ],
+ "Stuck enemies take {+30%} damage from poison": [
+  "abilities.json"
+ ],
+ "Summon {4} shadow clones for {12 s}": [
+  "abilities.json"
+ ],
+ "Supernova": [
+  "abilities.json"
+ ],
+ "Survive 15:00 in the Swamp on Unrelenting": [
+  "character_select.gd:112"
+ ],
+ "Survived %s   →   %s coins": [
+  "hud.gd:704"
+ ],
+ "Survivors come out shrunk: half damage and {double} damage taken for {20 s}": [
+  "abilities.json"
+ ],
+ "Swallows the enemies closest to you.": [
+  "abilities.json"
+ ],
+ "Swamp Rage": [
+  "abilities.json"
+ ],
+ "Swamp Scientist": [
+  "characters.json"
+ ],
+ "Swamp's Fury": [
+  "abilities.json"
+ ],
+ "Swings his chains around him (4 m): 30 damage and knockback": [
+  "abilities.json"
+ ],
+ "Switches from DANCE to DESTROY.": [
+  "abilities.json"
+ ],
+ "Sword slash in a 3 m arc: 30 damage, leaves a spore cloud (2% of max HP per second)": [
+  "abilities.json"
+ ],
+ "Sworn Shield of the Fungus Court": [
+  "characters.json"
+ ],
+ "THOG CALLS HIS GOBLINS!": [
+  "thog_boss.gd:363"
+ ],
+ "THOG DEFEATED!": [
+  "hud.gd:683"
+ ],
+ "THOG IS DEFEATED!": [
+  "main.gd:631"
+ ],
+ "THOG IS ENRAGED!": [
+  "thog_boss.gd:390"
+ ],
+ "THOG THE TROLL": [
+  "main.gd:623",
+  "thog_boss.gd:465"
+ ],
+ "THOG THE TROLL  ·  ENRAGED": [
+  "thog_boss.gd:496"
+ ],
+ "THOG THE TROLL  ·  enrages in %d:%02d": [
+  "thog_boss.gd:500"
+ ],
+ "THOG THE TROLL APPROACHES": [
+  "main.gd:624"
+ ],
+ "Take less damage.": [
+  "upgrades.json"
+ ],
+ "Take to the air, then come down spear-first.": [
+  "abilities.json"
+ ],
+ "Takes over the enemy with the most HP within {20 m} for {10 s} (epics first, not the boss)": [
+  "abilities.json"
+ ],
+ "Taking a long rest from long rests": [
+  "taglines.json"
+ ],
+ "Tavern brawls build character sheets": [
+  "taglines.json"
+ ],
+ "Teleport behind the enemy with the most HP within {20 m} and strike for {250} damage": [
+  "abilities.json"
+ ],
+ "The Arachnid": [
+  "characters.json"
+ ],
+ "The Castle": [
+  "map_picker.gd:21"
+ ],
+ "The Fire Wizard": [
+  "characters.json"
+ ],
+ "The Fungus Court": [
+  "abilities.json"
+ ],
+ "The Good Boy": [
+  "characters.json"
+ ],
+ "The Great Puddle": [
+  "abilities.json"
+ ],
+ "The Hungry Puddle": [
+  "characters.json"
+ ],
+ "The Inevitable": [
+  "characters.json"
+ ],
+ "The Lecture": [
+  "abilities.json"
+ ],
+ "The Living Cinder": [
+  "characters.json"
+ ],
+ "The Old Enchanter": [
+  "characters.json"
+ ],
+ "The Rogue": [
+  "characters.json"
+ ],
+ "The Swamp": [
+  "map_picker.gd:18"
+ ],
+ "The Wailing Mist": [
+  "characters.json"
+ ],
+ "The bog rises up and grabs them.": [
+  "abilities.json"
+ ],
+ "The broken chains fly out to {25 m}, lashing enemies": [
+  "abilities.json"
+ ],
+ "The bugbear necessities": [
+  "taglines.json"
+ ],
+ "The fallen get back up, on your side this time.": [
+  "abilities.json"
+ ],
+ "The goblins have disadvantage. On everything.": [
+  "taglines.json"
+ ],
+ "The ground within {30 m} turns to bog for {12 s}: enemies are slowed {70%}": [
+  "abilities.json"
+ ],
+ "The hunt is on.": [
+  "abilities.json"
+ ],
+ "The last one stuns for {2 s}": [
+  "abilities.json"
+ ],
+ "The last {15} enemy corpses near you rise for {15 s} and fight the horde ({25} damage per hit)": [
+  "abilities.json"
+ ],
+ "The rubble stays for {10 s} as a wall enemies can't cross": [
+  "abilities.json"
+ ],
+ "The run clock and enemy spawns stop for {10 s}": [
+  "abilities.json"
+ ],
+ "The sky goes black. They can't see you. You can see them.": [
+  "abilities.json"
+ ],
+ "Their time is up. In five seconds.": [
+  "abilities.json"
+ ],
+ "Then a bark: {250} damage within {12 m} and big knockback": [
+  "abilities.json"
+ ],
+ "Then the bone explodes for {100} damage within {5 m}": [
+  "abilities.json"
+ ],
+ "Then you fire: {300} damage to each": [
+  "abilities.json"
+ ],
+ "There's gnome place like home": [
+  "taglines.json"
+ ],
+ "They copy your attacks at {60%} damage": [
+  "abilities.json"
+ ],
+ "They're digested for {6 s}: {8%} of max HP per second, and you heal {1%} of max HP per enemy": [
+  "abilities.json"
+ ],
+ "This is fine. It's a fire swamp.": [
+  "taglines.json"
+ ],
+ "Thog the Troll": [
+  "enemy_manager.gd:212",
+  "characters.json"
+ ],
+ "Thog the Troll in the Swamp": [
+  "map_picker.gd:24"
+ ],
+ "Three hundred years, and now THIS noise.": [
+  "abilities.json"
+ ],
+ "Three pounds. Three shockwaves.": [
+  "abilities.json"
+ ],
+ "Three sticks, short fuses.": [
+  "abilities.json"
+ ],
+ "Throw a bone up to {25 m}; enemies within {15 m} of it rush to it and squabble for {4 s}": [
+  "abilities.json"
+ ],
+ "Throws his bone. The enemies want it more.": [
+  "abilities.json"
+ ],
+ "Throws {3} sticks in a fan": [
+  "abilities.json"
+ ],
+ "Thrusts in a 6 m piercing line; every 4th throw is a javelin that flies 25 m": [
+  "abilities.json"
+ ],
+ "Thunder Wizard": [
+  "characters.json"
+ ],
+ "Thunderclap": [
+  "abilities.json"
+ ],
+ "Tiamat least you tried": [
+  "taglines.json"
+ ],
+ "Tiefling it like it is": [
+  "taglines.json"
+ ],
+ "Time %s   ·   Level %d   ·   Kills %d": [
+  "hud.gd:685"
+ ],
+ "Time Warp": [
+  "skill_tree.gd:61",
+  "skill_tree.gd:104",
+  "abilities.json"
+ ],
+ "Time freezes for {2 s} while you mark up to {30} enemies in view": [
+  "abilities.json"
+ ],
+ "Toadstool Knight": [
+  "characters.json"
+ ],
+ "Toll Booth": [
+  "abilities.json"
+ ],
+ "Tome": [
+  "(runtime)"
+ ],
+ "Tome of Armor": [
+  "upgrades.json"
+ ],
+ "Tome of Attraction": [
+  "upgrades.json"
+ ],
+ "Tome of Damage": [
+  "upgrades.json"
+ ],
+ "Tome of Haste": [
+  "upgrades.json"
+ ],
+ "Tome of Knowledge": [
+  "upgrades.json"
+ ],
+ "Tome of Luck": [
+  "upgrades.json"
+ ],
+ "Tome of Quantity": [
+  "upgrades.json"
+ ],
+ "Tome of Regeneration": [
+  "upgrades.json"
+ ],
+ "Tome of Size": [
+  "upgrades.json"
+ ],
+ "Tome of Swiftness": [
+  "upgrades.json"
+ ],
+ "Tome of Velocity": [
+  "upgrades.json"
+ ],
+ "Tome of Vitality": [
+  "upgrades.json"
+ ],
+ "Tomes ×%d": [
+  "hud.gd:1050"
+ ],
+ "Torch-lit halls, a feast to trample, skeletons.": [
+  "map_picker.gd:21"
+ ],
+ "Total party kill? Not on my watch.": [
+  "taglines.json"
+ ],
+ "Tough Hide": [
+  "skill_tree.gd:22"
+ ],
+ "Toxic Spill": [
+  "abilities.json"
+ ],
+ "Tree Trunk": [
+  "intro.gd:418",
+  "abilities.json"
+ ],
+ "Troll Blood": [
+  "skill_tree.gd:31"
+ ],
+ "Turns the nearest enemies into frogs.": [
+  "abilities.json"
+ ],
+ "Twin Daggers": [
+  "abilities.json"
+ ],
+ "Two more of you. Equally hungry.": [
+  "abilities.json"
+ ],
+ "ULTIMATE": [
+  "abilities.gd:200",
+  "kit_db.gd:81"
+ ],
+ "UNLOCK": [
+  "character_select.gd:703"
+ ],
+ "UNLOCKED  ·  playable soon": [
+  "character_select.gd:695"
+ ],
+ "UNLOCKED %s": [
+  "unlock_reveal.gd:33"
+ ],
+ "UNLOCKED!": [
+  "hud.gd:60",
+  "hud.gd:753"
+ ],
+ "UNRELENTING": [
+  "character_select.gd:218",
+  "character_select.gd:219",
+  "main.gd:405"
+ ],
+ "Ultimate - Meteor": [
+  "settings.gd:26"
+ ],
+ "Unknown map": [
+  "map_picker.gd:92"
+ ],
+ "Unknown skill": [
+  "skill_tree.gd:154"
+ ],
+ "Unlimited": [
+  "settings_menu.gd:193"
+ ],
+ "Unlock": [
+  "character_select.gd:789"
+ ],
+ "Unlock Requirements:": [
+  "character_select.gd:701"
+ ],
+ "Unlocks at level %d": [
+  "skill_screen.gd:135",
+  "skill_screen.gd:319",
+  "skill_tree.gd:158"
+ ],
+ "Unlocks at level %d during a run": [
+  "character_select.gd:517"
+ ],
+ "Unrelenting": [
+  "mode_menu.gd:16"
+ ],
+ "Up to {40} enemies within {20 m} become frogs for {8 s} (not the boss)": [
+  "abilities.json"
+ ],
+ "Updraft": [
+  "skill_tree.gd:100"
+ ],
+ "VICKI": [
+  "intro.gd:423"
+ ],
+ "Valkyrie Spear": [
+  "intro.gd:423",
+  "abilities.json"
+ ],
+ "Valkyrie of the Marsh": [
+  "characters.json"
+ ],
+ "Vampire Fang": [
+  "upgrades.json"
+ ],
+ "Vampire Hunter": [
+  "characters.json"
+ ],
+ "Vanish in a puff of smoke.": [
+  "abilities.json"
+ ],
+ "Velocity": [
+  "skill_tree.gd:42"
+ ],
+ "Venom Spit": [
+  "abilities.json"
+ ],
+ "Venom Spur": [
+  "abilities.json"
+ ],
+ "Venomous, egg-laying, bill-having and extremely well-read.": [
+  "characters.json"
+ ],
+ "Vicki": [
+  "characters.json"
+ ],
+ "Video": [
+  "settings_menu.gd:180"
+ ],
+ "Volatile Flasks": [
+  "intro.gd:436",
+  "abilities.json"
+ ],
+ "Volley": [
+  "skill_tree.gd:45"
+ ],
+ "WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns": [
+  "hud.gd:148"
+ ],
+ "Wail": [
+  "intro.gd:435",
+  "abilities.json"
+ ],
+ "Warden of the Frozen Fen": [
+  "characters.json"
+ ],
+ "Warlock and load": [
+  "taglines.json"
+ ],
+ "Was just passing through. Decided to stay for the overtime.": [
+  "characters.json"
+ ],
+ "Weapon": [
+  "(runtime)"
+ ],
+ "Weapon: %s": [
+  "kit_db.gd:48"
+ ],
+ "Web Trap": [
+  "abilities.json"
+ ],
+ "When it breaks or runs out, it bursts into spores: {60} damage within {8 m}, plus poison": [
+  "abilities.json"
+ ],
+ "When it ends, every enemy inside freezes for {2 s}, then shatters for {200} damage": [
+  "abilities.json"
+ ],
+ "When their time is up they explode for {60} damage within {3 m}": [
+  "abilities.json"
+ ],
+ "When you pull back together, survivors are flung out {6 yd}": [
+  "abilities.json"
+ ],
+ "Whisperer in the Reeds": [
+  "characters.json"
+ ],
+ "White-Hot Orbs": [
+  "skill_tree.gd:89"
+ ],
+ "Who's a Good Boy": [
+  "abilities.json"
+ ],
+ "Wide 120° cleave in front of you (3 m), heavy knockback": [
+  "abilities.json"
+ ],
+ "Wide Swings": [
+  "skill_tree.gd:41"
+ ],
+ "Wide cleave, knockback": [
+  "abilities.json"
+ ],
+ "Wildfire": [
+  "skill_tree.gd:92"
+ ],
+ "Windowed": [
+  "settings_menu.gd:182"
+ ],
+ "Wings of Valhalla": [
+  "abilities.json"
+ ],
+ "Wizard of ahhh!": [
+  "taglines.json"
+ ],
+ "Wraps everything nearby. Breakfast. And lunch.": [
+  "abilities.json"
+ ],
+ "XP Gain": [
+  "upgrades.json"
+ ],
+ "YOU DIED": [
+  "hud.gd:683"
+ ],
+ "YOU SURVIVED!": [
+  "hud.gd:683"
+ ],
+ "You deal {+100%} damage": [
+  "abilities.json"
+ ],
+ "You deal {+100%} damage and kills drop {2x} XP": [
+  "abilities.json"
+ ],
+ "You gain {+30%} armor for {6 s}": [
+  "abilities.json"
+ ],
+ "You heal {1} HP per enemy drained per second, up to {5%} of your max HP per second": [
+  "abilities.json"
+ ],
+ "You heal {2%} of max HP per second while standing next to it": [
+  "abilities.json"
+ ],
+ "You vanish and become a giant flaming copy of your own head. [b]Invulnerable[/b] while falling.": [
+  "abilities.gd:214"
+ ],
+ "Your attack speed is {+50%} while it lasts": [
+  "abilities.json"
+ ],
+ "Your bolts lock on to the {3} enemies with the most HP and deal {3x} damage": [
+  "abilities.json"
+ ],
+ "Your cleave hits all the way around you ({360°})": [
+  "abilities.json"
+ ],
+ "Your dust trail deals {30} damage per second and knocks enemies back": [
+  "abilities.json"
+ ],
+ "Your first attack after the smoke deals {3x} damage": [
+  "abilities.json"
+ ],
+ "Your ice trail lasts {5 s}: enemies on it are slowed {60%} and take {15} damage per second": [
+  "abilities.json"
+ ],
+ "Your partner sock fights beside you for {15 s}": [
+  "abilities.json"
+ ],
+ "Zaps 3, builds charge": [
+  "abilities.json"
+ ],
+ "Zaps the 3 nearest enemies for 18 damage; builds up to 2x damage while you keep moving": [
+  "abilities.json"
+ ],
+ "Zoomies": [
+  "abilities.json"
+ ],
+ "lvl %d": [
+  "character_select.gd:314",
+  "character_select.gd:696"
+ ],
+ "lvl %d   ·   %s   ·   %d / 18 skills learned": [
+  "skill_screen.gd:264"
+ ],
+ "max level": [
+  "character_select.gd:697",
+  "hud.gd:693"
+ ],
+ "needs row 1": [
+  "skill_screen.gd:145"
+ ],
+ "{+100%} move speed for {6 s}": [
+  "abilities.json"
+ ],
+ "{+40%} move speed for {6 s}, leaving burning footprints that last {4 s}": [
+  "abilities.json"
+ ],
+ "{+40%} move speed for {8 s}": [
+  "abilities.json"
+ ],
+ "{+50%} attack speed and {+30%} move speed for {8 s}": [
+  "abilities.json"
+ ],
+ "{+60%} move speed for {6 s}": [
+  "abilities.json"
+ ],
+ "{10 m} web: enemies in it are stuck for {4 s}": [
+  "abilities.json"
+ ],
+ "{120} damage each, and they're stunned for {1.5 s}": [
+  "abilities.json"
+ ],
+ "{120} damage to every enemy it flattens": [
+  "abilities.json"
+ ],
+ "{12} bolts strike the enemies with the most HP within {25 m}": [
+  "abilities.json"
+ ],
+ "{12} spiderlings hatch and leap onto enemies for {15 s}": [
+  "abilities.json"
+ ],
+ "{180} damage to every enemy on each pass": [
+  "abilities.json"
+ ],
+ "{20} candy bombs rain out: {60} damage each within {3 m}": [
+  "abilities.json"
+ ],
+ "{25 m} blizzard centred on you for {8 s}: enemies inside are slowed {80%} and take {4%} of max HP per second": [
+  "abilities.json"
+ ],
+ "{2} mini-blobs split off for {10 s} and chase enemies": [
+  "abilities.json"
+ ],
+ "{3} rings of {12} shuriken over {2 s}": [
+  "abilities.json"
+ ],
+ "{3} shockwaves to {10 m}: {50} damage each": [
+  "abilities.json"
+ ],
+ "{40} damage every {0.5 s} to enemies inside": [
+  "abilities.json"
+ ],
+ "{50} damage each; they pierce": [
+  "abilities.json"
+ ],
+ "{50} damage every {0.25 s} while held; they're flung away at the end": [
+  "abilities.json"
+ ],
+ "{60} damage to every enemy it hits, then you hurl it {15 m}": [
+  "abilities.json"
+ ],
+ "{6} giant toadstool guardians rise in a {12 m} ring around you for {15 s}": [
+  "abilities.json"
+ ],
+ "{8 m} smoke cloud; you're invisible for {4 s} and enemies lose track of you": [
+  "abilities.json"
+ ],
+ "{8%} of max HP per second to enemies in the beams; {+50%} armor": [
+  "abilities.json"
+ ],
+ "• %s damage to every enemy within %s": [
+  "abilities.gd:211"
+ ],
+ "• Burn: %s of max HP per second for %s (%s total)": [
+  "abilities.gd:207"
+ ],
+ "• Burning enemies that die explode for %s of their max HP to enemies within %s; explosions chain": [
+  "abilities.gd:208"
+ ],
+ "• Crashes where you aim after %s: %s damage within %s, plus knockback": [
+  "abilities.gd:215"
+ ],
+ "• Knocks them back %s": [
+  "abilities.gd:212"
+ ],
+ "• The ground burns for %s: %s of max HP per second within %s": [
+  "abilities.gd:217"
+ ],
+ "• You reappear at the crash site": [
+  "abilities.gd:216"
+ ]
+}

@@ -109,6 +109,7 @@ func price_of(k: int) -> int:
 
 
 const BOSS_NAMES := {"thog": "Defeat Thog the Troll in the Swamp"}
+const FEAT_NAMES := {"unrelenting_swamp_15": "Survive 15:00 in the Swamp on Unrelenting"}
 
 
 ## What a locked character needs: [{text, met}], coins first, then any boss to beat.
@@ -120,6 +121,9 @@ func requirements(k: int) -> Array:
 	var boss := str(c.get("requires_boss", ""))
 	if boss != "":
 		out.append({"text": BOSS_NAMES.get(boss, "Defeat " + boss), "met": Wallet.has_defeated(boss)})
+	var feat := str(c.get("requires_feat", ""))
+	if feat != "":
+		out.append({"text": FEAT_NAMES.get(feat, feat), "met": Wallet.has_feat(feat)})
 	return out
 
 
@@ -210,6 +214,11 @@ void fragment() {
 	_count_label = sub
 	sub.position = Vector2(68, 98)
 	add_child(sub)
+	if Settings.game_mode == "unrelenting":   # chosen from the title's Play cards
+		var tag := _label("UNRELENTING", 20, Color(1.0, 0.35, 0.28), true)
+		tag.text = tr("UNRELENTING")
+		tag.position = Vector2(560, 100)
+		add_child(tag)
 
 
 func _tile_style(border: Color, width: int, fill: Color) -> StyleBoxFlat:
@@ -383,6 +392,9 @@ func _build_weapon_box(stage: Control) -> void:
 	_weapon_icon = UpgradeIcon.create({}, "weapon")
 	_weapon_icon.custom_minimum_size = Vector2(76, 76)
 	_weapon_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_weapon_icon.mouse_filter = Control.MOUSE_FILTER_STOP
+	_weapon_icon.mouse_entered.connect(func(): _on_slot_hover(WEAPON_HOVER, true))
+	_weapon_icon.mouse_exited.connect(func(): _on_slot_hover(WEAPON_HOVER, false))
 	_weapon_box.add_child(_weapon_icon)
 	_weapon_name = _label("", 16, Color(1.0, 0.85, 0.5), true)
 	_weapon_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -390,6 +402,7 @@ func _build_weapon_box(stage: Control) -> void:
 	_weapon_name.custom_minimum_size.x = 150
 	_weapon_box.add_child(_weapon_name)
 	_weapon_short = _label("", 13, Color(0.85, 0.8, 0.72))
+	_weapon_short.visible = false   # the details are in the hover tooltip
 	_weapon_short.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_weapon_short.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_weapon_short.custom_minimum_size.x = 150
@@ -443,6 +456,7 @@ func _build_ability_bar(parent: Control) -> void:
 		name.custom_minimum_size = Vector2(ABILITY_COL, 0)
 		name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		name.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		name.visible = false   # names live in the hover tooltip only
 		col.add_child(name)
 		_ability_slots.append(slot)
 		_ability_names.append(name)
@@ -470,6 +484,25 @@ func _build_ability_bar(parent: Control) -> void:
 	_tooltip_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tooltip.add_child(_tooltip_text)
 	add_child.call_deferred(_tooltip)   # on top of the panel
+
+
+const WEAPON_HOVER := 99   # _hover_slot value while the weapon icon is hovered
+
+
+## Tooltip for a character's signature weapon: name, damage and rate, and what it does.
+static func weapon_tooltip(char_id: String) -> String:
+	var w: Dictionary = KitDB.kit(char_id).get("weapon", {})
+	if w.is_empty():
+		return ""
+	var lines: Array[String] = []
+	lines.append("[font_size=22][b]%s[/b][/font_size]  [color=#ffd23f][%s][/color]" % [I18n.t(w["name"]), I18n.t("SIGNATURE WEAPON")])
+	var dmg := I18n.f("Damage: %s", "[color=#ffb347]%s[/color]" % str(w.get("damage", "?")))
+	if w.has("every"):
+		dmg += "   ·   " + I18n.f("One attack every %s", "[color=#ffb347]%s[/color]" % I18n.f("%s s", str(w["every"])))
+	lines.append(dmg)
+	lines.append("")
+	lines.append(I18n.t(w.get("desc", "")))
+	return "\n".join(lines)
 
 
 ## Tooltip text for ability i outside a run: what it does, cooldown, and when it unlocks.
@@ -508,15 +541,24 @@ func _on_slot_hover(i: int, on: bool) -> void:
 
 
 func _update_tooltip() -> void:
-	if _hover_slot < 0 or not _ability_bar.is_visible_in_tree():
+	if _hover_slot == WEAPON_HOVER:
+		if not _weapon_box.is_visible_in_tree() or _shown < 0:
+			_tooltip.visible = false
+			return
+		_tooltip_text.text = weapon_tooltip(characters[_shown]["id"])
+	elif _hover_slot < 0 or not _ability_bar.is_visible_in_tree():
 		_tooltip.visible = false
 		return
-	_tooltip_text.text = ability_tooltip(_hover_slot, _kit_char)
+	else:
+		_tooltip_text.text = ability_tooltip(_hover_slot, _kit_char)
 	_tooltip.visible = true
 	_tooltip.reset_size()
-	var r: Rect2 = (_ability_slots[_hover_slot] as Control).get_global_rect()
+	var anchor: Control = _weapon_icon if _hover_slot == WEAPON_HOVER else _ability_slots[_hover_slot]
+	var r: Rect2 = anchor.get_global_rect()
 	var vp := get_viewport().get_visible_rect().size
 	var pos := Vector2(r.position.x + r.size.x * 0.5 - _tooltip.size.x * 0.5, r.position.y - _tooltip.size.y - 12)
+	if _hover_slot == WEAPON_HOVER:
+		pos.y = r.end.y + 12   # the weapon sits at the top of the panel: open downward
 	pos.x = clampf(pos.x, 10, vp.x - _tooltip.size.x - 10)
 	pos.y = maxf(pos.y, 10)
 	_tooltip.position = pos
@@ -581,7 +623,7 @@ func _build_footer() -> void:
 
 func _footer_button(text: String, cb: Callable) -> Button:
 	var b := Button.new()
-	b.text = text.to_upper()
+	b.text = tr(text).to_upper()
 	b.custom_minimum_size = Vector2(210, 60)
 	b.focus_mode = Control.FOCUS_ALL
 	b.add_theme_font_override("font", _font_bold)

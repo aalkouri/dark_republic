@@ -180,7 +180,7 @@ func _build() -> void:
 
 func _button(text: String, cb: Callable) -> Button:
 	var b := Button.new()
-	b.text = text.to_upper()
+	b.text = tr(text).to_upper()
 	b.custom_minimum_size = Vector2(190, 56)
 	if _font_bold:
 		b.add_theme_font_override("font", _font_bold)

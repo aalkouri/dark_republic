@@ -26,13 +26,25 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 
 ## Startup
 
-The game opens with the **AtomAI** studio logo (`video/atomai_logo.ogv`, converted to Ogg Theora for Godot). Any key, click or gamepad button skips it. Pass `-- --skip-intro` to skip it from the command line (tests and screenshots skip it automatically).
+The game opens with the **AtomAI** studio logo (`video/atomai_logo.ogv`, converted to Ogg Theora for Godot), then the intro cinematic, **"The Sock Incident"** (`scenes/intro.tscn`, `scripts/intro.gd`, about 30 s). A goblin steals the sleeping wizard's sock off the drying rack by the campfire; he wakes, blows a horn, and the heroes arrive one by one with a name card each: the Ogre, Vicki, Gaiden, the Ghast and Dr. Croc. The horde charges and the wizard ends it with his Meteor. The thief runs past at the end wearing the sock, and the title burns in. Any key, click or gamepad button skips the logo and the cinematic. **Settings > Gameplay > Play intro on startup** turns the cinematic off. Pass `-- --skip-intro` to go straight to the title (tests and screenshots skip both automatically). The intro's horn, snore, whoosh and pop are synthesized by `tools/gen_intro_sounds.py`.
 
-Then the **title screen**: a living swamp diorama at night. The camera slowly orbits the fire wizard on a mossy stone dais while goblin silhouettes with glowing eyes lurk, creep in and grunt in the fog. "DARK REPUBLIC" burns in Cinzel lettering (`fonts/Cinzel.ttf`, SIL Open Font License) over a Play / Characters / Settings / Quit menu (mouse, keyboard or gamepad). The pause menu and end screen have **Main menu** to return here.
+Then the **title screen**: a living swamp diorama at night. The camera slowly orbits the fire wizard on a mossy stone dais while goblin silhouettes with glowing eyes lurk, creep in and grunt in the fog. "DARK REPUBLIC" burns in Cinzel lettering (`fonts/Cinzel.ttf`, SIL Open Font License) over a Play / Settings / Quit menu (mouse, keyboard or gamepad). The pause menu and end screen have **Main menu** to return here.
+
+**Play** opens the mode menu (`scripts/mode_menu.gd`). A burning fuse races out of the button and three cards drop in behind it, each with a flip, a flash and a puff of embers, plus a whoosh-and-thump sound (`audio/ui/menu_reveal.wav`). Esc folds them back.
+- **Quickplay:** a random unlocked, playable character on a random map open to them, straight into the run. There are no difficulty settings yet; when there are, Quickplay will pick the hardest one unlocked.
+- **Classic:** character select, then the map. Survive 10 minutes.
+- **Unrelenting:** character select (tagged UNRELENTING), then the map, with these rules:
+  - No time limit; the clock counts up and spawns never stop.
+  - Upgrades have no level cap.
+  - Past 10:00, enemy contact damage rises 12% per minute and XP drops shrink (1 / (1 + 0.06 per minute)), on top of the usual HP and spawn-rate ramp.
+  - Beating Thog doesn't end the run.
+  - Lasting **15:00 in the Swamp** earns the feat Ghast needs to be unlocked (`Wallet.feats`).
+
+**Run clock:** in Classic it counts **down** from 10:00. During the entrance it spins up from 00:00 to 10:00 with digital blips that rise in pitch (`audio/ui/timer_tick.wav`), then locks in with two beeps (`timer_set.wav`) and starts counting down when you land.
 
 ## Character select
 
-**Play** on the title opens a roster of 25 champions plus 5 mystery slots (shown only as "?"): a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. **The Fire Wizard** plays from the start; the **Ice, Thunder and Dark Wizards** are playable once bought. Characters with a model preview as it in 3D, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. **Unlocking with coins:** each locked tile shows its price: 2,000 for the Ice, Thunder and Dark Wizards, 7,000 for Merlin and 10,000 for everyone else. Selecting a locked character shows its unlock requirements as chips with a tick or a cross under "LOCKED · to unlock:" (coins for everyone; **Thog the Troll** also needs beating him in the Swamp), and turns Play into **Unlock**, which works once every requirement is met and spends the coins. Bought characters get their skill tree and level straight away. Only characters with a model and abilities can be played, which so far is just the Fire Wizard, so others show "playable soon" until they're built.
+**Play** on the title opens a roster of 25 champions plus 5 mystery slots (shown only as "?"): a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. **The Fire Wizard** plays from the start; the **Ice, Thunder and Dark Wizards** are playable once bought. Characters with a model preview as it in 3D, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. **Unlocking with coins:** each locked tile shows its price: 2,000 for the Ice, Thunder and Dark Wizards, 7,000 for Merlin and 10,000 for everyone else. Selecting a locked character shows its unlock requirements as chips with a tick or a cross under "LOCKED · to unlock:" (coins for everyone; **Thog the Troll** also needs beating him in the Swamp, and the **Ghast** needs 15:00 in the Swamp on Unrelenting), and turns Play into **Unlock**, which works once every requirement is met and spends the coins. Bought characters get their skill tree and level straight away. Only characters with a model and abilities can be played, which so far is just the Fire Wizard, so others show "playable soon" until they're built.
 
 Each character has a saved level (`lvl`, kept with the coins in `user://progress.cfg`). Tiles show **lvl N** in the bottom-left corner when it's 1 or more, and nothing at 0. Mouse, keyboard and gamepad all work; Esc goes back.
 
@@ -121,11 +133,21 @@ Quitting a run from the pause menu forfeits its coins.
 
 ## Pause menu and settings
 
-**Esc** opens the pause menu: Resume, Settings, Restart run, Quit to desktop. Settings are saved to `user://settings.cfg` and applied on startup.
+**Esc** opens the pause menu: Resume, Settings, Restart run, Quit to desktop. Changes apply live so you can try them, but they're only saved (to `user://settings.cfg`, applied on startup) when you press **Apply**. Leaving with Back or Esc puts everything back as it was.
 
+- **Gameplay:** a **Language** dropdown with English, Español, Français, العربية, Deutsch, 中文 (简体) and 日本語. It takes effect on Apply, and all game text switches: menus, the HUD, cards, tooltips, character bios, ability and weapon text, and the title taglines. Also **Play intro on startup**.
 - **Video:** display mode (windowed / fullscreen / borderless), VSync, render scale, field of view, FPS limit, show FPS.
 - **Sound:** Music volume and All other audio volume (goblin voices, hits, effects), each with its own Mute checkbox. They use separate audio buses, `Music` and `SFX`.
 - **Controls:** mouse sensitivity, invert Y, and rebindable keys for movement, jump, slide, the three abilities and pause (click a key, press the new one; Esc cancels).
+
+## Languages
+
+The translations live in `data/i18n/`.
+- **Where the text is:** `tools/i18n_extract.py` collects every player-visible English string from `scripts/` and `data/*.json` into `_source.json`.
+- **Translations:** they're kept in `src/*.json`, one entry per English string with `[es, fr, ar, de, zh_CN, ja]`. `tools/i18n_build.py` merges them into one catalogue per language and checks that every `%s`/`%d` placeholder, `{highlight}` and `[b]` tag survives.
+- **Loading:** at startup `Settings` loads the catalogues into the `TranslationServer`. Labels and buttons translate themselves; text assembled in code goes through `tr()` (or `I18n.t()` / `I18n.f()` in static functions).
+- **Fonts and Arabic:** Chinese, Japanese and Arabic glyphs come from the system font fallback. Arabic text is shaped right-to-left, but screen layouts stay left-to-right (`internationalization/rendering/root_node_layout_direction`).
+- **Testing:** `-- --lang=es` runs a session in a language without saving it.
 
 ## The fire wizard
 
@@ -371,8 +393,14 @@ godot --path . -- --shot=/tmp/shot.png --shot-at=4 --shot-cast=0@1 --shot-spawn=
 # Swamp tests (pool size/depth, recessed collision, 50% speed and jump in water)
 godot --headless --path . --fixed-fps 60 res://tools/test_swamp.tscn
 
-# Pause menu / settings tests (tabs, independent music + SFX volume and mute, saving, rebinding)
+# Pause menu / settings tests (tabs, Apply/revert, languages, music + SFX volume and mute, rebinding)
 godot --headless --path . res://tools/test_settings.tscn
+
+# Run clock spin-up/countdown, Play mode cards, Quickplay, Unrelenting, Ghast's feat, weapon hover
+godot --headless --path . res://tools/test_modes.tscn
+
+# Intro cinematic (splash -> intro -> title, cast, skip)
+godot --headless --path . res://tools/test_intro.tscn
 
 # Shrine tests (placement, zone timer/reset, chest tiers, chains, burn, storm rings, jumping)
 godot --headless --path . --fixed-fps 60 res://tools/test_shrines.tscn

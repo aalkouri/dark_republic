@@ -12,7 +12,7 @@
 
     {"id": "ogre", "name": "Ogre", "epithet": "Big Swamp Grumbo", "bio": "Lives in a bog, hates visitors, swings a tree trunk like a toothpick.", "icon": {"bg": ["#2d3a14", "#0c1004"], "body": "bulky", "body_col": "#6b4a2a", "skin": "#7f9a3a", "head": "ogre", "hat": "none", "eyes": "#ffde59", "item": "club", "fx": "none"}, "price": 10000},
 
-    {"id": "ghast", "name": "Ghast", "epithet": "The Wailing Mist", "bio": "Drifts through walls, goblins and occasionally its own sentences.", "icon": {"bg": ["#1d3138", "#060c10"], "body": "ghost", "body_col": "#cfe9ea", "skin": "#cfe9ea", "head": "none", "hat": "none", "eyes": "#0a1a1c", "eyes_hollow": true, "item": "chains", "fx": "wisps"}, "price": 10000},
+    {"id": "ghast", "name": "Ghast", "epithet": "The Wailing Mist", "bio": "Drifts through walls, goblins and occasionally its own sentences.", "icon": {"bg": ["#1d3138", "#060c10"], "body": "ghost", "body_col": "#cfe9ea", "skin": "#cfe9ea", "head": "none", "hat": "none", "eyes": "#0a1a1c", "eyes_hollow": true, "item": "chains", "fx": "wisps"}, "price": 10000, "requires_feat": "unrelenting_swamp_15"},
 
     {"id": "vampire_hunter", "name": "Vampire Hunter", "epithet": "Stake & Silver", "bio": "Came for the vampires. Settled for goblins. Is not happy about it.", "icon": {"bg": ["#3a0f12", "#0e0405"], "body": "coat", "body_col": "#4a2d1c", "skin": "#e2b48e", "head": "round", "hat": "tricorn", "hat_col": "#241812", "eyes": "#d9e2ff", "scarf": "#8a1820", "item": "crossbow", "fx": "none"}, "price": 10000},
 

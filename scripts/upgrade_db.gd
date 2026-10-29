@@ -4,6 +4,7 @@ extends RefCounted
 ## Adding an upgrade = adding a JSON entry. Upgrades with custom behaviour (on-kill effects etc.)
 ## read their stats in ItemEffects; everything else is pure stat modifiers.
 
+var uncapped := false   # Unrelenting mode: no max level on any upgrade
 var rarities: Array = []
 var defs := {}          # id -> definition Dictionary
 var order: Array = []   # ids in file order
@@ -44,7 +45,7 @@ func _eligible(max_weapons: int) -> Array:
 	for id in order:
 		var d: Dictionary = defs[id]
 		var lv := level_of(id)
-		if lv >= int(d["max_level"]) or banned.has(id):
+		if (lv >= int(d["max_level"]) and not uncapped) or banned.has(id):
 			continue
 		if d["kind"] == "weapon" and lv == 0 and owned_of_kind("weapon") >= max_weapons:
 			continue

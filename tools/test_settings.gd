@@ -35,8 +35,14 @@ func _ready() -> void:
 	for c in menu._tabs.get_children():
 		tabs.append(String(c.name))
 	_check("Settings opens", menu.visible and not hud.pause_root.visible, "")
-	_check("tabs are Video, Sound, Controls", tabs == ["Video", "Sound", "Controls"], str(tabs))
-	var sound: Node = menu._tabs.get_child(1)
+	_check("tabs are Gameplay (first), Video, Sound, Controls", tabs == ["Gameplay", "Video", "Sound", "Controls"], str(tabs))
+	_check("Apply is greyed out until something changes", menu._apply.disabled, "")
+	var langs := []
+	for i in menu._lang.item_count:
+		langs.append(menu._lang.get_item_text(i))
+	_check("Gameplay tab: Language dropdown with 7 languages", langs.size() == 7 and "Español" in langs and "العربية" in langs and "日本語" in langs, str(langs))
+	menu._tabs.current_tab = 2
+	var sound: Node = menu._tabs.get_child(2)
 	var sliders := sound.find_children("*", "HSlider", true, false).size()
 	var mutes := sound.find_children("*", "CheckBox", true, false)
 	_check("Sound tab: two volume sliders, each with a Mute box", sliders == 2 and mutes.size() == 2 and mutes[0].text == "Mute", "%d sliders, %d checkboxes" % [sliders, mutes.size()])
@@ -72,10 +78,35 @@ func _ready() -> void:
 	_check("level-up, card hover and card pick (tome / other) sounds load and play on the SFX bus (even paused)", ui_ok, "")
 	_check("goblin death sounds play on the SFX bus", main.goblin_audio._voices[0].bus == Settings.SFX_BUS, main.goblin_audio._voices[0].bus)
 
-	# Persistence
+	# Persistence: nothing is written until Apply
 	var cf := ConfigFile.new()
+	_check("changes are not saved before Apply", not FileAccess.file_exists(Settings.PATH) and not menu._apply.disabled, "")
+	menu._apply.pressed.emit()
+	_check("Apply greys out again", menu._apply.disabled, "")
 	cf.load(Settings.PATH)
 	_check("settings saved", cf.get_value("sound", "music_muted", false) == true and is_equal_approx(cf.get_value("sound", "sfx_volume", 1.0), 0.25), "")
+
+	# Close without Apply reverts; Apply on a new language translates the game
+	Settings.set_value("fov", 99.0)
+	menu.close()
+	_check("closing without Apply reverts unsaved changes", is_equal_approx(Settings.fov, 75.0), str(Settings.fov))
+	menu.open()
+	menu._lang.select(1)
+	menu._lang.item_selected.emit(1)
+	_check("picking a language waits for Apply", TranslationServer.get_locale().begins_with("en"), TranslationServer.get_locale())
+	menu._apply.pressed.emit()
+	await get_tree().process_frame
+	_check("Apply switches the language (es): menus translate", TranslationServer.get_locale() == "es" and tr("Resume") != "Resume" and tr("Settings") != "Settings", "%s  Resume -> %s" % [TranslationServer.get_locale(), tr("Resume")])
+	var cf2 := ConfigFile.new()
+	cf2.load(Settings.PATH)
+	_check("language saved", cf2.get_value("gameplay", "language", "") == "es", "")
+	for loc in ["fr", "ar", "de", "zh_CN", "ja"]:
+		TranslationServer.set_locale(loc)
+		_check("%s translation loaded" % loc, tr("Resume") != "Resume" and tr("Fireballs") != "Fireballs", tr("Resume"))
+	menu._lang.select(0)
+	menu._lang.item_selected.emit(0)
+	menu._apply.pressed.emit()
+	_check("back to English", TranslationServer.get_locale() == "en" and tr("Resume") == "Resume", TranslationServer.get_locale())
 
 	# Rebinding
 	menu._start_rebind("jump")

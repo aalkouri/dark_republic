@@ -70,11 +70,13 @@ func _ready() -> void:
 		await get_tree().process_frame
 	var title: Node = get_tree().current_scene
 	(title._menu.get_child(0) as Button).pressed.emit()
+	await get_tree().create_timer(0.8).timeout
+	title._modes.cards[1].pressed.emit()   # Play > Classic
 	await get_tree().scene_changed
 	for f in 5:
 		await get_tree().process_frame
 	var cs: Node = get_tree().current_scene
-	_check("Play opens the select screen", cs.name == "CharacterSelect", cs.name)
+	_check("Play > Classic opens the select screen", cs.name == "CharacterSelect", cs.name)
 	_check("30 tiles", cs._tiles.size() == 30, "%d" % cs._tiles.size())
 	_check("wizard tile focused first", cs._tiles[0].has_focus() and cs._shown == 0, "")
 	_check("wizard previews as a live 3D model", cs._view_box.visible and not cs._big_icon.visible
@@ -239,6 +241,8 @@ func _ready() -> void:
 	for f in 3:
 		await get_tree().process_frame
 	(get_tree().current_scene._menu.get_child(0) as Button).pressed.emit()
+	await get_tree().create_timer(0.8).timeout
+	get_tree().current_scene._modes.cards[1].pressed.emit()   # Classic
 	await get_tree().scene_changed
 	for f in 3:
 		await get_tree().process_frame

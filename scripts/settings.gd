@@ -37,9 +37,13 @@ const I18N_DIR := "res://data/i18n/"
 ## Character picked on the character select screen (session only, not saved).
 var selected_character := "fire_wizard"
 var selected_map := "swamp"            # "swamp" or "forest" (MapPicker, before a run)
+## Mode picked from the title's Play menu (session only): "classic" - survive 10 minutes;
+## "unrelenting" - no time limit, the clock counts up and everything keeps getting harder.
+var game_mode := "classic"
 
 # Gameplay
 var language := "en"
+var play_intro := true       # the cinematic after the studio logo
 # Sound
 var music_volume := 0.8      # 0..1 (linear)
 var music_muted := false
@@ -63,7 +67,12 @@ func _ready() -> void:
 	_ensure_bus(SFX_BUS)
 	load_settings()
 	load_translations()
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--lang="):   # screenshots/tests: this session only (not saved)
+			language = a.split("=")[1]
 	apply_language()
+	# (Layouts stay left-to-right for Arabic too: project setting
+	# internationalization/rendering/root_node_layout_direction = Left-to-Right.)
 	apply_audio()
 	apply_video()
 
@@ -179,6 +188,7 @@ func reset_bindings() -> void:
 func save_settings() -> void:
 	var cf := ConfigFile.new()
 	cf.set_value("gameplay", "language", language)
+	cf.set_value("gameplay", "play_intro", play_intro)
 	cf.set_value("sound", "music_volume", music_volume)
 	cf.set_value("sound", "music_muted", music_muted)
 	cf.set_value("sound", "sfx_volume", sfx_volume)
@@ -200,6 +210,7 @@ func load_settings() -> void:
 	if cf.load(PATH) != OK:
 		return
 	language = cf.get_value("gameplay", "language", language)
+	play_intro = cf.get_value("gameplay", "play_intro", play_intro)
 	music_volume = cf.get_value("sound", "music_volume", music_volume)
 	music_muted = cf.get_value("sound", "music_muted", music_muted)
 	sfx_volume = cf.get_value("sound", "sfx_volume", sfx_volume)
@@ -226,7 +237,7 @@ func set_value(key: String, value) -> void:
 	changed.emit()
 
 
-const SAVED_KEYS := ["language", "music_volume", "music_muted", "sfx_volume", "sfx_muted",
+const SAVED_KEYS := ["language", "play_intro", "music_volume", "music_muted", "sfx_volume", "sfx_muted",
 	"window_mode", "vsync", "render_scale", "fov", "max_fps", "show_fps",
 	"mouse_sensitivity", "invert_y", "bindings"]
 
