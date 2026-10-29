@@ -12,6 +12,8 @@ var level_label: Label
 var timer_label: Label
 var info_label: Label
 var inv_label: Label
+var inv_box: VBoxContainer      # owned weapons/items (top row) and tomes (bottom row), with levels
+var _inv_sig := ""
 var debug_label: Label
 var msg_label: Label
 var intro_banner: BloodBanner
@@ -26,7 +28,7 @@ var _ui_players := {}
 var pause_root: Control
 var settings_menu: SettingsMenu
 var draft_root: Control
-var draft_cards: Array = []   # [Button, title Label, body Label, UpgradeIcon]
+var draft_cards: Array = []   # [Button, title Label, body Label, UpgradeIcon, level Label]
 var end_root: Control
 var ability_slots: Array = []   # AbilitySlot
 var tooltip: PanelContainer
@@ -118,7 +120,18 @@ func setup(m) -> void:
 	inv_label.offset_right = 520
 	inv_label.offset_bottom = -20
 	inv_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	inv_label.visible = false   # replaced by the icon overlay below (kept for the debug overlay)
 	root.add_child(inv_label)
+	inv_box = VBoxContainer.new()
+	inv_box.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	inv_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	inv_box.offset_left = 18
+	inv_box.offset_bottom = -16
+	inv_box.offset_top = -16
+	inv_box.alignment = BoxContainer.ALIGNMENT_END
+	inv_box.add_theme_constant_override("separation", 6)
+	inv_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(inv_box)
 
 	var hint := _label("WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns", 14)
 	hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -248,10 +261,23 @@ func _build_draft(root: Control) -> void:
 		box.add_theme_constant_override("separation", 10)
 		btn.add_child(box)
 		# Centrepiece: the upgrade's icon (tome book, weapon medallion, item charm)
+		# Icon centred, with the level it becomes ("Lv 2") just to its right
+		var icon_row := HBoxContainer.new()
+		icon_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		icon_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_row.add_theme_constant_override("separation", 8)
+		var pad := Control.new()
+		pad.custom_minimum_size = Vector2(64, 0)
+		icon_row.add_child(pad)
 		var tome := UpgradeIcon.new()
 		tome.custom_minimum_size = Vector2(120, 120)
-		tome.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		box.add_child(tome)
+		icon_row.add_child(tome)
+		var lvl := _label("", 26)
+		lvl.custom_minimum_size = Vector2(64, 0)
+		lvl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lvl.add_theme_constant_override("outline_size", 6)
+		icon_row.add_child(lvl)
+		box.add_child(icon_row)
 		var ttl := _label("", 26)
 		ttl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		ttl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -276,7 +302,7 @@ func _build_draft(root: Control) -> void:
 		body.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body_box.add_child(body)
-		draft_cards.append([btn, ttl, body, tome])
+		draft_cards.append([btn, ttl, body, tome, lvl])
 
 
 ## Card frame outlined thickly in the rarity colour (brighter on hover).
@@ -553,6 +579,8 @@ func show_draft(picks: Array) -> void:
 		card[1].add_theme_color_override("font_color", col.lightened(0.15))
 		card[2].text = info["body"]
 		var icon: Dictionary = info.get("icon", {})
+		(card[4] as Label).text = "Lv %d" % int(info.get("next_level", 1))
+		(card[4] as Label).add_theme_color_override("font_color", col.lightened(0.25))
 		var art: UpgradeIcon = card[3]
 		art.visible = not icon.is_empty()
 		if art.visible:
@@ -782,6 +810,54 @@ func _land_burst(card: Control) -> void:
 	get_tree().create_timer(1.0, true).timeout.connect(p.queue_free)
 
 
+## Owned upgrades as icons with their level: weapons + items on the top row, tomes below,
+## in the order you picked them up. Rebuilt only when something changes.
+func _update_inventory() -> void:
+	var gear := []
+	var tomes := []
+	for id in main.db.levels:
+		var lv: int = main.db.levels[id]
+		if lv <= 0:
+			continue
+		(tomes if main.db.defs[id]["kind"] == "tome" else gear).append([id, lv])
+	var sig := str(gear) + str(tomes)
+	if sig == _inv_sig:
+		return
+	_inv_sig = sig
+	for c in inv_box.get_children():
+		c.queue_free()
+	for row in [gear, tomes]:
+		if row.is_empty():
+			continue
+		var hb := HBoxContainer.new()
+		hb.add_theme_constant_override("separation", 6)
+		hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		inv_box.add_child(hb)
+		for e in row:
+			hb.add_child(_inv_chip(e[0], e[1]))
+
+
+func _inv_chip(id: String, lv: int) -> Control:
+	var d: Dictionary = main.db.defs[id]
+	var chip := Control.new()
+	chip.custom_minimum_size = Vector2(46, 46)
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.tooltip_text = "%s  Lv %d" % [d["name"], lv]
+	var icon := UpgradeIcon.create(d.get("icon", {}), d["kind"])
+	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	chip.add_child(icon)
+	var n := _label(str(lv), 15)
+	n.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	n.offset_left = -22
+	n.offset_top = -20
+	n.offset_right = 2
+	n.offset_bottom = 2
+	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	n.add_theme_constant_override("outline_size", 5)
+	chip.add_child(n)
+	return chip
+
+
 ## Plays a UI sound ("levelup", "hover", "pick", "pick_tome") on the SFX bus; works while paused.
 func play_ui(kind: String) -> void:
 	if not _ui_players.has(kind):
@@ -851,6 +927,7 @@ func _process(dt: float) -> void:
 	if tomes > 0:
 		lines.append("Tomes ×%d" % tomes)
 	inv_label.text = "\n".join(lines)
+	_update_inventory()
 
 	_update_tooltip()
 	_update_popups(dt)

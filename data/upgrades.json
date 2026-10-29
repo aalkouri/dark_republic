@@ -61,7 +61,7 @@
     { "id": "tome_luck", "kind": "tome", "icon": { "glyph": "clover", "cover": "#3f7a1f" }, "name": "Tome of Luck", "weight": 5, "max_level": 99,
       "desc": "Better rarity rolls.", "per_level": [ { "stat": "luck", "op": "flat", "value": 0.1 } ] },
     { "id": "tome_quantity", "kind": "tome", "icon": { "glyph": "triple", "cover": "#8e5a1f" }, "name": "Tome of Quantity", "weight": 3, "max_level": 3, "fixed": true,
-      "desc": "+1 projectile for every projectile weapon.", "per_level": [ { "stat": "projectile_count", "op": "flat", "value": 1 } ] },
+      "desc": "Every projectile weapon fires more.", "per_level": [ { "stat": "projectile_count", "op": "flat", "value": 1 } ] },
 
     { "id": "item_bomb", "kind": "item", "icon": { "glyph": "bomb", "cover": "#7a3a1a", "tint": "#ffb020" }, "name": "Blast Bomb", "weight": 5, "max_level": 5,
       "desc": "Enemies have a chance to explode on death.",

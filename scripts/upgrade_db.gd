@@ -139,6 +139,7 @@ func describe(pick: Dictionary) -> Dictionary:
 		"body": "\n".join(lines),
 		"icon": d.get("icon", {}),   # {"glyph", "cover", "tint"?} for UpgradeIcon
 		"kind": d["kind"],
+		"next_level": lv + 1,   # the level it will be once picked
 	}
 
 

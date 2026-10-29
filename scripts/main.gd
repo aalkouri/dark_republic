@@ -105,6 +105,7 @@ var _shot_zoom := 0.0
 var _shot_turn := 0.0
 var _shot_level := 0
 var _shot_epic := false
+var _shot_give := []   # --shot-give=id:levels,...  owned upgrades for screenshots
 var _shot_intro := false   # --shot-intro: screenshot runs play the entrance too
 var intro := false         # true while the entrance meteor is falling (first 3 s)
 var _shot_draft: Array = []
@@ -171,6 +172,10 @@ func _ready() -> void:
 			_shot_settings_tab = int(a.split("=")[1])
 		elif a.begins_with("--shot-inspect="):
 			_shot_inspect = int(a.split("=")[1])
+		elif a.begins_with("--shot-give="):
+			for c in a.split("=")[1].split(","):
+				var parts := c.split(":")
+				_shot_give.append([parts[0], int(parts[1]) if parts.size() > 1 else 1])
 		elif a == "--shot-intro":
 			_shot_intro = true
 		elif a == "--shot-epic":
@@ -936,6 +941,10 @@ func _shot_tick() -> void:
 		player.cam_yaw = _shot_yaw
 		if CastleNav.current != null:
 			CastleNav.current.update(1.0, _shot_pos)   # spawn points near the new spot
+	for g in _shot_give:
+		for k in int(g[1]):
+			db.apply({"id": g[0], "rarity": 0}, stats)
+	_shot_give.clear()
 	if _shot_spawn > 0:
 		for k in _shot_spawn:
 			var t := EnemyManager.TANK if k % 9 == 0 else (EnemyManager.RUNNER if k % 3 == 0 else EnemyManager.GRUNT)
