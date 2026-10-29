@@ -567,6 +567,7 @@ func _tick_clap(dt: float) -> void:
 func _sky_bolt(at: Vector3, width: float, life: float, from := Vector3.INF) -> void:
 	if from == Vector3.INF:
 		from = at + Vector3(randf_range(-4, 4), 30.0, randf_range(-4, 4))
+		from.y = minf(from.y, Abilities.ceiling - 0.5)
 	lightning.bolt(from, at, _main, width, life, 0.12)
 	lightning.bolt(from, at, _light, width * 0.6, life * 0.7, 0.1, false)
 	fx.burst(at, 1.6, Color(1.0, 0.95, 0.6), 0.25)

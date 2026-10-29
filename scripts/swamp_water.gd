@@ -136,6 +136,22 @@ static func generate(rng: RandomNumberGenerator, count: int, half: float, keep_o
 	return sw
 
 
+## A perfectly flat ground at height 0 with no pools (the castle floor). The height grid,
+## texture and `current` work exactly like build_terrain's, so everything that reads ground
+## heights keeps working.
+func build_flat(half: float, sites: Array[Vector3]) -> void:
+	half_extent = half
+	pads.clear()
+	shrine_sites = sites
+	hsize = int(ceil(half * 2.0 + 20.0)) + 1
+	horigin = -float(hsize - 1) * 0.5
+	hgrid.resize(hsize * hsize)
+	hgrid.fill(0.0)
+	var img := Image.create_from_data(hsize, hsize, false, Image.FORMAT_RF, hgrid.to_byte_array())
+	height_texture = ImageTexture.create_from_image(img)
+	current = self
+
+
 ## Cheap check: could (x, z) be inside any pool?
 func maybe_in_pool(x: float, z: float) -> bool:
 	for k in fast_x.size():

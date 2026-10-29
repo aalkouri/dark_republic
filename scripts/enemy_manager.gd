@@ -57,6 +57,10 @@ var bonus_mult := 1.0           # ability damage buffs (Eclipse), on top of dama
 #   freeze frozen solid: can't move or hit you, takes +freeze_bonus damage, shatters on death
 #   stun   can't move or hit you                   (Thunderclap, Rewind...)
 #   curse  takes +curse_bonus damage               (Shadow Bolts)
+var skeletons: SkeletonCrowd     # draws skeletons, throws their bones, scatters them on death
+var player: Node3D              # set by main: the target of thrown bones
+var throw_t := PackedFloat32Array()     # skeletons: seconds until they may throw again
+var throw_anim := PackedFloat32Array()  # skeletons: > 0 while winding up a throw (they stand still)
 var slow_t := PackedFloat32Array()
 var slow_f := PackedFloat32Array()
 var freeze_t := PackedFloat32Array()
@@ -155,7 +159,7 @@ var buf := PackedFloat32Array()
 var bar_mm: MultiMesh
 var bar_buf := PackedFloat32Array()
 
-enum { GRUNT, RUNNER, TANK, BOSS }
+enum { GRUNT, RUNNER, TANK, BOSS, SKELETON }   # SKELETON: castle; its epic is the Armored Skeleton
 
 
 func _ready() -> void:
@@ -177,7 +181,7 @@ func _ready() -> void:
 	sz.resize(MAX)
 	sep_x.resize(MAX)
 	sep_z.resize(MAX)
-	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t]:
+	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim]:
 		a.resize(MAX)
 	cell_of.resize(MAX)
 	sorted.resize(MAX)
@@ -196,6 +200,12 @@ func _ready() -> void:
 	_add_type("Goblin Scamp", 6.0, 6.8, 0.36, 0.8, 12.0, 1.0, Color(0.9, 0.68, 0.18))
 	_add_type("Goblin Brute", 55.0, 3.0, 0.85, 1.8, 32.0, 5.0, Color(0.38, 0.4, 0.46))
 	_add_type("Goblin Warlord", 2500.0, 3.6, 2.0, 4.5, 70.0, 120.0, Color(0.55, 0.08, 0.1))
+	# Skeleton: human height, a bit tougher than a goblin, throws bones (SkeletonCrowd)
+	_add_type("Skeleton", 14.0, 3.9, 0.42, 1.0, 14.0, 1.5, Color(0.85, 0.82, 0.74))
+	t_height[SKELETON] = SkeletonCrowd.HEIGHT
+	skeletons = SkeletonCrowd.new()
+	skeletons.em = self
+	add_child(skeletons)
 
 	mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -282,6 +292,8 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	freeze_t[i] = 0.0
 	stun_t[i] = 0.0
 	curse_t[i] = 0.0
+	throw_t[i] = rng.randf_range(1.0, 3.0) if rng != null else 2.0
+	throw_anim[i] = 0.0
 	return i
 
 
@@ -358,7 +370,9 @@ func frozen_count() -> int:
 func _kill(i: int) -> void:
 	dead[i] = 1
 	_dead_count += 1
-	if corpses != null:
+	if typ[i] == SKELETON:   # falls apart into bones instead of a corpse
+		skeletons.scatter(pos[i], t_scale[SKELETON] * sz[i], epic[i] == 1)
+	elif corpses != null:
 		var t := typ[i]
 		var col: Color = t_color[t]
 		if epic[i]:
@@ -512,6 +526,20 @@ func tick(dt: float, player_pos: Vector3) -> void:
 	var max_dv := ACCEL * dt
 	var lim := arena_half
 	var reloc2 := RELOCATE_DIST * RELOCATE_DIST
+	# Indoor maps: follow the flow field round walls and never step into a solid cell
+	var nav := CastleNav.current
+	var nav_on := nav != null
+	if nav_on:
+		nav.update(dt, player_pos)
+	var nb: PackedByteArray = nav.blocked if nav_on else PackedByteArray()
+	var nn := nav.n if nav_on else 0
+	var no := nav.origin if nav_on else 0.0
+	var ndist: PackedInt32Array = nav.dist if nav_on else PackedInt32Array()
+	var ndx: PackedFloat32Array = nav.dir_x if nav_on else PackedFloat32Array()
+	var ndz: PackedFloat32Array = nav.dir_z if nav_on else PackedFloat32Array()
+	var nwx := nav.win_x0 if nav_on else 0
+	var nwz := nav.win_z0 if nav_on else 0
+	var NW := CastleNav.WINDOW
 	# Ground height grid (1 m cells), sampled inline below so goblins follow the hills
 	var hg_on := water != null and water.hsize > 0
 	var hg: PackedFloat32Array = water.hgrid if hg_on else PackedFloat32Array()
@@ -526,9 +554,14 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		var d2 := tx * tx + tz * tz
 
 		if d2 > reloc2 and t != BOSS and not fear:
-			var a := rng.randf() * TAU
-			var r := rng.randf_range(28.0, 36.0)
-			pos[i] = Vector3(player_pos.x + cos(a) * r, 0.0, player_pos.z + sin(a) * r)
+			if nav_on:   # indoors: only somewhere the player can be reached from
+				var q := nav.reachable_point(player_pos, 28.0, 36.0, rng)
+				if q != Vector3.INF:
+					pos[i] = q
+			else:
+				var a := rng.randf() * TAU
+				var r := rng.randf_range(28.0, 36.0)
+				pos[i] = Vector3(player_pos.x + cos(a) * r, 0.0, player_pos.z + sin(a) * r)
 			vel[i] = Vector3.ZERO
 			continue
 
@@ -554,8 +587,17 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		if kb_t[i] > 0.0:
 			kb_t[i] -= dt
 			var kv := kb_vel[i]
+			var kox := p.x
+			var koz := p.z
 			p.x = clampf(p.x + kv.x * dt, -lim, lim)
 			p.z = clampf(p.z + kv.z * dt, -lim, lim)
+			if nav_on:
+				var kbx := int(floorf((p.x - no) * 0.5))
+				var kbz := int(floorf((p.z - no) * 0.5))
+				if kbx < 0 or kbz < 0 or kbx >= nn or kbz >= nn or nb[kbz * nn + kbx] != 0:
+					p.x = kox   # knocked into a wall: stop there
+					p.z = koz
+					kb_t[i] = 0.0
 			p.y = 0.0
 			if hg_on:
 				var hgx := clampf(p.x - ho, 0.0, hmax)
@@ -643,9 +685,19 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			var inv := 1.0 / sqrt(d2)
 			fx = tx * inv
 			fz = tz * inv
+			if nav_on and d2 > 4.0:   # follow the flow field (it knows the way round walls)
+				var fwx := int(floorf((p.x - no) * 0.5)) - nwx
+				var fwz := int(floorf((p.z - no) * 0.5)) - nwz
+				if fwx >= 0 and fwz >= 0 and fwx < NW and fwz < NW:
+					var fw := fwz * NW + fwx
+					if ndist[fw] > 1 and (ndx[fw] != 0.0 or ndz[fw] != 0.0):
+						fx = ndx[fw]
+						fz = ndz[fw]
 			var sp := t_speed[t] * (WATER_SPEED_MULT if p.y < -0.15 else 1.0)
 			if slow_t[i] > 0.0:
 				sp *= slow_f[i]
+			if throw_anim[i] > 0.0:
+				sp = 0.0   # a skeleton winding up a throw stands still
 			if fear:
 				sp = -sp   # run away from the player
 			elif lost and t != BOSS:
@@ -663,8 +715,25 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		v.x += dvx
 		v.z += dvz
 		v.y = 0.0
+		var ox := p.x
+		var oz := p.z
 		p.x = clampf(p.x + v.x * dt + sep_x[i] * corr, -lim, lim)
 		p.z = clampf(p.z + v.z * dt + sep_z[i] * corr, -lim, lim)
+		if nav_on:
+			var bx := int(floorf((p.x - no) * 0.5))
+			var bz := int(floorf((p.z - no) * 0.5))
+			if bx < 0 or bz < 0 or bx >= nn or bz >= nn or nb[bz * nn + bx] != 0:
+				# Slide along the wall: keep whichever axis is still free
+				if not nav.is_blocked(p.x, oz):
+					p.z = oz
+					v.z = 0.0
+				elif not nav.is_blocked(ox, p.z):
+					p.x = ox
+					v.x = 0.0
+				else:
+					p.x = ox
+					p.z = oz
+					v = Vector3.ZERO
 		p.y = 0.0
 		if hg_on:
 			var hgx := clampf(p.x - ho, 0.0, hmax)
@@ -736,6 +805,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		buf[b + 18] = col.b
 		buf[b + 19] = fxc
 
+	buf = skeletons.sync(dt, buf, player)
 	mm.buffer = buf
 	mm.visible_instance_count = n
 	_write_bars(n)
@@ -902,6 +972,8 @@ func _compact() -> void:
 			freeze_t[i] = freeze_t[last]
 			stun_t[i] = stun_t[last]
 			curse_t[i] = curse_t[last]
+			throw_t[i] = throw_t[last]
+			throw_anim[i] = throw_anim[last]
 			count -= 1
 		else:
 			i += 1

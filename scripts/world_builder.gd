@@ -139,14 +139,17 @@ void fragment() {
 """
 
 
-const MAPS := ["swamp", "forest"]
+const MAPS := ["swamp", "forest", "castle"]
 
 
-## Build the arena for `map` ("swamp" or "forest"). Both share the terrain generator and the
-## same counts and placement rules; only the look and the props differ.
+## Build the arena for `map` ("swamp", "forest" or "castle"). All share the 440 m footprint and
+## the same prop counts; the outdoor two share the terrain generator, the castle is indoors.
 static func build(parent: Node3D, rng: RandomNumberGenerator, half: float, map := "swamp") -> SwampWater:
+	CastleNav.current = null
 	if map == "forest":
 		return ForestBuilder.build(parent, rng, half)
+	if map == "castle":
+		return CastleBuilder.build(parent, rng, half)
 	var is_night := rng.randf() < 0.5
 	_environment(parent, rng, is_night)
 

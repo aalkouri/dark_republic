@@ -86,6 +86,7 @@ const DEFS := [
 	{"name": "Meteor", "key": "3", "cooldown": METEOR_COOLDOWN, "ult": true, "unlock_level": 10},
 ]
 
+static var ceiling := INF    # indoor maps: things that come from the sky start under this height
 var kit := "fire_wizard"     # the selected character; set before the node enters the tree
 var roster: RosterKit        # its abilities, for everyone but the Fire Wizard
 var _defs: Array = []
@@ -305,6 +306,8 @@ func _cast_meteor() -> void:
 	back.y = 0.0
 	back = back.normalized() if back.length() > 0.5 else Vector3(0, 0, 1)
 	var start := target - back * 35.0 + Vector3(0, 75.0, 0)
+	if ceiling < 1000.0:   # indoors: it drops from just under the roof
+		start = target - back * 10.0 + Vector3(0, ceiling - 3.0, 0)
 
 	var head := _make_giant_head()
 	head.global_position = start
@@ -582,6 +585,8 @@ func _erupt_shockwave() -> void:
 	var disc := _ground_disc(1.0, Color(1.0, 0.3, 0.04, 0.12), true)
 	disc.global_position = center + Vector3(0, 0.06, 0)
 	_shocks.append({"center": center, "t": 0.0, "hit": {}, "ring": ring, "disc": disc})
+	if fx:
+		fx.burst_fired.emit(center + Vector3(0, 0.5, 0), SHOCK_RADIUS * 0.5)   # shoves loose props (the castle feast)
 	player.add_shake(0.35)
 
 

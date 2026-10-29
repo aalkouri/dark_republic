@@ -175,9 +175,9 @@ Picking one up while it's active refreshes its timer; active power-ups and their
 
 ## Maps
 
-**Play** (on the title screen or character select) first asks which map: **The Swamp** or the **Magical Forest**, with **The Dungeon** shown locked as "coming soon" (`scripts/map_picker.gd`, previews in `images/maps/`). The choice is kept for Restart and the next Play (`Settings.selected_map`). Test and screenshot runs take `--map=swamp|forest`, and `--shot-nohud` hides the HUD for clean pictures.
+**Play** (on the title screen or character select) first asks which map: **The Swamp**, the **Magical Forest** or **The Castle** (`scripts/map_picker.gd`, previews in `images/maps/`). The choice is kept for Restart and the next Play (`Settings.selected_map`). Test and screenshot runs take `--map=swamp|forest|castle`, `--shot-nohud` hides the HUD for clean pictures and `--shot-pos=x,y,z[,yaw]` puts the wizard somewhere.
 
-Both maps share the same 440 m arena, terrain generator (hills, berm, level pads, 1 m height grid), counts and placement rules, so they play the same: 180 trees, 72 fallen logs, 24 landmarks, 14 pools, grass, walls and the shrine pads. `WorldBuilder.build(..., map)` picks the look.
+The two outdoor maps share the same 440 m arena, terrain generator (hills, berm, level pads, 1 m height grid), counts and placement rules, so they play the same: 180 trees, 72 fallen logs, 24 landmarks, 14 pools, grass, walls and the shrine pads. `WorldBuilder.build(..., map)` picks the look.
 
 ## The Magical Forest
 
@@ -202,6 +202,19 @@ Both maps share the same 440 m arena, terrain generator (hills, berm, level pads
 - **Fireflies** drifting and blinking around you (`scripts/fireflies.gd`).
 - Trees and logs still catch fire from the Meteor and char black.
 - **Tests:** `godot --headless --path . res://tools/test_forest.tscn` (counts match the swamp, every prop has neon, bushes react, a run starts on it). To preview the props: `godot --path . res://tools/render_forest_props.tscn -- /out.png`.
+
+## The Castle
+
+`scripts/castle_builder.gd` (props in `castle_props.gd`). An enclosed keep on the same 440 m footprint, with the same counts as outdoors: about 250 furniture props, 24 landmarks and 14 shrine sites.
+
+- **Layout:** mostly huge open halls with few corridors. The **great hall** (with columns and a red carpet) is behind the front doors. North of it is the **dining hall** with its table, flanked by two **galleries**, and the **throne room** with a raised throne is at the far end. The side wings are the **barracks, armoury, library and chapel**. Wide archways join the rooms, and two short 8 m corridors are the only tight spots. The building has stone walls, flagstone floors and a 24 m timbered roof, so the Meteor and sky bolts start under it.
+- **The entrance:** a run starts on the porch outside. The wizard walks in through the 12 m front doors, they swing shut with a boom, and the run starts. The doors stay shut for the rest of the run.
+- **Lighting:** wall torches, iron chandeliers and braziers. Banners and stained-glass windows line the walls. Furniture (benches, bookcases, crates, barrels, banners) burns.
+- **The feast** (`castle_feast.gd`): a 142 m table with benches, set with about 700 plates, goblets, roast pigs, chickens, bread, cheese, pies, grapes, jugs and candlesticks. Each one is a real rigid body under normal gravity, asleep until disturbed. Walk along the table and you kick dishes flying, and landing on it kicks harder. Explosions and Fire Nova blast everything near them off the table (via `FxManager.burst_fired`). Goblins can't climb on the table, so they run around it.
+- **Pathfinding** (`castle_nav.gd`): a 2 m walkable grid with a flow field rebuilt around you about 3 times a second. Goblins follow it through doorways and around the table instead of piling up against walls, and they slide along walls rather than through them. Spawns only appear on floor that can reach you.
+- **Skeletons** (`skeleton_crowd.gd`), indoors only: 35% of castle spawns are skeletons (the overall spawn rate is the same as outdoors). **Armoured skeletons** are their epic version, with a helmet, breastplate and shield. Skeletons walk and claw like goblins, but at 3–17 m with a clear line of sight they stop and **throw bones**. Each bone flies in an arc, leads your movement, hits for 70% of their contact damage (armoured ones hit harder), and shatters on walls and the floor. Their throws clear the table, so standing on it won't keep you safe. Killed skeletons collapse into a scatter of bouncing bones, with a clatter. The models are procedural with a vertex-shader walk, claw and throw, drawn as two MultiMeshes.
+- **Sounds:** the door slam and the bone clatter are synthesised by `tools/gen_castle_sounds.py`.
+- **Tests:** `godot --headless --path . res://tools/test_castle.tscn` checks the counts against the swamp, that every room is reachable, the walk-in and the shut doors, food kicks and blasts, and skeleton throws, hits and collapses.
 
 ## The swamp
 
@@ -344,6 +357,9 @@ godot --headless --path . --fixed-fps 60 res://tools/test_shrines.tscn
 
 # Title flow (splash -> title -> settings -> play -> main menu)
 godot --headless --path . res://tools/test_title.tscn
+
+# Castle (layout and reachability, door walk-in, feast physics, skeletons throwing bones)
+godot --headless --path . res://tools/test_castle.tscn
 
 # Character select (roster data, locked/unlocked, preview, back, play)
 godot --headless --path . res://tools/test_character_select.tscn

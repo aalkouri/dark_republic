@@ -1,7 +1,7 @@
 class_name MapPicker
 extends Control
 ## "Choose your battleground": shown after Play (title screen and character select). One card
-## per map with a preview picture; the Dungeon is shown locked as "coming soon". The choice is
+## per map with a preview picture (a card can be marked "locked": true for a map not built yet). The choice is
 ## kept (Settings.selected_map), so Restart and the next Play default to it. Esc goes back.
 
 signal chosen(map: String)
@@ -10,7 +10,7 @@ signal cancelled
 const MAPS := [
 	{"id": "swamp", "name": "The Swamp", "blurb": "Fog, cypress trees and stinking pools.", "image": "res://images/maps/swamp.png"},
 	{"id": "forest", "name": "Magical Forest", "blurb": "Neon trees, glowing ponds and bushes that rustle.", "image": "res://images/maps/forest.png"},
-	{"id": "dungeon", "name": "The Dungeon", "blurb": "Coming soon.", "image": "", "locked": true},
+	{"id": "castle", "name": "The Castle", "blurb": "Torch-lit halls, a feast to trample, skeletons.", "image": "res://images/maps/castle.png"},
 ]
 
 var _font: Font
@@ -125,10 +125,10 @@ func _card(m: Dictionary) -> Button:
 
 func choose(id: String) -> void:
 	for m in MAPS:
-		if m["id"] == id and m.get("locked", false):
-			return
-	Settings.selected_map = id
-	chosen.emit(id)
+		if m["id"] == id and not m.get("locked", false):
+			Settings.selected_map = id
+			chosen.emit(id)
+			return   # unknown and locked maps are ignored
 
 
 func _unhandled_input(event: InputEvent) -> void:

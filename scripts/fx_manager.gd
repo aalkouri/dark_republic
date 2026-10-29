@@ -1,9 +1,12 @@
 class_name FxManager
 extends Node3D
+
 ## Pooled, high-frequency visual effects drawn with MultiMeshes (no per-effect nodes):
 ##  - bursts: expanding, fading fire spheres (burn explosions, meteor impact debris)
 ##  - ash:    flat flakes left behind by the fire wizard that fade within ~1 s
 ## Per-instance alpha comes from the instance color.
+
+signal burst_fired(at: Vector3, radius: float)   # every explosion-like effect (the castle feast listens)
 
 const BURST_MAX := 160
 const ASH_MAX := 160
@@ -95,6 +98,7 @@ func _make_mm(mesh: Mesh, n: int) -> MultiMesh:
 
 
 func burst(at: Vector3, radius: float, color := Color(1.0, 0.45, 0.1), life := 0.35) -> void:
+	burst_fired.emit(at, radius)
 	if _b_count >= BURST_MAX:
 		return
 	var i := _b_count

@@ -104,6 +104,10 @@ var _shot_settings_tab := -1
 var _forced_seed := -1
 var _shot_pitch := -99.0
 var _shot_nohud := false
+var _shot_pos := Vector3.INF
+var _shot_yaw := 0.0
+var castle_doors: CastleDoors   # the castle's front doors (null outdoors)
+var _walk_in := false
 var _shot_slow := -1.0   # --shot-slow=T: crawl (time scale 0.02) from T, to catch short effects
 
 
@@ -176,6 +180,10 @@ func _ready() -> void:
 			_shot_pool = true
 		elif a == "--shot-front":
 			_shot_front = true
+		elif a.begins_with("--shot-pos="):   # x,y,z[,yaw degrees]: start the screenshot run here
+			var v := a.split("=")[1].split(",")
+			_shot_pos = Vector3(float(v[0]), float(v[1]), float(v[2]))
+			_shot_yaw = deg_to_rad(float(v[3])) if v.size() > 3 else 0.0
 		elif a == "--shot-nohud":   # clean pictures (map previews)
 			_shot_nohud = true
 		elif a.begins_with("--shot-slow="):
@@ -213,6 +221,7 @@ func _ready() -> void:
 		player.add_shield(stats.value("max_hp") * stats.value("start_shield"))
 
 	enemies = EnemyManager.new()
+	enemies.player = player
 	enemies.arena_half = ARENA_HALF
 	enemies.rng = rng
 	enemies.water = water
@@ -300,12 +309,39 @@ func _ready() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	# Entrance: everything holds still while the wizard comes down as a meteor; the run (and
 	# the "SURVIVE" banner) starts when he lands. Screenshot/smoke runs skip it unless asked.
+	# Indoors (the castle) there's no sky: you walk in through the front doors, which slam
+	# shut behind you.
+	castle_doors = find_children("*", "CastleDoors", true, false).pop_front() as CastleDoors
+	Abilities.ceiling = CastleBuilder.CEILING if castle_doors != null else INF
 	if (smoke or shot_path != "") and not _shot_intro:
+		if castle_doors:
+			player.global_position = CastleBuilder.INSIDE + Vector3(0, 0.5, 0)
+			castle_doors.close_now()
 		hud.intro_banner.show_text("SURVIVE 10 MINUTES")
+	elif castle_doors:
+		intro = true
+		player.global_position = CastleBuilder.PORCH + Vector3(0, 0.5, 0)
+		_walk_in = true
 	else:
 		intro = true
 		abilities.entrance_landed.connect(_on_entrance_landed, CONNECT_ONE_SHOT)
 		abilities.entrance_meteor(Vector3(0, water.ground_height(0, 0), 0))
+
+
+## The castle entrance: walk the player in through the doors, then shut them.
+func _castle_intro() -> void:
+	if not _walk_in:
+		return
+	if player.global_position.z > CastleBuilder.INSIDE.z:
+		player.bot = true
+		player.bot_move = Vector2(0, -1)
+		player.cam_yaw = 0.0
+		return
+	_walk_in = false
+	player.bot = smoke
+	player.bot_move = Vector2.ZERO
+	castle_doors.shut.connect(_on_entrance_landed, CONNECT_ONE_SHOT)
+	castle_doors.close()
 
 
 func _on_entrance_landed() -> void:
@@ -342,8 +378,9 @@ func _physics_process(dt: float) -> void:
 		_shot_tick()
 	if state != "playing":
 		return
-	if intro:   # entrance meteor: only the meteor moves; goblins, spawns and the clock wait
+	if intro:   # entrance: only the meteor / the walk-in moves; goblins, spawns and the clock wait
 		abilities.tick(dt)
+		_castle_intro()
 		return
 	run_time += dt
 	_spawn_director(dt)
@@ -457,7 +494,9 @@ func _spawn_director(dt: float) -> void:
 		for k in n:
 			var a := TAU * float(k) / float(n)
 			var p := player.global_position + Vector3(cos(a), 0, sin(a)) * 22.0
-			_spawn_enemy(EnemyManager.RUNNER, p, hpm)
+			if CastleNav.current != null and CastleNav.current.steps_to_player(p.x, p.z) <= 0:
+				p = _spawn_point(18.0, 28.0)   # indoors: that spot is a wall or cut off
+			_spawn_enemy(EnemyManager.RUNNER if CastleNav.current == null or rng.randf() > SKELETON_SHARE else EnemyManager.SKELETON, p, hpm)
 		hud.flash_message("SWARM!", 2.0)
 
 	if not _boss_spawned and run_time >= BOSS_TIME:
@@ -466,7 +505,12 @@ func _spawn_director(dt: float) -> void:
 		hud.flash_message("A GOBLIN WARLORD APPROACHES", 4.0)
 
 
+const SKELETON_SHARE := 0.35   # castle: this share of spawns are skeletons (same overall rate)
+
+
 func _pick_type(m: float) -> int:
+	if CastleNav.current != null and rng.randf() < SKELETON_SHARE:
+		return EnemyManager.SKELETON
 	var w_grunt := 10.0
 	var w_runner := 4.0 * minf(m, 3.0) if m >= 1.0 else 0.0
 	var w_tank := 1.5 * (m - 1.0) if m >= 2.0 else 0.0
@@ -479,6 +523,12 @@ func _pick_type(m: float) -> int:
 
 
 func _spawn_point(min_d: float, max_d: float) -> Vector3:
+	if CastleNav.current != null:   # indoors: a floor cell the horde can reach you from
+		var c := CastleNav.current
+		c.update(0.0, player.global_position)
+		var q := c.reachable_point(player.global_position, min_d, max_d, rng)
+		if q != Vector3.INF:
+			return q
 	var a := rng.randf() * TAU
 	var p := player.global_position + Vector3(cos(a), 0, sin(a)) * rng.randf_range(min_d, max_d)
 	var q := Vector3(clampf(p.x, -ARENA_HALF + 2, ARENA_HALF - 2), 0, clampf(p.z, -ARENA_HALF + 2, ARENA_HALF - 2))
@@ -806,9 +856,16 @@ func _shot_tick() -> void:
 	player.face_camera = _shot_front
 	if _shot_pitch > -90.0:
 		player.cam_pitch = _shot_pitch
+	if _shot_pos != Vector3.INF and run_time < 0.05:
+		player.global_position = _shot_pos
+		player.cam_yaw = _shot_yaw
+		if CastleNav.current != null:
+			CastleNav.current.update(1.0, _shot_pos)   # spawn points near the new spot
 	if _shot_spawn > 0:
 		for k in _shot_spawn:
 			var t := EnemyManager.TANK if k % 9 == 0 else (EnemyManager.RUNNER if k % 3 == 0 else EnemyManager.GRUNT)
+			if CastleNav.current != null and k % 3 == 1:
+				t = EnemyManager.SKELETON   # indoors: show some skeletons too
 			if _shot_epic and k % 3 == 0:   # --shot-epic: every third one is an epic, close by
 				enemies.spawn(t, _spawn_point(5.0, 9.0), 3.0, true)
 			else:
