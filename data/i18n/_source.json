@@ -44,11 +44,16 @@
  "%s Chest": [
   "chest.gd:52"
  ],
+ "%s Cooldown": [
+  "weapon_system.gd:166"
+ ],
  "%s Damage": [
-  "weapon_system.gd:181"
+  "weapon_system.gd:165",
+  "weapon_system.gd:187"
  ],
  "%s Pierce": [
-  "weapon_system.gd:183"
+  "weapon_system.gd:168",
+  "weapon_system.gd:189"
  ],
  "%s Shrine": [
   "shrine.gd:492"
@@ -254,10 +259,10 @@
   "skill_tree.gd:61",
   "skill_tree.gd:104"
  ],
- "Ability 1 - Inferno": [
+ "Ability 1": [
   "settings.gd:25"
  ],
- "Ability 2 - Fire Nova": [
+ "Ability 2": [
   "settings.gd:25"
  ],
  "Absolute Zero": [
@@ -504,7 +509,7 @@
   "mode_menu.gd:15"
  ],
  "Click or press any key to skip": [
-  "intro.gd:374"
+  "intro.gd:385"
  ],
  "Click to continue": [
   "unlock_reveal.gd:52"
@@ -543,14 +548,14 @@
   "taglines.json"
  ],
  "DARK REPUBLIC": [
-  "intro.gd:363",
+  "intro.gd:374",
   "title.gd:199"
  ],
  "DESTROY Mode": [
   "abilities.json"
  ],
  "DR. CROC": [
-  "intro.gd:436"
+  "intro.gd:447"
  ],
  "Damage": [
   "upgrades.json"
@@ -976,13 +981,13 @@
   "abilities.json"
  ],
  "GAIDEN": [
-  "intro.gd:429"
+  "intro.gd:440"
  ],
  "GET OUT OF MY SWAMP.": [
   "abilities.json"
  ],
  "GHAST": [
-  "intro.gd:435"
+  "intro.gd:446"
  ],
  "GOBLIN WARLORD SLAIN!": [
   "main.gd:652"
@@ -1195,7 +1200,7 @@
   "abilities.json"
  ],
  "Katana": [
-  "intro.gd:429",
+  "intro.gd:440",
   "abilities.json"
  ],
  "Keeper of the Ember Staff": [
@@ -1233,7 +1238,7 @@
   "characters.json"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:186"
+  "weapon_system.gd:192"
  ],
  "LEVEL UP!": [
   "hud.gd:253"
@@ -1510,7 +1515,7 @@
   "hud.gd:736"
  ],
  "OGRE": [
-  "intro.gd:418"
+  "intro.gd:429"
  ],
  "Offense": [
   "skill_tree.gd:11",
@@ -2303,7 +2308,7 @@
   "abilities.json"
  ],
  "Tree Trunk": [
-  "intro.gd:418",
+  "intro.gd:429",
   "abilities.json"
  ],
  "Troll Blood": [
@@ -2337,7 +2342,7 @@
   "character_select.gd:223",
   "main.gd:405"
  ],
- "Ultimate - Meteor": [
+ "Ultimate": [
   "settings.gd:26"
  ],
  "Unknown map": [
@@ -2374,10 +2379,10 @@
   "skill_tree.gd:100"
  ],
  "VICKI": [
-  "intro.gd:423"
+  "intro.gd:434"
  ],
  "Valkyrie Spear": [
-  "intro.gd:423",
+  "intro.gd:434",
   "abilities.json"
  ],
  "Valkyrie of the Marsh": [
@@ -2411,7 +2416,7 @@
   "settings_menu.gd:180"
  ],
  "Volatile Flasks": [
-  "intro.gd:436",
+  "intro.gd:447",
   "abilities.json"
  ],
  "Volley": [
@@ -2421,7 +2426,7 @@
   "hud.gd:148"
  ],
  "Wail": [
-  "intro.gd:435",
+  "intro.gd:446",
   "abilities.json"
  ],
  "Warden of the Frozen Fen": [

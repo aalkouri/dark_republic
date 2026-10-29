@@ -160,6 +160,12 @@ static func retheme_card(db: UpgradeDB, p_style: String) -> void:
 	d["name"] = c["name"]
 	d["desc"] = c["desc"]
 	d["icon"] = c["icon"]
+	# Its stats show on the cards too ("+20% Frost Shards Damage", not "Fireball Damage")
+	if p_style != "fire":
+		db.stat_names["orb_damage"] = ["%s Damage", c["name"]]
+		db.stat_names["orb_cooldown"] = ["%s Cooldown", c["name"]]
+		db.stat_names["orb_count"] = c["name"]
+		db.stat_names["orb_pierce"] = ["%s Pierce", c["name"]]
 
 
 ## Character id -> weapon style.

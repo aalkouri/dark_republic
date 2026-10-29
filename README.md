@@ -40,6 +40,8 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
   - Beating Thog doesn't end the run.
   - Lasting **15:00 in the Swamp** earns the feat Ghast needs to be unlocked (`Wallet.feats`).
 
+**Weapon names on cards:** the Ice, Thunder and Dark Wizards' starting weapon shows its own name everywhere, including its stat lines on level-up cards (e.g. "+20% Frost Shards Damage"; `WeaponSystem.retheme_card`). "Fireballs" only appears for the Fire Wizard, or as his signature weapon when it turns up as a legendary reward. The key bindings say Ability 1 / Ability 2 / Ultimate, since every character's abilities differ.
+
 **Run clock:** in Classic it counts **down** from 10:00. During the entrance it spins up from 00:00 to 10:00 with digital blips that rise in pitch (`audio/ui/timer_tick.wav`), then locks in with two beeps (`timer_set.wav`) and starts counting down when you land.
 
 ## Character select
@@ -259,7 +261,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **Signature weapons:** every unlocked character's weapon (Fireballs, Frost Shards, Chain Lightning, Shadow Bolts) can turn up for the other characters as a rare Legendary level-up reward, under 1% of cards. It fires alongside your own weapon, levels up to 5 and counts as one of your 3 weapons (`WeaponSystem.add_signature_weapons`). The other characters' weapons join the pool once those characters are built.
 - **Unlock reveal:** buying a character shows "UNLOCKED <weapon>" over a collectible-style card of their weapon, with a fanfare. Click or press any key to continue (`scripts/unlock_reveal.gd`, `scripts/weapon_card.gd`).
 - **BAN:** under each reward card a BAN button (100 coins) throws that reward out of this draft and every later draft in the run. You lose that choice, and you get 3 bans per run. Banning plays a stamp-and-"denied" sound. You can't ban the last card left (`BANS_PER_RUN`, `BAN_COST` in `scripts/main.gd`).
-- **Level-up sounds:** an arcane chime plays when you level up and a soft tick when you hover over a reward card. Picking a tome slams a book shut, and picking anything else rings a magic "shing". Choose them in `UI_SOUNDS` in `scripts/hud.gd`. `tools/gen_ui_sounds.py` synthesises three candidates for each in `audio/ui/`.
+- **Level-up sounds:** a "power surge" (a low punch and a bright synth stab) plays when you level up and a soft tick when you hover over a reward card. Picking a tome slams a book shut, and picking anything else rings a magic "shing". Choose them in `UI_SOUNDS` in `scripts/hud.gd`. `tools/gen_ui_sounds.py` synthesises the candidates in `audio/ui/`.
 - **Start banner:** "SURVIVE 10 MINUTES" slams into the middle of the screen as the wizard lands in blood-red letters with a black outline and dripping blood, then fades (`scripts/blood_banner.gd`).
 - **Music:** "Tension Drop" (`audio/music/tension_drop.mp3`) starts with the level and loops until the run ends, then fades out. Change `SWAMP_MUSIC` / `MUSIC_VOLUME_DB` in `scripts/main.gd`.
 - **Ability sounds:** Inferno and Fire Nova play their sound on the key press and take effect 1 s later (`INFERNO_DELAY`, `NOVA_DELAY`). Meteor plays its sound on the cast and an explosion when it lands. The explosion is synthesised by `tools/gen_explosion_sound.py`. All of them are in `audio/abilities/` and use the SFX bus.

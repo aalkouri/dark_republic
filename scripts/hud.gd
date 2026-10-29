@@ -19,7 +19,7 @@ var msg_label: Label
 var intro_banner: BloodBanner
 ## Level-up / reward-card sounds (tools/gen_ui_sounds.py makes all the candidates in audio/ui/).
 const UI_SOUNDS := {
-	"levelup": "res://audio/ui/levelup_chime.wav",
+	"levelup": "res://audio/ui/levelup_surge.wav",   # Power Surge: punch + synth stab
 	"hover": "res://audio/ui/hover_tick.wav",
 	"pick": "res://audio/ui/pick_shing.wav",        # weapons and items
 	"pick_tome": "res://audio/ui/pick_slam.wav",    # tomes: a heavy book slam

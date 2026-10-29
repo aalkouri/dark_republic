@@ -126,5 +126,37 @@
 "ST. %d",
 "等级 %d",
 "LV %d"
+],
+"%s Cooldown": [
+"Enfriamiento de %s",
+"Recharge de %s",
+"تهدئة %s",
+"%s-Abklingzeit",
+"%s冷却",
+"%sのクールダウン"
+],
+"Ability 1": [
+"Habilidad 1",
+"Capacité 1",
+"القدرة 1",
+"Fähigkeit 1",
+"技能 1",
+"アビリティ1"
+],
+"Ability 2": [
+"Habilidad 2",
+"Capacité 2",
+"القدرة 2",
+"Fähigkeit 2",
+"技能 2",
+"アビリティ2"
+],
+"Ultimate": [
+"Definitiva",
+"Ultime",
+"الخارقة",
+"Ultimativ",
+"终极技",
+"アルティメット"
 ]
 }
