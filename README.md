@@ -152,7 +152,7 @@ To add a clip: generate it on the same rig in Higgsfield, then run `godot --head
 
 **Collisions:** when an enemy touches you, you take its contact damage (shield first), become immune for 0.5 s (shown by dimming the character 50%), and you and the enemy are knocked apart. Enemies that run into you while you're immune bounce back opposite to the way they were heading.
 
-**Epic enemies:** each spawn has a 5% chance (+1% per Tome of Luck level) to be epic: 1.5x size, 4x HP and a purple tint. Each epic drops one potion:
+**Epic enemies:** each spawn has a 5% chance to be epic, plus 10% per point of Luck. A Tome of Luck level is 0.1 Luck (+1%), and the Fortune skills give 0.5: 1.5x size, 4x HP and a purple tint. Each epic drops one potion:
 
 | Potion | Chance | Effect |
 |---|---|---|
@@ -162,7 +162,7 @@ To add a clip: generate it on the same rig in Higgsfield, then run `godot --head
 
 Potions lean and spin slowly so they're easy to spot, last 45 s, and blink every 0.3 s during their final 5 s.
 
-**Power-ups:** each elite kill also has a 2% chance (+1% per Tome of Luck level) to drop one of:
+**Power-ups:** each elite kill also has a 2% chance to drop one of these, plus 10% per point of Luck (+1% per Tome of Luck level):
 
 | Power-up | Effect |
 |---|---|
@@ -292,7 +292,7 @@ Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): abo
 - **Run structure:** 10-minute run, spawn rate and enemy HP scale with time, a swarm ring every minute. On the Swamp, **Thog the Troll** arrives at 8:00 and the run is won by killing him (see *Thog the Troll*); on the other maps a Goblin Warlord comes at 5:00 (his death vacuums all XP) and surviving 10:00 wins.
 - **3 weapons:** Fireballs (auto-targeted, pierce), Stink Aura (damage field), Ground Slam (knockback nova). Max 3 weapons per run.
 - **13 tomes** (stat upgrades) and **3 items** (explode on kill, heal on kill, extra jumps).
-- **Rarity rolls** (Common → Legendary, x1–x3 effect) influenced by Luck.
+- **Rarity rolls** (Common → Legendary, x1–x3 effect): Luck raises the weight of Rare, Epic and Legendary by its value (0.1 per Tome of Luck level).
 - **Arena:** procedurally scattered platforms, ramps and pillars.
 
 ## Architecture

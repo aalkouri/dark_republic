@@ -328,14 +328,18 @@ func _ready() -> void:
 	add_child(gm)
 	var pdb := UpgradeDB.new("res://data/upgrades.json", rng)
 	var pstats := Stats.new()
-	for k in ["max_hp", "regen", "armor", "move_speed", "extra_jumps", "damage"]:
+	for k in ["max_hp", "regen", "armor", "move_speed", "extra_jumps", "damage", "luck"]:
 		pstats.define(k, {"max_hp": 100.0, "move_speed": 8.0, "damage": 1.0}.get(k, 0.0))
 	var pu := PowerupManager.new()
 	pu.setup(player, pstats, em, gm, pdb, rng)
 	add_child(pu)
 	_check("power-up chance 2% base", is_equal_approx(pu.drop_chance(), 0.02), "%.3f" % pu.drop_chance())
-	pdb.levels["tome_luck"] = 3
-	_check("+1% per Luck level", is_equal_approx(pu.drop_chance(), 0.05), "%.3f at Luck 3" % pu.drop_chance())
+	for k in 3:
+		pdb.apply({"id": "tome_luck", "rarity": 0}, pstats)
+	_check("+1% per Tome of Luck level", is_equal_approx(pu.drop_chance(), 0.05), "%.3f at Luck 3" % pu.drop_chance())
+	pstats.apply("luck", "flat", 0.5)   # e.g. the Fortune skill
+	_check("luck from anywhere (skills too) counts", is_equal_approx(pu.drop_chance(), 0.10), "%.3f at luck 0.8" % pu.drop_chance())
+	pstats.apply("luck", "flat", -0.8)
 	pdb.levels.erase("tome_luck")
 	var drops := 0
 	var kinds := {}

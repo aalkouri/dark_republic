@@ -14,7 +14,7 @@ const MAX_WEAPONS := 3
 const SWAMP_MUSIC := "res://audio/music/tension_drop.mp3"   # loops for the whole swamp run
 const MUSIC_VOLUME_DB := -6.0
 const EPIC_BASE_CHANCE := 0.05
-const EPIC_CHANCE_PER_LUCK := 0.01     # per Tome of Luck level
+const EPIC_CHANCE_PER_LUCK := 0.1      # per point of the Luck stat (a Tome of Luck level = 0.1 luck = +1%)
 const CONTACT_ENEMY_KNOCK := 2.5       # metres an enemy is shoved on collision
 
 const BASE_STATS := {
@@ -497,7 +497,7 @@ func _contact_damage() -> void:
 
 
 func epic_chance() -> float:
-	return EPIC_BASE_CHANCE + EPIC_CHANCE_PER_LUCK * db.level_of("tome_luck")
+	return EPIC_BASE_CHANCE + EPIC_CHANCE_PER_LUCK * stats.value("luck")   # Tome of Luck, skills, anything
 
 
 func _spawn_enemy(t: int, p: Vector3, hpm: float) -> int:

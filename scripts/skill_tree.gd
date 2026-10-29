@@ -59,7 +59,7 @@ const POOL := {
 		],
 		[
 			{"id": "haste", "name": "Time Warp", "desc": "Abilities recharge 20% faster", "icon": "clock", "fx": [["ability_cdr", "mult", 0.8]]},
-			{"id": "fortune", "name": "Fortune", "desc": "+2 luck (more epic enemies and drops)", "icon": "clover", "fx": [["luck", "flat", 2.0]]},
+			{"id": "fortune", "name": "Fortune", "desc": "+0.5 luck: better rewards, more epic enemies and power-ups (like 5 Tomes of Luck)", "icon": "clover", "fx": [["luck", "flat", 0.5]]},
 			{"id": "midas", "name": "Midas Touch", "desc": "+40% coins from runs", "icon": "coin", "fx": [["coin_gain", "add", 0.4]]},
 			{"id": "sprinter", "name": "Sprinter", "desc": "+20% move speed", "icon": "boot", "fx": [["move_speed", "add", 0.2]]},
 			{"id": "sage", "name": "Sage", "desc": "+35% XP", "icon": "book", "fx": [["xp_gain", "add", 0.35]]},
@@ -103,7 +103,7 @@ const AUTHORED := {
 			[
 				{"id": "time_warp", "name": "Time Warp", "desc": "Abilities recharge 20% faster", "icon": "clock", "fx": [["ability_cdr", "mult", 0.8]]},
 				{"id": "ember_magnet", "name": "Ember Pull", "desc": "+50% pickup range", "icon": "magnet", "fx": [["pickup_range", "add", 0.5]]},
-				{"id": "fortunes_flame", "name": "Fortune's Flame", "desc": "+2 luck (more epic enemies and drops)", "icon": "clover", "fx": [["luck", "flat", 2.0]]},
+				{"id": "fortunes_flame", "name": "Fortune's Flame", "desc": "+0.5 luck: better rewards, more epic enemies and power-ups (like 5 Tomes of Luck)", "icon": "clover", "fx": [["luck", "flat", 0.5]]},
 			],
 		],
 	},

@@ -1,6 +1,6 @@
 class_name PowerupManager
 extends Node3D
-## Power-ups dropped by elite (epic) goblins: DROP_BASE + DROP_PER_LUCK per Tome of Luck level,
+## Power-ups dropped by elite (epic) enemies: DROP_BASE + DROP_PER_LUCK x the Luck stat,
 ## one of four at random.
 ##   Magnet            pulls every XP orb on the map to you (instant)
 ##   Fear Idol         every goblin runs away from you for 15 s
@@ -13,7 +13,7 @@ signal collected(kind: int)
 enum { MAGNET, FEAR, DAMAGE, SPEED }
 
 const DROP_BASE := 0.02
-const DROP_PER_LUCK := 0.01
+const DROP_PER_LUCK := 0.1    # per point of the Luck stat (a Tome of Luck level = 0.1 luck = +1%)
 const NAMES := ["Magnet", "Fear Idol", "5x Damage", "Movement Enhancer"]
 const PICKUP_TEXT := ["MAGNET! All orbs incoming", "FEAR IDOL! Enemies flee for 15 s", "5x DAMAGE for 10 s!", "MOVEMENT +80% for 15 s!"]
 const DURATION := [0.0, 15.0, 10.0, 15.0]
@@ -44,7 +44,8 @@ func setup(p_player: Player, p_stats: Stats, p_enemies: EnemyManager, p_gems: Ge
 
 
 func drop_chance() -> float:
-	return DROP_BASE + DROP_PER_LUCK * (db.level_of("tome_luck") if db != null else 0)
+	var luck := stats.value("luck") if stats != null and stats.has_stat("luck") else 0.0
+	return DROP_BASE + DROP_PER_LUCK * luck
 
 
 ## Called when an elite dies: maybe drop a random power-up.
