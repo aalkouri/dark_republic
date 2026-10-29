@@ -364,7 +364,7 @@ func _build_panel() -> void:
 	_build_requirements(v)
 
 
-## Under "LOCKED · TO UNLOCK": one chip per requirement with a tick or a cross (coins, and for
+## Under "Unlock Requirements:": one chip per requirement with a tick or a cross (coins, and for
 ## Thog, beating him in the Swamp), side by side.
 func _build_requirements(parent: Control) -> void:
 	_req_box = PanelContainer.new()
@@ -611,7 +611,7 @@ func _show(k: int) -> void:
 		_status.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
 	else:
 		var ok := can_unlock(k)
-		_status.text = "LOCKED  ·  " + ("ready to unlock" if ok else "to unlock:")
+		_status.text = "Ready to unlock" if ok else "Unlock Requirements:"
 		_status.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45) if ok else Color(0.85, 0.5, 0.45))
 		_play_btn.text = "UNLOCK"
 	# Playable characters get the live model; everyone else a big portrait
