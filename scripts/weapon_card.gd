@@ -11,12 +11,23 @@ var _font: Font
 var _font_bold: Font
 
 
-static func create(char_name: String, weapon: Dictionary, ribbon: String, font: Font, font_bold: Font) -> WeaponCard:
+var card_size := SIZE
+var _k := 1.0                 # card_size.x / SIZE.x (fonts and art scale with it)
+
+
+## `width` builds a smaller card (same proportions; text stays readable).
+static func create(char_name: String, weapon: Dictionary, ribbon: String, font: Font, font_bold: Font, width := SIZE.x) -> WeaponCard:
 	var c := WeaponCard.new()
 	c._font = font
 	c._font_bold = font_bold
+	c._k = width / SIZE.x
+	c.card_size = SIZE * c._k
 	c._build(char_name, weapon, ribbon)
 	return c
+
+
+func _px(v: float, lo := 0.0) -> int:
+	return int(maxf(lo, round(v * _k)))
 
 
 func _box(fill: Color, border: Color, width: int, radius: int) -> StyleBoxFlat:
@@ -46,9 +57,10 @@ func _label(text: String, size: int, col: Color, bold := false) -> Label:
 
 
 func _build(char_name: String, weapon: Dictionary, ribbon: String) -> void:
-	custom_minimum_size = SIZE
-	size = SIZE
-	pivot_offset = SIZE * 0.5
+	var S := card_size
+	custom_minimum_size = S
+	size = S
+	pivot_offset = S * 0.5
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var icon: Dictionary = weapon.get("icon", {})
 	var accent := Color.html(str(icon.get("tint", "#ffb020")))
@@ -56,35 +68,35 @@ func _build(char_name: String, weapon: Dictionary, ribbon: String) -> void:
 
 	# Frame: dark outer edge, gold border, an inner gold hairline
 	var outer := Panel.new()
-	outer.add_theme_stylebox_override("panel", _box(Color(0.06, 0.04, 0.03), GOLD, 6, 18))
+	outer.add_theme_stylebox_override("panel", _box(Color(0.06, 0.04, 0.03), GOLD, _px(6, 3), _px(18)))
 	outer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	outer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(outer)
 	var inner := Panel.new()
 	var ib := _box(Color(0.12, 0.08, 0.05), Color(GOLD, 0.45), 2, 12)
 	inner.add_theme_stylebox_override("panel", ib)
-	inner.position = Vector2(14, 14)
-	inner.size = SIZE - Vector2(28, 28)
+	inner.position = Vector2(14, 14) * _k
+	inner.size = S - Vector2(28, 28) * _k
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(inner)
 
 	var v := VBoxContainer.new()
-	v.position = Vector2(24, 22)
-	v.size = SIZE - Vector2(48, 44)
-	v.add_theme_constant_override("separation", 8)
+	v.position = Vector2(24, 22) * _k
+	v.size = S - Vector2(48, 44) * _k
+	v.add_theme_constant_override("separation", _px(8, 4))
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(v)
 	# Character banner
 	var banner := PanelContainer.new()
 	banner.add_theme_stylebox_override("panel", _box(cover.darkened(0.2), GOLD, 2, 8))
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	banner.add_child(_label(char_name.to_upper(), 16, Color(1.0, 0.92, 0.75), true))
+	banner.add_child(_label(char_name.to_upper(), _px(16, 12), Color(1.0, 0.92, 0.75), true))
 	v.add_child(banner)
 	# Art window: the weapon's emblem on a glowing field in its colours
 	var art := Panel.new()
 	var ab := _box(cover.darkened(0.45), Color(GOLD, 0.8), 3, 10)
 	art.add_theme_stylebox_override("panel", ab)
-	art.custom_minimum_size = Vector2(0, 200)
+	art.custom_minimum_size = Vector2(0, 200 * _k * (1.0 if _k > 0.9 else 0.8))
 	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(art)
 	var glow := _Glow.new()
@@ -92,20 +104,21 @@ func _build(char_name: String, weapon: Dictionary, ribbon: String) -> void:
 	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
 	art.add_child(glow)
 	var emblem := UpgradeIcon.create(icon, "weapon")
-	emblem.custom_minimum_size = Vector2(170, 170)
+	var es := art.custom_minimum_size.y * 0.85
+	emblem.custom_minimum_size = Vector2(es, es)
 	emblem.set_anchors_preset(Control.PRESET_CENTER)
-	emblem.size = Vector2(170, 170)
-	emblem.position = Vector2(-85, -85)
+	emblem.size = Vector2(es, es)
+	emblem.position = -Vector2(es, es) * 0.5
 	art.add_child(emblem)
 	# Name, text, ribbon
-	v.add_child(_label(str(weapon.get("name", "")), 28, accent.lerp(Color.WHITE, 0.35), true))
-	var desc := _label(str(weapon.get("desc", "")), 15, Color(0.9, 0.85, 0.76))
+	v.add_child(_label(str(weapon.get("name", "")), _px(28, 18), accent.lerp(Color.WHITE, 0.35), true))
+	var desc := _label(str(weapon.get("desc", "")), _px(15, 13), Color(0.9, 0.85, 0.76))
 	desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(desc)
 	var rib := PanelContainer.new()
 	rib.add_theme_stylebox_override("panel", _box(Color(0.35, 0.22, 0.05), GOLD, 2, 6))
 	rib.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rib.add_child(_label(ribbon, 14, Color(1.0, 0.86, 0.45), true))
+	rib.add_child(_label(ribbon, _px(14, 11), Color(1.0, 0.86, 0.45), true))
 	v.add_child(rib)
 
 

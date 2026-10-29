@@ -115,8 +115,8 @@ func _ready() -> void:
 		var why := ""
 		if not cs._ability_bar.visible:
 			why = "no bar"
-		elif not cs._kit.text.begins_with("Weapon: "):
-			why = "weapon: " + cs._kit.text
+		elif not (cs._card_slot.visible and cs._card_slot.get_child_count() > 0 and (cs._card_slot.get_child(-1) as WeaponCard) != null):
+			why = "no weapon card"
 		for i in 3:
 			var sl: AbilitySlot = cs._ability_slots[i]
 			if sl.glyph == "" or not (sl.glyph in AbilityGlyphs.NAMES):

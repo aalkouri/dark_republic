@@ -31,6 +31,8 @@ var _req_box: PanelContainer
 var _req_rows: HBoxContainer
 var _big_icon: CharacterIcon
 var _view_box: SubViewportContainer
+var _card_slot: Control            # the shown character's weapon card (beside the model)
+const CARD_W := 236.0
 var _model_pivot: Node3D
 var _hero_preview: Node3D
 var _previews := {}          # character id -> RosterModel (built on first view)
@@ -321,10 +323,17 @@ func _build_panel() -> void:
 	v.add_theme_constant_override("separation", 8)
 	panel.add_child(v)
 
-	# Preview area: 3D model or a large portrait, same footprint
+	# Preview row: 3D model (or a large portrait) on the left, the weapon card on the right
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(row)
 	var stage := Control.new()
-	stage.custom_minimum_size = Vector2(640, 262)
-	v.add_child(stage)
+	stage.custom_minimum_size = Vector2(380, CARD_W / WeaponCard.SIZE.x * WeaponCard.SIZE.y)
+	row.add_child(stage)
+	_card_slot = Control.new()
+	_card_slot.custom_minimum_size = WeaponCard.SIZE * (CARD_W / WeaponCard.SIZE.x)
+	row.add_child(_card_slot)
 	_view_box = SubViewportContainer.new()
 	_view_box.stretch = true
 	_view_box.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -338,7 +347,7 @@ func _build_panel() -> void:
 	_big_icon = CharacterIcon.new()
 	_big_icon.custom_minimum_size = Vector2(280, 280)
 	_big_icon.size = Vector2(280, 280)
-	_big_icon.position = Vector2((640 - 280) * 0.5, 5)
+	_big_icon.position = Vector2((380 - 280) * 0.5, 20)
 	stage.add_child(_big_icon)
 
 	_name = _label("", 44, Color(1.0, 0.86, 0.6), true)
@@ -597,6 +606,15 @@ func _show(k: int) -> void:
 	if c["id"] != "fire_wizard" and has_abilities:
 		weapon = KitDB.weapon_line(c["id"])
 	_kit.text = weapon if has_abilities else ("  ·  ".join(kit) if ready else "")
+	# The weapon card replaces the "Weapon: ..." line (it carries the same name and text)
+	for ch in _card_slot.get_children():
+		ch.queue_free()
+	var w: Dictionary = KitDB.kit(c["id"]).get("weapon", {})
+	_card_slot.visible = not mystery and not w.is_empty()
+	if _card_slot.visible:
+		_card_slot.add_child(WeaponCard.create(str(c["name"]), w, "SIGNATURE WEAPON", _font, _font_bold, CARD_W))
+		if has_abilities:
+			_kit.text = ""
 	_kit.visible = _kit.text != ""
 	_play_btn.text = "PLAY"
 	_status.visible = not mystery
