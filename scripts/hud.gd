@@ -35,6 +35,10 @@ var end_stats: Label
 var end_coin_lines: Label
 var end_exp: Label
 var end_pot: Label
+var end_unlocks: VBoxContainer       # "UNLOCKED!" after a first boss kill: cards swirl in
+var unlock_cards: Array[Control] = []
+var _unlock_slots: Array[Control] = []
+var _unlock_ding: AudioStreamPlayer
 var end_pot_icon: CoinIcon
 var run_reward := {"time": 0, "bonus": 0, "total": 0}
 var _pot_left := 0
@@ -475,6 +479,16 @@ func _build_end(root: Control) -> void:
 	end_stats = _label("", 22)
 	end_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(end_stats)
+	end_unlocks = VBoxContainer.new()
+	end_unlocks.add_theme_constant_override("separation", 8)
+	end_unlocks.visible = false
+	vb.add_child(end_unlocks)
+	_unlock_ding = AudioStreamPlayer.new()
+	_unlock_ding.bus = Settings.SFX_BUS
+	_unlock_ding.volume_db = -4.0
+	if ResourceLoader.exists("res://audio/coins/coin_done.wav"):
+		_unlock_ding.stream = load("res://audio/coins/coin_done.wav")
+	add_child(_unlock_ding)
 	# Character EXP earned this run (1 per kill, banked when the run ends)
 	end_exp = _label("", 20)
 	end_exp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -549,8 +563,7 @@ func show_end(won: bool) -> void:
 	end_title.text = ("THOG DEFEATED!" if main.boss_won else "YOU SURVIVED!") if won else "YOU DIED"
 	end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if won else Color(1.0, 0.35, 0.3))
 	end_stats.text = "Time %s   ·   Level %d   ·   Kills %d" % [_fmt_time(main.run_time), main.level, main.kills]
-	if main.first_boss_kill:
-		end_stats.text += "\nUNLOCKED: the Magical Forest and the Castle   ·   Thog can now be bought"
+	show_unlocks(unlocks_for("thog") if main.first_boss_kill else [])
 	end_root.visible = true
 	# EXP for the character played: 1 per kill, banked now
 	var cid := Settings.selected_character
@@ -583,6 +596,181 @@ func _start_payout() -> void:
 	_pay_started = true
 	_pay_base = Wallet.displayed
 	Wallet.payout(run_reward["total"], end_pot_icon.get_global_rect().get_center())
+
+
+# ------------------------------------------------------------------ unlock reveal
+
+## What beating `boss` opens up, read from the data: maps whose card "requires" it, then
+## characters whose "requires_boss" is it. [{tag, name, hint, color}]
+static func unlocks_for(boss: String) -> Array:
+	var out := []
+	for m in MapPicker.MAPS:
+		if m.get("requires", "") == boss:
+			out.append({"tag": "NEW MAP", "name": m["name"], "hint": "Choose it after Play", "color": Color(0.45, 0.85, 1.0)})
+	var f := FileAccess.open("res://data/characters.json", FileAccess.READ)
+	var data = JSON.parse_string(f.get_as_text()) if f else null
+	if data is Dictionary:
+		for c in data.get("characters", []):
+			if c.get("requires_boss", "") == boss:
+				out.append({"tag": "NEW CHAMPION", "name": c["name"], "color": Color(1.0, 0.62, 0.25),
+					"hint": "Now for sale in Characters: %s coins" % Wallet.fmt(int(c.get("price", 0)))})
+	return out
+
+
+## The "UNLOCKED!" block of the end screen: each unlock is a card that flies in from off
+## screen on a swirling spiral (spinning, growing, trailing sparks) and lands in its slot with
+## a pop, a flash and a ding, one after another.
+func show_unlocks(items: Array) -> void:
+	for c in end_unlocks.get_children():
+		c.queue_free()
+	for c in unlock_cards:
+		c.queue_free()
+	unlock_cards.clear()
+	_unlock_slots.clear()
+	end_unlocks.visible = not items.is_empty()
+	if items.is_empty():
+		return
+	var head := _label("UNLOCKED!", 34)
+	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head.add_theme_color_override("font_color", Color(1.0, 0.86, 0.35))
+	head.modulate.a = 0.0
+	end_unlocks.add_child(head)
+	var htw := create_tween()
+	htw.tween_interval(0.4)
+	htw.tween_property(head, "modulate:a", 1.0, 0.4)
+	for k in items.size():
+		var slot := Control.new()
+		slot.custom_minimum_size = Vector2(660, 66)
+		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		end_unlocks.add_child(slot)
+		_unlock_slots.append(slot)
+		var card := _unlock_card(items[k])
+		card.modulate.a = 0.0
+		end_root.add_child(card)
+		unlock_cards.append(card)
+		get_tree().create_timer(0.8 + k * 0.65, true).timeout.connect(_fly_unlock.bind(k))
+
+
+func _unlock_card(item: Dictionary) -> Control:
+	var col: Color = item["color"]
+	var card := PanelContainer.new()
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.custom_minimum_size = Vector2(660, 66)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.07, 0.05, 0.04, 0.95)
+	sb.border_color = col
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(12)
+	sb.shadow_color = Color(col, 0.45)
+	sb.shadow_size = 12
+	sb.content_margin_left = 18
+	sb.content_margin_right = 18
+	sb.content_margin_top = 6
+	sb.content_margin_bottom = 6
+	card.add_theme_stylebox_override("panel", sb)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	card.add_child(row)
+	var tag := _label(item["tag"], 18)
+	tag.add_theme_color_override("font_color", col)
+	tag.custom_minimum_size = Vector2(150, 0)
+	tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(tag)
+	var text := VBoxContainer.new()
+	text.add_theme_constant_override("separation", 0)
+	row.add_child(text)
+	var name := _label(str(item["name"]).to_upper(), 28)
+	name.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85))
+	text.add_child(name)
+	var hint := _label(item["hint"], 16)
+	hint.add_theme_color_override("font_color", Color(0.8, 0.76, 0.7))
+	text.add_child(hint)
+	# Sparks trailing behind it while it flies
+	var sparks := CPUParticles2D.new()
+	sparks.name = "Sparks"
+	sparks.amount = 60
+	sparks.lifetime = 0.6
+	sparks.local_coords = false
+	sparks.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	sparks.emission_rect_extents = Vector2(300, 26)
+	sparks.direction = Vector2(0, -1)
+	sparks.spread = 180.0
+	sparks.gravity = Vector2.ZERO
+	sparks.initial_velocity_min = 20.0
+	sparks.initial_velocity_max = 90.0
+	sparks.scale_amount_min = 2.0
+	sparks.scale_amount_max = 5.0
+	var grad := Gradient.new()
+	grad.set_color(0, Color(1.0, 0.95, 0.6, 1.0))
+	grad.set_color(1, Color(col, 0.0))
+	sparks.color_ramp = grad
+	sparks.emitting = false
+	sparks.position = Vector2(330, 33)
+	card.add_child(sparks)
+	return card
+
+
+func _fly_unlock(k: int) -> void:
+	if k >= unlock_cards.size() or not end_root.visible:
+		return
+	var card := unlock_cards[k]
+	var slot := _unlock_slots[k]
+	card.size = slot.size
+	card.pivot_offset = card.size * 0.5
+	var target := slot.global_position
+	var a0 := 2.2 * k + 0.6                 # each comes in from a different side
+	var dir := 1.0 if k % 2 == 0 else -1.0  # and swirls the other way to the last one
+	var reach := get_viewport().get_visible_rect().size.length() * 0.75
+	var sparks := card.get_node("Sparks") as CPUParticles2D
+	sparks.emitting = true
+	var tw := create_tween()
+	tw.tween_method(func(t: float):
+		var e := 1.0 - pow(1.0 - t, 3.0)
+		var r := reach * (1.0 - e)
+		var ang := a0 + dir * (1.0 - e) * TAU * 1.25
+		card.global_position = target + Vector2(cos(ang), sin(ang)) * r
+		card.rotation = dir * (1.0 - e) * TAU * 1.5
+		card.scale = Vector2.ONE * lerpf(0.3, 1.0, e)
+		card.modulate.a = clampf(t * 3.0, 0.0, 1.0), 0.0, 1.0, 1.2)
+	tw.tween_callback(func():
+		sparks.emitting = false
+		card.global_position = target
+		card.rotation = 0.0
+		if _unlock_ding.stream:
+			_unlock_ding.pitch_scale = 1.1 + 0.12 * k
+			_unlock_ding.play()
+		_land_burst(card))
+	tw.tween_property(card, "scale", Vector2.ONE * 1.15, 0.08)
+	tw.parallel().tween_property(card, "modulate", Color(1.8, 1.7, 1.3, 1.0), 0.08)
+	tw.tween_property(card, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(card, "modulate", Color.WHITE, 0.45)
+
+
+## A ring of sparks bursting out of a card as it lands.
+func _land_burst(card: Control) -> void:
+	var p := CPUParticles2D.new()
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.amount = 70
+	p.lifetime = 0.7
+	p.local_coords = false
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = Vector2(320, 30)
+	p.direction = Vector2(0, -1)
+	p.spread = 180.0
+	p.gravity = Vector2(0, 260)
+	p.initial_velocity_min = 120.0
+	p.initial_velocity_max = 320.0
+	p.scale_amount_min = 3.0
+	p.scale_amount_max = 6.0
+	var grad := Gradient.new()
+	grad.set_color(0, Color(1.0, 0.95, 0.6, 1.0))
+	grad.set_color(1, Color(1.0, 0.55, 0.15, 0.0))
+	p.color_ramp = grad
+	p.position = card.size * 0.5
+	card.add_child(p)
+	p.emitting = true
+	get_tree().create_timer(1.0, true).timeout.connect(p.queue_free)
 
 
 func flash_message(text: String, duration := 3.0) -> void:

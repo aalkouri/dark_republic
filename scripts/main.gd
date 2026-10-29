@@ -68,6 +68,8 @@ var first_boss_kill := false       # ...for the first time (unlocks shown on the
 var _thog_at := THOG_TIME
 var _shot_thog := false
 var _thog_enraged := false
+var _shot_boss_win := -1.0
+var _shot_boss_wait := 3.0
 var _smoke_wall_ms := 600000
 var _shot_thog_dist := 9.0
 var _shot_thog_side := 0.0
@@ -142,6 +144,10 @@ func _ready() -> void:
 			_thog_at = float(a.split("=")[1])
 		elif a.begins_with("--smoke-wall="):   # wall-clock limit for long smoke runs (seconds)
 			_smoke_wall_ms = int(a.split("=")[1]) * 1000
+		elif a.begins_with("--shot-boss-win="):   # --shot-boss-win=T[,wait]: win by killing Thog (first time) at T, shoot `wait` s later
+			var v := a.split("=")[1].split(",")
+			_shot_boss_win = float(v[0])
+			_shot_boss_wait = float(v[1]) if v.size() > 1 else 3.0
 		elif a == "--thog-enraged":   # Thog arrives already enraged (screenshots)
 			_thog_enraged = true
 		elif a.begins_with("--shot-thog"):   # --shot-thog[=distance[,side angle in degrees]]
@@ -949,6 +955,13 @@ func _shot_tick() -> void:
 			abilities.reset_cooldowns()
 			cast_ability(shot_casts[t])
 			shot_casts.erase(t)
+	if _shot_boss_win >= 0.0 and run_time >= _shot_boss_win:
+		_shot_boss_win = -1.0
+		boss_won = true
+		first_boss_kill = true
+		_end_run(true)
+		shot_at = INF
+		get_tree().create_timer(_shot_boss_wait, true).timeout.connect(shot_path_save)
 	if run_time >= shot_at:
 		if _shot_inspect >= 0:
 			state = "inspect"

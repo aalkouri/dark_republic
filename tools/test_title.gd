@@ -49,6 +49,41 @@ func _ready() -> void:
 		and not cards[0].disabled and cards[1].disabled and cards[2].disabled, "%d" % cards.size())
 	title._picker.choose("forest")
 	_check("a locked map can't be picked", Settings.selected_map != "forest", Settings.selected_map)
+	var lk: Array = cards.filter(func(c): return c.has_meta("lock"))
+	_check("locked maps show a padlock", lk.size() == 2, str(lk.size()))
+	# Thog beaten: the next time the picker opens, the padlocks spring open and fall away
+	title._picker.cancelled.emit()
+	await get_tree().process_frame
+	var was_persist := Wallet.persist
+	Wallet.persist = false
+	Wallet.bosses_defeated = ["thog"]
+	Wallet.seen_unlocks = []
+	(title._menu.get_child(0) as Button).pressed.emit()
+	await get_tree().process_frame
+	var pk: MapPicker = title._picker
+	_check("newly unlocked maps start locked for their reveal", pk.revealing and pk._cards[1].disabled and pk._cards[1].has_meta("lock"), "")
+	var lock1: Control = pk._cards[1].get_meta("lock")
+	var fell_off := [false]
+	var t_end := Time.get_ticks_msec() + 5000
+	while Time.get_ticks_msec() < t_end:
+		await get_tree().process_frame
+		if is_instance_valid(lock1) and lock1.global_position.y > get_viewport().get_visible_rect().size.y:
+			fell_off[0] = true
+	_check("their padlocks fall off the bottom of the screen", fell_off[0] and not is_instance_valid(lock1), "")
+	_check("then the Forest and Castle are selectable", not pk.revealing and not pk._cards[1].disabled and not pk._cards[2].disabled, "")
+	_check("the reveal is remembered", Wallet.unlock_seen("map:forest") and Wallet.unlock_seen("map:castle"), "")
+	pk.cancelled.emit()
+	await get_tree().process_frame
+	(title._menu.get_child(0) as Button).pressed.emit()
+	await get_tree().process_frame
+	_check("next time: open straight away, no padlocks", not title._picker.revealing and not title._picker._cards[1].disabled and not title._picker._cards[1].has_meta("lock"), "")
+	title._picker.cancelled.emit()
+	await get_tree().process_frame
+	Wallet.bosses_defeated = []
+	Wallet.seen_unlocks = []
+	Wallet.persist = was_persist
+	(title._menu.get_child(0) as Button).pressed.emit()
+	await get_tree().process_frame
 	title._picker.cancelled.emit()
 	await get_tree().process_frame
 	_check("Esc on the map choice goes back to the menu", title._picker == null and title._menu.visible, "")

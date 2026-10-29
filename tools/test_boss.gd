@@ -128,7 +128,21 @@ func _ready() -> void:
 		if main.state == "won":
 			break
 	_check("killing Thog wins the run", main.state == "won" and main.boss_won and main.first_boss_kill, main.state)
-	_check("the end screen says so", main.hud.end_title.text == "THOG DEFEATED!" and main.hud.end_stats.text.contains("UNLOCKED"), main.hud.end_title.text)
+	var hud: Hud = main.hud
+	var names := []
+	for c in hud.unlock_cards:
+		names.append((c.find_children("*", "Label", true, false)[1] as Label).text)
+	_check("the end screen says so", hud.end_title.text == "THOG DEFEATED!", hud.end_title.text)
+	_check("it lists what was unlocked: 2 maps and Thog", hud.end_unlocks.visible and hud.unlock_cards.size() == 3
+		and "MAGICAL FOREST" in names and "THE CASTLE" in names and "THOG THE TROLL" in names, str(names))
+	var start_far: bool = hud.unlock_cards[2].modulate.a < 0.05
+	await get_tree().create_timer(4.0, true).timeout
+	var landed := true
+	for k in hud.unlock_cards.size():
+		var c: Control = hud.unlock_cards[k]
+		if c.global_position.distance_to(hud._unlock_slots[k].global_position) > 2.0 or absf(c.rotation) > 0.01 or c.modulate.a < 0.99:
+			landed = false
+	_check("the unlocks swirl in from off screen and land in their slots", start_far and landed, "")
 	_finish()
 
 

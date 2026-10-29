@@ -25,6 +25,7 @@ var char_exp := {}                     # character id -> total EXP (1 per kill)
 var char_skills := {}                  # character id -> Array of learned skill ids
 var unlocked_chars: Array = []         # character ids bought with coins
 var bosses_defeated: Array = []        # boss ids beaten at least once ("thog": the Swamp's)
+var seen_unlocks: Array = []           # unlocks whose reveal has played ("map:forest"...)
 var displayed := 0.0                   # what the counter shows (lags during a payout)
 var persist := true                    # off for test/screenshot runs
 
@@ -127,6 +128,17 @@ func defeat_boss(boss: String) -> bool:
 	bosses_defeated.append(boss)
 	_save()
 	return true
+
+
+## Reveal animations (a map's padlock dropping off) play once per unlock.
+func unlock_seen(key: String) -> bool:
+	return key in seen_unlocks
+
+
+func mark_unlock_seen(key: String) -> void:
+	if not key in seen_unlocks:
+		seen_unlocks.append(key)
+		_save()
 
 
 func has_skill(id: String, skill: String) -> bool:
@@ -382,6 +394,7 @@ func _load() -> void:
 		char_skills = cfg.get_value("characters", "skills", {})
 		unlocked_chars = cfg.get_value("characters", "unlocked", [])
 		bosses_defeated = cfg.get_value("progress", "bosses", [])
+		seen_unlocks = cfg.get_value("progress", "seen", [])
 
 
 func _save() -> void:
@@ -394,4 +407,5 @@ func _save() -> void:
 	cfg.set_value("characters", "skills", char_skills)
 	cfg.set_value("characters", "unlocked", unlocked_chars)
 	cfg.set_value("progress", "bosses", bosses_defeated)
+	cfg.set_value("progress", "seen", seen_unlocks)
 	cfg.save(PATH)

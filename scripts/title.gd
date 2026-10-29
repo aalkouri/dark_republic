@@ -361,6 +361,9 @@ func _shot_setup() -> void:
 			_shot_at = float(a.split("=")[1])
 		elif a == "--shot-maps":   # the map choice
 			_play.call_deferred()
+		elif a == "--shot-thog-beaten":   # as if Thog was just beaten (screenshot runs don't save)
+			Wallet.bosses_defeated = ["thog"]
+			Wallet.seen_unlocks = []
 		elif a.begins_with("--shot-settings="):
 			_shot_tab = int(a.split("=")[1])
 
