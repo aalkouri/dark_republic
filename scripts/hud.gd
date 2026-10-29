@@ -391,6 +391,9 @@ func _build_ability_bar(root: Control) -> void:
 		col.add_child(slot)
 		var name := _label(d["name"], 13)
 		name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name.custom_minimum_size = Vector2(112, 0)   # fixed columns; long names wrap
+		name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 		name.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if d["ult"] else Color(1, 1, 1, 0.85))
 		col.add_child(name)
 		ability_slots.append(slot)

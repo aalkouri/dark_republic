@@ -323,7 +323,7 @@ func _build_panel() -> void:
 
 	# Preview area: 3D model or a large portrait, same footprint
 	var stage := Control.new()
-	stage.custom_minimum_size = Vector2(640, 290)
+	stage.custom_minimum_size = Vector2(640, 262)
 	v.add_child(stage)
 	_view_box = SubViewportContainer.new()
 	_view_box.stretch = true
@@ -379,6 +379,9 @@ func _build_requirements(parent: Control) -> void:
 
 ## The character's three abilities, drawn exactly like the in-run ability bar (square, key,
 ## name underneath). Hovering one shows the same tooltip as in a run: what it does + cooldown.
+const ABILITY_COL := 136.0   # width of each ability column (square + wrapped name)
+
+
 func _build_ability_bar(parent: Control) -> void:
 	_ability_bar = HBoxContainer.new()
 	_ability_bar.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -401,6 +404,11 @@ func _build_ability_bar(parent: Control) -> void:
 		col.add_child(slot)
 		var name := _label(d["name"], 14, Color(1.0, 0.85, 0.3) if d["ult"] else Color(1, 1, 1, 0.85))
 		name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		# Fixed-width columns: long names wrap onto a second line instead of pushing the
+		# squares apart, so the three abilities always sit evenly spaced
+		name.custom_minimum_size = Vector2(ABILITY_COL, 0)
+		name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 		col.add_child(name)
 		_ability_slots.append(slot)
 		_ability_names.append(name)
