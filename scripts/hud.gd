@@ -15,6 +15,13 @@ var inv_label: Label
 var debug_label: Label
 var msg_label: Label
 var intro_banner: BloodBanner
+## Level-up / reward-card sounds (tools/gen_ui_sounds.py makes all the candidates in audio/ui/).
+const UI_SOUNDS := {
+	"levelup": "res://audio/ui/levelup_chime.wav",
+	"hover": "res://audio/ui/hover_page.wav",
+	"pick": "res://audio/ui/pick_shing.wav",
+}
+var _ui_players := {}
 var pause_root: Control
 var settings_menu: SettingsMenu
 var draft_root: Control
@@ -228,6 +235,7 @@ func _build_draft(root: Control) -> void:
 		btn.custom_minimum_size = Vector2(300, 420)
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.pressed.connect(func(): main.choose_upgrade(i))
+		btn.mouse_entered.connect(func(): play_ui("hover"))
 		hb.add_child(btn)
 		var box := VBoxContainer.new()
 		box.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -771,6 +779,23 @@ func _land_burst(card: Control) -> void:
 	card.add_child(p)
 	p.emitting = true
 	get_tree().create_timer(1.0, true).timeout.connect(p.queue_free)
+
+
+## Plays a UI sound ("levelup", "hover", "pick") on the SFX bus; works while paused.
+func play_ui(kind: String) -> void:
+	if not _ui_players.has(kind):
+		var p := AudioStreamPlayer.new()
+		p.bus = Settings.SFX_BUS
+		p.process_mode = Node.PROCESS_MODE_ALWAYS
+		p.max_polyphony = 3
+		var path: String = UI_SOUNDS.get(kind, "")
+		if path != "" and ResourceLoader.exists(path):
+			p.stream = load(path)
+		add_child(p)
+		_ui_players[kind] = p
+	var player: AudioStreamPlayer = _ui_players[kind]
+	if player.stream != null:
+		player.play()
 
 
 func flash_message(text: String, duration := 3.0) -> void:

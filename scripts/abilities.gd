@@ -318,10 +318,11 @@ func _cast_meteor() -> void:
 
 
 ## Run start: the wizard arrives as his own Meteor, falling onto `target` over
-## METEOR_FALL_TIME seconds (same visuals, sound and impact as the ultimate, no scorched
+## METEOR_FALL_TIME seconds (same visuals and impact as the ultimate, but silent until the
+## explosion; no scorched
 ## ground, no cooldown). Emits entrance_landed when he hits the ground.
 func entrance_meteor(target: Vector3) -> void:
-	meteor_sfx.play()
+	# No cast sound for the entrance; only the explosion when he lands
 	var marker := _ground_disc(METEOR_RADIUS, Color(1.0, 0.15, 0.05, 0.22))
 	marker.global_position = target
 	var fill := _ground_disc(METEOR_RADIUS, Color(1.0, 0.4, 0.05, 0.35))

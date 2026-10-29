@@ -628,8 +628,10 @@ func _add_xp(v: float) -> void:
 		_open_draft()
 
 
-func _open_draft() -> void:
+func _open_draft(chained := false) -> void:
 	current_draft = db.draft(3, stats.value("luck"), MAX_WEAPONS)
+	if not chained:
+		hud.play_ui("levelup")   # once per level-up moment, not again for each stacked level
 	if current_draft.is_empty():   # everything maxed: just heal
 		pending_levels = 0
 		player.heal(player.max_hp)
@@ -646,10 +648,11 @@ func choose_upgrade(i: int) -> void:
 	if state != "levelup" or i < 0 or i >= current_draft.size():
 		return
 	db.apply(current_draft[i], stats)
+	hud.play_ui("pick")
 	pending_levels -= 1
 	if pending_levels > 0:
 		state = "playing"
-		_open_draft()
+		_open_draft(true)
 		return
 	hud.hide_draft()
 	_resume()
