@@ -217,9 +217,15 @@ func _ready() -> void:
 	await get_tree().scene_changed
 	for f in 3:
 		await get_tree().process_frame
-	get_tree().current_scene._play_btn.pressed.emit()
+	var cs2 = get_tree().current_scene
+	cs2._play_btn.pressed.emit()
+	await get_tree().process_frame
+	_check("Play asks which map", cs2._picker != null and cs2._picker.visible, "")
+	cs2._picker.choose("forest")
 	await get_tree().scene_changed
-	_check("Play starts a run", get_tree().current_scene.name == "Main", get_tree().current_scene.name)
+	_check("Play starts a run on the chosen map", get_tree().current_scene.name == "Main" and Settings.selected_map == "forest"
+		and get_tree().current_scene.find_children("*", "BushField", true, false).size() == 1, get_tree().current_scene.name)
+	Settings.selected_map = "swamp"
 
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)

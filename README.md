@@ -173,6 +173,36 @@ Potions lean and spin slowly so they're easy to spot, last 45 s, and blink every
 
 Picking one up while it's active refreshes its timer; active power-ups and their timers show under the run timer.
 
+## Maps
+
+**Play** (on the title screen or character select) first asks which map: **The Swamp** or the **Magical Forest**, with **The Dungeon** shown locked as "coming soon" (`scripts/map_picker.gd`, previews in `images/maps/`). The choice is kept for Restart and the next Play (`Settings.selected_map`). Test and screenshot runs take `--map=swamp|forest`, and `--shot-nohud` hides the HUD for clean pictures.
+
+Both maps share the same 440 m arena, terrain generator (hills, berm, level pads, 1 m height grid), counts and placement rules, so they play the same: 180 trees, 72 fallen logs, 24 landmarks, 14 pools, grass, walls and the shrine pads. `WorldBuilder.build(..., map)` picks the look.
+
+## The Magical Forest
+
+`scripts/forest_builder.gd`, props in `scripts/forest_props.gd`. Always after dark so the neon shows: 50% purple twilight, 50% deep blue night, with stars, a big moon, glow and tinted fog.
+
+- **7 tree kinds**, each a body plus a self-lit neon surface (`MeshBuilder.glow_material`), lights swaying with the leaves:
+
+| Tree | Look |
+|---|---|
+| Lantern Willow | Curving violet trunk, dark dome, long vines strung with cyan bulbs |
+| Spiral Crystalwood | Silver trunk twisting in a helix, branches tipped with magenta crystals |
+| Mushroom Spire | Stacked giant caps with glowing teal gills and spots, glowing toadstools at its foot |
+| Starcanopy | Thin twisted trunk under a flat umbrella canopy dripping strings of gold fairy lights |
+| Coral Tree | Leafless branching coral limbs with glowing orange-pink tips |
+| Orb Tree | Trunk wrapped in green neon vines, purple orbs floating through its canopy |
+| Ribbon Arch | Two trunks arching into one, blue neon ribbons and drips draped between them |
+
+- **Fallen logs** overgrown with glowing shelf fungus and a neon vine; **landmarks** alternate between giant glowing crystal clusters and standing stones carved with glowing runes.
+- **Lights:** every 5th tree and every 3rd landmark also casts real coloured light on the ground around it (44 lights, no shadows); the rest glow through emission and bloom.
+- **Ponds** with glowing algae (same depth and half-speed wading as the swamp pools), glowing reeds around them, and dark grass with faintly luminous tips.
+- **Bushes** (`scripts/bush_field.gd`): 260 walk-through bushes with glowing berries, no collision. Moving through one shakes it, rustles (4 synthesised variants from `tools/gen_forest_sounds.py`, at most about 3 times a second per bush, from the bush), and sometimes throws out a burst of leaves (45% when you push in, plus about once a second while you keep moving). Standing still in one is silent.
+- **Fireflies** drifting and blinking around you (`scripts/fireflies.gd`).
+- Trees and logs still catch fire from the Meteor and char black.
+- **Tests:** `godot --headless --path . res://tools/test_forest.tscn` (counts match the swamp, every prop has neon, bushes react, a run starts on it). To preview the props: `godot --path . res://tools/render_forest_props.tscn -- /out.png`.
+
 ## The swamp
 
 Every run generates a new dark swamp (`scripts/world_builder.gd`):

@@ -9,6 +9,7 @@ render_mode cull_disabled;
 uniform float wind = 1.0;
 uniform float char_amount = 0.0;   // 0 = normal, 1 = burnt black
 uniform float burning = 0.0;       // ember glow while on fire
+uniform float glow = 0.0;          // self-lit parts (magical forest): emission = colour * glow
 varying vec3 lpos;
 float hash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float noise(vec3 p) {
@@ -36,6 +37,7 @@ void fragment() {
 	col = mix(col, vec3(0.03, 0.026, 0.022), c);
 	ALBEDO = col;
 	ROUGHNESS = 0.92;
+	EMISSION = col * glow * (1.0 - c);
 	if (burning > 0.0) {
 		float e = noise(lpos * 4.0 + vec3(0.0, -TIME * 2.0, 0.0)) * 0.7 + noise(lpos * 11.0 - vec3(TIME)) * 0.3;
 		EMISSION = vec3(1.0, 0.32, 0.04) * smoothstep(0.45, 0.85, e) * burning * 2.2;
@@ -44,6 +46,7 @@ void fragment() {
 """
 
 static var _prop_material: ShaderMaterial
+static var _glow_material: ShaderMaterial
 
 var _verts := PackedVector3Array()
 var _norms := PackedVector3Array()
@@ -58,6 +61,27 @@ static func prop_material() -> ShaderMaterial:
 		_prop_material = ShaderMaterial.new()
 		_prop_material.shader = sh
 	return _prop_material
+
+
+## The prop material with self-lit colours (glowing mushrooms, runes, lanterns).
+static func glow_material() -> ShaderMaterial:
+	if _glow_material == null:
+		_glow_material = prop_material().duplicate() as ShaderMaterial
+		_glow_material.set_shader_parameter("glow", 2.2)
+	return _glow_material
+
+
+func is_empty() -> bool:
+	return _verts.is_empty()
+
+
+## Append these parts to `mesh` as another surface (e.g. a glowing one).
+func commit_into(mesh: ArrayMesh, material: Material) -> void:
+	if _verts.is_empty():
+		return
+	var m := commit(material)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, m.surface_get_arrays(0))
+	mesh.surface_set_material(mesh.get_surface_count() - 1, material)
 
 
 func add(arrays: Array, xf: Transform3D, color: Color) -> void:

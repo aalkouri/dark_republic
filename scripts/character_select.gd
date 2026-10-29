@@ -635,7 +635,19 @@ func _play() -> void:
 	if not is_ready(_shown):
 		return
 	Settings.selected_character = characters[_shown]["id"]
-	_leave(GAME_SCENE)
+	if _picker != null:
+		return
+	_picker = MapPicker.create(_font)
+	_fade.get_parent().add_child(_picker)
+	_fade.get_parent().move_child(_picker, _fade.get_index())   # under the fade
+	_picker.chosen.connect(func(_m: String): _leave(GAME_SCENE))
+	_picker.cancelled.connect(func():
+		_picker.queue_free()
+		_picker = null
+		_play_btn.grab_focus())
+
+
+var _picker: MapPicker
 
 
 func _back() -> void:

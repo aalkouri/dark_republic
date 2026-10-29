@@ -23,6 +23,7 @@ const REBINDABLE := [
 
 ## Character picked on the character select screen (session only, not saved).
 var selected_character := "fire_wizard"
+var selected_map := "swamp"            # "swamp" or "forest" (MapPicker, before a run)
 
 # Sound
 var music_volume := 0.8      # 0..1 (linear)

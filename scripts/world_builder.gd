@@ -139,7 +139,14 @@ void fragment() {
 """
 
 
-static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> SwampWater:
+const MAPS := ["swamp", "forest"]
+
+
+## Build the arena for `map` ("swamp" or "forest"). Both share the terrain generator and the
+## same counts and placement rules; only the look and the props differ.
+static func build(parent: Node3D, rng: RandomNumberGenerator, half: float, map := "swamp") -> SwampWater:
+	if map == "forest":
+		return ForestBuilder.build(parent, rng, half)
 	var is_night := rng.randf() < 0.5
 	_environment(parent, rng, is_night)
 
@@ -338,7 +345,7 @@ static func _sample(img: Image, extent: float, x: float, z: float) -> Color:
 	return img.get_pixel(px, py)
 
 
-static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Image) -> void:
+static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Image, colors := {}) -> void:
 	var body := water.heightmap_body()
 	var mesh := water.ground_mesh(1)   # same 1 m grid as collision + placement, so nothing floats
 	var sh := Shader.new()
@@ -350,6 +357,8 @@ static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Ima
 	var sp := water.shader_params()
 	for k in sp:
 		sm.set_shader_parameter(k, sp[k])
+	for k in colors:   # base_col, grass_col, mud_col
+		sm.set_shader_parameter(k, colors[k])
 	mesh.surface_set_material(0, sm)
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
@@ -437,10 +446,9 @@ static func _multimesh(parent: Node3D, mesh: Mesh, xforms: Array[Transform3D]) -
 	parent.add_child(mmi)
 
 
-static func _walls(parent: Node3D, half: float) -> void:
+static func _walls(parent: Node3D, half: float, c := Color(0.2, 0.21, 0.19)) -> void:
 	# The ground rises into a berm at the edge; the walls stand on top of it, sunk deep
 	# enough to cover every dip.
-	var c := Color(0.2, 0.21, 0.19)
 	var top := SwampWater.HILL_HEIGHT + SwampWater.BUMP_HEIGHT + SwampWater.EDGE_RISE + 5.0
 	var bottom := -SwampWater.HILL_HEIGHT - SwampWater.BUMP_HEIGHT - 2.0
 	var h := top - bottom

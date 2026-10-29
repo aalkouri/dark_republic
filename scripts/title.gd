@@ -304,8 +304,23 @@ func _open_settings() -> void:
 	_settings.open()
 
 
+var _picker: MapPicker
+
+
+## Play: pick a map first (MapPicker), then start the run.
 func _play() -> void:
-	_leave(GAME_SCENE, 0.7)
+	if _picker != null or _leaving:
+		return
+	_menu.visible = false
+	_picker = MapPicker.create(_font)
+	_ui.get_child(0).add_child(_picker)
+	_ui.get_child(0).move_child(_picker, _fade.get_index())   # under the fade
+	_picker.chosen.connect(func(_m: String): _leave(GAME_SCENE, 0.7))
+	_picker.cancelled.connect(func():
+		_picker.queue_free()
+		_picker = null
+		_menu.visible = true
+		(_menu.get_child(0) as Button).grab_focus())
 
 
 func _characters() -> void:
@@ -344,6 +359,8 @@ func _shot_setup() -> void:
 			_shot_path = a.split("=")[1]
 		elif a.begins_with("--shot-at="):
 			_shot_at = float(a.split("=")[1])
+		elif a == "--shot-maps":   # the map choice
+			_play.call_deferred()
 		elif a.begins_with("--shot-settings="):
 			_shot_tab = int(a.split("=")[1])
 

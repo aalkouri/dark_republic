@@ -103,6 +103,7 @@ var _shot_inspect := -1
 var _shot_settings_tab := -1
 var _forced_seed := -1
 var _shot_pitch := -99.0
+var _shot_nohud := false
 var _shot_slow := -1.0   # --shot-slow=T: crawl (time scale 0.02) from T, to catch short effects
 
 
@@ -120,6 +121,8 @@ func _ready() -> void:
 	for a in args:
 		if a.begins_with("--char="):   # play as this character (tests, screenshots)
 			Settings.selected_character = a.split("=")[1]
+		elif a.begins_with("--map="):   # play on this map (tests, screenshots)
+			Settings.selected_map = a.split("=")[1]
 		elif a.begins_with("--shot="):
 			shot_path = a.split("=")[1]
 		elif a.begins_with("--shot-at="):
@@ -173,6 +176,8 @@ func _ready() -> void:
 			_shot_pool = true
 		elif a == "--shot-front":
 			_shot_front = true
+		elif a == "--shot-nohud":   # clean pictures (map previews)
+			_shot_nohud = true
 		elif a.begins_with("--shot-slow="):
 			_shot_slow = float(a.split("=")[1])
 		elif a.begins_with("--shot-pitch="):
@@ -191,7 +196,7 @@ func _ready() -> void:
 	skills_applied = SkillTree.apply(Settings.selected_character, stats)   # skill tree bonuses
 	db = UpgradeDB.new("res://data/upgrades.json", rng)
 
-	water = WorldBuilder.build(self, rng, ARENA_HALF)
+	water = WorldBuilder.build(self, rng, ARENA_HALF, Settings.selected_map)
 
 	fx = FxManager.new()
 	add_child(fx)
@@ -809,6 +814,11 @@ func _shot_tick() -> void:
 			else:
 				_spawn_enemy(t, _spawn_point(14.0, 30.0), 3.0)
 		_shot_spawn = 0
+	if _shot_nohud:
+		hud.visible = false
+		Wallet.set_shown(false)
+		for c in hud.find_children("*", "CanvasLayer", true, false):
+			(c as CanvasLayer).visible = false
 	if _shot_slow >= 0.0 and run_time >= _shot_slow:
 		Engine.time_scale = 0.02
 		shot_at = minf(shot_at, run_time + 0.1)

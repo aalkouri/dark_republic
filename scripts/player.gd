@@ -96,6 +96,7 @@ var _shake := 0.0
 
 
 func _ready() -> void:
+	add_to_group("player")   # found by map features (forest bushes)
 	max_hp = stats.value("max_hp")
 	hp = max_hp
 	stats.changed.connect(_on_stat_changed)

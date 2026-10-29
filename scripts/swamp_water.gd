@@ -25,6 +25,7 @@ render_mode cull_disabled, depth_draw_always;
 uniform vec3 deep : source_color = vec3(0.05, 0.075, 0.045);
 uniform vec3 shallow : source_color = vec3(0.16, 0.19, 0.09);
 uniform vec3 scum : source_color = vec3(0.27, 0.33, 0.11);
+uniform float glow = 0.0;      // Magical Forest: the floating algae glows
 varying vec3 wpos;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -46,6 +47,7 @@ void fragment() {
 	float weed = smoothstep(0.55, 0.75, noise(p * 0.9) * 0.7 + noise(p * 4.0) * 0.3 + edge * 0.35);
 	vec3 water = mix(deep, shallow, edge * 0.6);
 	ALBEDO = mix(water, scum, weed);
+	EMISSION = scum * weed * glow + water * glow * 0.15;
 	// Not mirror-smooth: a glossy surface with moving ripples caught the sun in single-frame
 	// glints that the glow turned into flashing white dots across the map (even while paused,
 	// since the ripples run on TIME). Distant water is also calmed down.
@@ -346,14 +348,18 @@ func near_pool(x: float, z: float, margin: float) -> bool:
 
 # ------------------------------------------------------------------ meshes
 
-func build_meshes(parent: Node3D) -> void:
+## `look` overrides the water colours: deep, shallow, scum (Color), glow (float), bed (Color).
+func build_meshes(parent: Node3D, look := {}) -> void:
 	var bed_mat := StandardMaterial3D.new()
-	bed_mat.albedo_color = BED_COLOR
+	bed_mat.albedo_color = look.get("bed", BED_COLOR)
 	bed_mat.roughness = 0.35
 	var wsh := Shader.new()
 	wsh.code = WATER_SHADER
 	var water_mat := ShaderMaterial.new()
 	water_mat.shader = wsh
+	for k in ["deep", "shallow", "scum", "glow"]:
+		if look.has(k):
+			water_mat.set_shader_parameter(k, look[k])
 	for p in pools:
 		var bed := MeshInstance3D.new()
 		bed.mesh = _polar_mesh(p, true)

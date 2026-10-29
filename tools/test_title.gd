@@ -41,6 +41,19 @@ func _ready() -> void:
 	_check("Settings closes back to the menu", not title._settings.visible and title._menu.visible, "")
 
 	(title._menu.get_child(0) as Button).pressed.emit()
+	await get_tree().process_frame
+	_check("Play asks which map", title._picker != null and title._picker.visible and not title._menu.visible, "")
+	var cards: Array = title._picker._cards
+	_check("map cards: Swamp, Magical Forest, locked Dungeon", cards.size() == 3 and cards[0].get_meta("id") == "swamp"
+		and cards[1].get_meta("id") == "forest" and cards[2].disabled, "%d" % cards.size())
+	title._picker.cancelled.emit()
+	await get_tree().process_frame
+	_check("Esc on the map choice goes back to the menu", title._picker == null and title._menu.visible, "")
+	(title._menu.get_child(0) as Button).pressed.emit()
+	await get_tree().process_frame
+	title._picker.choose("dungeon")
+	_check("the Dungeon can't be picked yet", Settings.selected_map != "dungeon", Settings.selected_map)
+	(title._picker._cards[0] as Button).pressed.emit()   # The Swamp
 	await get_tree().scene_changed
 	await get_tree().process_frame
 	var game: Node = get_tree().current_scene
