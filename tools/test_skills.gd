@@ -149,6 +149,14 @@ func _ready() -> void:
 	for id in db.defs:
 		if db.describe({"id": id, "rarity": 0})["icon"].is_empty():
 			missing.append(id)
+	db.banned["tome_damage"] = true
+	var seen_banned := false
+	for k in 300:
+		for pk in db.draft(3, 0.0, 3):
+			if pk["id"] == "tome_damage":
+				seen_banned = true
+	_check("a banned reward never shows up in later drafts", not seen_banned, "")
+	db.banned.clear()
 	_check("every weapon and item has an icon too", missing.is_empty(), str(missing))
 
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])

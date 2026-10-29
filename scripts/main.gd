@@ -105,6 +105,7 @@ var _shot_zoom := 0.0
 var _shot_turn := 0.0
 var _shot_level := 0
 var _shot_epic := false
+var _shot_ban := -1   # --shot-ban=i: ban reward card i in the --shot-draft screenshot
 var _shot_give := []   # --shot-give=id:levels,...  owned upgrades for screenshots
 var _shot_intro := false   # --shot-intro: screenshot runs play the entrance too
 var intro := false         # true while the entrance meteor is falling (first 3 s)
@@ -176,6 +177,8 @@ func _ready() -> void:
 			for c in a.split("=")[1].split(","):
 				var parts := c.split(":")
 				_shot_give.append([parts[0], int(parts[1]) if parts.size() > 1 else 1])
+		elif a.begins_with("--shot-ban="):
+			_shot_ban = int(a.split("=")[1])
 		elif a == "--shot-intro":
 			_shot_intro = true
 		elif a == "--shot-epic":
@@ -646,11 +649,43 @@ func _open_draft(chained := false) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	hud.show_draft(current_draft)
 	if smoke:
-		choose_upgrade.call_deferred(rng.randi() % current_draft.size())
+		if bans_left > 0 and current_draft.size() > 1:   # exercise BAN too (smoke runs don't save coins)
+			Wallet.coins = maxi(Wallet.coins, BAN_COST)
+			ban_upgrade(current_draft.size() - 1)
+		var open := []
+		for k in current_draft.size():
+			if not current_draft[k].get("banned", false):
+				open.append(k)
+		choose_upgrade.call_deferred(open[rng.randi() % open.size()])
+
+
+const BANS_PER_RUN := 3
+const BAN_COST := 100   # coins
+var bans_left := BANS_PER_RUN
+
+
+## Can reward card i be banned right now? (a ban left, 100 coins, and it isn't the last card)
+func can_ban(i: int) -> bool:
+	if state != "levelup" or i < 0 or i >= current_draft.size() or current_draft[i].get("banned", false):
+		return false
+	var open := current_draft.filter(func(p): return not p.get("banned", false)).size()
+	return bans_left > 0 and Wallet.coins >= BAN_COST and open > 1
+
+
+## BAN: pay 100 coins to remove reward card i from this draft and from every later draft
+## this run. Three per run.
+func ban_upgrade(i: int) -> bool:
+	if not can_ban(i) or not Wallet.spend(BAN_COST):
+		return false
+	bans_left -= 1
+	db.banned[current_draft[i]["id"]] = true
+	current_draft[i]["banned"] = true
+	hud.mark_banned(i)
+	return true
 
 
 func choose_upgrade(i: int) -> void:
-	if state != "levelup" or i < 0 or i >= current_draft.size():
+	if state != "levelup" or i < 0 or i >= current_draft.size() or current_draft[i].get("banned", false):
 		return
 	var is_tome: bool = db.defs[current_draft[i]["id"]]["kind"] == "tome"
 	db.apply(current_draft[i], stats)
@@ -987,7 +1022,10 @@ func _shot_tick() -> void:
 			state = "levelup"
 			get_tree().paused = true
 			current_draft = _shot_draft
+			Wallet.coins = maxi(Wallet.coins, 500)   # screenshot runs don't save
 			hud.show_draft(current_draft)
+			if _shot_ban >= 0:
+				ban_upgrade(_shot_ban)
 		if _shot_settings_tab >= 0:
 			state = "paused"
 			get_tree().paused = true

@@ -28,7 +28,8 @@ var _ui_players := {}
 var pause_root: Control
 var settings_menu: SettingsMenu
 var draft_root: Control
-var draft_cards: Array = []   # [Button, title Label, body Label, UpgradeIcon, level Label]
+var draft_cards: Array = []   # [Button, title Label, body Label, UpgradeIcon, level Label, BAN Button, banned veil]
+var draft_bans: Label
 var end_root: Control
 var ability_slots: Array = []   # AbilitySlot
 var tooltip: PanelContainer
@@ -241,16 +242,55 @@ func _build_draft(root: Control) -> void:
 	var title := _label("LEVEL UP!", 48)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(title)
+	draft_bans = _label("", 18)
+	draft_bans.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	draft_bans.add_theme_color_override("font_color", Color(1.0, 0.55, 0.5))
+	vb.add_child(draft_bans)
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 20)
 	vb.add_child(hb)
 	for i in 3:
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 10)
+		hb.add_child(col)
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(300, 420)
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.pressed.connect(func(): main.choose_upgrade(i))
 		btn.mouse_entered.connect(func(): play_ui("hover"))
-		hb.add_child(btn)
+		col.add_child(btn)
+		# BAN: pay 100 coins to throw this reward out of this and every later draft
+		var ban := Button.new()
+		ban.text = "BAN  ·  %d coins" % main.BAN_COST
+		ban.focus_mode = Control.FOCUS_NONE
+		ban.custom_minimum_size = Vector2(300, 44)
+		ban.add_theme_font_size_override("font_size", 18)
+		ban.add_theme_color_override("font_color", Color(1.0, 0.85, 0.82))
+		ban.add_theme_color_override("font_disabled_color", Color(0.55, 0.5, 0.48))
+		ban.add_theme_stylebox_override("normal", _ban_style(Color(0.55, 0.08, 0.06), Color(0.2, 0.03, 0.02, 0.95)))
+		ban.add_theme_stylebox_override("hover", _ban_style(Color(0.95, 0.2, 0.15), Color(0.32, 0.05, 0.03, 0.97)))
+		ban.add_theme_stylebox_override("pressed", _ban_style(Color(1.0, 0.35, 0.25), Color(0.4, 0.06, 0.04, 1.0)))
+		ban.add_theme_stylebox_override("disabled", _ban_style(Color(0.25, 0.22, 0.2), Color(0.08, 0.07, 0.07, 0.9)))
+		ban.pressed.connect(func():
+			if main.ban_upgrade(i):
+				play_ui("pick_tome"))
+		ban.mouse_entered.connect(func(): if not ban.disabled: play_ui("hover"))
+		col.add_child(ban)
+		# Shown over a banned card
+		var veil := ColorRect.new()
+		veil.color = Color(0.05, 0.0, 0.0, 0.78)
+		veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+		veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		veil.visible = false
+		var stamp := _label("BANNED", 46)
+		stamp.set_anchors_preset(Control.PRESET_CENTER)
+		stamp.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		stamp.grow_vertical = Control.GROW_DIRECTION_BOTH
+		stamp.rotation = -0.35
+		stamp.pivot_offset = Vector2(100, 30)
+		stamp.add_theme_color_override("font_color", Color(0.9, 0.12, 0.08))
+		stamp.add_theme_constant_override("outline_size", 10)
+		veil.add_child(stamp)
 		var box := VBoxContainer.new()
 		box.set_anchors_preset(Control.PRESET_FULL_RECT)
 		box.offset_left = 18
@@ -302,7 +342,8 @@ func _build_draft(root: Control) -> void:
 		body.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body_box.add_child(body)
-		draft_cards.append([btn, ttl, body, tome, lvl])
+		btn.add_child(veil)
+		draft_cards.append([btn, ttl, body, tome, lvl, ban, veil])
 
 
 ## Card frame outlined thickly in the rarity colour (brighter on hover).
@@ -568,6 +609,9 @@ func show_draft(picks: Array) -> void:
 		var card: Array = draft_cards[i]
 		var btn: Button = card[0]
 		btn.visible = i < picks.size()
+		(card[5] as Button).visible = i < picks.size()
+		(card[6] as ColorRect).visible = false
+		btn.disabled = false
 		if i >= picks.size():
 			continue
 		var info: Dictionary = main.db.describe(picks[i])
@@ -585,7 +629,32 @@ func show_draft(picks: Array) -> void:
 		art.visible = not icon.is_empty()
 		if art.visible:
 			art.set_icon(icon, info["kind"])
+	_refresh_bans()
 	draft_root.visible = true
+
+
+## Grey out a banned card and stamp it.
+func mark_banned(i: int) -> void:
+	var card: Array = draft_cards[i]
+	(card[0] as Button).disabled = true
+	(card[6] as ColorRect).visible = true
+	(card[5] as Button).visible = false
+	_refresh_bans()
+
+
+func _refresh_bans() -> void:
+	draft_bans.text = "Bans left: %d / %d   ·   %d coins each" % [main.bans_left, main.BANS_PER_RUN, main.BAN_COST]
+	for i in draft_cards.size():
+		(draft_cards[i][5] as Button).disabled = not main.can_ban(i)
+
+
+static func _ban_style(border: Color, fill: Color) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = fill
+	sb.border_color = border
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(8)
+	return sb
 
 
 func hide_draft() -> void:

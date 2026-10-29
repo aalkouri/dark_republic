@@ -8,6 +8,7 @@ var rarities: Array = []
 var defs := {}          # id -> definition Dictionary
 var order: Array = []   # ids in file order
 var levels := {}        # id -> owned level
+var banned := {}        # id -> true: banned from level-up drafts for the rest of the run
 var stat_names := {}
 var percent_stats: Array = []
 var rng: RandomNumberGenerator
@@ -43,7 +44,7 @@ func _eligible(max_weapons: int) -> Array:
 	for id in order:
 		var d: Dictionary = defs[id]
 		var lv := level_of(id)
-		if lv >= int(d["max_level"]):
+		if lv >= int(d["max_level"]) or banned.has(id):
 			continue
 		if d["kind"] == "weapon" and lv == 0 and owned_of_kind("weapon") >= max_weapons:
 			continue
