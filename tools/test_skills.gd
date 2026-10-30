@@ -32,12 +32,19 @@ func _ready() -> void:
 	_check("no duplicate skills in a tree", ids.size() == 18, "%d" % ids.size())
 
 	# Levels from EXP
-	var table := [[0, 0], [1999, 0], [2000, 1], [10000, 2], [50000, 3], [1000000, 4], [5000000, 5],
-		[15000000, 6], [50000000, 7], [100000000, 8], [500000000, 9], [1000000000, 10], [5000000000, 10]]
+	var table := [[0, 0], [1999, 0], [2000, 1], [6000, 2], [13000, 3], [24000, 4], [40000, 5],
+		[62000, 6], [92000, 7], [132000, 8], [185000, 9], [250000, 10], [5000000, 10]]
 	var table_ok := true
 	for e in table:
 		table_ok = table_ok and Wallet.level_for(e[0]) == e[1]
-	_check("EXP table: lvl 1 at 2,000 ... lvl 10 at 1 billion, 10 is max", table_ok, "")
+	_check("EXP table: lvl 1 at 2,000 ... lvl 10 at 250,000, 10 is max", table_ok, "")
+	var full := Wallet.run_exp(4000, 200, 1, 3, 600.0, true)
+	_check("a full winning run: kills, elites, boss, shrines, time and a 25% win bonus", full["kills"] == 4000 and full["elites"] == 2000
+		and full["boss"] == 2000 and full["shrines"] == 750 and full["time"] == 1000 and full["win"] == 2437 and full["total"] == 12187, str(full))
+	var runs_to_max := ceili(250000.0 / 6000.0)
+	_check("level 1 after one good run, level 10 after about 40-60 runs", full["total"] >= 2000 and runs_to_max >= 30 and runs_to_max <= 60, "%d runs at 6,000" % runs_to_max)
+	var loss := Wallet.run_exp(1000, 10, 0, 0, 240.0, false)
+	_check("no win bonus when you die", loss["win"] == 0 and loss["total"] == 1000 + 100 + 400, str(loss))
 	_check("1 EXP per kill, levels reported", Wallet.add_char_exp("fire_wizard", 2500) == 1 and Wallet.char_level("fire_wizard") == 1, "")
 	_check("skill points = level", Wallet.skill_points_total("fire_wizard") == 1 and Wallet.skill_points_free("fire_wizard") == 1, "")
 
@@ -46,13 +53,13 @@ func _ready() -> void:
 	_check("learning uses a skill point (coins untouched)", SkillTree.learn("fire_wizard", "kindling") and Wallet.skill_points_free("fire_wizard") == 0 and Wallet.coins == 0, "")
 	_check("learning doesn't change lvl", Wallet.char_level("fire_wizard") == 1, "")
 	_check("no points left -> blocked", SkillTree.blocked_reason("fire_wizard", "ember_hide").begins_with("No skill points"), SkillTree.blocked_reason("fire_wizard", "ember_hide"))
-	Wallet.set_char_exp("fire_wizard", 1000000)   # lvl 4
+	Wallet.set_char_exp("fire_wizard", 24000)   # lvl 4
 	_check("row 2 opens after a row-1 skill", SkillTree.learn("fire_wizard", "wildfire"), "")
 	_check("can't learn twice", not SkillTree.learn("fire_wizard", "wildfire"), "")
 	_check("row 2 in another column still locked", SkillTree.blocked_reason("fire_wizard", "phoenix_heart") != "", "")
 	SkillTree.learn("fire_wizard", "ember_hide")
 	_check("Special locked below lvl 5", SkillTree.category_locked("fire_wizard", "Special") and SkillTree.blocked_reason("fire_wizard", "gold_sense") == "Unlocks at level 5", SkillTree.blocked_reason("fire_wizard", "gold_sense"))
-	Wallet.set_char_exp("fire_wizard", 5000000)   # lvl 5
+	Wallet.set_char_exp("fire_wizard", 40000)   # lvl 5
 	_check("Special opens at lvl 5", not SkillTree.category_locked("fire_wizard", "Special") and SkillTree.learn("fire_wizard", "gold_sense"), "")
 	_check("4 skills learned with 5 points: 1 left", Wallet.skill_points_free("fire_wizard") == 1, "%d" % Wallet.skill_points_free("fire_wizard"))
 
@@ -119,7 +126,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	# Below lvl 5 the Special column is greyed out under a padlock
 	Wallet.set_char_exp("kong", 0)
-	Wallet.set_char_exp("fire_wizard", 60000)   # lvl 3
+	Wallet.set_char_exp("fire_wizard", 15000)   # lvl 3
 	cs._skills_btn.pressed.emit()
 	await get_tree().process_frame
 	_check("Special padlock below lvl 5", sc._lock_overlay.visible and sc._lock_overlay.message == "Unlocks at level 5", "")

@@ -142,5 +142,53 @@
   "%s-Reichweite",
   "%s 范围",
   "%s のリーチ"
+ ],
+ "Kills %s": [
+  "Bajas %s",
+  "Éliminations %s",
+  "قتلى %s",
+  "Kills %s",
+  "击杀 %s",
+  "撃破 %s"
+ ],
+ "Elites +%s": [
+  "Élites +%s",
+  "Élites +%s",
+  "النخبة +%s",
+  "Elite +%s",
+  "精英 +%s",
+  "エリート +%s"
+ ],
+ "Boss +%s": [
+  "Jefe +%s",
+  "Boss +%s",
+  "الزعيم +%s",
+  "Boss +%s",
+  "首领 +%s",
+  "ボス +%s"
+ ],
+ "Shrines +%s": [
+  "Santuarios +%s",
+  "Sanctuaires +%s",
+  "المزارات +%s",
+  "Schreine +%s",
+  "神殿 +%s",
+  "祠 +%s"
+ ],
+ "Time +%s": [
+  "Tiempo +%s",
+  "Temps +%s",
+  "الوقت +%s",
+  "Zeit +%s",
+  "时间 +%s",
+  "時間 +%s"
+ ],
+ "Win +%s": [
+  "Victoria +%s",
+  "Victoire +%s",
+  "الفوز +%s",
+  "Sieg +%s",
+  "胜利 +%s",
+  "勝利 +%s"
  ]
 }

@@ -147,11 +147,22 @@ New goblin statuses for these: flee, frog, possessed and bleed/acid (`EnemyManag
 
 ## Character levels and skills
 
-**EXP and levels.** Each character earns **1 EXP per kill**, banked when the run ends and shown on the summary with any level-up. The level (`lvl`, shown on the character select tile) comes from total EXP:
+**EXP and levels.** Each character earns EXP from every run (`Wallet.run_exp`), banked when the run ends. The summary shows it itemised along with any level-up:
+
+| Source | EXP |
+|---|---|
+| Each kill | 1 |
+| Each elite killed | +10 |
+| The map's boss | +2,000 |
+| Each shrine completed | +250 |
+| Time alive | +100 a minute |
+| Winning (killing the boss) | +25% of all the above |
+
+A full 10-minute run earns roughly 4,000-6,000 EXP, a winning one more. So level 1 comes after the first run, the first few levels every couple of runs, and level 10 after about 50 runs. The level (`lvl`, shown on the character select tile) comes from total EXP:
 
 | lvl | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 (max) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| EXP | 2,000 | 10,000 | 50,000 | 1M | 5M | 15M | 50M | 100M | 500M | 1B |
+| EXP | 2,000 | 6,000 | 13,000 | 24,000 | 40,000 | 62,000 | 92,000 | 132,000 | 185,000 | 250,000 |
 
 **Skills.** Playable characters have a **Skills** button between Back and Play. It opens the character's tree (`skill_tree.gd`, `skill_screen.gd`):
 - **Layout:** three columns, Defense, Offense and Special, each with two rows of three skill squares.

@@ -38,7 +38,11 @@ func _ready() -> void:
 	main._end_run(false)
 	_check("end screen lists the coins", "61 coins" in main.hud.end_coin_lines.text and "+100 bonus" in main.hud.end_coin_lines.text, main.hud.end_coin_lines.text)
 	_check("pot shows the total before paying", main.hud.end_pot.text == "+161", main.hud.end_pot.text)
-	_check("EXP banked at the end: 1 per kill", Wallet.char_exp_of("fire_wizard") == 1500 and "EXP +1,500" in main.hud.end_exp.text, main.hud.end_exp.text)
+	# 1,500 kills + about a minute alive (100 EXP a minute); died, so no win bonus
+	var want := Wallet.run_exp(1500, 0, 0, 0, main.run_time, false)
+	_check("EXP banked at the end: kills + time alive", Wallet.char_exp_of("fire_wizard") == int(want["total"]) and int(want["time"]) >= 100
+		and ("EXP +%s" % Wallet.fmt(int(want["total"]))) in main.hud.end_exp.text and want["win"] == 0, main.hud.end_exp.text)
+	_check("...itemised on the end screen", "Kills 1,500" in main.hud.end_exp.text and ("Time +%d" % int(want["time"])) in main.hud.end_exp.text, main.hud.end_exp.text)
 	var finished := [false]
 	Wallet.payout_finished.connect(func(): finished[0] = true, CONNECT_ONE_SHOT)
 	await get_tree().create_timer(1.2, true).timeout

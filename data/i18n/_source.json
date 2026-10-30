@@ -1,6 +1,6 @@
 {
  "\nFPS %d": [
-  "hud.gd:1038"
+  "hud.gd:1052"
  ],
  "\"All other audio\" covers enemy sounds, hits and effects.": [
   "settings_menu.gd:206"
@@ -25,8 +25,8 @@
   "skill_screen.gd:267"
  ],
  "%s  Lv %d": [
-  "hud.gd:928",
-  "hud.gd:1044"
+  "hud.gd:942",
+  "hud.gd:1058"
  ],
  "%s  ·  %.1f / %d s": [
   "(runtime)"
@@ -45,37 +45,37 @@
  ],
  "%s / %s EXP": [
   "character_select.gd:731",
-  "hud.gd:693"
+  "hud.gd:694"
  ],
  "%s APPROACHES": [
-  "main.gd:659"
+  "main.gd:665"
  ],
  "%s Chest": [
   "chest.gd:52"
  ],
  "%s Cooldown": [
-  "weapon_system.gd:266"
+  "weapon_system.gd:271"
  ],
  "%s DEFEATED!": [
   "hud.gd:683",
-  "main.gd:69"
+  "main.gd:71"
  ],
  "%s Damage": [
-  "weapon_system.gd:265",
-  "weapon_system.gd:302"
+  "weapon_system.gd:270",
+  "weapon_system.gd:307"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:675"
+  "main.gd:681"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:394"
  ],
  "%s Pierce": [
-  "weapon_system.gd:268",
-  "weapon_system.gd:304"
+  "weapon_system.gd:273",
+  "weapon_system.gd:309"
  ],
  "%s Reach": [
-  "weapon_system.gd:267"
+  "weapon_system.gd:272"
  ],
  "%s Shrine": [
   "shrine.gd:492"
@@ -87,7 +87,7 @@
   "character_select.gd:124"
  ],
  "+%d shield": [
-  "hud.gd:1029"
+  "hud.gd:1043"
  ],
  "+%d%% from Damage": [
   "abilities.gd:201"
@@ -182,7 +182,7 @@
   "skill_tree.gd:105"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:490"
+  "main.gd:496"
  ],
  "2 yd": [
   "abilities.gd:214"
@@ -212,7 +212,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:602"
+  "main.gd:608"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -375,7 +375,7 @@
   "map_boss.gd:56"
  ],
  "BURNING": [
-  "hud.gd:1064"
+  "hud.gd:1078"
  ],
  "Back": [
   "character_select.gd:647",
@@ -436,13 +436,16 @@
   "characters.json"
  ],
  "Blue Potion: +10% shield": [
-  "potion_manager.gd:17"
+  "potion_manager.gd:18"
  ],
  "Bog Witch": [
   "characters.json"
  ],
  "Borderless fullscreen": [
   "settings_menu.gd:182"
+ ],
+ "Boss +%s": [
+  "hud.gd:721"
  ],
  "Brace behind your shield.": [
   "abilities.json"
@@ -497,7 +500,7 @@
   "characters.json"
  ],
  "Chain Lightning": [
-  "weapon_system.gd:123",
+  "weapon_system.gd:128",
   "abilities.json"
  ],
  "Chain Shrine": [
@@ -519,7 +522,7 @@
   "abilities.json"
  ],
  "Choose it after Play": [
-  "hud.gd:729"
+  "hud.gd:743"
  ],
  "Choose your champion and map. Survive 10 minutes.": [
   "mode_menu.gd:15"
@@ -532,9 +535,6 @@
  ],
  "Classic": [
   "mode_menu.gd:15"
- ],
- "Click or press any key to skip": [
-  "intro.gd:385"
  ],
  "Click to continue": [
   "unlock_reveal.gd:52"
@@ -564,7 +564,7 @@
   "settings_menu.gd:233"
  ],
  "Cooldowns reset": [
-  "main.gd:888"
+  "main.gd:894"
  ],
  "Cowboy": [
   "characters.json"
@@ -573,14 +573,10 @@
   "taglines.json"
  ],
  "DARK REPUBLIC": [
-  "intro.gd:374",
   "title.gd:199"
  ],
  "DESTROY Mode": [
   "abilities.json"
- ],
- "DR. CROC": [
-  "intro.gd:447"
  ],
  "Damage": [
   "upgrades.json"
@@ -688,7 +684,7 @@
   "skill_screen.gd:263"
  ],
  "EXP +%s   ·   lvl %d  (%s)": [
-  "hud.gd:694"
+  "hud.gd:695"
  ],
  "Each bolt deals {90} damage and chains to {3} more enemies": [
   "abilities.json"
@@ -743,6 +739,9 @@
  ],
  "Elf-help for adventurers": [
   "taglines.json"
+ ],
+ "Elites +%s": [
+  "hud.gd:721"
  ],
  "Ember Hide": [
   "skill_tree.gd:75"
@@ -932,7 +931,7 @@
   "taglines.json"
  ],
  "Fireballs": [
-  "weapon_system.gd:119",
+  "weapon_system.gd:124",
   "abilities.json",
   "upgrades.json",
   "upgrades.json"
@@ -999,7 +998,7 @@
   "abilities.json"
  ],
  "Frost Shards": [
-  "weapon_system.gd:121",
+  "weapon_system.gd:126",
   "abilities.json"
  ],
  "Frozen enemies that die shatter for {40%} of their max HP to enemies within {2 yd}; shatters chain": [
@@ -1011,17 +1010,11 @@
  "Fungal Shield": [
   "abilities.json"
  ],
- "GAIDEN": [
-  "intro.gd:440"
- ],
  "GET OUT OF MY SWAMP.": [
   "abilities.json"
  ],
- "GHAST": [
-  "intro.gd:446"
- ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:696"
+  "main.gd:702"
  ],
  "Gaiden": [
   "characters.json"
@@ -1060,16 +1053,16 @@
   "abilities.json"
  ],
  "Goblin": [
-  "enemy_manager.gd:220"
- ],
- "Goblin Brute": [
   "enemy_manager.gd:222"
  ],
+ "Goblin Brute": [
+  "enemy_manager.gd:224"
+ ],
  "Goblin Scamp": [
-  "enemy_manager.gd:221"
+  "enemy_manager.gd:223"
  ],
  "Goblin Warlord": [
-  "enemy_manager.gd:223"
+  "enemy_manager.gd:225"
  ],
  "Gold": [
   "chest.gd:8",
@@ -1178,11 +1171,11 @@
   "abilities.json"
  ],
  "Hurls fireballs from your staff at the nearest enemies.": [
-  "weapon_system.gd:119",
+  "weapon_system.gd:124",
   "upgrades.json"
  ],
  "Hurls icicles from your staff that slow the enemies they hit.": [
-  "weapon_system.gd:121"
+  "weapon_system.gd:126"
  ],
  "I cast Magic Missile at the darkness!": [
   "taglines.json"
@@ -1231,7 +1224,6 @@
   "abilities.json"
  ],
  "Katana": [
-  "intro.gd:440",
   "abilities.json"
  ],
  "Keeper of the Ember Staff": [
@@ -1245,13 +1237,16 @@
   "settings_menu.gd:236"
  ],
  "Kills %d\nEnemies %d\nSpeed %.1f m/s": [
-  "hud.gd:1036"
+  "hud.gd:1050"
+ ],
+ "Kills %s": [
+  "hud.gd:721"
  ],
  "Kills %s   →   +%s bonus": [
-  "hud.gd:702"
+  "hud.gd:704"
  ],
  "Kills %s   →   +0 bonus  (100 coins per 1,000 kills)": [
-  "hud.gd:703"
+  "hud.gd:705"
  ],
  "Kills during the ride heal you {1%} of max HP": [
   "abilities.json"
@@ -1269,19 +1264,19 @@
   "characters.json"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:307"
+  "weapon_system.gd:312"
  ],
  "LEVEL UP!": [
   "hud.gd:253"
  ],
  "LEVEL UP!  lvl %d   ·   +%d skill point": [
-  "hud.gd:696"
+  "hud.gd:698"
  ],
  "LEVEL UP!  lvl %d   ·   +%d skill points": [
-  "hud.gd:696"
+  "hud.gd:698"
  ],
  "LV %d": [
-  "hud.gd:1034"
+  "hud.gd:1048"
  ],
  "LV 1": [
   "hud.gd:86"
@@ -1359,7 +1354,7 @@
   "characters.json"
  ],
  "Lightning arcs from your staff and jumps between enemies.": [
-  "weapon_system.gd:123"
+  "weapon_system.gd:128"
  ],
  "Lightning finds the toughest enemies.": [
   "abilities.json"
@@ -1501,16 +1496,16 @@
   "upgrade_db.gd:168"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:717"
+  "main.gd:723"
  ],
  "NEW CHAMPION": [
-  "hud.gd:735"
+  "hud.gd:749"
  ],
  "NEW LEGENDARY LEVEL-UP REWARD": [
   "character_select.gd:818"
  ],
  "NEW MAP": [
-  "hud.gd:729"
+  "hud.gd:743"
  ],
  "NEW WEAPON": [
   "upgrade_db.gd:161"
@@ -1540,10 +1535,7 @@
   "abilities.json"
  ],
  "Now for sale in Characters: %s coins": [
-  "hud.gd:736"
- ],
- "OGRE": [
-  "intro.gd:429"
+  "hud.gd:750"
  ],
  "Offense": [
   "skill_tree.gd:11",
@@ -1666,7 +1658,7 @@
   "skill_tree.gd:46"
  ],
  "Purple Potion: cooldowns -30%": [
-  "potion_manager.gd:17"
+  "potion_manager.gd:18"
  ],
  "Pyromastery": [
   "skill_tree.gd:94"
@@ -1727,7 +1719,7 @@
   "abilities.json"
  ],
  "Red Potion: +10% health": [
-  "potion_manager.gd:17"
+  "potion_manager.gd:18"
  ],
  "Reed Clones": [
   "abilities.json"
@@ -1798,7 +1790,7 @@
   "settings_menu.gd:47"
  ],
  "SHRINE COMPLETE!  %s chest": [
-  "main.gd:328"
+  "main.gd:334"
  ],
  "SIGNATURE WEAPON": [
   "character_select.gd:423",
@@ -1809,10 +1801,10 @@
   "skill_screen.gd:108"
  ],
  "SURVIVE 10 MINUTES": [
-  "main.gd:417"
+  "main.gd:423"
  ],
  "SWARM!": [
-  "main.gd:591"
+  "main.gd:597"
  ],
  "Sage": [
   "skill_tree.gd:65"
@@ -1850,7 +1842,7 @@
   "abilities.json"
  ],
  "Shadow Bolts": [
-  "weapon_system.gd:125",
+  "weapon_system.gd:130",
   "abilities.json"
  ],
  "Shadow Step": [
@@ -1867,6 +1859,9 @@
  ],
  "Shoots a web where you aim.": [
   "abilities.json"
+ ],
+ "Shrines +%s": [
+  "hud.gd:721"
  ],
  "Shuriken Storm": [
   "abilities.json"
@@ -1894,13 +1889,13 @@
   "abilities.json"
  ],
  "Skeleton": [
-  "enemy_manager.gd:225"
+  "enemy_manager.gd:227"
  ],
  "Skills": [
   "character_select.gd:649"
  ],
  "Skills  →   +%s coins": [
-  "hud.gd:706"
+  "hud.gd:708"
  ],
  "Skills last for every run with this character.": [
   "skill_screen.gd:298"
@@ -1924,7 +1919,7 @@
   "settings.gd:24"
  ],
  "Slow bolts of shadow that pierce and curse the enemies they hit.": [
-  "weapon_system.gd:125"
+  "weapon_system.gd:130"
  ],
  "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)": [
   "abilities.json"
@@ -2053,7 +2048,7 @@
   "character_select.gd:116"
  ],
  "Survived %s   →   %s coins": [
-  "hud.gd:704"
+  "hud.gd:706"
  ],
  "Survivors come out shrunk: half damage and {double} damage taken for {20 s}": [
   "abilities.json"
@@ -2095,20 +2090,20 @@
   "toadstool_boss.gd:68"
  ],
  "THOG": [
-  "main.gd:69",
-  "main.gd:664"
+  "main.gd:71",
+  "main.gd:670"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:367"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:673"
+  "main.gd:679"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:394"
  ],
  "THOG THE TROLL": [
-  "main.gd:644",
+  "main.gd:650",
   "thog_boss.gd:469"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2118,7 +2113,7 @@
   "thog_boss.gd:504"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:645"
+  "main.gd:651"
  ],
  "Take less damage.": [
   "upgrades.json"
@@ -2242,7 +2237,7 @@
   "taglines.json"
  ],
  "Thog the Troll": [
-  "enemy_manager.gd:229",
+  "enemy_manager.gd:231",
   "characters.json"
  ],
  "Thog the Troll in the Swamp": [
@@ -2283,6 +2278,9 @@
  ],
  "Time %s   ·   Level %d   ·   Kills %d": [
   "hud.gd:685"
+ ],
+ "Time +%s": [
+  "hud.gd:721"
  ],
  "Time Warp": [
   "skill_tree.gd:61",
@@ -2339,7 +2337,7 @@
   "upgrades.json"
  ],
  "Tomes ×%d": [
-  "hud.gd:1050"
+  "hud.gd:1064"
  ],
  "Torch-lit halls, a feast to trample, skeletons.": [
   "map_picker.gd:21"
@@ -2354,7 +2352,6 @@
   "abilities.json"
  ],
  "Tree Trunk": [
-  "intro.gd:429",
   "abilities.json"
  ],
  "Troll Blood": [
@@ -2381,12 +2378,12 @@
  ],
  "UNLOCKED!": [
   "hud.gd:60",
-  "hud.gd:753"
+  "hud.gd:767"
  ],
  "UNRELENTING": [
   "character_select.gd:222",
   "character_select.gd:223",
-  "main.gd:417"
+  "main.gd:423"
  ],
  "Ultimate": [
   "settings.gd:26"
@@ -2424,11 +2421,7 @@
  "Updraft": [
   "skill_tree.gd:100"
  ],
- "VICKI": [
-  "intro.gd:434"
- ],
  "Valkyrie Spear": [
-  "intro.gd:434",
   "abilities.json"
  ],
  "Valkyrie of the Marsh": [
@@ -2462,7 +2455,6 @@
   "settings_menu.gd:180"
  ],
  "Volatile Flasks": [
-  "intro.gd:447",
   "abilities.json"
  ],
  "Volley": [
@@ -2472,7 +2464,6 @@
   "hud.gd:148"
  ],
  "Wail": [
-  "intro.gd:446",
   "abilities.json"
  ],
  "Warden of the Frozen Fen": [
@@ -2525,6 +2516,9 @@
  ],
  "Wildfire": [
   "skill_tree.gd:92"
+ ],
+ "Win +%s": [
+  "hud.gd:721"
  ],
  "Windowed": [
   "settings_menu.gd:182"
@@ -2603,7 +2597,7 @@
  ],
  "max level": [
   "character_select.gd:731",
-  "hud.gd:693"
+  "hud.gd:694"
  ],
  "needs row 1": [
   "skill_screen.gd:145"

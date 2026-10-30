@@ -56,8 +56,17 @@ func _ready() -> void:
 	_build_audio()
 
 
-## Total EXP needed for each level (index 0 = level 1). Level 10 is the max.
-const LEVEL_EXP := [2000, 10000, 50000, 1000000, 5000000, 15000000, 50000000, 100000000, 500000000, 1000000000]
+## Total EXP needed for each level (index 0 = level 1). Level 10 is the max. A full 10-minute
+## run earns roughly 4,000-6,000, so level 1 comes after the first run and level 10 after
+## about 50 runs.
+const LEVEL_EXP := [2000, 6000, 13000, 24000, 40000, 62000, 92000, 132000, 185000, 250000]
+## Character EXP from a run (run_exp)
+const EXP_PER_KILL := 1
+const EXP_PER_ELITE := 10           # on top of the kill
+const EXP_PER_BOSS := 2000
+const EXP_PER_SHRINE := 250
+const EXP_PER_MINUTE := 100         # survival
+const EXP_WIN_BONUS := 0.25         # beating the map (killing its boss): +25% of the rest
 const MAX_LEVEL := 10
 
 
@@ -82,6 +91,23 @@ func char_exp_of(id: String) -> int:
 func next_level_exp(id: String) -> int:
 	var lvl := char_level(id)
 	return -1 if lvl >= MAX_LEVEL else int(LEVEL_EXP[lvl])
+
+
+## The character EXP a run earned, itemised: {kills, elites, boss, shrines, time, win, total}.
+static func run_exp(kills: int, elites: int, bosses: int, shrines: int, run_time: float, won: bool) -> Dictionary:
+	var e := {
+		"kills": kills * EXP_PER_KILL,
+		"elites": elites * EXP_PER_ELITE,
+		"boss": bosses * EXP_PER_BOSS,
+		"shrines": shrines * EXP_PER_SHRINE,
+		"time": int(run_time / 60.0 * EXP_PER_MINUTE),
+	}
+	var sum := 0
+	for k in e:
+		sum += int(e[k])
+	e["win"] = int(sum * EXP_WIN_BONUS) if won else 0
+	e["total"] = sum + int(e["win"])
+	return e
 
 
 ## Add EXP to a character; returns the number of levels gained.

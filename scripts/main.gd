@@ -57,6 +57,8 @@ var level := 1
 var xp := 0.0
 var xp_next := 0.0
 var kills := 0
+var elites_killed := 0              # for character EXP
+var shrines_completed := 0
 var pending_levels := 0
 var current_draft: Array = []
 var _spawn_budget := 0.0
@@ -320,12 +322,15 @@ func _ready() -> void:
 		hud.show_heal(amount)
 		numbers.add(player.global_position + Vector3(0, 2.6, 0), amount, DamageNumbers.HEAL))
 	potions.cooldowns_cut.connect(func(cuts: PackedFloat32Array): hud.show_cooldown_cuts(cuts))
-	enemies.epic_killed.connect(func(p: Vector3): potions.on_elite_killed(p))
+	enemies.epic_killed.connect(func(p: Vector3):
+		elites_killed += 1
+		potions.on_elite_killed(p))
 	shrines = ShrineManager.new()
 	shrines.setup(player, water, rng)
 	add_child(shrines)
 	shrines.spawn_all(ARENA_HALF)
 	shrines.shrine_completed.connect(func(s: Shrine, _c: Chest):
+		shrines_completed += 1
 		hud.flash_message(tr("SHRINE COMPLETE!  %s chest") % tr(s.tier_name()), 3.0))
 
 	powerups = PowerupManager.new()

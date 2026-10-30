@@ -685,13 +685,15 @@ func show_end(won: bool) -> void:
 	end_stats.text = tr("Time %s   ·   Level %d   ·   Kills %d") % [_fmt_time(main.run_time), main.level, main.kills]
 	show_unlocks(unlocks_for(main.boss_id) if main.first_boss_kill else [])
 	end_root.visible = true
-	# EXP for the character played: 1 per kill, banked now
+	# EXP for the character played (kills, elites, boss, shrines, time alive, win bonus), banked now
 	var cid := Settings.selected_character
-	var gained_levels := Wallet.add_char_exp(cid, main.kills)
+	run_exp = Wallet.run_exp(main.kills, main.elites_killed, 1 if main.boss_won else 0, main.shrines_completed, main.run_time, won)
+	var gained_levels := Wallet.add_char_exp(cid, int(run_exp["total"]))
 	var lvl := Wallet.char_level(cid)
 	var next := Wallet.next_level_exp(cid)
 	var progress := (tr("%s / %s EXP") % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else tr("max level")
-	end_exp.text = tr("EXP +%s   ·   lvl %d  (%s)") % [Wallet.fmt(main.kills), lvl, progress]
+	end_exp.text = tr("EXP +%s   ·   lvl %d  (%s)") % [Wallet.fmt(int(run_exp["total"])), lvl, progress]
+	end_exp.text += "\n" + exp_breakdown(run_exp)
 	if gained_levels > 0:
 		end_exp.text += "\n" + (tr("LEVEL UP!  lvl %d   ·   +%d skill points") if gained_levels > 1 else tr("LEVEL UP!  lvl %d   ·   +%d skill point")) % [lvl, gained_levels]
 		end_exp.add_theme_color_override("font_color", Color(0.55, 1.0, 0.6))
@@ -708,6 +710,18 @@ func show_end(won: bool) -> void:
 	end_pot.text = "+" + Wallet.fmt(_pot_left)
 	_pay_started = false
 	get_tree().create_timer(0.8, true).timeout.connect(_start_payout)
+
+
+var run_exp := {}
+
+
+## "Kills 1,200 · Elites +350 · Boss +2,000 · Shrines +500 · Time +1,000 · Win +1,262" (zero parts left out).
+static func exp_breakdown(e: Dictionary) -> String:
+	var parts: Array[String] = []
+	for k in [["kills", "Kills %s"], ["elites", "Elites +%s"], ["boss", "Boss +%s"], ["shrines", "Shrines +%s"], ["time", "Time +%s"], ["win", "Win +%s"]]:
+		if int(e.get(k[0], 0)) > 0:
+			parts.append(I18n.t(k[1]) % Wallet.fmt(int(e[k[0]])))
+	return "   ·   ".join(parts)
 
 
 func _start_payout() -> void:
