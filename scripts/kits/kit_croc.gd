@@ -1,9 +1,12 @@
 class_name KitCroc
 extends KitPart
 ## Dr. Croc
-##   1  Mutagen      30 s  +50% attack speed and +30% move speed for 8 s; you take +10% damage
+##   1  Mutagen      30 s  +50% attack speed and +30% move speed for 8 s; you take +10% damage.
+##                         He swells to twice his size over 2 s, strobing, his chest and arms
+##                         bulking out and his lab coat torn to rags; shrinks back the same way
+##                         over the last 2 s
 ##   2  Death Roll   45 s  roll 15 m where you aim, grabbing enemies in your path: 50 every 0.25 s
-##                         while held, flung away at the end
+##                         while held, flung away at the end. Invulnerable while rolling
 ##   3  Toxic Spill 120 s  a 20 m flood of acid round you for 10 s: 4% of max HP per second;
 ##                         enemies that die in it burst for 30% of their max HP within 3 m
 
@@ -11,6 +14,8 @@ const MUTAGEN_TIME := 8.0
 const MUTAGEN_HASTE := 1.5
 const MUTAGEN_SPEED := 1.3
 const MUTAGEN_FRAIL := 1.1
+const MUTAGEN_SIZE := 2.0     # the Hulk: twice his size...
+const MUTAGEN_GROW := 2.0     # ...grown into over 2 s, and shrunk out of over the last 2 s
 const ROLL_RANGE := 15.0
 const ROLL_TIME := 1.1
 const ROLL_GRAB := 1.8
@@ -25,7 +30,11 @@ const SPILL_BURST := 0.3
 const SPILL_BLAST := 3.0
 
 var _mutagen_t := 0.0
+var _haste := MUTAGEN_HASTE          # the bonuses this Mutagen applied (its level at cast)
+var _speed := MUTAGEN_SPEED
 var _bubbles: CPUParticles3D
+var _grow := 0.0                    # 0 himself .. 1 full size
+var _grow_clock := 0.0
 var _roll_t := -1.0
 var _roll_from := Vector3.ZERO
 var _roll_to := Vector3.ZERO
@@ -54,6 +63,7 @@ func active(name: String) -> bool:
 
 func tick(dt: float) -> void:
 	_tick_mutagen(dt)
+	_tick_grow(dt)
 	_tick_roll(dt)
 	_tick_spill(dt)
 
@@ -63,8 +73,10 @@ func tick(dt: float) -> void:
 func _mutagen() -> void:
 	play("mutagen")
 	if _mutagen_t <= 0.0:
-		stats.apply("attack_speed", "mult", MUTAGEN_HASTE)
-		stats.apply("move_speed", "mult", MUTAGEN_SPEED)
+		_haste = 1.0 + (MUTAGEN_HASTE - 1.0) * pw(0)   # the level scales the bonuses
+		_speed = 1.0 + (MUTAGEN_SPEED - 1.0) * pw(0)
+		stats.apply("attack_speed", "mult", _haste)
+		stats.apply("move_speed", "mult", _speed)
 		player.dmg_taken *= MUTAGEN_FRAIL
 		_bubbles = particles(0.22, 0.9, 40, Color(0.75, 1.0, 0.4, 0.9), Color(0.3, 0.8, 0.1, 0.0))
 		_bubbles.emission_sphere_radius = 0.5
@@ -80,11 +92,37 @@ func _tick_mutagen(dt: float) -> void:
 		return
 	_mutagen_t -= dt
 	if _mutagen_t <= 0.0:
-		stats.apply("attack_speed", "mult", 1.0 / MUTAGEN_HASTE)
-		stats.apply("move_speed", "mult", 1.0 / MUTAGEN_SPEED)
+		stats.apply("attack_speed", "mult", 1.0 / _haste)
+		stats.apply("move_speed", "mult", 1.0 / _speed)
 		player.dmg_taken /= MUTAGEN_FRAIL
 		if is_instance_valid(_bubbles):
 			_bubbles.queue_free()
+
+
+## Growing into the Mutagen form while it lasts, shrinking out of it over its last 2 s: in
+## surges, like a heart pounding, strobing all the while.
+func _tick_grow(dt: float) -> void:
+	var want := 1.0 if _mutagen_t > MUTAGEN_GROW else 0.0
+	if _grow == want and want == 0.0:
+		return
+	var was := _grow
+	_grow = move_toward(_grow, want, dt / MUTAGEN_GROW)
+	var g := smoothstep(0.0, 1.0, _grow)
+	g = clampf(g + 0.06 * sin(_grow * TAU * 3.0) * sin(_grow * PI), 0.0, 1.0)   # surges
+	player.size_mult = lerpf(1.0, MUTAGEN_SIZE, g)
+	var hero := player.model as RosterHero
+	var changing := _grow != was
+	_grow_clock += dt
+	if hero != null:
+		hero.set_mutant(g)
+		hero.set_flash((0.55 + 0.45 * sin(_grow_clock * 28.0)) if changing else 0.0)
+	if changing and fmod(_grow_clock, 0.4) < dt:   # puffs of mutagen as he swells or shrinks
+		fx.burst(chest() + Vector3(0, 0.4 * player.size_mult, 0), 0.8 * player.size_mult, k._main, 0.25)
+	if _grow == 0.0:
+		player.size_mult = 1.0
+		if hero != null:
+			hero.set_mutant(0.0)
+			hero.set_flash(0.0)
 
 
 # ------------------------------------------------------------------ Death Roll
@@ -105,6 +143,7 @@ func _death_roll() -> void:
 	_roll_tick = ROLL_TICK
 	_held.clear()
 	begin_scripted()
+	player.untouchable = true   # nothing touches him while he rolls, boss hits included
 
 
 func _tick_roll(dt: float) -> void:
@@ -139,7 +178,7 @@ func _tick_roll(dt: float) -> void:
 	_roll_tick -= dt
 	if _roll_tick <= 0.0:
 		_roll_tick += ROLL_TICK
-		var d := ROLL_DAMAGE * dmg()
+		var d := ROLL_DAMAGE * dmg() * pw(1)
 		for u in _held:
 			var i := enemies.index_of(u)
 			if i >= 0:
@@ -147,6 +186,7 @@ func _tick_roll(dt: float) -> void:
 		fx.burst(p + Vector3(0, 0.5, 0), 1.6, Color(0.55, 0.5, 0.3), 0.2)
 	if _roll_t >= 1.0:
 		_roll_t = -1.0
+		player.untouchable = false
 		player.model.rotation.z = 0.0
 		end_scripted(_roll_to)
 		for u in _held:   # flung away
@@ -205,7 +245,7 @@ func _tick_spill(dt: float) -> void:
 	if _spill_tick <= 0.0:
 		_spill_tick = 0.25
 		for i in near(_spill_at, SPILL_RADIUS):
-			enemies.dot_damage(i, enemies.hp_max[i] * SPILL_DPS * 0.25 * enemies.pct_scale(i))
+			enemies.dot_damage(i, enemies.hp_max[i] * SPILL_DPS * pw(2) * 0.25 * enemies.pct_scale(i))
 	if _spill_t <= 0.0:
 		enemies.burst_radius = 0.0
 		var root := _spill_root

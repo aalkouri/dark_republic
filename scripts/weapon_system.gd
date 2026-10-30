@@ -161,10 +161,13 @@ var _aura_pulse := 0.0
 var _rings: Array = []     # [MeshInstance3D, age, radius]
 var _ring_mat: StandardMaterial3D
 var _flasks: Array = []    # {from, to, t, dmg, node}
-var _puddles: Array = []   # {pos, t, disc, tick}
+var _puddles: Array = []   # {pos, t, disc: AcidPuddle, tick}
 var _sectors := {}         # arc degrees -> unit fan mesh
 var _flask_mesh: Mesh
 var _whoosh: AudioStreamPlayer
+var _glass: AudioStreamPlayer   # Volatile Flasks: a vial shattering on landing
+var _glass_gap := 0.0
+var glass_breaks := 0            # flask landings that played the glass sound (tests)
 
 
 func setup(p_stats: Stats, p_db: UpgradeDB, p_enemies: EnemyManager, p_player: Player) -> void:
@@ -257,6 +260,20 @@ func _ready() -> void:
 	if ResourceLoader.exists("res://audio/abilities/whoosh.wav"):
 		_whoosh.stream = load("res://audio/abilities/whoosh.wav")
 	add_child(_whoosh)
+	_glass = AudioStreamPlayer.new()
+	_glass.bus = Settings.SFX_BUS
+	_glass.max_polyphony = 3      # a volley doesn't stack into a roar
+	_glass.volume_db = -9.0
+	var shatter := AudioStreamRandomizer.new()
+	shatter.random_pitch = 1.15
+	shatter.random_volume_offset_db = 2.0
+	for k in 3:
+		var path := "res://audio/abilities/glass_break_%d.wav" % (k + 1)
+		if ResourceLoader.exists(path):
+			shatter.add_stream(-1, load(path))
+	if shatter.streams_count > 0:
+		_glass.stream = shatter
+	add_child(_glass)
 
 
 ## The level-up card of a style's weapon: name, desc, icon.
@@ -743,14 +760,16 @@ func _throw_flasks(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase)
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mi)
 		mi.global_position = from
-		_flasks.append({"from": from, "to": to, "t": 0.0, "dmg": dmg, "node": mi})
+		# a touch of spread in flight time, so a volley lands as a clatter of separate vials
+		_flasks.append({"from": from, "to": to, "t": 0.0, "dmg": dmg, "node": mi, "flight": FLASK_FLIGHT * randf_range(0.92, 1.1)})
 	return true
 
 
 func _update_flasks(dt: float) -> void:
+	_glass_gap -= dt
 	for k in range(_flasks.size() - 1, -1, -1):
 		var f: Dictionary = _flasks[k]
-		f["t"] += dt / FLASK_FLIGHT
+		f["t"] += dt / float(f.get("flight", FLASK_FLIGHT))
 		var t: float = minf(f["t"], 1.0)
 		var p: Vector3 = (f["from"] as Vector3).lerp(f["to"], t) + Vector3(0, 4.0 * t * (1.0 - t) * 3.0, 0)
 		var mi: MeshInstance3D = f["node"]
@@ -763,8 +782,8 @@ func _update_flasks(dt: float) -> void:
 	for k in range(_puddles.size() - 1, -1, -1):
 		var pd: Dictionary = _puddles[k]
 		pd["t"] -= dt
-		var disc: GroundDisc = pd["disc"]
-		disc.alpha = 0.4 * clampf(pd["t"] / 0.6, 0.0, 1.0)
+		var disc: AcidPuddle = pd["disc"]
+		disc.alpha = clampf(pd["t"] / 0.6, 0.0, 1.0)
 		if pd["t"] <= 0.0:
 			disc.queue_free()
 			_puddles.remove_at(k)
@@ -781,9 +800,8 @@ func _flask_burst(at: Vector3, dmg: float) -> void:
 	for e in enemies.query_radius(at + Vector3(0, 0.6, 0), r, false):
 		enemies.damage(e, dmg)
 		enemies.afflict(e, ACID_FRAC, ACID_TIME)
-	var disc := GroundDisc.create(r, Color(0.45, 1.0, 0.2, 0.4), true)
-	add_child(disc)
-	disc.global_position = at
+	var disc := AcidPuddle.create(r, at, self)
+	_shatter()
 	_puddles.append({"pos": at, "t": ACID_TIME, "disc": disc, "tick": 0.25})
 	_spawn_ring(at, r)
 	var light := OmniLight3D.new()
@@ -869,6 +887,15 @@ func _streak(at: Vector3, dir: Vector3, length: float, col: Color, life: float) 
 	tw.tween_property(mat, "albedo_color:a", 0.0, life)
 	tw.tween_property(mi, "scale", Vector3(0.2, 0.2, length), life)
 	tw.chain().tween_callback(mi.queue_free)
+
+
+## A flask's vial breaking. Landings closer together than 40 ms share one sound.
+func _shatter() -> void:
+	if _glass.stream == null or _glass_gap > 0.0:
+		return
+	_glass_gap = 0.04
+	_glass.play()
+	glass_breaks += 1
 
 
 func _play_whoosh(pitch: float) -> void:

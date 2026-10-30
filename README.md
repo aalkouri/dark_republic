@@ -97,7 +97,7 @@ These run on the same `RosterHero` model player (clip segments per character in 
 | Vicki | Valkyrie Spear | 6 m piercing thrust; every 4th throw is a javelin flying 25 m |
 | Rogue | Twin Daggers | Short-range throws in pairs; hits bleed 3% of max HP/s for 3 s |
 | Gaiden | Katana | 3-hit combo in a 3 m arc; the 3rd cut sends a 10 m wind slash |
-| Dr. Croc | Volatile Flasks | Lobbed flasks: 3 m burst, then an acid puddle (4% of max HP/s) |
+| Dr. Croc | Volatile Flasks | Lobbed vials that shatter with breaking glass: 3 m burst, then a lumpy, bubbling acid puddle (4% of max HP/s) |
 | Thog | Big Club | Slow overhead smash in a 4 m, 90° cone, throws enemies back 8 m |
 | An Argyle Sock | Static Cling | Zaps the 3 nearest enemies (18 each, every 0.6 s); moving builds a charge up to 2x |
 
@@ -114,7 +114,7 @@ Once bought, every character's weapon can also turn up for the others as a rare 
 | **Vicki** | **Shield Wall**: 15% max HP shield for 6 s; attackers take 2x their contact damage | **Wings of Valhalla**: leap and glide up to 4 s, then dive for 140 within 6 m | **Ride of the Valkyries**: a spectral winged horse charges through 3 times for 180 per pass; kills heal 1% |
 | **Rogue** | **Smoke Bomb**: invisible 4 s (enemies wander), next attack 3x | **Pickpocket**: dash 12 m through up to 10 enemies, 70 each + an extra XP gem each | **Death by a Thousand Cuts**: blink to the 20 nearest over 3 s, 120 + bleed each, invulnerable, then back home |
 | **Gaiden** | **Shadow Step** (2 charges): teleport behind the biggest enemy, 250, 1.5 s invulnerable | **Shuriken Storm**: 3 spiralling rings of 12 piercing shuriken, 50 each | **Reed Clones**: 4 shadow clones for 12 s copying your attacks at 60% |
-| **Dr. Croc** | **Mutagen**: +50% attack speed, +30% speed, +10% damage taken for 8 s | **Death Roll**: roll 15 m, carrying enemies (50 every 0.25 s), then fling them | **Toxic Spill**: 20 m acid flood for 10 s (4% max HP/s); deaths in it burst for 30% max HP |
+| **Dr. Croc** | **Mutagen**: +50% attack speed, +30% speed, +10% damage taken for 8 s; like the Hulk he swells to twice his size over 2 s, flashing, his lab coat torn tight, and shrinks back the same way | **Death Roll**: roll 15 m, carrying enemies (50 every 0.25 s), then fling them; invulnerable while rolling (boss hits too) | **Toxic Spill**: 20 m acid flood for 10 s (4% max HP/s); deaths in it burst for 30% max HP |
 | **Thog** | **Toll Booth**: 8 s: every enemy that comes within 6 m pays 80 and drops an XP gem | **Goat Charge**: 20 m headfirst charge where you aim, 120 to each and thrown 8 yd | **Bridge Collapse**: a stone bridge falls across your aim (25 m), 350 each; the rubble walls enemies off for 10 s (`EnemyManager.barriers`) |
 | **An Argyle Sock** | **Spin Cycle**: 5 s whirlwind, pulls enemies within 6 m in, 40 every 0.5 s | **Lost Pair**: the partner sock (blue and orange) fights beside you for 15 s, copying every zap; enemies zapped by both take 2x | **Laundry Day**: a washing machine falls where you aim, sucks in everything within 10 m, washes it 4 s (10% max HP/s); survivors come out shrunk for 20 s (half damage, double damage taken) |
 

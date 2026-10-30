@@ -519,18 +519,34 @@ func _dr_croc() -> void:
 	_clear()
 	var a := _spawn(EnemyManager.TANK, 6.0, 0.0, 10.0)
 	await _secs(0.05)
+	var glass0 := ws.glass_breaks
 	ws.fire("flask", "orb", 1.0)
 	await _secs(0.8)
 	_check("Volatile Flasks: a lobbed flask bursts on the target", em.hp[a] < em.hp_max[a], "")
 	_check("...and leaves acid", em.pct_t[a] > 0.0 and is_equal_approx(em.pct_f[a], 0.04) and ws._puddles.size() >= 1, "")
+	_check("...the vial shatters with a sound of breaking glass", ws.glass_breaks > glass0 and ws._glass.stream != null, "%d" % (ws.glass_breaks - glass0))
+	var puddle: AcidPuddle = ws._puddles[0]["disc"] if not ws._puddles.is_empty() else null
+	_check("...the acid puddle is a ragged splash, not a circle", puddle != null and puddle.roundness() < 0.85 and not puddle.drops.is_empty(), "%.2f" % (puddle.roundness() if puddle else 1.0))
+	_check("...with bubbles welling up out of it and popping", puddle != null and puddle.bubbles.emitting and puddle.specks.emitting, "")
 	_clear()
 	var as0: float = main.stats.value("attack_speed")
 	var ms0: float = main.stats.value("move_speed")
+	var croc := player.model as RosterHero
 	_cast(0)
 	_check("Mutagen: +50% attack speed, +30% move speed, +10% damage taken",
 		is_equal_approx(main.stats.value("attack_speed"), as0 * 1.5) and is_equal_approx(main.stats.value("move_speed"), ms0 * 1.3) and is_equal_approx(player.dmg_taken, 1.1), "")
-	await _secs(8.1)
+	await _secs(1.0)
+	_check("...he grows gradually, flashing as he does", player.size_mult > 1.2 and player.size_mult < 1.85 and croc._flash > 0.0, "x%.2f" % player.size_mult)
+	await _secs(1.1)
+	_check("...to twice his size in 2 s", absf(player.size_mult - 2.0) < 0.03 and player.model.scale.y > 1.9 and croc._flash == 0.0, "x%.2f, model x%.2f" % [player.size_mult, player.model.scale.y])
+	_check("...bulked up, his lab coat torn", croc.ripped and croc.bulk != null and croc.bulk.amount > 0.95 and croc._mats[0].albedo_texture.resource_path.ends_with("dr_croc_ripped.jpg"), "")
+	await _secs(3.8)
+	_check("...and stays big", absf(player.size_mult - 2.0) < 0.03, "x%.2f" % player.size_mult)
+	await _secs(1.1)
+	_check("...then shrinks back over the last 2 s, flashing", player.size_mult > 1.15 and player.size_mult < 1.85 and croc._flash > 0.0, "x%.2f" % player.size_mult)
+	await _secs(1.1)
 	_check("...for 8 s", is_equal_approx(main.stats.value("attack_speed"), as0) and is_equal_approx(player.dmg_taken, 1.0), "")
+	_check("...back to his normal size, coat restored", player.size_mult == 1.0 and not croc.ripped and croc.mutant == 0.0 and croc._mats[0].albedo_texture.resource_path.ends_with("dr_croc_Image_0.jpg"), "x%.2f" % player.size_mult)
 	_clear()
 	var dir: Vector3 = ab.roster.part.aim_dir()
 	var start := player.global_position
@@ -538,11 +554,19 @@ func _dr_croc() -> void:
 		_spawn_at(EnemyManager.TANK, start + dir * (3.0 + k * 2.5), 10.0)
 	await _secs(0.05)
 	_cast(1)
-	await _secs(0.8)
+	await _secs(0.4)
+	player.god_mode = false
+	var hp0 := player.hp
+	var hit := player.hurt(200.0)
+	player.god_mode = true
+	_check("Death Roll: invulnerable while rolling", not hit and player.hp == hp0, "hit=%s hp %.0f -> %.0f" % [hit, hp0, player.hp])
+	await _secs(0.4)
 	_check("Death Roll: grabs enemies in his path", (ab.roster.part as KitCroc)._held.size() >= 3, str((ab.roster.part as KitCroc)._held.size()))
 	await _secs(0.5)
 	_check("...rolls 15 m", player.global_position.distance_to(start) > 10.0, "%.1f m" % player.global_position.distance_to(start))
 	_check("...hurting them all the way, then flings them", _all(func(i): return em.hp_max[i] - em.hp[i] >= 100.0 and em.kb_t[i] > 0.0), "")
+	await _secs(0.3)
+	_check("...and can be hurt again once he stops", player.hurt(1.0), "")
 	_clear()
 	for k in 6:
 		_spawn(EnemyManager.TANK, 12.0, k, 10.0)

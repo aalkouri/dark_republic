@@ -47,6 +47,7 @@ var max_hp := 100.0
 var invuln := 0.0
 var god_mode := false
 var shield := 0.0
+var untouchable := false   # no damage at all, telegraphed boss hits included (Death Roll)
 var _break_sfx: AudioStreamPlayer
 const SHIELD_BREAK_SOUND := "res://audio/ui/shield_break.wav"
 var water: SwampWater
@@ -497,7 +498,7 @@ func _follow_camera(dt: float) -> void:
 
 
 func hurt(amount: float) -> bool:
-	if meteor_form or invuln > 0.0 or hp <= 0.0:
+	if meteor_form or untouchable or invuln > 0.0 or hp <= 0.0:
 		return false
 	invuln = IFRAMES
 	model.play_hit()
@@ -520,7 +521,7 @@ func hurt(amount: float) -> bool:
 ## A hit that ignores armour and goes straight through shields, wiping them out: `frac` of
 ## max HP (Thog's quake). Returns true if it landed.
 func hurt_true(frac: float) -> bool:
-	if meteor_form or hp <= 0.0:
+	if meteor_form or untouchable or hp <= 0.0:
 		return false
 	invuln = IFRAMES
 	model.play_hit()

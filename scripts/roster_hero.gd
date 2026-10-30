@@ -82,6 +82,8 @@ const CFG := {
 		"cast": [[0.0, 1.6], [5.2, 6.8], [0.0, 1.6]], "cast_speed": [1.3, 1.3, 1.1],
 		"main": Color(0.55, 1.0, 0.3), "deep": Color(0.12, 0.35, 0.1), "light": Color(0.88, 1.0, 0.7),
 		"motes": false,
+		# Mutagen form (set_mutant): his coat torn to rags (tools/gen_croc_ripped_coat.py) and bulk
+		"mutant_skin": "res://models/dr_croc/dr_croc_ripped.jpg",
 	},
 	# Thog plays on the Ogre's rig, re-skinned troll blue and a size up, until he has his own model
 	# (the same stand-in the Swamp boss uses). "model" = whose model folder; "skin" replaces the
@@ -122,6 +124,11 @@ var _lunge := 0.0           # floaty attack / cast pulses
 var _swell := 0.0
 var _flinch := 0.0
 var _airborne := false
+var bulk: CrocBulk            # Dr. Croc's Mutagen form: swollen chest and arms
+var mutant := 0.0           # ...how far into it, 0..1
+var ripped := false         # ...his lab coat torn (the mutant skin swapped in)
+var _flash := 0.0           # a pulse of light over the whole model (transforming)
+var _base_tex: Array[Texture2D] = []
 
 
 static func is_playable(id: String) -> bool:
@@ -209,6 +216,7 @@ func _prepare_materials() -> void:
 				m.set_surface_override_material(s, mat)
 				_mats.append(mat)
 				_base_albedo.append(mat.albedo_color)
+				_base_tex.append(mat.albedo_texture)
 
 
 ## Drifting motes around the hem in the character's colours: snow, sparks or shadow.
@@ -393,8 +401,45 @@ func set_hurt(amount: float) -> void:
 	_hurt = amount
 	if sock:
 		sock.set_hurt(clampf(amount, 0.0, 1.0))
+	_apply_emission()
+
+
+## Light the whole model up (0..1) in its magic colour: Dr. Croc strobing as he transforms.
+func set_flash(amount: float) -> void:
+	if is_equal_approx(amount, _flash):
+		return
+	_flash = amount
+	_apply_emission()
+
+
+func _apply_emission() -> void:
+	var e := Color(1.0, 0.85, 0.75) * clampf(_hurt, 0.0, 1.0)
+	var c: Color = CFG.get(char_id, {}).get("light", Color.WHITE)
+	e = Color(maxf(e.r, c.r * _flash), maxf(e.g, c.g * _flash), maxf(e.b, c.b * _flash))
 	for m in _mats:
-		m.emission = Color(1.0, 0.85, 0.75) * clampf(amount, 0.0, 1.0)
+		m.emission = e
+
+
+## Dr. Croc's Mutagen form, 0 (himself) .. 1 (hulking): the chest and arms bulk out and, past
+## halfway, the lab coat is torn to rags. (The kit grows the whole model through size_mult.)
+func set_mutant(f: float) -> void:
+	mutant = clampf(f, 0.0, 1.0)
+	if skeleton != null:
+		if bulk == null:
+			bulk = CrocBulk.new()
+			skeleton.add_child(bulk)
+		bulk.amount = mutant
+	var want := mutant > 0.5
+	if want == ripped:
+		return
+	ripped = want
+	var path := str(CFG.get(char_id, {}).get("mutant_skin", ""))
+	if path == "" or not ResourceLoader.exists(path):
+		return
+	var skin: Texture2D = load(path) if ripped else null
+	for k in _mats.size():
+		if _base_tex[k] != null:
+			_mats[k].albedo_texture = skin if ripped else _base_tex[k]
 
 
 func _process(dt: float) -> void:
