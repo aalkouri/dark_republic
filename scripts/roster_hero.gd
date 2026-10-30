@@ -83,6 +83,16 @@ const CFG := {
 		"main": Color(0.55, 1.0, 0.3), "deep": Color(0.12, 0.35, 0.1), "light": Color(0.88, 1.0, 0.7),
 		"motes": false,
 	},
+	# Thog plays on the Ogre's rig, re-skinned troll blue and a size up, until he has his own model
+	# (the same stand-in the Swamp boss uses). "model" = whose model folder; "skin" replaces the
+	# albedo texture; "scale" sizes the rig; "weapon_scale" sizes the club.
+	"thog": {
+		"model": "ogre", "skin": "res://models/ogre/thog_skin.jpg", "scale": 1.2, "weapon_scale": 1.35,
+		"fire": [0.8, 1.8667], "fire_speed": 1.3,
+		"cast": [[1.4, 2.4], [0.4, 1.5], [0.4, 1.9]], "cast_speed": [1.2, 1.4, 1.0],
+		"main": Color(0.45, 0.68, 1.0), "deep": Color(0.15, 0.25, 0.5), "light": Color(0.82, 0.9, 1.0),
+		"motes": false,
+	},
 }
 
 var char_id := ""
@@ -107,7 +117,15 @@ var _flinch := 0.0
 
 
 static func is_playable(id: String) -> bool:
-	return CFG.has(id) and ResourceLoader.exists((DIR % id).path_join(id + ".glb"))
+	if not CFG.has(id):
+		return false
+	var m := model_of(id)
+	return ResourceLoader.exists((DIR % m).path_join(m + ".glb"))
+
+
+## Which model folder a character plays on (Thog borrows the Ogre's for now).
+static func model_of(id: String) -> String:
+	return str(CFG.get(id, {}).get("model", id))
 
 
 static func create(id: String) -> RosterHero:
@@ -122,9 +140,12 @@ static func color(id: String, key: String) -> Color:
 
 
 func _ready() -> void:
-	var dir := DIR % char_id
-	_rig = (load(dir.path_join(char_id + ".glb")) as PackedScene).instantiate()
+	var cfg0: Dictionary = CFG[char_id]
+	var mid := model_of(char_id)
+	var dir := DIR % mid
+	_rig = (load(dir.path_join(mid + ".glb")) as PackedScene).instantiate()
 	_rig.rotation.y = PI            # the GLB faces +Z; the game faces -Z
+	_rig.scale = Vector3.ONE * float(cfg0.get("scale", 1.0))
 	add_child(_rig)
 	skeleton = _rig.get_node_or_null(SKEL)
 	_floaty = skeleton == null
@@ -132,9 +153,15 @@ func _ready() -> void:
 	if old_player:
 		old_player.free()
 	_prepare_materials()
+	if cfg0.has("skin") and ResourceLoader.exists(cfg0["skin"]):
+		var skin: Texture2D = load(cfg0["skin"])
+		for m in _mats:
+			m.albedo_texture = skin
 	if not _floaty:
 		_build_tree()
-		weapon = RosterWeapons.attach(char_id, skeleton)
+		weapon = RosterWeapons.attach(mid, skeleton)
+		if weapon:
+			weapon.scale *= float(cfg0.get("weapon_scale", 1.0))
 		twist = SpineTwist.new()
 		skeleton.add_child(twist)
 
@@ -232,7 +259,7 @@ func _one_shot(fade_in: float, fade_out: float) -> AnimationNodeOneShot:
 func _build_tree() -> void:
 	var cfg: Dictionary = CFG[char_id]
 	tree = AnimationTree.new()
-	tree.add_animation_library("c", load((DIR % char_id).path_join("anims.res")))
+	tree.add_animation_library("c", load((DIR % model_of(char_id)).path_join("anims.res")))
 	var bt := AnimationNodeBlendTree.new()
 	var loco := AnimationNodeBlendSpace1D.new()
 	loco.add_blend_point(_clip("idle", []), 0.0, -1, "idle")

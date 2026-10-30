@@ -37,6 +37,7 @@ const PARTS := {
 	"ghast": "res://scripts/kits/kit_ghast.gd", "vampire_hunter": "res://scripts/kits/kit_hunter.gd",
 	"vicki": "res://scripts/kits/kit_vicki.gd", "rogue": "res://scripts/kits/kit_rogue.gd",
 	"gaiden": "res://scripts/kits/kit_gaiden.gd", "dr_croc": "res://scripts/kits/kit_croc.gd",
+	"thog": "res://scripts/kits/kit_thog.gd",
 }
 
 const YARD := 0.9144

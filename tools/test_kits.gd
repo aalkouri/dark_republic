@@ -1,11 +1,11 @@
 extends Node
-## The eight roster characters built on their 3D models - Merlin, Ogre, Ghast, Vampire Hunter,
-## Vicki, Rogue, Gaiden and Dr. Croc: each is playable (character select lets you pick them), runs
+## The roster characters built on 3D models - Merlin, Ogre, Ghast, Vampire Hunter, Vicki, Rogue,
+## Gaiden, Dr. Croc, and Thog (on the Ogre's rig for now): each is playable (character select lets you pick them), runs
 ## with its own model, its own weapon hits enemies the way its card says, and all three of its
 ## abilities do what they say.
 ##   godot --headless --path . res://tools/test_kits.tscn [-- --only=<id>]
 
-const CHARS := ["merlin", "ogre", "ghast", "vampire_hunter", "vicki", "rogue", "gaiden", "dr_croc"]
+const CHARS := ["merlin", "ogre", "ghast", "vampire_hunter", "vicki", "rogue", "gaiden", "dr_croc", "thog"]
 
 var fails := 0
 var main: Node
@@ -98,6 +98,65 @@ func _merlin() -> void:
 	_check("Rewind: HP back to what it was 8 s ago", player.hp > player.max_hp * 0.95, "%.0f / %.0f" % [player.hp, player.max_hp])
 	_check("...the other two cooldowns reset", ab.cooldown[0] == 0.0 and ab.cooldown[1] == 0.0 and ab.cooldown[2] > 100.0, str(ab.cooldown))
 	_check("...enemies flung back and stunned", _all(func(i): return em.stun_t[i] > 1.0 and em.kb_t[i] > 0.0), "")
+
+
+func _thog() -> void:
+	_check("Thog plays on the Ogre's rig, re-skinned blue and bigger", (player.model as RosterHero)._rig.scale.x > 1.1
+		and RosterHero.model_of("thog") == "ogre", "")
+	_clear()
+	var a := _spawn(EnemyManager.TANK, 2.5, 0.0, 10.0)
+	var b := _spawn(EnemyManager.TANK, 2.6, PI, 10.0)   # behind him
+	await _secs(0.05)
+	var s0 := ws.swings
+	ws.fire("club", "orb", 1.0)
+	_check("Big Club smashes the enemy in front", ws.swings == s0 + 1 and em.hp[a] < em.hp_max[a], "")
+	_check("...not behind him (a cone)", em.hp[b] >= em.hp_max[b], "")
+	_check("...and throws it back", em.kb_t[a] > 0.0, "")
+	var kit: KitThog = ab.roster.part
+	_clear()
+	for k in 10:
+		_spawn(EnemyManager.GRUNT, 4.0, TAU * k / 10.0, 50.0)
+	await _secs(0.05)
+	var hp0 := _total_hp()
+	_cast(0)
+	await _secs(0.3)
+	_check("Toll Booth: every enemy within 6 m pays 80", kit.tolls == 10 and hp0 - _total_hp() >= 80.0 * 10 * 0.99, "%d paid" % kit.tolls)
+	await _secs(8.0)
+	_check("...for 8 s", not kit.active("toll"), "")
+	_clear()
+	var start := player.global_position
+	var dir := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
+	for k in 5:
+		_spawn_at(EnemyManager.TANK, start + dir * (4.0 + k * 3.0), 10.0)
+	await _secs(0.05)
+	_cast(1)
+	await _secs(0.2)
+	_check("Goat Charge: he runs headfirst (invulnerable)", player.scripted and player.invuln > 0.0, "")
+	await _secs(0.6)
+	var moved := Vector2(player.global_position.x - start.x, player.global_position.z - start.z).length()
+	_check("...20 m through them: 120 each, thrown", kit.charge_hits == 5 and moved > 15.0 and not player.scripted, "%d hit, %.1f m" % [kit.charge_hits, moved])
+	_clear()
+	dir = Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
+	var aim := ab.aim_point(KitThog.BRIDGE_RANGE)
+	var dist := clampf(Vector2(aim.x - player.global_position.x, aim.z - player.global_position.z).length(), 8.0, KitThog.BRIDGE_RANGE)
+	var c := player.global_position + dir * dist
+	var side := dir.cross(Vector3.UP).normalized()
+	for k in 6:
+		_spawn_at(EnemyManager.TANK, c + side * (k - 2.5) * 3.0, 20.0)
+	await _secs(0.05)
+	var hp1 := _total_hp()
+	_cast(2)
+	await _secs(1.0)
+	_check("Bridge Collapse crushes the line: 350 each", kit.bridge_hits >= 5 and hp1 - _total_hp() >= 350.0 * 5 * 0.99, "%d hit" % kit.bridge_hits)
+	_check("...and leaves a rubble wall", not em.barriers.is_empty(), "")
+	_clear()
+	var far := _spawn_at(EnemyManager.GRUNT, c + dir * 5.0, 50.0)
+	var fu := em.uid[far]
+	await _secs(3.0)
+	var fi := em.index_of(fu)
+	_check("...enemies can't cross it", fi >= 0 and (em.pos[fi] - c).dot(dir) > 0.0, "")
+	await _secs(7.5)
+	_check("...for 10 s", em.barriers.is_empty(), "")
 
 
 func _ogre() -> void:

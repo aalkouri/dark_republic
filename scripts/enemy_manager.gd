@@ -54,6 +54,8 @@ var _clip_attack := 0.25
 var _attack_rate := 1.0
 var fear := false               # Fear Idol: goblins run away from the player
 var lost := false               # Eclipse: goblins lose track of the player and wander
+## Walls enemies can't cross (Thog's Bridge Collapse): [Vector2 a, Vector2 b, half width]
+var barriers: Array = []
 var bonus_mult := 1.0           # ability damage buffs (Eclipse), on top of damage_mult
 # Status effects from roster abilities (per goblin, seconds left):
 #   slow   moves at slow_f of its speed            (Frost Shards, Glacial Path, Absolute Zero)
@@ -849,6 +851,24 @@ func tick(dt: float, player_pos: Vector3) -> void:
 				else:
 					p.x = ox
 					p.z = oz
+					v = Vector3.ZERO
+		if not barriers.is_empty():   # rubble walls (Thog's Bridge Collapse): kept on their own side
+			for bar in barriers:
+				var ba: Vector2 = bar[0]
+				var bb: Vector2 = bar[1]
+				var ab := bb - ba
+				var q := Vector2(p.x, p.z)
+				var u := clampf((q - ba).dot(ab) / ab.length_squared(), 0.0, 1.0)
+				var c := ba + ab * u
+				var need: float = float(bar[2]) + t_radius[t] * sz[i]
+				if (q - c).length_squared() < need * need:
+					var nrm := Vector2(-ab.y, ab.x).normalized()
+					var side := signf((Vector2(ox, oz) - c).dot(nrm))
+					if side == 0.0:
+						side = 1.0
+					q = c + nrm * side * need
+					p.x = q.x
+					p.z = q.y
 					v = Vector3.ZERO
 		p.y = 0.0
 		if hg_on:

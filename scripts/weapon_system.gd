@@ -19,6 +19,7 @@ extends Node3D
 ##   daggers  Twin Daggers     (Rogue) short throws in pairs; hits bleed 3% max HP/s for 3 s
 ##   katana   Katana           (Gaiden) 3-hit combo in a 3 m arc; the 3rd sends a 10 m wind slash
 ##   flask    Volatile Flasks  (Dr. Croc) lobbed: burst 3 m, then an acid puddle (4% max HP/s)
+##   club     Big Club         (Thog) slow overhead smash in a 4 m cone, heavy knockback
 ## On melee weapons "count" widens the reach (+20% each) instead of adding projectiles.
 ##
 ## Signature weapons: once a character is unlocked, their weapon can turn up for everyone
@@ -33,10 +34,10 @@ const P_KINDS := ["fire", "ice", "thunder", "dark", "arcane", "silver", "javelin
 const STYLE_CHAR := {
 	"fire": "fire_wizard", "ice": "ice_wizard", "thunder": "thunder_wizard", "dark": "dark_wizard",
 	"arcane": "merlin", "trunk": "ogre", "wail": "ghast", "silver": "vampire_hunter",
-	"spear": "vicki", "daggers": "rogue", "katana": "gaiden", "flask": "dr_croc",
+	"spear": "vicki", "daggers": "rogue", "katana": "gaiden", "flask": "dr_croc", "club": "thog",
 }
-const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask"]
-const MELEE := ["trunk", "wail", "spear", "katana"]
+const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club"]
+const MELEE := ["trunk", "wail", "spear", "katana", "club"]
 const SIG_WEIGHT := 0.45        # vs 3-10 for normal rewards: a rare find...
 const SIG_WEIGHT_TOTAL := 1.35  # ...and all of them together stay rare
 const SIG_RARITY := 3           # always Legendary
@@ -60,6 +61,7 @@ var db: UpgradeDB
 var enemies: EnemyManager
 var player: Player
 var kit: RosterKit              # the character's abilities, when they change how the weapon works
+var _fx_mgr: FxManager           # set by main: dust bursts (Big Club)
 
 var pc := 0
 var p_pos := PackedVector3Array()
@@ -112,6 +114,9 @@ const FLASK_FLIGHT := 0.6
 const FLASK_RANGE := 16.0
 const ACID_FRAC := 0.04
 const ACID_TIME := 3.0
+const CLUB_REACH := 4.0          # Big Club: overhead smash in a cone
+const CLUB_ARC := 90.0
+const CLUB_KNOCK := 8.0
 const MELEE_SEEK := 1.6          # melee weapons swing once an enemy is within reach x this
 
 ## Level-up card for the starting weapon, per style (the rest come from data/abilities.json).
@@ -436,6 +441,8 @@ func _fire_from(sty: String, pre: String, feet: Vector3, mult: float, model: Her
 			return _swing(feet, mult, pre, model, WAIL_REACH, WAIL_ARC, sty)
 		"katana":
 			return _swing(feet, mult, pre, model, KATANA_REACH, KATANA_ARC, sty)
+		"club":
+			return _swing(feet, mult, pre, model, CLUB_REACH, CLUB_ARC, sty)
 		"spear":
 			return _thrust(feet, mult, pre, model)
 		"flask":
@@ -595,6 +602,9 @@ func _swing(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase, reach:
 			"trunk":
 				enemies.damage(e, dmg)
 				enemies.knock(e, d if l > 0.05 else dir, TRUNK_KNOCK, 0.3)
+			"club":
+				enemies.damage(e, dmg)
+				enemies.knock(e, d if l > 0.05 else dir, CLUB_KNOCK, 0.35)
 			"wail":
 				enemies.damage(e, dmg)
 				enemies.slow(e, WAIL_SLOW, WAIL_SLOW_TIME)
@@ -611,11 +621,17 @@ func _swing(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase, reach:
 			if step % 3 == 2:   # the 3rd cut sends a wind slash
 				var speed := 32.0 * stats.value("projectile_speed")
 				spawn_projectile(feet + Vector3(0, 1.0, 0) + dir * 0.8, dir * speed, WIND_RANGE / speed, dmg, 99, P_KINDS.find("wind"))
+		"club":   # straight down: a wedge and a puff of dust where it lands
+			_sector(feet + Vector3(0, 0.6, 0), dir, reach, arc, Color(0.55, 0.7, 1.0, 0.55), 0.35, 0.0)
+			if _fx_mgr != null:
+				_fx_mgr.burst(feet + dir * reach * 0.6 + Vector3(0, 0.4, 0), 2.0, Color(0.6, 0.52, 0.4), 0.35)
+			if model == player.model:
+				player.add_shake(0.25)
 		_:
 			_sector(feet + Vector3(0, 0.6, 0), dir, reach, arc, col, 0.3, 0.25 * side)
 			if model == player.model:
 				player.add_shake(0.12)
-	_play_whoosh(0.8 if sty == "trunk" else (1.4 if sty == "katana" else 1.0))
+	_play_whoosh(0.8 if sty == "trunk" else (1.4 if sty == "katana" else (0.6 if sty == "club" else 1.0)))
 	return true
 
 
