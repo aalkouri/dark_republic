@@ -69,7 +69,7 @@ func on_kill(_at: Vector3, _type_id: int) -> void:
 
 func _shield_wall() -> void:
 	play("shield_wall")
-	var amount := player.max_hp * WALL_FRAC
+	var amount := player.max_hp * WALL_FRAC * pw(0)
 	player.add_shield(amount)
 	_wall_left += amount
 	_wall_t = WALL_TIME
@@ -157,7 +157,7 @@ func _tick_wings(dt: float) -> void:
 
 
 func _dive_land(at: Vector3) -> void:
-	var d := WING_DAMAGE * dmg()
+	var d := WING_DAMAGE * dmg() * pw(1)
 	for i in near(at, WING_RADIUS):
 		enemies.damage(i, d)
 		enemies.knock(i, enemies.pos[i] - at, 3.0, 0.25)
@@ -217,7 +217,7 @@ func _tick_ride(dt: float) -> void:
 	p = ground(p)
 	_horse.global_position = p + Vector3(0, 0.4 + 0.25 * absf(sin(_ride_t * 18.0)), 0)
 	_horse.global_basis = Basis.looking_at(dir, Vector3.UP)
-	var d := RIDE_DAMAGE * dmg()
+	var d := RIDE_DAMAGE * dmg() * pw(2)
 	for i in near(p, RIDE_WIDTH):
 		var u := enemies.uid[i]
 		if _ride_hit.has(u):

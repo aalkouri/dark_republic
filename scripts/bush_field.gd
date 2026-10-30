@@ -85,7 +85,7 @@ var leaf_bursts := 0
 var player: Node3D                    # set at runtime (the Player); found automatically if unset
 
 
-## Scatter `n` bushes: grassy patches first, away from pools, trees, shrine pads and the start.
+## Scatter `n` bushes: grassy patches first, away from pools, trees, chest pads and the start.
 func scatter(rng: RandomNumberGenerator, half: float, water: SwampWater, placed: Array[Vector3], patches: Image, n: int) -> void:
 	var extent := half + 10.0
 	var tries := 0
@@ -98,8 +98,8 @@ func scatter(rng: RandomNumberGenerator, half: float, water: SwampWater, placed:
 		if m.g < 0.48 and rng.randf() < 0.7:   # prefer the grassy patches
 			continue
 		var ok := true
-		for site in water.shrine_sites:
-			if Vector2(p.x - site.x, p.z - site.z).length() < Shrine.ZONE_RADIUS + 2.0:
+		for site in water.chest_sites:
+			if Vector2(p.x - site.x, p.z - site.z).length() < ChestManager.SITE_RADIUS + 2.0:
 				ok = false
 				break
 		if ok:

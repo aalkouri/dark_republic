@@ -64,7 +64,7 @@ const LEVEL_EXP := [2000, 6000, 13000, 24000, 40000, 62000, 92000, 132000, 18500
 const EXP_PER_KILL := 1
 const EXP_PER_ELITE := 10           # on top of the kill
 const EXP_PER_BOSS := 2000
-const EXP_PER_SHRINE := 250
+const EXP_PER_CHEST := 125
 const EXP_PER_MINUTE := 100         # survival
 const EXP_WIN_BONUS := 0.25         # beating the map (killing its boss): +25% of the rest
 const MAX_LEVEL := 10
@@ -93,13 +93,13 @@ func next_level_exp(id: String) -> int:
 	return -1 if lvl >= MAX_LEVEL else int(LEVEL_EXP[lvl])
 
 
-## The character EXP a run earned, itemised: {kills, elites, boss, shrines, time, win, total}.
-static func run_exp(kills: int, elites: int, bosses: int, shrines: int, run_time: float, won: bool) -> Dictionary:
+## The character EXP a run earned, itemised: {kills, elites, boss, chests, time, win, total}.
+static func run_exp(kills: int, elites: int, bosses: int, chests: int, run_time: float, won: bool) -> Dictionary:
 	var e := {
 		"kills": kills * EXP_PER_KILL,
 		"elites": elites * EXP_PER_ELITE,
 		"boss": bosses * EXP_PER_BOSS,
-		"shrines": shrines * EXP_PER_SHRINE,
+		"chests": chests * EXP_PER_CHEST,
 		"time": int(run_time / 60.0 * EXP_PER_MINUTE),
 	}
 	var sum := 0

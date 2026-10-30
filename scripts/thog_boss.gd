@@ -14,6 +14,10 @@ extends Node3D
 ##           a shockwave ring rolls outward (jump over it).
 ##   SWEEP   a wide swing across a 130-degree wedge in front of him: big damage and knockback.
 ##   BELLOW  a roar that calls a ring of goblins (and a brute) around you.
+## And at 75%, 50% and 10% health, the QUAKE: he stomps the ground over and over (your camera
+## shakes the whole time) while the entire map lights up red - everything but the swamp pools.
+## You have QUAKE_WARN seconds to get into a pool; if you're anywhere else when it lands, it
+## takes QUAKE_FRAC of your max HP straight through your shield, and wipes the shield out.
 
 signal defeated
 signal enraged
@@ -42,6 +46,10 @@ const BELLOW_SPEED := 0.5
 const BELLOW_AT := 0.4
 const BELLOW_COOLDOWN := 14.0
 const BELLOW_GOBLINS := 14
+const QUAKE_AT := [0.75, 0.5, 0.1]  # health fractions that set off a quake
+const QUAKE_WARN := 7.0             # seconds to get into a pool
+const QUAKE_FRAC := 0.5             # of max HP, through shields
+const QUAKE_STOMP := 0.6            # seconds between stomps
 const MELEE_RANGE := 12.0           # closer than this he slams or sweeps; further, he walks / roars
 const SOUNDS := {
 	"roar": "res://audio/thog/roar.wav",
@@ -62,7 +70,9 @@ var state := "walk"                 # walk | attack | dying | dead
 var attack := ""                    # slam | sweep | bellow
 var is_enraged := false
 var alive_time := 0.0
-var counts := {"slam": 0, "sweep": 0, "bellow": 0, "hits": 0}   # for tests
+var counts := {"slam": 0, "sweep": 0, "bellow": 0, "hits": 0, "quake": 0, "quake_hits": 0}   # for tests
+var _quakes_done := 0               # QUAKE_AT thresholds already used
+var _stomp_t := 0.0
 var _t := 0.0                       # time into the current attack
 var _windup := 0.0                  # seconds from the start of the attack to its impact
 var _total := 0.0                   # seconds the attack's animation takes
@@ -166,7 +176,11 @@ func _physics_process(dt: float) -> void:
 	_bellow_cd -= dt * (ENRAGE_SPEED if is_enraged else 1.0)
 	_tick_waves(dt)
 	var held := em.is_held(i)
-	if state == "attack":
+	if state != "attack" and _quakes_done < QUAKE_AT.size() and hp_fraction() <= QUAKE_AT[_quakes_done]:
+		_start_quake()
+	if state == "attack" and attack == "quake":
+		_tick_quake(dt)
+	elif state == "attack":
 		_tick_attack(dt)
 	elif not held:
 		_think(dt, i)
@@ -367,9 +381,70 @@ func _land_bellow() -> void:
 	main.hud.flash_message("THOG CALLS HIS GOBLINS!", 2.0)
 
 
+# ------------------------------------------------------------------ quake
+
+func _start_quake() -> void:
+	# one quake per crossing, even if a big hit skipped past two thresholds
+	while _quakes_done < QUAKE_AT.size() and hp_fraction() <= QUAKE_AT[_quakes_done]:
+		_quakes_done += 1
+	state = "attack"
+	attack = "quake"
+	counts["quake"] += 1
+	_t = 0.0
+	_stomp_t = 0.0
+	_landed = false
+	em.troll_busy = true
+	_clear_tele()
+	_play_sfx("roar")
+	main.hud.flash_message(tr("THOG SHAKES THE SWAMP!  GET IN A PUDDLE!"), QUAKE_WARN - 0.5)
+	_quake_ground(1.0, 0.0)
+
+
+func _tick_quake(dt: float) -> void:
+	_t += dt
+	var f := clampf(_t / QUAKE_WARN, 0.0, 1.0)
+	if not _landed:
+		_quake_ground(1.0, f)
+	_stomp_t -= dt
+	if _stomp_t <= 0.0 and not _landed:   # stomp, stomp, stomp - faster as it builds
+		_stomp_t = QUAKE_STOMP * lerpf(1.0, 0.6, f)
+		model.play("slam", 2.2)
+		_play_sfx("step" if randi() % 2 else "slam")
+		if fx:
+			var i := row()
+			fx.burst(em.pos[i] + _aim * 3.0 + Vector3(0, 0.4, 0), 4.0, Color(0.5, 0.42, 0.3), 0.35)
+	player.add_shake(lerpf(0.35, 0.75, f))   # the whole map trembles
+	if not _landed and _t >= QUAKE_WARN:
+		_landed = true
+		_play_sfx("slam")
+		player.add_shake(1.6)
+		var safe: bool = main.water != null and main.water.in_pool_xz(player.global_position.x, player.global_position.z)
+		if not safe and player.hurt_true(QUAKE_FRAC):
+			counts["quake_hits"] += 1
+			counts["hits"] += 1
+		_quake_ground(0.0, 0.0)
+	if _t >= QUAKE_WARN + 0.8:
+		state = "walk"
+		em.troll_busy = false
+		_gap = randf_range(GAP.x, GAP.y)
+
+
+## Light up (or clear) the ground everywhere but the pools.
+func _quake_ground(on: float, fill: float) -> void:
+	var w = main.water if main != null else null
+	if w == null or w.ground_mat == null:
+		return
+	w.ground_mat.set_shader_parameter("quake", on)
+	w.ground_mat.set_shader_parameter("quake_fill", fill)
+
+
+func is_quaking() -> bool:
+	return state == "attack" and attack == "quake" and not _landed
+
+
 func _hit(amount: float, push: Vector3) -> void:
 	player.invuln = 0.0   # the big swings always land, whatever grazed you a moment ago
-	if player.hurt(amount):
+	if player.hurt(amount * EnemyManager.BOSS_DAMAGE_MULT):
 		counts["hits"] += 1
 		player.knockback(push)
 		_shake(0.5)
@@ -403,6 +478,7 @@ func _die() -> void:
 	state = "dying"
 	em.troll_busy = false
 	_clear_tele()
+	_quake_ground(0.0, 0.0)
 	for w in _waves:
 		(w["ring"] as Node).queue_free()
 	_waves.clear()

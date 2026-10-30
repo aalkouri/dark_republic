@@ -124,7 +124,7 @@ func _tick_pools(dt: float) -> void:
 		pd["tick"] -= dt
 		if pd["tick"] <= 0.0:
 			pd["tick"] = 0.25
-			var d := WATER_DPS * 0.25 * dmg()
+			var d := WATER_DPS * 0.25 * dmg() * pw(0)
 			for i in near(pd["pos"], WATER_RADIUS):
 				enemies.dot_damage(i, d)
 				enemies.slow(i, WATER_SLOW, 0.4)
@@ -142,7 +142,7 @@ func _stake_volley() -> void:
 	for s in VOLLEY_COUNT:
 		var a := off + TAU * s / VOLLEY_COUNT
 		var dir := Vector3(cos(a), 0.0, sin(a))
-		k.weapons.spawn_projectile(from + dir * 0.6, dir * VOLLEY_SPEED, VOLLEY_RANGE / VOLLEY_SPEED, VOLLEY_DAMAGE * dmg(), 1, kind)
+		k.weapons.spawn_projectile(from + dir * 0.6, dir * VOLLEY_SPEED, VOLLEY_RANGE / VOLLEY_SPEED, VOLLEY_DAMAGE * dmg() * pw(1), 1, kind)
 	ring(feet(), 3.0, k._light, 0.25)
 	player.add_shake(0.25)
 
@@ -159,7 +159,7 @@ func _hunters_night() -> void:
 		_moon.omni_range = 16.0
 		_moon.position.y = 6.0
 		player.add_child(_moon)
-	_night_t = NIGHT_TIME
+	_night_t = NIGHT_TIME * pw(2)
 	_night_tick = 0.0
 	ring(feet(), NIGHT_RADIUS * 0.5, Color(0.9, 0.2, 0.25), 0.6)
 

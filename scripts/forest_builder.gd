@@ -47,7 +47,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	_environment(parent, rng, time_of_day)
 
 	var water := SwampWater.generate(rng, WorldBuilder.POOLS, half, 35.0)
-	water.build_terrain(rng, half, WorldBuilder.SHRINE_SITES, Shrine.ZONE_RADIUS)
+	water.build_terrain(rng, half, WorldBuilder.CHEST_SITES, ChestManager.SITE_RADIUS)
 	var patches := WorldBuilder._patch_map(rng, half + 10.0)
 	WorldBuilder._ground(parent, half, water, patches, GROUND)
 	water.build_meshes(parent, POND)

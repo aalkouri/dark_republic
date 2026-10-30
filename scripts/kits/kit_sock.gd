@@ -73,7 +73,7 @@ func clone_list() -> Array:
 
 
 func clone_damage() -> float:
-	return 1.0   # the partner zaps as hard as you do
+	return pw(1)   # the partner zaps as hard as you do (harder as Lost Pair levels up)
 
 
 func _body() -> SockBody:
@@ -129,7 +129,7 @@ func _tick_spin(dt: float) -> void:
 	if _spin_tick <= 0.0:
 		_spin_tick = SPIN_EVERY
 		for i in near(at, SPIN_RADIUS):
-			enemies.damage(i, SPIN_DAMAGE * dmg())
+			enemies.damage(i, SPIN_DAMAGE * dmg() * pw(0))
 			spin_hits += 1
 	if _spin_t <= 0.0:
 		if _body():
@@ -229,7 +229,7 @@ func _tick_wash(dt: float) -> void:
 		for u in _washing:
 			var i := enemies.index_of(u)
 			if i >= 0:
-				enemies.dot_damage(i, enemies.hp_max[i] * WASH_FRAC * 0.25 * enemies.pct_scale(i))
+				enemies.dot_damage(i, enemies.hp_max[i] * WASH_FRAC * pw(2) * 0.25 * enemies.pct_scale(i))
 	if _wash_t >= WASH_TIME:
 		_wash_t = -1.0
 		for u in _washing:   # survivors tumble out, shrunk

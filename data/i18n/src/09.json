@@ -1,0 +1,258 @@
+{
+ "%s  +%d level  (Lv %d -> %d)": [
+  "%s  +%d nivel  (Nv %d -> %d)",
+  "%s  +%d niveau  (Nv %d -> %d)",
+  "%s  +%d مستوى  (م %d -> %d)",
+  "%s  +%d Stufe  (St. %d -> %d)",
+  "%s  +%d 级  (等级 %d -> %d)",
+  "%s  +%d レベル  (Lv %d -> %d)"
+ ],
+ "%s  +%d levels  (Lv %d -> %d)": [
+  "%s  +%d niveles  (Nv %d -> %d)",
+  "%s  +%d niveaux  (Nv %d -> %d)",
+  "%s  +%d مستويات  (م %d -> %d)",
+  "%s  +%d Stufen  (St. %d -> %d)",
+  "%s  +%d 级  (等级 %d -> %d)",
+  "%s  +%d レベル  (Lv %d -> %d)"
+ ],
+ "%s  LEVEL %d": [
+  "%s  NIVEL %d",
+  "%s  NIVEAU %d",
+  "%s  المستوى %d",
+  "%s  STUFE %d",
+  "%s  等级 %d",
+  "%s  レベル %d"
+ ],
+ "3 of a kind: +%d levels (%d%% chance)   ·   otherwise: +1 level": [
+  "3 iguales: +%d niveles (%d%% de probabilidad)   ·   si no: +1 nivel",
+  "3 identiques : +%d niveaux (%d%% de chances)   ·   sinon : +1 niveau",
+  "3 متطابقة: +%d مستويات (فرصة %d%%)   ·   وإلا: +1 مستوى",
+  "3 gleiche: +%d Stufen (%d%% Chance)   ·   sonst: +1 Stufe",
+  "三个相同：+%d 级（%d%% 概率）   ·   否则：+1 级",
+  "3つ揃い：+%d レベル（確率 %d%%）   ·   それ以外：+1 レベル"
+ ],
+ "Bronze Key": [
+  "Llave de bronce",
+  "Clé de bronze",
+  "مفتاح برونزي",
+  "Bronzeschlüssel",
+  "青铜钥匙",
+  "ブロンズの鍵"
+ ],
+ "Silver Key": [
+  "Llave de plata",
+  "Clé d'argent",
+  "مفتاح فضي",
+  "Silberschlüssel",
+  "白银钥匙",
+  "シルバーの鍵"
+ ],
+ "Gold Key": [
+  "Llave de oro",
+  "Clé d'or",
+  "مفتاح ذهبي",
+  "Goldschlüssel",
+  "黄金钥匙",
+  "ゴールドの鍵"
+ ],
+ "Chests +%s": [
+  "Cofres +%s",
+  "Coffres +%s",
+  "الصناديق +%s",
+  "Truhen +%s",
+  "宝箱 +%s",
+  "宝箱 +%s"
+ ],
+ "Continue": [
+  "Continuar",
+  "Continuer",
+  "متابعة",
+  "Weiter",
+  "继续",
+  "続ける"
+ ],
+ "Every ability is at max level!  Fully healed": [
+  "¡Todas las habilidades al nivel máximo!  Curación completa",
+  "Toutes les capacités au niveau max !  Soins complets",
+  "كل القدرات في المستوى الأقصى!  شفاء كامل",
+  "Alle Fähigkeiten auf Maximalstufe!  Voll geheilt",
+  "所有技能已满级！  生命完全恢复",
+  "全アビリティが最大レベル！  全回復"
+ ],
+ "JACKPOT!": [
+  "¡PREMIO GORDO!",
+  "JACKPOT !",
+  "الجائزة الكبرى!",
+  "JACKPOT!",
+  "大奖！",
+  "ジャックポット！"
+ ],
+ "Level %d / %d": [
+  "Nivel %d / %d",
+  "Niveau %d / %d",
+  "المستوى %d / %d",
+  "Stufe %d / %d",
+  "等级 %d / %d",
+  "レベル %d / %d"
+ ],
+ "Levels raise: %s and cooldown": [
+  "Los niveles mejoran: %s y enfriamiento",
+  "Les niveaux augmentent : %s et recharge",
+  "المستويات ترفع: %s ووقت التهدئة",
+  "Stufen erhöhen: %s und Abklingzeit",
+  "升级提升：%s 和冷却",
+  "レベルで上昇：%s とクールダウン"
+ ],
+ "MAX": [
+  "MÁX",
+  "MAX",
+  "أقصى",
+  "MAX",
+  "满级",
+  "MAX"
+ ],
+ "Max level": [
+  "Nivel máximo",
+  "Niveau max",
+  "المستوى الأقصى",
+  "Maximalstufe",
+  "已满级",
+  "最大レベル"
+ ],
+ "Needs a %s": [
+  "Necesita una %s",
+  "Il faut une %s",
+  "يحتاج %s",
+  "Benötigt einen %s",
+  "需要%s",
+  "%sが必要"
+ ],
+ "Next level: %s x%s, cooldown -%d%%": [
+  "Siguiente nivel: %s x%s, enfriamiento -%d%%",
+  "Niveau suivant : %s x%s, recharge -%d%%",
+  "المستوى التالي: %s ×%s، التهدئة -%d%%",
+  "Nächste Stufe: %s x%s, Abklingzeit -%d%%",
+  "下一级：%s x%s，冷却 -%d%%",
+  "次のレベル：%s x%s、クールダウン -%d%%"
+ ],
+ "Now: %s x%s, cooldown -%d%%": [
+  "Ahora: %s x%s, enfriamiento -%d%%",
+  "Actuel : %s x%s, recharge -%d%%",
+  "الآن: %s ×%s، التهدئة -%d%%",
+  "Jetzt: %s x%s, Abklingzeit -%d%%",
+  "当前：%s x%s，冷却 -%d%%",
+  "現在：%s x%s、クールダウン -%d%%"
+ ],
+ "Pull the handle!": [
+  "¡Tira de la palanca!",
+  "Tirez le levier !",
+  "اسحب الذراع!",
+  "Zieh den Hebel!",
+  "拉动拉杆！",
+  "レバーを引け！"
+ ],
+ "Spinning...": [
+  "Girando...",
+  "Ça tourne...",
+  "يدور...",
+  "Dreht sich...",
+  "转动中...",
+  "回転中..."
+ ],
+ "THOG SHAKES THE SWAMP!  GET IN A PUDDLE!": [
+  "¡THOG SACUDE EL PANTANO!  ¡MÉTETE EN UN CHARCO!",
+  "THOG FAIT TREMBLER LE MARAIS !  SAUTEZ DANS UNE MARE !",
+  "ثوغ يهز المستنقع!  ادخل إلى بركة!",
+  "THOG ERSCHÜTTERT DEN SUMPF!  AB IN EINE PFÜTZE!",
+  "托格震撼沼泽！  快跳进水坑！",
+  "トグが沼を揺らす！  水たまりに入れ！"
+ ],
+ "Winner!": [
+  "¡Ganador!",
+  "Gagné !",
+  "فائز!",
+  "Gewonnen!",
+  "中奖！",
+  "当たり！"
+ ],
+ "burn damage": [
+  "daño de quemadura",
+  "dégâts de brûlure",
+  "ضرر الحرق",
+  "Brandschaden",
+  "燃烧伤害",
+  "炎上ダメージ"
+ ],
+ "clone damage": [
+  "daño de los clones",
+  "dégâts des clones",
+  "ضرر النسخ",
+  "Klonschaden",
+  "分身伤害",
+  "分身のダメージ"
+ ],
+ "damage bonus": [
+  "bonificación de daño",
+  "bonus de dégâts",
+  "مكافأة الضرر",
+  "Schadensbonus",
+  "伤害加成",
+  "ダメージボーナス"
+ ],
+ "drain damage": [
+  "daño de drenaje",
+  "dégâts de drain",
+  "ضرر الاستنزاف",
+  "Entzugsschaden",
+  "吸取伤害",
+  "吸収ダメージ"
+ ],
+ "frog count": [
+  "número de ranas",
+  "nombre de grenouilles",
+  "عدد الضفادع",
+  "Anzahl Frösche",
+  "青蛙数量",
+  "カエルの数"
+ ],
+ "partner damage": [
+  "daño del compañero",
+  "dégâts du partenaire",
+  "ضرر الشريك",
+  "Partnerschaden",
+  "搭档伤害",
+  "相棒のダメージ"
+ ],
+ "shock damage": [
+  "daño de descarga",
+  "dégâts de choc",
+  "ضرر الصدمة",
+  "Schockschaden",
+  "电击伤害",
+  "衝撃ダメージ"
+ ],
+ "speed bonus": [
+  "bonificación de velocidad",
+  "bonus de vitesse",
+  "مكافأة السرعة",
+  "Tempobonus",
+  "速度加成",
+  "スピードボーナス"
+ ],
+ "trail damage": [
+  "daño del rastro",
+  "dégâts de la traînée",
+  "ضرر الأثر",
+  "Spurschaden",
+  "轨迹伤害",
+  "軌跡のダメージ"
+ ],
+ "wisp damage": [
+  "daño de los espíritus",
+  "dégâts des feux follets",
+  "ضرر الأطياف",
+  "Irrlichtschaden",
+  "幽魂伤害",
+  "ウィスプのダメージ"
+ ]
+}

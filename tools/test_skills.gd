@@ -38,9 +38,9 @@ func _ready() -> void:
 	for e in table:
 		table_ok = table_ok and Wallet.level_for(e[0]) == e[1]
 	_check("EXP table: lvl 1 at 2,000 ... lvl 10 at 250,000, 10 is max", table_ok, "")
-	var full := Wallet.run_exp(4000, 200, 1, 3, 600.0, true)
-	_check("a full winning run: kills, elites, boss, shrines, time and a 25% win bonus", full["kills"] == 4000 and full["elites"] == 2000
-		and full["boss"] == 2000 and full["shrines"] == 750 and full["time"] == 1000 and full["win"] == 2437 and full["total"] == 12187, str(full))
+	var full := Wallet.run_exp(4000, 200, 1, 6, 600.0, true)
+	_check("a full winning run: kills, elites, boss, chests, time and a 25% win bonus", full["kills"] == 4000 and full["elites"] == 2000
+		and full["boss"] == 2000 and full["chests"] == 750 and full["time"] == 1000 and full["win"] == 2437 and full["total"] == 12187, str(full))
 	var runs_to_max := ceili(250000.0 / 6000.0)
 	_check("level 1 after one good run, level 10 after about 40-60 runs", full["total"] >= 2000 and runs_to_max >= 30 and runs_to_max <= 60, "%d runs at 6,000" % runs_to_max)
 	var loss := Wallet.run_exp(1000, 10, 0, 0, 240.0, false)

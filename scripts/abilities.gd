@@ -17,9 +17,35 @@ extends Node3D
 ## Cooldowns tick in the physics step, so they pause with the game.
 
 signal cast(index: int)
+signal leveled(index: int, level: int)   # an ability gained levels (chest slot machine)
 signal entrance_landed   # the run-start meteor (entrance) hit the ground
 
 const YARD := 0.9144
+
+## Ability levels (per run, from chests): level 1 is the ability as designed; each level adds
+## a third of its base strength to the stat(s) in LEVEL_STATS, so level 10 is 4x (damage,
+## radius, duration... whatever that ability is about). Each level also cuts its cooldown,
+## down to -40% at level 10.
+const MAX_LEVEL := 10
+const LEVEL_POWER_MAX := 4.0
+const LEVEL_CDR_MAX := 0.4
+## What each ability's levels scale, per character and slot (tooltip labels; the kits apply them).
+const LEVEL_STATS := {
+	"fire_wizard": [["burn damage"], ["damage"], ["damage"]],
+	"ice_wizard": [["radius"], ["trail damage"], ["damage"]],
+	"thunder_wizard": [["shock damage"], ["damage"], ["damage"]],
+	"dark_wizard": [["drain damage", "healing"], ["damage"], ["damage bonus", "wisp damage"]],
+	"merlin": [["duration"], ["frog count"], ["radius"]],
+	"ogre": [["radius"], ["damage"], ["damage bonus"]],
+	"ghast": [["damage"], ["damage"], ["damage"]],
+	"vampire_hunter": [["damage"], ["damage"], ["duration"]],
+	"vicki": [["shield"], ["damage"], ["damage"]],
+	"rogue": [["damage bonus"], ["damage"], ["damage"]],
+	"gaiden": [["damage"], ["damage"], ["clone damage"]],
+	"dr_croc": [["speed bonus"], ["damage"], ["damage"]],
+	"thog": [["damage"], ["damage"], ["damage"]],
+	"argyle_sock": [["damage"], ["partner damage"], ["damage"]],
+}
 
 # Ability slots (index into DEFS / cooldown; key = index + 1)
 const INFERNO := 0
@@ -103,6 +129,7 @@ var player: Player
 var fx: FxManager
 
 var cooldown := PackedFloat32Array([0.0, 0.0, 0.0])
+var ab_level := PackedInt32Array([1, 1, 1])   # ability levels (1..MAX_LEVEL)
 
 var _meteors: Array = []   # {target, t, head, marker, fill, start}
 var _scorches: Array = []  # {center, t, node, mat, light}
@@ -185,6 +212,8 @@ func describe(i: int) -> String:
 	else:
 		lines = describe_lines(i, dmg)
 	lines.append("")
+	lines.append_array(level_lines(i))
+	lines.append("")
 	if not is_unlocked(i):
 		lines.append("[color=#ff7060]%s[/color]" % tr("Locked: unlocks at level %d") % int(defs()[i]["unlock_level"]))
 	elif cooldown[i] > 0.0:
@@ -263,10 +292,74 @@ func try_cast(i: int) -> bool:
 				_cast_shockwave()
 			METEOR:
 				_cast_meteor()
-	var cd: float = defs()[i]["cooldown"] * (stats.value("ability_cdr") if stats.has_stat("ability_cdr") else 1.0)
+	var cd: float = defs()[i]["cooldown"] * (stats.value("ability_cdr") if stats.has_stat("ability_cdr") else 1.0) * cd_mult(i)
 	cooldown[i] = roster.adjust_cooldown(i, cd) if roster else cd
 	cast.emit(i)
 	return true
+
+
+## Strength multiplier of ability `i` from its level: 1x at level 1 ... 4x at level 10.
+func power(i: int) -> float:
+	return power_at(ab_level[i])
+
+
+static func power_at(lvl: int) -> float:
+	return 1.0 + (LEVEL_POWER_MAX - 1.0) * float(clampi(lvl, 1, MAX_LEVEL) - 1) / float(MAX_LEVEL - 1)
+
+
+## Cooldown multiplier of ability `i` from its level: 1.0 at level 1 ... 0.6 at level 10.
+func cd_mult(i: int) -> float:
+	return cd_mult_at(ab_level[i])
+
+
+static func cd_mult_at(lvl: int) -> float:
+	return 1.0 - LEVEL_CDR_MAX * float(clampi(lvl, 1, MAX_LEVEL) - 1) / float(MAX_LEVEL - 1)
+
+
+## Raise ability `i` by `n` levels (capped at MAX_LEVEL); returns the levels actually gained.
+func level_up(i: int, n: int) -> int:
+	var before := ab_level[i]
+	ab_level[i] = mini(MAX_LEVEL, before + n)
+	var gained := ab_level[i] - before
+	if gained > 0:
+		if cooldown[i] > 0.0:   # a cooldown already running shrinks too
+			cooldown[i] *= cd_mult_at(ab_level[i]) / cd_mult_at(before)
+		leveled.emit(i, ab_level[i])
+	return gained
+
+
+func is_max_level(i: int) -> bool:
+	return ab_level[i] >= MAX_LEVEL
+
+
+## Ability slots that can still level up.
+func levelable() -> Array:
+	var out := []
+	for i in 3:
+		if not is_max_level(i):
+			out.append(i)
+	return out
+
+
+## Tooltip lines about ability `i`'s level: what it's at now and what the next level gives.
+func level_lines(i: int) -> Array[String]:
+	var out: Array[String] = []
+	var lvl := ab_level[i]
+	var stat_names: Array = LEVEL_STATS.get(kit, [["damage"], ["damage"], ["damage"]])[i]
+	var names := ", ".join(stat_names.map(func(n): return tr(n)))
+	out.append("[color=#ffd23f]%s[/color]" % (tr("Level %d / %d") % [lvl, MAX_LEVEL]))
+	out.append("[color=#cccccc]%s[/color]" % (tr("Levels raise: %s and cooldown") % names))
+	if lvl > 1:
+		out.append("[color=#9be37a]%s[/color]" % (tr("Now: %s x%s, cooldown -%d%%") % [names, _fmt_mult(power_at(lvl)), roundi((1.0 - cd_mult_at(lvl)) * 100.0)]))
+	if lvl < MAX_LEVEL:
+		out.append("[color=#aaaaaa]%s[/color]" % (tr("Next level: %s x%s, cooldown -%d%%") % [names, _fmt_mult(power_at(lvl + 1)), roundi((1.0 - cd_mult_at(lvl + 1)) * 100.0)]))
+	else:
+		out.append("[color=#ffd23f]%s[/color]" % tr("Max level"))
+	return out
+
+
+static func _fmt_mult(m: float) -> String:
+	return ("%.2f" % m).rstrip("0").rstrip(".")
 
 
 func tick(dt: float) -> void:
@@ -504,7 +597,7 @@ func _meteor_impact(at: Vector3) -> void:
 		_comet_impact(at)
 		return
 	_ignite_trees(at)
-	var dmg := METEOR_DAMAGE * stats.value("damage")
+	var dmg := METEOR_DAMAGE * stats.value("damage") * power(METEOR)
 	for i in enemies.query_radius(Vector3(at.x, 0.8, at.z), METEOR_RADIUS, false):
 		var away := enemies.pos[i] - at
 		if not enemies.damage(i, dmg):
@@ -522,7 +615,7 @@ func _meteor_impact(at: Vector3) -> void:
 func _comet_impact(at: Vector3) -> void:
 	var main := RosterHero.color(kit, "main")
 	var light_c := RosterHero.color(kit, "light")
-	var dmg := METEOR_DAMAGE * stats.value("damage")
+	var dmg := METEOR_DAMAGE * stats.value("damage") * power(METEOR)
 	for i in enemies.query_radius(Vector3(at.x, 0.8, at.z), METEOR_RADIUS, false):
 		if not enemies.damage(i, dmg):
 			enemies.knock(i, enemies.pos[i] - at, METEOR_KNOCKBACK, 0.2)
@@ -588,7 +681,7 @@ func _update_scorches(dt: float) -> void:
 		if t <= SCORCH_TIME:
 			var c: Vector3 = z["center"]
 			for i in enemies.query_radius(Vector3(c.x, 0.8, c.z), SCORCH_RADIUS, false):
-				enemies.dot_damage(i, enemies.hp_max[i] * SCORCH_DPS * dt * enemies.pct_scale(i))
+				enemies.dot_damage(i, enemies.hp_max[i] * SCORCH_DPS * power(METEOR) * dt * enemies.pct_scale(i))
 
 
 func scorch_count() -> int:
@@ -619,7 +712,7 @@ func _erupt_shockwave() -> void:
 
 
 func _update_shocks(dt: float) -> void:
-	var dmg := SHOCK_DAMAGE * stats.value("damage")
+	var dmg := SHOCK_DAMAGE * stats.value("damage") * power(SHOCKWAVE)
 	for k in range(_shocks.size() - 1, -1, -1):
 		var s: Dictionary = _shocks[k]
 		s["t"] += dt
@@ -665,6 +758,7 @@ func _cast_inferno() -> void:
 
 
 func _erupt_inferno() -> void:
+	enemies.burn_dps_frac = INFERNO_BURN_DPS * power(INFERNO)
 	var n := enemies.ignite_all(INFERNO_BURN_TIME)
 	var at := player.global_position + Vector3(0, 1.0, 0)
 	if fx:

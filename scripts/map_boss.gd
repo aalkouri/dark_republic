@@ -329,7 +329,7 @@ func _tick_hazards(dt: float) -> void:
 				if h["tick"] <= 0.0:
 					h["tick"] = HAZARD_TICK
 					player.invuln = 0.0
-					player.hurt(h["dps"] * HAZARD_TICK)
+					player.hurt(h["dps"] * HAZARD_TICK * EnemyManager.BOSS_DAMAGE_MULT)
 
 
 func clear_hazards() -> void:
@@ -342,7 +342,7 @@ func clear_hazards() -> void:
 
 func hit_player(amount: float, push: Vector3) -> bool:
 	player.invuln = 0.0   # telegraphed hits always land, whatever grazed you a moment ago
-	if player.hurt(amount):
+	if player.hurt(amount * EnemyManager.BOSS_DAMAGE_MULT):
 		counts["hits"] += 1
 		player.knockback(push)
 		shake(0.45)

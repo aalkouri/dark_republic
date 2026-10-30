@@ -11,8 +11,8 @@ signal chosen(mode: String)
 signal cancelled
 
 const MODES := [
-	{"id": "quickplay", "name": "Quickplay", "desc": "Random character, random unlocked map. Straight into the fight.", "glyph": "bolt", "color": Color(1.0, 0.78, 0.25)},
 	{"id": "classic", "name": "Classic", "desc": "Choose your champion and map. Survive 10 minutes.", "glyph": "hourglass", "color": Color(1.0, 0.5, 0.18)},
+	{"id": "quickplay", "name": "Quickplay", "desc": "Random character, random unlocked map. Straight into the fight.", "glyph": "bolt", "color": Color(1.0, 0.78, 0.25)},
 	{"id": "unrelenting", "name": "Unrelenting", "desc": "No time limit. Endless enemies that keep getting deadlier. No upgrade caps.", "glyph": "skull", "color": Color(0.85, 0.22, 0.2)},
 ]
 const CARD := Vector2(264, 350)
@@ -107,7 +107,7 @@ func open(from: Vector2) -> void:
 		get_tree().create_timer(delay + 0.12, true).timeout.connect(func(): _burst(at + CARD * 0.5, (MODES[i]["color"] as Color)))
 	_hint.position = Vector2(base.x, base.y + CARD.y + 18)
 	create_tween().tween_property(_hint, "modulate:a", 1.0, 0.4).set_delay(0.5)
-	get_tree().create_timer(0.5, true).timeout.connect(func(): if _open: cards[1].grab_focus())
+	get_tree().create_timer(0.5, true).timeout.connect(func(): if _open: cards[0].grab_focus())   # Classic
 
 
 ## Fold the cards back toward the Play button.

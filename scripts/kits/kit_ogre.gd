@@ -21,6 +21,7 @@ const RAGE_SIZE := 1.5
 const RAGE_DAMAGE := 1.6
 const RAGE_HEAL := 0.02
 
+var _rage_mult := RAGE_DAMAGE   # the damage bonus this rage applied (its level at cast)
 var _armor_t := 0.0
 var _flop_t := -1.0
 var _flop_from := Vector3.ZERO
@@ -68,14 +69,14 @@ func on_kill(_at: Vector3, _type_id: int) -> void:
 func _bellow() -> void:
 	play("bellow")
 	var at := feet()
-	for i in near(at, BELLOW_RADIUS):
+	for i in near(at, BELLOW_RADIUS * pw(0)):
 		enemies.scare(i, BELLOW_FEAR)
 		enemies.knock(i, enemies.pos[i] - at, 2.0, 0.2)
 	if _armor_t <= 0.0:
 		player.dmg_taken /= BELLOW_ARMOR
 	_armor_t = BELLOW_ARMOR_TIME
 	for r in 3:   # the roar rolls out in waves
-		after(r * 0.12, func(): ring(feet(), BELLOW_RADIUS * (0.6 + 0.2 * r), Color(0.75, 0.95, 0.4, 0.7), 0.45))
+		after(r * 0.12, func(): ring(feet(), BELLOW_RADIUS * pw(0) * (0.6 + 0.2 * r), Color(0.75, 0.95, 0.4, 0.7), 0.45))
 	var breath := particles(0.5, 0.6, 60, Color(0.8, 1.0, 0.5, 0.5), Color(0.4, 0.5, 0.2, 0.0))
 	breath.one_shot = true
 	breath.explosiveness = 0.8
@@ -124,7 +125,7 @@ func _tick_flop(dt: float) -> void:
 func _flop_land(at: Vector3) -> void:
 	if is_instance_valid(_flop_marker):
 		_flop_marker.queue_free()
-	var d := FLOP_DAMAGE * dmg()
+	var d := FLOP_DAMAGE * dmg() * pw(1)
 	for i in near(at, FLOP_RADIUS):
 		enemies.stun(i, FLOP_STUN)
 		enemies.damage(i, d)
@@ -144,7 +145,8 @@ func _flop_land(at: Vector3) -> void:
 func _swamp_rage() -> void:
 	play("swamp_rage")
 	if _rage_t <= 0.0:
-		stats.apply("damage", "mult", RAGE_DAMAGE)
+		_rage_mult = 1.0 + (RAGE_DAMAGE - 1.0) * pw(2)
+		stats.apply("damage", "mult", _rage_mult)
 		player.size_mult = RAGE_SIZE
 		player.no_knockback = true
 		_rage_fx = particles(0.35, 0.7, 50, Color(1.0, 0.45, 0.2, 0.8), Color(0.5, 0.05, 0.0, 0.0))
@@ -168,7 +170,7 @@ func _swamp_rage() -> void:
 
 
 func _end_rage() -> void:
-	stats.apply("damage", "mult", 1.0 / RAGE_DAMAGE)
+	stats.apply("damage", "mult", 1.0 / _rage_mult)
 	player.size_mult = 1.0
 	player.no_knockback = false
 	if is_instance_valid(_rage_fx):

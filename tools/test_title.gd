@@ -53,7 +53,7 @@ func _ready() -> void:
 	(title._menu.get_child(0) as Button).pressed.emit()
 	await get_tree().create_timer(0.8).timeout
 	_check("Play opens the mode cards", title._modes.is_open(), "")
-	title._modes.cards[1].pressed.emit()   # Classic
+	title._modes.cards[0].pressed.emit()   # Classic
 	await get_tree().scene_changed
 	for f in 5:
 		await get_tree().process_frame

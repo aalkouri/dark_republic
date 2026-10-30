@@ -2,7 +2,7 @@ class_name SwampWater
 extends RefCounted
 ## The ground: rolling terrain (hills, dips and slopes) plus recessed pools of swamp water.
 ##  - Terrain: two layers of smooth noise (broad hills + smaller bumps), flattened into level
-##    pads where pools, shrines and the start point sit, and rising into a berm at the arena
+##    pads where pools, chests and the start point sit, and rising into a berm at the arena
 ##    edge. Baked into a 1 m height grid that everything samples (ground_height).
 ##  - Outline: r(θ) = R * (1 + Σ a_k sin(kθ + φ_k)), k = 2..5, so every pool has a natural,
 ##    lumpy shape. Diameters run from MIN_DIAMETER to MAX_DIAMETER (about 18-36 m): big ponds.
@@ -93,7 +93,8 @@ var horigin := 0.0
 var half_extent := 0.0
 # Level pads: [Vector2 centre, radius, height]
 var pads: Array = []
-var shrine_sites: Array[Vector3] = []
+var chest_sites: Array[Vector3] = []
+var ground_mat: ShaderMaterial          # the terrain's material (Thog's quake lights it up)
 var height_texture: ImageTexture   # the height grid as a texture, for shaders (GroundDisc)
 var _hills: FastNoiseLite
 var _bumps: FastNoiseLite
@@ -144,7 +145,7 @@ static func generate(rng: RandomNumberGenerator, count: int, half: float, keep_o
 func build_flat(half: float, sites: Array[Vector3]) -> void:
 	half_extent = half
 	pads.clear()
-	shrine_sites = sites
+	chest_sites = sites
 	hsize = int(ceil(half * 2.0 + 20.0)) + 1
 	horigin = -float(hsize - 1) * 0.5
 	hgrid.resize(hsize * hsize)
@@ -178,10 +179,10 @@ func base_terrain(x: float, z: float) -> float:
 	return raw_hills(x, z) * (1.0 - 0.6 * edge) + EDGE_RISE * edge
 
 
-## Bakes the terrain into the height grid. `shrine_count` level pads are reserved for
-## shrines (away from the start, the pools and each other); the start point and every pool
+## Bakes the terrain into the height grid. `chest_count` level pads are reserved for
+## chests (away from the start, the pools and each other); the start point and every pool
 ## sit on level ground too.
-func build_terrain(rng: RandomNumberGenerator, half: float, shrine_count: int, shrine_radius: float) -> void:
+func build_terrain(rng: RandomNumberGenerator, half: float, chest_count: int, chest_radius: float) -> void:
 	half_extent = half
 	_hills = FastNoiseLite.new()
 	_hills.seed = rng.randi()
@@ -193,38 +194,38 @@ func build_terrain(rng: RandomNumberGenerator, half: float, shrine_count: int, s
 	_bumps.frequency = BUMP_FREQ
 	_bumps.fractal_octaves = 2
 
-	# Pads: start point, every pool, shrine sites
+	# Pads: start point, every pool, chest sites
 	pads.clear()
 	pads.append([Vector2.ZERO, 10.0, base_terrain(0, 0)])
 	for p in pools:
 		var c: Vector2 = p["center"]
 		p["base"] = base_terrain(c.x, c.y)
 		pads.append([c, max_radius(p) + 2.5, p["base"]])
-	shrine_sites.clear()
+	chest_sites.clear()
 	var tries := 0
-	while shrine_sites.size() < shrine_count and tries < 6000:
+	while chest_sites.size() < chest_count and tries < 6000:
 		tries += 1
 		var c := Vector2(rng.randf_range(-half + EDGE_BAND + 8.0, half - EDGE_BAND - 8.0), rng.randf_range(-half + EDGE_BAND + 8.0, half - EDGE_BAND - 8.0))
-		if c.length() < 40.0 or near_pool(c.x, c.y, shrine_radius + 16.0):
+		if c.length() < 40.0 or near_pool(c.x, c.y, chest_radius + 16.0):
 			continue
 		var ok := true
-		for q in shrine_sites:
-			if c.distance_to(Vector2(q.x, q.z)) < 46.0:
+		for q in chest_sites:
+			if c.distance_to(Vector2(q.x, q.z)) < 30.0:
 				ok = false
 				break
 		if not ok:
 			continue
 		var h := base_terrain(c.x, c.y)
-		var gentle := true   # room for a gentle ramp to every other level pad (pools, start, shrines)
+		var gentle := true   # room for a gentle ramp to every other level pad (pools, start, chests)
 		for pad in pads:
-			var gap := c.distance_to(pad[0]) - float(pad[1]) - (shrine_radius + 1.5)
+			var gap := c.distance_to(pad[0]) - float(pad[1]) - (chest_radius + 1.5)
 			if gap < absf(h - float(pad[2])) * 2.4 + 4.0:
 				gentle = false
 				break
 		if not gentle:
 			continue
-		pads.append([c, shrine_radius + 1.5, h])
-		shrine_sites.append(Vector3(c.x, h, c.y))
+		pads.append([c, chest_radius + 1.5, h])
+		chest_sites.append(Vector3(c.x, h, c.y))
 
 	# Height grid: hills + edge berm, then flatten every pad, then carve the pools
 	hsize = int(ceil(half * 2.0 + 20.0)) + 1
@@ -348,6 +349,20 @@ func ground_height(x: float, z: float) -> float:
 
 
 ## True if a body whose feet are at `pos` is standing in water.
+## Is XZ inside a pool's outline (ignoring height: standing, swimming or jumping in it)?
+func in_pool_xz(x: float, z: float) -> bool:
+	for p in pools:
+		var c: Vector2 = p["center"]
+		var dx := x - c.x
+		var dz := z - c.y
+		var mr := max_radius(p)
+		if dx * dx + dz * dz > mr * mr:
+			continue
+		if sqrt(dx * dx + dz * dz) < outline_radius(p, atan2(dz, dx)) * 0.97:
+			return true
+	return false
+
+
 func in_water(pos: Vector3) -> bool:
 	for p in pools:
 		var c: Vector2 = p["center"]

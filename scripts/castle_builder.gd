@@ -26,7 +26,7 @@ const INSIDE := Vector3(0, 0, 204)  # where the walk-in ends
 const STANDING := 180
 const LYING := 72
 const LANDMARKS := 24
-const SHRINE_SITES := 14
+const CHEST_SITES := 28
 const TORCH_STEP := 16.0        # metres between wall torches
 const TORCH_LIGHT_EVERY := 2    # every 2nd torch has live flames and casts light
 
@@ -154,7 +154,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 
 	var placed: Array[Vector3] = []
 	_structured(parent, rng, nav, placed)
-	var sites := _shrine_sites(rng, nav, placed)
+	var sites := _chest_sites(rng, nav, placed)
 	_scatter(parent, rng, nav, placed, sites)
 	_wall_decor(parent, rng, half)
 
@@ -419,14 +419,14 @@ static func _brazier(parent: Node3D, p: Vector3, scale: float) -> void:
 	parent.add_child(l)
 
 
-## Shrine pads: open floor (nothing solid within a shrine zone), spread across the rooms.
-static func _shrine_sites(rng: RandomNumberGenerator, nav: CastleNav, placed: Array[Vector3]) -> Array[Vector3]:
+## Chest pads: open floor (nothing solid around them), spread across the rooms.
+static func _chest_sites(rng: RandomNumberGenerator, nav: CastleNav, placed: Array[Vector3]) -> Array[Vector3]:
 	var sites: Array[Vector3] = []
 	var tries := 0
-	while sites.size() < SHRINE_SITES and tries < 3000:
+	while sites.size() < CHEST_SITES and tries < 3000:
 		tries += 1
 		var room: Array = ROOMS[rng.randi() % ROOMS.size()]
-		var r := Shrine.ZONE_RADIUS + 2.0
+		var r := ChestManager.SITE_RADIUS + 2.0
 		var x := rng.randf_range(room[1] + r, room[3] - r)
 		var z := rng.randf_range(room[2] + r, room[4] - r)
 		if Vector2(x, z - 205.0).length() < 30.0:   # not on the entrance
@@ -438,7 +438,7 @@ static func _shrine_sites(rng: RandomNumberGenerator, nav: CastleNav, placed: Ar
 				if nav.is_blocked(x + cos(a) * rr, z + sin(a) * rr):
 					ok = false
 		for q in sites:
-			if Vector2(q.x - x, q.z - z).length() < 50.0:
+			if Vector2(q.x - x, q.z - z).length() < 30.0:
 				ok = false
 		if ok:
 			sites.append(Vector3(x, 0, z))
@@ -446,7 +446,7 @@ static func _shrine_sites(rng: RandomNumberGenerator, nav: CastleNav, placed: Ar
 
 
 ## The remaining standing props, lying props and landmarks, room by room, keeping doorways,
-## the entrance, the shrine pads and the table clear.
+## the entrance, the chest pads and the table clear.
 static func _scatter(parent: Node3D, rng: RandomNumberGenerator, nav: CastleNav, placed: Array[Vector3], sites: Array[Vector3]) -> void:
 	var standing := placed.size() - 1          # columns already placed (the throne isn't one)
 	var landmarks := 1                         # the throne
@@ -487,7 +487,7 @@ static func _clear_spot(p: Vector3, nav: CastleNav, placed: Array[Vector3], site
 		if Vector2(p.x - q.x, p.z - q.z).length() < spacing + 2.5:
 			return false
 	for s in sites:
-		if Vector2(p.x - s.x, p.z - s.z).length() < Shrine.ZONE_RADIUS + 4.0:
+		if Vector2(p.x - s.x, p.z - s.z).length() < ChestManager.SITE_RADIUS + 4.0:
 			return false
 	return true
 

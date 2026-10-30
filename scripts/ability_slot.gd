@@ -19,6 +19,8 @@ var glyph := ""                  # roster kits: AbilityGlyphs name, drawn instea
 var glyph_color := Color.WHITE
 var key_text := "1"
 var is_ult := false
+var icon_only := false     # just the icon on its tile (the chest slot machine's reels)
+var ab_level := 1          # ability level (chests); shown as a badge from level 2
 var locked := false
 var unlock_level := 1
 var fraction := 0.0        # 0 = ready, 1 = just cast
@@ -98,6 +100,8 @@ func _draw() -> void:
 		AbilityGlyphs.draw(self, glyph, c, glyph_color, _time)
 	else:
 		_draw_icon(c)
+	if icon_only:
+		return
 
 	if locked:
 		_draw_locked(r, c)
@@ -154,6 +158,13 @@ func _draw() -> void:
 	var font := get_theme_default_font()
 	draw_string_outline(font, Vector2(7, 19), key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, 4, Color.BLACK)
 	draw_string(font, Vector2(7, 19), key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.9))
+	# Ability level badge (bottom right), from level 2
+	if ab_level > 1:
+		var lv := "Lv %d" % ab_level if ab_level < Abilities.MAX_LEVEL else "MAX"
+		var lw := font.get_string_size(lv, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
+		var at := Vector2(size.x - lw - 7, size.y - 7)
+		draw_string_outline(font, at, lv, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, 4, Color.BLACK)
+		draw_string(font, at, lv, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(1.0, 0.85, 0.25))
 
 
 ## Dimmed slot with a padlock and the level it unlocks at.

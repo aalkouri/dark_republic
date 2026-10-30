@@ -1,7 +1,7 @@
 class_name Chest
 extends Node3D
-## Reward chest (placeholder): Bronze, Silver or Gold. Spawned by completed shrines.
-## Opening and rewards are not implemented yet - see `open()`.
+## Reward chest: Bronze, Silver or Gold, placed around the map by ChestManager. It takes a key
+## of the same tier to open; opening it starts the slot machine (ability levels).
 
 signal opened(chest: Chest)
 
@@ -12,10 +12,13 @@ var tier := 0   # 0 bronze, 1 silver, 2 gold
 var is_open := false
 var _t := 0.0
 var _lid: Node3D
+var _hint: Label3D
+var _light: OmniLight3D
 
 
 func _ready() -> void:
 	add_to_group("chests")
+	process_mode = Node.PROCESS_MODE_ALWAYS   # the lid swings open behind the slot machine
 	var trim: Color = TIER_COLORS[tier]
 	var wood := StandardMaterial3D.new()
 	wood.albedo_color = Color(0.33, 0.2, 0.11)
@@ -42,12 +45,12 @@ func _ready() -> void:
 	lmi.position = Vector3(0, 0.0, 0.33)
 	_lid.add_child(lmi)
 	_box(_lid, Vector3(0.14, 0.2, 0.06), Vector3(0, 0.0, 0.66), metal)   # lock
-	var light := OmniLight3D.new()
-	light.light_color = trim
-	light.light_energy = 1.5
-	light.omni_range = 4.0
-	light.position.y = 1.0
-	add_child(light)
+	_light = OmniLight3D.new()
+	_light.light_color = trim
+	_light.light_energy = 1.5
+	_light.omni_range = 4.0
+	_light.position.y = 1.0
+	add_child(_light)
 	var label := Label3D.new()
 	label.text = tr("%s Chest") % tr(TIER_NAMES[tier])
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -57,6 +60,15 @@ func _ready() -> void:
 	label.modulate = trim
 	label.position.y = 1.5
 	add_child(label)
+	_hint = Label3D.new()
+	_hint.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_hint.font_size = 40
+	_hint.outline_size = 10
+	_hint.pixel_size = 0.008
+	_hint.modulate = Color(1.0, 0.85, 0.75)
+	_hint.position.y = 1.95
+	_hint.visible = false
+	add_child(_hint)
 
 
 func _box(parent: Node3D, size: Vector3, at: Vector3, mat: Material) -> void:
@@ -75,9 +87,18 @@ func _process(dt: float) -> void:
 		_lid.rotation.x = lerpf(_lid.rotation.x, -1.9, 1.0 - exp(-8.0 * dt))
 
 
-## TODO: rewards. For now opening just swings the lid and emits `opened`.
+## "Needs a Silver Key" floating over the chest while you stand by it without one.
+func show_hint(on: bool) -> void:
+	if on and not _hint.visible:
+		_hint.text = tr("Needs a %s") % tr(KeyManager.NAMES[tier])
+	_hint.visible = on and not is_open
+
+
+## Swings the lid open (the slot machine is ChestManager's / main's business) and emits `opened`.
 func open() -> void:
 	if is_open:
 		return
 	is_open = true
+	_hint.visible = false
+	_light.light_energy = 3.0
 	opened.emit(self)

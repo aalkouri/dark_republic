@@ -10,6 +10,7 @@ extends CharacterBody3D
 ##  - Coyote time and jump buffering for forgiving input.
 
 signal died
+signal shield_broken   # damage took the shield down to 0 (a glass shatter plays)
 signal air_jumped   # a mid-air jump (Feather, Spring Step / Updraft extra jumps)
 
 const GRAVITY := 30.0
@@ -46,6 +47,8 @@ var max_hp := 100.0
 var invuln := 0.0
 var god_mode := false
 var shield := 0.0
+var _break_sfx: AudioStreamPlayer
+const SHIELD_BREAK_SOUND := "res://audio/ui/shield_break.wav"
 var water: SwampWater
 var in_water := false
 ## While true the wizard has turned into the meteor: hidden, untouchable, no collision,
@@ -455,7 +458,7 @@ func _tick_burn(dt: float) -> void:
 		return
 	var dmg := max_hp * BURN_FRAC * dt
 	var absorbed := minf(shield, dmg)
-	shield -= absorbed
+	_drain_shield(absorbed)
 	hp -= dmg - absorbed
 	if hp <= 0.0:
 		hp = 0.0
@@ -503,11 +506,30 @@ func hurt(amount: float) -> bool:
 	var armor := stats.value("armor")
 	amount *= 20.0 / (20.0 + armor) * dmg_taken
 	var absorbed := minf(shield, amount)
-	shield -= absorbed
+	_drain_shield(absorbed)
 	amount -= absorbed
 	hp -= amount
 	if amount > 0.0:
 		Events.player_damaged.emit(amount)
+	if hp <= 0.0:
+		hp = 0.0
+		died.emit()
+	return true
+
+
+## A hit that ignores armour and goes straight through shields, wiping them out: `frac` of
+## max HP (Thog's quake). Returns true if it landed.
+func hurt_true(frac: float) -> bool:
+	if meteor_form or hp <= 0.0:
+		return false
+	invuln = IFRAMES
+	model.play_hit()
+	_drain_shield(shield)
+	if god_mode:
+		return true
+	var amount := max_hp * frac
+	hp -= amount
+	Events.player_damaged.emit(amount)
 	if hp <= 0.0:
 		hp = 0.0
 		died.emit()
@@ -545,6 +567,30 @@ func launch(vy: float) -> void:
 	velocity.y = vy
 	_launch = true
 	sliding = false
+
+
+## Take `amount` off the shield; if that empties it, it breaks (sound + signal).
+func _drain_shield(amount: float) -> void:
+	if shield <= 0.0 or amount <= 0.0:
+		return
+	shield -= amount
+	if shield <= 0.001:
+		shield = 0.0
+		_shield_break()
+
+
+func _shield_break() -> void:
+	shield_broken.emit()
+	if _break_sfx == null:
+		_break_sfx = AudioStreamPlayer.new()
+		_break_sfx.bus = Settings.SFX_BUS
+		_break_sfx.max_polyphony = 2
+		if ResourceLoader.exists(SHIELD_BREAK_SOUND):
+			_break_sfx.stream = load(SHIELD_BREAK_SOUND)
+		add_child(_break_sfx)
+	if _break_sfx.stream != null:
+		_break_sfx.pitch_scale = randf_range(0.95, 1.05)
+		_break_sfx.play()
 
 
 func add_shield(amount: float) -> void:

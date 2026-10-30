@@ -28,6 +28,7 @@ const BOSS_KNOCKBACK_SCALE := 0.25
 const EPIC_SIZE := 1.5
 const EPIC_HP := 4.0
 const EPIC_TINT := Color(0.72, 0.25, 1.0)
+const BOSS_DAMAGE_MULT := 1.75             # every boss (Thog, map bosses, the Goblin Warlord) hits this much harder
 const PCT_BOSS := 0.08                     # Thog takes this share of "% of max HP" damage (burn, scorch...)
 const THOG_HP := 5200.0                    # x the run's HP multiplier when he arrives (8:00)
 const GOBLIN_VAT := "res://models/goblin"   # baked vertex animation (tools/bake_vat.gd)
@@ -483,7 +484,8 @@ func _kill(i: int) -> void:
 		var col: Color = t_color[t]
 		if epic[i]:
 			col = col.lerp(EPIC_TINT, 0.3)   # clothing only leans purple
-		var facing := Vector3(vel[i].x, 0.0, vel[i].z)
+		var turn := randf() * TAU   # corpses land facing every which way, not where it was walking
+		var facing := Vector3(sin(turn), 0.0, cos(turn))
 		corpses.add(pos[i], facing, t_scale[t] * sz[i], col, epic[i] == 1, burn_t[i] > 0.0)
 	if epic[i]:
 		epic_killed.emit(pos[i])

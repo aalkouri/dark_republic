@@ -73,7 +73,7 @@ func _tick_phase(dt: float) -> void:
 	_phase_tick -= dt
 	if _phase_tick <= 0.0:
 		_phase_tick = 0.08
-		var d := PHASE_DAMAGE * dmg()
+		var d := PHASE_DAMAGE * dmg() * pw(0)
 		for i in near(feet(), PHASE_TOUCH):
 			var u := enemies.uid[i]
 			if _phase_hit.has(u):
@@ -144,7 +144,7 @@ func _tick_haunt(dt: float) -> void:
 	_host_hit -= dt
 	if _host_hit <= 0.0 and not prey.is_empty() and enemies.pos[prey[0]].distance_to(p) < reach + 1.0:
 		_host_hit = HAUNT_RATE
-		var d := enemies.t_damage[enemies.typ[i]] * HAUNT_MULT * dmg()
+		var d := enemies.t_damage[enemies.typ[i]] * HAUNT_MULT * dmg() * pw(1)
 		for e in enemies.query_radius(p + Vector3(0, 0.8, 0), reach, false):
 			enemies.damage(e, d, (enemies.pos[e] - p).normalized() * 6.0)
 		fx.burst(enemies.center_of(i) + (enemies.pos[prey[0]] - p).normalized() * reach * 0.6, 1.0, k._light, 0.2)
@@ -157,7 +157,7 @@ func _tick_haunt(dt: float) -> void:
 ## Its time is up: the body bursts.
 func _burst(i: int) -> void:
 	var at := enemies.pos[i]
-	var d := enemies.hp_max[i] * HAUNT_BURST
+	var d := enemies.hp_max[i] * HAUNT_BURST * pw(1)
 	enemies.ally_t[i] = 0.0
 	for e in enemies.query_radius(at + Vector3(0, 0.8, 0), HAUNT_BURST_RADIUS, false):
 		if e != i:
@@ -183,7 +183,7 @@ func _scream() -> void:
 	var at := feet()
 	var n := 0
 	for i in near(at, SCREAM_RADIUS):
-		enemies.damage(i, enemies.hp_max[i] * SCREAM_FRAC * enemies.pct_scale(i))
+		enemies.damage(i, enemies.hp_max[i] * SCREAM_FRAC * pw(2) * enemies.pct_scale(i))
 		enemies.scare(i, SCREAM_FEAR)
 		if not enemies.dead[i] and not enemies.is_boss(i) and enemies.hp[i] < enemies.hp_max[i] * SCREAM_EXECUTE:
 			enemies.damage(i, enemies.hp[i] + 1.0)

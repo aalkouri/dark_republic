@@ -5,7 +5,7 @@ extends Node
 ##
 ## How it plays: kites the horde (steering away from nearby goblins, weighted by distance and
 ## size), keeps clear of Thog and steps out of his red attack markers, stays off ponds and away
-## from shrine zones, drifts toward XP gems when it's safe, keeps away from the arena edge and
+## heads for a chest it holds the key to, drifts toward XP gems when it's safe, keeps away from the arena edge and
 ## sidesteps when it's stuck on a tree. It casts abilities when a crowd is close (or the boss
 ## is), aims the Fire Wizard's Meteor at the thickest crowd, and picks level-up cards from a
 ## priority list: its weapon, then damage, health, armour, regen, area, attack speed, speed.
@@ -40,6 +40,7 @@ var _log_t := 0.0
 var _picks: Array = []           # upgrade titles taken this run, in order
 var _potions := {}               # potion name -> count picked up
 var _powerups := {}              # power-up name -> count picked up
+var _chests := 0                 # chests opened (slot machine pulls)
 
 
 func _ready() -> void:
@@ -82,6 +83,7 @@ func _next() -> void:
 	_picks = []
 	_potions = {}
 	_powerups = {}
+	_chests = 0
 	main.potions.collected.connect(func(k: int): _bump(_potions, PotionManager.NAMES[k].get_slice(":", 0)))
 	main.powerups.collected.connect(func(k: int): _bump(_powerups, PowerupManager.NAMES[k]))
 
@@ -96,6 +98,15 @@ func _physics_process(dt: float) -> void:
 	var st: String = main.state
 	if st == "levelup":
 		_pick_upgrade()
+		return
+	if st == "chest":   # pull the handle, then take the prize
+		var sm: SlotMachine = main.hud.slot_machine
+		if sm != null:
+			if sm._state == "ready":
+				sm.pull()
+			elif sm.is_done():
+				_chests += 1
+				sm._finish()
 		return
 	if st == "dead" or st == "won" or main.run_time > MAX_RUN:
 		_record(st)
@@ -124,6 +135,9 @@ func _record(st: String) -> void:
 	detail["upgrades"] = _picks
 	detail["potions"] = _potions
 	detail["powerups"] = _powerups
+	detail["chests"] = _chests
+	detail["ability_levels"] = Array(main.abilities.ab_level)
+	detail["keys_left"] = Array(main.keys.keys)
 	var jf := FileAccess.open(out_path + ".jsonl", FileAccess.READ_WRITE if FileAccess.file_exists(out_path + ".jsonl") else FileAccess.WRITE)
 	if jf:
 		jf.seek_end()
@@ -251,19 +265,34 @@ func _steer(dt: float) -> void:
 				best = gm.pos[k]
 		if best != Vector3.INF:
 			v += Vector3(best.x - p.x, 0, best.z - p.z).normalized() * 0.6
-	# Keep off the ponds and away from shrine zones and the arena edge
+	# A chest we hold the key to, when it's calm
+	if threat < 0.6:
+		var bestc: Chest = null
+		var bdc := 45.0
+		for c in main.chests.chests:
+			if not c.is_open and main.keys.has_key(c.tier) and p.distance_to(c.global_position) < bdc:
+				bdc = p.distance_to(c.global_position)
+				bestc = c
+		if bestc != null:
+			v += Vector3(bestc.global_position.x - p.x, 0, bestc.global_position.z - p.z).normalized() * 1.2
+	# Keep off the ponds and away from the arena edge
 	var water: SwampWater = main.water
-	if water:
+	var quaking: bool = b != null and is_instance_valid(b) and b.has_method("is_quaking") and b.is_quaking()
+	if quaking and water:   # Thog's quake: the only safe place is in a pool - run for the nearest
+		var best_c := Vector2.INF
+		for pool in water.pools:
+			var c3: Vector2 = pool["center"]
+			if best_c == Vector2.INF or Vector2(p.x, p.z).distance_to(c3) < Vector2(p.x, p.z).distance_to(best_c):
+				best_c = c3
+		if best_c != Vector2.INF:
+			v = Vector3(best_c.x - p.x, 0, best_c.y - p.z).normalized() * 50.0
+	elif water:
 		for pool in water.pools:
 			var c2: Vector2 = pool["center"]
 			var away := Vector3(p.x - c2.x, 0, p.z - c2.y)
 			var r2: float = water.max_radius(pool) + 3.0
 			if away.length() < r2:
 				v += away.normalized() * (r2 - away.length()) * 0.4
-	for s in main.shrines.shrines:
-		var away2 := Vector3(p.x - s.position.x, 0, p.z - s.position.z)
-		if away2.length() < Shrine.ZONE_RADIUS + 3.0:
-			v += away2.normalized() * 0.8
 	var from_c := Vector2(p.x, p.z).length()
 	if from_c > 120.0:
 		v -= Vector3(p.x, 0, p.z).normalized() * (from_c - 120.0) * 0.05

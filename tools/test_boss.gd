@@ -115,6 +115,48 @@ func _ready() -> void:
 	r = thog.row()
 	_check("burning takes under 1% of his health a second", (hp0 - em.hp[r]) / em.hp_max[r] < 0.01, "%.2f%%" % ((hp0 - em.hp[r]) / em.hp_max[r] * 100.0))
 
+	# The quake (at 75%, 50%, 10% health): the whole map but the pools glows red; 7 s later it
+	# lands for 50% of max HP straight through shields, unless you're in a pool
+	await _wait_idle(thog)
+	r = thog.row()
+	var pl: Player = main.player
+	var mat: ShaderMaterial = main.water.ground_mat
+	em.hp[r] = em.hp_max[r] * 0.74
+	await _secs(0.2)
+	_check("at 75% health he starts the quake", thog.counts["quake"] == 1 and thog.is_quaking(), "%d %s" % [thog.counts["quake"], thog.attack])
+	_check("the ground lights up (pools excepted, in the shader)", float(mat.get_shader_parameter("quake")) > 0.5, "")
+	var pool: Dictionary = main.water.pools[0]
+	var pc: Vector2 = pool["center"]
+	var dry := Vector3(pc.x + main.water.max_radius(pool) + 12.0, 0, pc.y)
+	pl.global_position = Vector3(dry.x, SwampWater.height_at(dry.x, dry.z) + 0.2, dry.z)
+	pl.god_mode = false
+	pl.max_hp = 1000.0
+	pl.hp = 1000.0
+	pl.shield = 200.0
+	var broken := [0]
+	pl.shield_broken.connect(func(): broken[0] += 1)
+	await _secs(ThogBoss.QUAKE_WARN - 0.4)
+	_check("still building after ~6.5 s", thog.is_quaking() and is_equal_approx(pl.hp, 1000.0) or pl.hp > 900.0, "%.0f" % pl.hp)
+	pl.global_position = Vector3(dry.x, SwampWater.height_at(dry.x, dry.z) + 0.2, dry.z)
+	await _secs(0.8)
+	_check("caught on dry ground: 50% of max HP through the shield", pl.hp <= 501.0 and pl.hp > 300.0 and thog.counts["quake_hits"] == 1, "hp %.0f" % pl.hp)
+	_check("...and the shield is wiped out (glass breaks)", pl.shield == 0.0 and broken[0] == 1, "shield %.0f, broke %d" % [pl.shield, broken[0]])
+	_check("the ground goes back to normal", float(mat.get_shader_parameter("quake")) == 0.0, "")
+	await _wait_idle(thog)
+	r = thog.row()
+	em.hp[r] = em.hp_max[r] * 0.45
+	await _secs(0.3)
+	_check("at 50% the next quake", thog.counts["quake"] == 2, "")
+	pl.hp = 1000.0
+	for f in 60 * 8:
+		pl.global_position = Vector3(pc.x, SwampWater.height_at(pc.x, pc.y) + 0.3, pc.y)
+		pl.velocity = Vector3.ZERO
+		await get_tree().physics_frame
+		if not thog.is_quaking():
+			break
+	_check("in a pool when it lands: no damage", thog.counts["quake_hits"] == 1 and pl.hp > 600.0, "hits %d hp %.0f" % [thog.counts["quake_hits"], pl.hp])
+	pl.god_mode = true
+
 	# Kill him: he falls, the run is won, and the maps and Thog unlock
 	var dead := [false]
 	thog.defeated.connect(func(): dead[0] = true)

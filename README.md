@@ -30,9 +30,9 @@ The game opens with the **AtomAI** studio logo (`video/atomai_logo.ogv`, convert
 
 Then the **title screen**: a living swamp diorama at night. The camera slowly orbits the fire wizard on a mossy stone dais while goblin silhouettes with glowing eyes lurk, creep in and grunt in the fog. "DARK REPUBLIC" burns in Cinzel lettering (`fonts/Cinzel.ttf`, SIL Open Font License) over a Play / Settings / Quit menu (mouse, keyboard or gamepad). The pause menu and end screen have **Main menu** to return here.
 
-**Play** opens the mode menu (`scripts/mode_menu.gd`). A burning fuse races out of the button and three cards drop in behind it, each with a flip, a flash and a puff of embers, plus a whoosh-and-thump sound (`audio/ui/menu_reveal.wav`). Esc folds them back.
-- **Quickplay:** a random unlocked, playable character on a random map open to them, straight into the run. There are no difficulty settings yet; when there are, Quickplay will pick the hardest one unlocked.
+**Play** opens the mode menu (`scripts/mode_menu.gd`). A burning fuse races out of the button and three cards (Classic, Quickplay, Unrelenting) drop in behind it, each with a flip, a flash and a puff of embers, plus a whoosh-and-thump sound (`audio/ui/menu_reveal.wav`). Esc folds them back.
 - **Classic:** character select, then the map. Survive 10 minutes.
+- **Quickplay:** a random unlocked, playable character on a random map open to them, straight into the run. There are no difficulty settings yet; when there are, Quickplay will pick the hardest one unlocked.
 - **Unrelenting:** character select (tagged UNRELENTING), then the map, with these rules:
   - No time limit; the clock counts up and spawns never stop.
   - Upgrades have no level cap.
@@ -158,7 +158,7 @@ New goblin statuses for these: flee, frog, possessed and bleed/acid (`EnemyManag
 | Each kill | 1 |
 | Each elite killed | +10 |
 | The map's boss | +2,000 |
-| Each shrine completed | +250 |
+| Each chest opened | +125 |
 | Time alive | +100 a minute |
 | Winning (killing the boss) | +25% of all the above |
 
@@ -254,7 +254,7 @@ Picking one up while it's active refreshes its timer; active power-ups and their
 
 **Play** (on the title screen or character select) first asks which map: **The Swamp**, the **Magical Forest** or **The Castle** (`scripts/map_picker.gd`, previews in `images/maps/`). The Forest is **locked until you beat Thog the Troll**, the Swamp's boss, and the Castle until you beat **the Toadstool Knight**, the Forest's boss; locked cards are darkened, carry a gold padlock and say what's needed. The first time the picker opens after a map is unlocked, its card starts locked, then the padlock rattles, the shackle springs open and the lock tumbles off the bottom of the screen as the card lights up and becomes selectable (each reveal plays once: `Wallet.seen_unlocks`). A character can be barred from a map (`banned_maps` in `data/characters.json`): each boss can't play its own map, since it's their home turf (Thog the Swamp, the Toadstool Knight the Forest, the Arachnid the Castle). The choice is kept for Restart and the next Play (`Settings.selected_map`). Test and screenshot runs take `--map=swamp|forest|castle`, `--shot-nohud` hides the HUD for clean pictures and `--shot-pos=x,y,z[,yaw]` puts the wizard somewhere.
 
-The two outdoor maps share the same 440 m arena, terrain generator (hills, berm, level pads, 1 m height grid), counts and placement rules, so they play the same: 180 trees, 72 fallen logs, 24 landmarks, 14 pools, grass, walls and the shrine pads. `WorldBuilder.build(..., map)` picks the look.
+The two outdoor maps share the same 440 m arena, terrain generator (hills, berm, level pads, 1 m height grid), counts and placement rules, so they play the same: 180 trees, 72 fallen logs, 24 landmarks, 14 pools, grass, walls and the chest pads. `WorldBuilder.build(..., map)` picks the look.
 
 ## The Magical Forest
 
@@ -285,7 +285,7 @@ Trees, fallen logs and bushes all burn (`TreeFire`, `BushField.ignite`). The Fir
 
 ## The Castle
 
-`scripts/castle_builder.gd` (props in `castle_props.gd`). An enclosed keep on the same 440 m footprint, with the same counts as outdoors: about 250 furniture props, 24 landmarks and 14 shrine sites.
+`scripts/castle_builder.gd` (props in `castle_props.gd`). An enclosed keep on the same 440 m footprint, with the same counts as outdoors: about 250 furniture props, 24 landmarks and 28 chest sites.
 
 - **Layout:** mostly huge open halls with few corridors. The **great hall** (with columns and a red carpet) is behind the front doors. North of it is the **dining hall** with its table, flanked by two **galleries**, and the **throne room** with a raised throne is at the far end. The side wings are the **barracks, armoury, library and chapel**. Wide archways join the rooms, and two short 8 m corridors are the only tight spots. The building has stone walls, flagstone floors and a 24 m timbered roof, so the Meteor and sky bolts start under it.
 - **The entrance:** a run starts on the porch outside. The wizard walks in through the 12 m front doors, they swing shut with a boom, and the run starts. The doors stay shut for the rest of the run.
@@ -302,7 +302,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 - **Sky:** 50% chance of a gloomy day with the sun glowing through dense clouds, 50% chance of a moonlit night with very few clouds and stars. Lighting, ambient light and fog follow.
 - **Size:** 440 × 440 m (`ARENA_HALF = 220` in `scripts/main.gd`), with stone walls round the edge.
-- **Terrain:** rolling hills, dips and slopes from two layers of smooth noise: broad hills of up to about ±6.5 m and smaller rolls on top. Every slope stays walkable (under 40°). The start point, every pool and every shrine sit on level pads that ramp gently back into the hills. Near the walls the ground climbs into a berm about 7 m high. Everything follows the ground: goblins, drops, trees, grass and the flat ability markers. The Meteor target, Fire Nova's ring and glow, and the Stink Aura are `GroundDisc`s that drape over the slopes. The terrain is baked into a 1 m height grid (`SwampWater.build_terrain`) that collision, the ground mesh and gameplay all share. To tune it, change `HILL_HEIGHT`, `HILL_FREQ`, `BUMP_HEIGHT` and `EDGE_RISE` in `scripts/swamp_water.gd`.
+- **Terrain:** rolling hills, dips and slopes from two layers of smooth noise: broad hills of up to about ±6.5 m and smaller rolls on top. Every slope stays walkable (under 40°). The start point, every pool and every chest site sit on level pads that ramp gently back into the hills. Near the walls the ground climbs into a berm about 7 m high. Everything follows the ground: goblins, drops, trees, grass and the flat ability markers. The Meteor target, Fire Nova's ring and glow, and the Stink Aura are `GroundDisc`s that drape over the slopes. The terrain is baked into a 1 m height grid (`SwampWater.build_terrain`) that collision, the ground mesh and gameplay all share. To tune it, change `HILL_HEIGHT`, `HILL_FREQ`, `BUMP_HEIGHT` and `EDGE_RISE` in `scripts/swamp_water.gd`.
 - **Ground:** random patches of wet mud and swamp grass, with swaying grass tufts.
 - **180 swamp trees** in 4 variants: bald cypress (flared trunk, knees, hanging moss), dead snag, swamp willow (drooping curtains) and mangrove (stilt roots). All collide with the player.
 - **72 fallen trees:** mossy logs with root plates, slightly tilted, which you can climb and jump off.
@@ -333,6 +333,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
   - **Slam** (close): both fists overhead and down into the ground in front of him: 40 damage in the marked circle, then a **shockwave ring** rolls out to 20 m (22 damage; **jump over it**).
   - **Sweep** (close): his club swung across a 130° wedge in front of him, 14 m long: 32 damage and a big sideways knockback.
   - **Bellow** (at range, every 14 s): a roar that calls a ring of 14 goblins and a brute around you.
+- **The Quake** (at **75%, 50% and 10% health**): Thog stomps the ground over and over, shaking your camera the whole time, while **the entire map lights up red except the swamp pools** (their shores glow green). You have **7 seconds to get into a pool**. If you're anywhere else when it lands, it takes **50% of your max HP straight through your shield** and wipes the shield out.
 - **Under the hood:** Thog is a crowd row in `EnemyManager` (type `TROLL`, 5,200 HP x the 8:00 HP multiplier, about 33,000), so every weapon, burn, freeze, curse and ability hits him; he isn't drawn as a goblin. Knockback doesn't move him, freezes last a third as long and stuns a quarter. Frozen or stunned he can't start an attack. He mostly alternates slam and sweep.
 - **Model:** a stand-in until Thog gets his own: the Ogre's rigged model with its skin re-tinted troll blue (`models/ogre/thog_skin.jpg`) and the Ogre's club, scaled up 4.4x. Slam, sweep and bellow are segments of the Ogre's attack, ability and hit clips (`tools/render_thog.tscn` renders contact sheets of them).
 - **Rewards:** beating him the first time unlocks the Magical Forest and makes Thog buyable (10,000 coins). The end screen shows an **UNLOCKED!** block: one card per unlock (NEW MAP / NEW CHAMPION, with a hint for what to do next), each flying in from off screen on a swirling, spinning spiral trailing sparks, then landing in its slot with a pop, a flash, a burst of sparks and a ding. The list is read from the data (maps that `require` the boss, characters with `requires_boss`), so future bosses get it for free. Screenshot: `--map=swamp --shot-boss-win=1,3`. Saved in `user://progress.cfg` (`Wallet.bosses_defeated`).
@@ -370,24 +371,51 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 `scripts/map_boss.gd` (`MapBoss`) holds what the Forest and Castle bosses share: the crowd row (type `TROLL` with each boss's own numbers), the HUD health bar and enrage countdown, sounds, and the attack helpers.
 - **Fair warning:** every attack that lands somewhere is marked on the ground first (circles, wedges, lanes and rings), filling up red until the hit lands. It never fills in less than **1 second** (`MapBoss.MIN_WARN`), even when enraged; enraged bosses are faster, but never faster than that. Thog follows the same rule.
+- **Heavy hitters:** every boss's damage (attacks, hazards and contact, Thog and the Goblin Warlord included) is multiplied by `EnemyManager.BOSS_DAMAGE_MULT` (**1.75x**).
 - **Projectiles:** lobbed projectiles land exactly when their marker fills.
 - **Lingering zones:** spore clouds, puddles and webs are drawn for as long as they last.
 - **Sounds:** synthesised by `tools/gen_boss_sounds.py` (`audio/bosses/`).
 - **Tests:** `godot --headless --path . res://tools/test_bosses.tscn`.
 - **Screenshots:** `--map=forest|castle --boss-at=0.3 --shot-thog=distance,angle`.
 
-## Shrines
+## Chests, keys and the slot machine
 
-Each run places **1-8 shrines** on open ground, each marked by a tall beam of light in its tier colour. Stand inside the glowing **10-yard zone** for **10 seconds** to complete it (the ring fills up; leaving the zone resets the timer to 0) while dodging its damage pattern. Completing a shrine spawns a chest: **Difficulty 1 → Bronze, 2 → Silver, 3 → Gold** (chest rewards are placeholders for now).
+Each run places **8-28 chests** on level pads around the map: **Bronze** most often (60%), **Silver** sometimes (30%), **Gold** rarely (10%). A chest only opens with a **key of its tier**: walk up to it with the key and it opens; without one it says which key it needs. **Elites drop keys** (12% of them): bronze usually (65%), silver sometimes (27%), gold rarely (8%). Keys spin on the ground until you pick them up, show at the top of the screen while you hold them, and don't carry over between runs.
 
-| Pattern | Difficulty 1 | Difficulty 2 | Difficulty 3 |
+Opening a chest pauses the game (like a level-up) and brings up a **slot machine** with three reels of your three abilities. Pull the handle (click it, or press Space / Enter): the reels spin and stop left to right.
+
+| Result | Reward |
+|---|---|
+| Three of a kind | that ability **+3 levels** |
+| A pair | the pair's ability +1 level |
+| All three different | one of them, at random, +1 level |
+
+Like a real machine, the result is rolled the moment you pull, then the reels stop to show it. The chest's tier sets the odds of three of a kind: **Bronze 8%, Silver 15%, Gold 30%** (shown on the machine). Abilities already at max level can appear on the reels but are never the one levelled; if all three are maxed, a chest fully heals you instead. Code: `chest_manager.gd`, `chest.gd`, `key_manager.gd`, `slot_machine.gd`; sounds from `tools/gen_slot_sounds.py`.
+
+## Ability levels
+
+Every ability starts at **level 1** (as designed) and goes up to **level 10**, only through chests; levels reset each run. Each level adds a third of the ability's base strength to its main stat, so **level 4 is 2x, level 7 is 3x and level 10 is 4x**, and cuts its cooldown, down to **-40% at level 10**. The ability bar shows a level badge, and the tooltip lists the level, which stats it raises, and the current and next level's numbers.
+
+| Character | Ability 1 | Ability 2 | Ability 3 |
 |---|---|---|---|
-| **Chain Shrine:** chains reaching the zone edge swing around the shrine at shin height (jump over them) | 1 plain chain (hit: 10% max HP) | 2 burning chains | 3 burning chains, and the shrine itself is on fire |
-| **Storm Shrine:** rings of crackling lightning, floating a little off the ground, spread out to the zone edge (jump over them; hit: 8% max HP) | 1 ring every 2 s | 2 rings 0.5 s apart every 2 s | 1 ring every 1.5 s |
+| Fire Wizard | Inferno: burn damage | Fire Nova: damage | Meteor: damage (and its burning ground) |
+| Ice Wizard | Flash Freeze: radius | Glacial Path: trail damage | Absolute Zero: damage |
+| Thunder Wizard | Overcharge: shock damage | Thunderclap: damage | Storm Lord: damage |
+| Dark Wizard | Siphon: drain damage and healing | Raise Dead: damage | Eclipse: damage bonus and wisp damage |
+| Merlin | Time Warp: duration | Polymorph: frog count | Rewind: radius |
+| Ogre | Bellow: radius | Belly Flop: damage | Swamp Rage: damage bonus |
+| Ghast | Phase: damage | Haunt: damage | Banshee Scream: damage |
+| Vampire Hunter | Holy Water: damage | Stake Volley: damage | Hunter's Night: duration |
+| Vicki | Shield Wall: shield | Wings of Valhalla: damage | Ride of the Valkyries: damage |
+| Rogue | Smoke Bomb: ambush damage bonus | Pickpocket: damage | Death by a Thousand Cuts: damage |
+| Gaiden | Shadow Step: damage | Shuriken Storm: damage | Reed Clones: clone damage |
+| Dr. Croc | Mutagen: speed bonus | Death Roll: damage | Toxic Spill: damage |
+| Thog | Toll Booth: damage | Goat Charge: damage | Bridge Collapse: damage |
+| An Argyle Sock | Spin Cycle: damage | Lost Pair: partner damage | Laundry Day: damage |
 
-**Shrine hits work like enemy hits:** you're knocked back and get 0.5 s of immunity to all shrine damage, burning chains included.
+## Shields
 
-**Burn** (burning chains / burning shrine): 5% of max HP per second for 2 s. Touching fire again restarts the 2 s but never stacks.
+Shields (blue potions, Shield Wall, Fungal Shield, Rewind) soak up damage before your HP. When damage brings a shield to 0 it **breaks with a glass-shatter sound** (`audio/ui/shield_break.wav`, from `tools/gen_shield_sounds.py`; `Player.shield_broken`).
 
 ## Goblins
 
@@ -453,8 +481,9 @@ scripts/
   corpse_manager.gd  fallen goblins (topple, linger, sink) in one MultiMesh
   settings.gd        autoload: audio buses, video/controls options, key remaps, save/load
   settings_menu.gd   Video / Sound / Controls settings screen
-  shrine.gd          shrine challenge: zone timer, chain + storm patterns, completion
-  shrine_manager.gd  places 1-8 shrines per run, spawns chests
+  chest_manager.gd   places 8-28 bronze/silver/gold chests per run, opens them with keys
+  key_manager.gd     chest keys dropped by elites
+  slot_machine.gd    the chest slot machine (three reels of your abilities, real odds)
   chest.gd           Bronze / Silver / Gold chest (placeholder: rewards TBD)
   powerup_manager.gd elite power-up drops and timed effects
   tree_fire.gd       trees set alight by the Meteor, charring over 15 s
@@ -499,8 +528,8 @@ godot --headless --path . res://tools/test_modes.tscn
 # Intro cinematic (splash -> intro -> title, cast, skip)
 godot --headless --path . res://tools/test_intro.tscn
 
-# Shrine tests (placement, zone timer/reset, chest tiers, chains, burn, storm rings, jumping)
-godot --headless --path . --fixed-fps 60 res://tools/test_shrines.tscn
+# Chests, keys, the slot machine (odds, reels, rewards) and ability levels
+godot --headless --path . --fixed-fps 60 res://tools/test_chests.tscn
 
 # Title flow (splash -> title -> settings -> play -> main menu)
 godot --headless --path . res://tools/test_title.tscn

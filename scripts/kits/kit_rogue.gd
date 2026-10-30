@@ -52,7 +52,7 @@ func active(name: String) -> bool:
 
 
 func weapon_mult() -> float:
-	return AMBUSH_MULT if _ambush else 1.0
+	return 1.0 + (AMBUSH_MULT - 1.0) * pw(0) if _ambush else 1.0
 
 
 func weapon_fired() -> void:
@@ -141,7 +141,7 @@ func _tick_dash(dt: float) -> void:
 	player.global_position = p
 	player.velocity = (_dash_to - _dash_from) / DASH_TIME
 	mote(p + Vector3(0, 1.0, 0), Vector3.ZERO, 0.35, k._main, 0.3, false, 0.0)
-	var d := DASH_DAMAGE * dmg()
+	var d := DASH_DAMAGE * dmg() * pw(1)
 	for i in near(p, DASH_WIDTH):
 		if _dash_hit.size() >= DASH_MAX:
 			break
@@ -204,7 +204,7 @@ func _tick_cuts(dt: float) -> void:
 		player.global_position = at
 		player.velocity = -dir
 		player.model.attack(enemies.center_of(i))
-		enemies.damage(i, CUTS_DAMAGE * dmg(), dir * 4.0)
+		enemies.damage(i, CUTS_DAMAGE * dmg() * pw(2), dir * 4.0)
 		enemies.afflict(i, WeaponSystem.BLEED_FRAC, WeaponSystem.BLEED_TIME)
 		if k.weapons:
 			k.weapons._sector(ep + Vector3(0, 0.9, 0), dir.rotated(Vector3.UP, randf_range(-0.5, 0.5)), 1.8, 90.0, Color(0.85, 1.0, 0.7, 0.8), 0.18, randf_range(-0.8, 0.8))

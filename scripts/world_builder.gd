@@ -2,7 +2,7 @@ class_name WorldBuilder
 extends RefCounted
 ## Builds the dark swamp arena from a seed:
 ##   sky (50% sun behind dense clouds / 50% moon with few clouds), lighting and fog,
-##   rolling ground (hills, dips, slopes; level pads for the start, pools and shrines) with
+##   rolling ground (hills, dips, slopes; level pads for the start, pools and chests) with
 ##   random mud and swamp-grass patches, swaying grass tufts and reeds, 14 recessed pools of
 ##   swamp water, 180 swamp trees (4 variants), 72 fallen trees, 24 mossy ruins and a berm
 ##   with stone walls round the edge.
@@ -12,7 +12,7 @@ const TREES := 180
 const FALLEN := 72
 const RUINS := 24
 const POOLS := 14
-const SHRINE_SITES := 14   # level pads reserved for shrines (ShrineManager uses some of them)
+const CHEST_SITES := 28   # level pads reserved for chests (ChestManager uses some of them)
 
 const SKY_SHADER := """
 shader_type sky;
@@ -97,6 +97,8 @@ uniform vec3 base_col : source_color = vec3(0.17, 0.16, 0.1);
 uniform vec3 grass_col : source_color = vec3(0.15, 0.21, 0.08);
 uniform vec3 mud_col : source_color = vec3(0.12, 0.085, 0.055);
 uniform float wet_amount = 1.0;   // how wet and dark the mud patches look (0 = dry meadow)
+uniform float quake = 0.0;        // Thog's quake: the whole ground glows red (0 = off, 1 = on)
+uniform float quake_fill = 0.0;   // ...brighter and faster as it's about to land (0..1)
 varying vec3 wpos;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -110,6 +112,7 @@ void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 void fragment() {
 	// Cut holes where the pools are (the pool bed mesh fills them) and darken their wet banks
 	float bank = 0.0;
+	float edge = 1e6;   // distance outside the nearest pool's shore
 	for (int i = 0; i < 16; i++) {
 		vec4 p = pools[i];
 		if (p.w < 0.5) { continue; }
@@ -122,6 +125,7 @@ void fragment() {
 		float dist = length(d);
 		if (dist < r * 0.985) { discard; }
 		bank = max(bank, 1.0 - smoothstep(r, r + 2.5, dist));
+		edge = min(edge, dist - r);
 	}
 	vec2 uv = (wpos.xz + extent) / (2.0 * extent);
 	vec4 m = texture(patch_map, uv);
@@ -133,6 +137,18 @@ void fragment() {
 	col = mix(col, mud_col * (0.85 + 0.3 * n), mud);
 	float wet = max(mud * (0.6 + 0.4 * n) * wet_amount, bank * max(wet_amount, 0.35));
 	col *= 1.0 - 0.35 * wet;
+	if (quake > 0.0) {
+		// Danger everywhere but the pools: pulsing red with stripes crawling toward the water,
+		// and a bright safe rim round every pool's shore
+		float pulse = 0.5 + 0.5 * sin(TIME * mix(5.0, 14.0, quake_fill));
+		float stripe = smoothstep(0.4, 0.6, fract((wpos.x + wpos.z) * 0.18 - TIME * 1.2));
+		vec3 red = vec3(1.0, 0.12, 0.04);
+		float a = quake * (0.45 + 0.25 * pulse + 0.12 * stripe);
+		float safe = 1.0 - smoothstep(0.0, 1.6, edge);
+		col = mix(col, red, a * (1.0 - safe));
+		col = mix(col, vec3(0.4, 1.0, 0.85), safe * quake * 0.6);
+		EMISSION = red * quake * (1.0 - safe) * (0.25 + 0.6 * quake_fill * pulse) + vec3(0.2, 0.9, 0.7) * safe * quake * 0.8;
+	}
 	ALBEDO = col;
 	ROUGHNESS = mix(0.95, 0.28, wet);
 	SPECULAR = mix(0.3, 0.6, wet);
@@ -155,7 +171,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float, map :
 	_environment(parent, rng, is_night)
 
 	var water := SwampWater.generate(rng, POOLS, half, 35.0)
-	water.build_terrain(rng, half, SHRINE_SITES, Shrine.ZONE_RADIUS)
+	water.build_terrain(rng, half, CHEST_SITES, ChestManager.SITE_RADIUS)
 	var patches := _patch_map(rng, half + 10.0)
 	_ground(parent, half, water, patches)
 	water.build_meshes(parent)
@@ -204,8 +220,8 @@ static func _free_point(rng: RandomNumberGenerator, extent: float, keep_out: flo
 		if p.length() < keep_out or water.near_pool(p.x, p.z, pool_margin):
 			continue
 		var ok := true
-		for site in water.shrine_sites:   # keep shrine pads clear
-			if Vector2(p.x - site.x, p.z - site.z).length() < Shrine.ZONE_RADIUS + 3.0 + spacing * 0.5:
+		for site in water.chest_sites:   # keep chest pads clear
+			if Vector2(p.x - site.x, p.z - site.z).length() < ChestManager.SITE_RADIUS + 3.0 + spacing * 0.5:
 				ok = false
 				break
 		for q in placed:
@@ -364,6 +380,7 @@ static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Ima
 	for k in colors:   # base_col, grass_col, mud_col
 		sm.set_shader_parameter(k, colors[k])
 	mesh.surface_set_material(0, sm)
+	water.ground_mat = sm
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
 	body.add_child(mi)

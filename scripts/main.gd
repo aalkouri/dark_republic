@@ -49,7 +49,8 @@ var fx: FxManager
 var abilities: Abilities
 var potions: PotionManager
 var powerups: PowerupManager
-var shrines: ShrineManager
+var chests: ChestManager
+var keys: KeyManager
 var goblin_audio: GoblinAudio
 
 var state := "playing"   # playing | paused | levelup | dead | won
@@ -59,7 +60,8 @@ var xp := 0.0
 var xp_next := 0.0
 var kills := 0
 var elites_killed := 0              # for character EXP
-var shrines_completed := 0
+var chests_opened := 0
+var _chest_queue: Array[int] = []   # tiers of chests opened while a menu was up
 var pending_levels := 0
 var current_draft: Array = []
 var _spawn_budget := 0.0
@@ -115,7 +117,10 @@ var _shot_front := false
 var _shot_pool := false
 var _shot_potions := false
 var _shot_powerups := false
-var _shot_shrine := Vector2i(-1, 0)
+var _shot_chest := -1      # --shot-chest=tier: a chest of that tier in front of you
+var _shot_slot := -1       # --shot-slot=tier[:pull_after_s[:levels a,b,c]]: the slot machine
+var _shot_slot_pull := -1.0
+var _shot_slot_levels := PackedInt32Array()
 var _shot_ignite := false
 var _shot_zoom := 0.0
 var _shot_turn := 0.0
@@ -223,9 +228,16 @@ func _ready() -> void:
 			_shot_ignite = true
 		elif a.begins_with("--shot-timescale="):
 			Engine.time_scale = float(a.split("=")[1])
-		elif a.begins_with("--shot-shrine="):
+		elif a.begins_with("--shot-chest="):
+			_shot_chest = int(a.split("=")[1])
+		elif a.begins_with("--shot-slot="):
 			var sp := a.split("=")[1].split(":")
-			_shot_shrine = Vector2i(int(sp[0]), int(sp[1]))
+			_shot_slot = int(sp[0])
+			if sp.size() > 1:
+				_shot_slot_pull = float(sp[1])
+			if sp.size() > 2:
+				for lv in sp[2].split(","):
+					_shot_slot_levels.append(int(lv))
 		elif a == "--shot-powerups":
 			_shot_powerups = true
 		elif a == "--shot-potions":
@@ -323,16 +335,19 @@ func _ready() -> void:
 		hud.show_heal(amount)
 		numbers.add(player.global_position + Vector3(0, 2.6, 0), amount, DamageNumbers.HEAL))
 	potions.cooldowns_cut.connect(func(cuts: PackedFloat32Array): hud.show_cooldown_cuts(cuts))
+	keys = KeyManager.new()
+	keys.setup(player, rng)
+	add_child(keys)
+	keys.collected.connect(func(t: int): hud.flash_message(tr("%s!") % tr(KeyManager.NAMES[t]), 1.8))
 	enemies.epic_killed.connect(func(p: Vector3):
 		elites_killed += 1
-		potions.on_elite_killed(p))
-	shrines = ShrineManager.new()
-	shrines.setup(player, water, rng)
-	add_child(shrines)
-	shrines.spawn_all(ARENA_HALF)
-	shrines.shrine_completed.connect(func(s: Shrine, _c: Chest):
-		shrines_completed += 1
-		hud.flash_message(tr("SHRINE COMPLETE!  %s chest") % tr(s.tier_name()), 3.0))
+		potions.on_elite_killed(p)
+		keys.on_elite_killed(p + Vector3(0.8, 0, 0)))
+	chests = ChestManager.new()
+	chests.setup(player, water, keys, rng)
+	add_child(chests)
+	chests.spawn_all()
+	chests.open_requested.connect(_on_chest_opened)
 
 	powerups = PowerupManager.new()
 	powerups.setup(player, stats, enemies, gems, db, rng)
@@ -358,7 +373,7 @@ func _ready() -> void:
 	add_child(hud)
 	hud.setup(self)
 	# Main runs while paused (menus, input); all gameplay nodes freeze with the pause.
-	for n in [fx, enemies, numbers, corpses, powerups, shrines, gems, weapons, abilities, potions, goblin_audio, items]:
+	for n in [fx, enemies, numbers, corpses, powerups, chests, keys, gems, weapons, abilities, potions, goblin_audio, items]:
 		(n as Node).process_mode = Node.PROCESS_MODE_PAUSABLE
 
 	Events.enemy_killed.connect(_on_enemy_killed)
@@ -484,7 +499,8 @@ func _physics_process(dt: float) -> void:
 	var gained := gems.tick(dt, player.global_position + Vector3(0, 0.9, 0), stats.value("pickup_range"))
 	potions.tick(dt, stats.value("pickup_range"))
 	powerups.tick(dt, stats.value("pickup_range"))
-	shrines.tick(dt)
+	keys.tick(dt, stats.value("pickup_range"))
+	chests.tick(dt)
 	goblin_audio.tick(dt)
 	var t3 := Time.get_ticks_usec()
 	_track_perf((t1 - t0) / 1000.0, (t2 - t1) / 1000.0, (t3 - t2) / 1000.0)
@@ -528,7 +544,7 @@ func _contact_damage() -> void:
 				continue   # frozen, stunned, frogs, possessed or fleeing goblins can't hit
 			if enemies.typ[i] == EnemyManager.TROLL and not enemies.boss_contact:
 				continue
-			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * enemies.hit_mult(i))
+			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * enemies.hit_mult(i) * (EnemyManager.BOSS_DAMAGE_MULT if enemies.is_boss(i) else 1.0))
 			var away := enemies.pos[i] - me
 			away.y = 0.0
 			push -= away.normalized() if away.length_squared() > 0.0001 else Vector3.ZERO
@@ -688,6 +704,9 @@ func _on_boss_defeated() -> void:
 		hud.hide_draft()
 		pending_levels = 0
 		state = "playing"
+	if state == "chest":   # finish the slot machine first? no - the boss is down: the win comes first
+		hud.hide_slot_machine()
+		state = "playing"
 	while state == "paused" or state == "inspect":
 		await get_tree().process_frame
 	if state == "playing":
@@ -802,12 +821,47 @@ func resume_from_pause() -> void:
 		_resume()
 
 
+## A chest opened (its key used): pause for the slot machine, like a level-up.
+func _on_chest_opened(c: Chest) -> void:
+	chests_opened += 1
+	_open_slot_machine(c.tier)
+
+
+func _open_slot_machine(tier: int) -> void:
+	if state != "playing" and shot_path == "":
+		_chest_queue.append(tier)   # after the level-up / other chest
+		return
+	if abilities.levelable().is_empty():   # every ability maxed out: a full heal instead
+		player.heal(player.max_hp)
+		hud.flash_message(tr("Every ability is at max level!  Fully healed"), 3.0)
+		return
+	state = "chest"
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	hud.play_ui("levelup")
+	var m := hud.show_slot_machine(tier, func(a: int, n: int): _on_slot_done(a, n))
+	if smoke:   # smoke runs pull the handle and take the prize by themselves
+		m.pull.call_deferred()
+		get_tree().create_timer(3.5, true).timeout.connect(func(): if is_instance_valid(m): m._finish())
+
+
+func _on_slot_done(a: int, n: int) -> void:
+	hud.hide_slot_machine()
+	var name := tr(str(abilities.defs()[a]["name"])).to_upper()
+	hud.flash_message(tr("%s  LEVEL %d") % [name, abilities.ab_level[a]], 2.5)
+	_resume()
+	if pending_levels > 0 and state == "playing":
+		_open_draft()
+
+
 func _resume() -> void:
 	state = "playing"
 	get_tree().paused = false
 	hud.set_paused(false)
 	if not smoke:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if not _chest_queue.is_empty():   # a chest opened while a menu was up
+		_open_slot_machine.call_deferred(_chest_queue.pop_front())
 
 
 func _on_player_died() -> void:
@@ -1034,14 +1088,13 @@ func _shot_tick() -> void:
 		var to := tp - player.global_position
 		player.cam_yaw = atan2(-to.x, -to.z)
 		TreeFire.ignite(best)
-	if _shot_shrine.x >= 0 and run_time < 0.05:
+	if _shot_chest >= 0 and run_time < 0.05:
 		var fwd3 := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
-		var sh := Shrine.new()
-		sh.setup(_shot_shrine.x, _shot_shrine.y)
-		sh.position = player.global_position + fwd3 * 8.5
-		sh.position.y = 0.0
-		shrines.add_child(sh)
-		shrines.shrines.append(sh)
+		var at := player.global_position + fwd3 * 5.0
+		at.y = water.ground_height(at.x, at.z)
+		var c := chests.place(at, _shot_chest)
+		c.rotation.y = player.cam_yaw
+		keys.drop(player.global_position + fwd3 * 2.5 + Vector3(1.5, 0, 0), _shot_chest)
 	if _shot_powerups and run_time < 0.05:
 		var f2 := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
 		var r2 := Vector3(cos(player.cam_yaw), 0, -sin(player.cam_yaw))
@@ -1119,6 +1172,15 @@ func _shot_tick() -> void:
 			hud.show_draft(current_draft)
 			if _shot_ban >= 0:
 				ban_upgrade(_shot_ban)
+		if _shot_slot >= 0:
+			for k in mini(3, _shot_slot_levels.size()):
+				abilities.ab_level[k] = _shot_slot_levels[k]
+			_open_slot_machine(_shot_slot)
+			if _shot_slot_pull >= 0.0:
+				hud.slot_machine.pull()
+				get_tree().create_timer(_shot_slot_pull, true).timeout.connect(shot_path_save)
+				set_physics_process(false)
+				return
 		if _shot_settings_tab >= 0:
 			state = "paused"
 			get_tree().paused = true

@@ -61,6 +61,11 @@ func dmg() -> float:
 	return k.stats.value("damage")
 
 
+## Strength multiplier of ability slot `i` from its level (1x at level 1, 4x at level 10).
+func pw(i: int) -> float:
+	return k.pw(i)
+
+
 func play(key: String, volume_db := 0.0) -> void:
 	if not k._sounds.has(key):
 		k._sounds[key] = k._sfx(RosterKit.SOUND_DIR + key + ".wav")

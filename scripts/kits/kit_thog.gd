@@ -89,7 +89,7 @@ func _tick_toll(dt: float) -> void:
 		_paid[u] = true
 		tolls += 1
 		var p := enemies.pos[i]
-		enemies.damage(i, TOLL_DAMAGE * dmg())
+		enemies.damage(i, TOLL_DAMAGE * dmg() * pw(0))
 		k.drop_xp.emit(p + Vector3(0, 0.5, 0), 1.0)   # the toll
 		mote(p + Vector3(0, 1.0, 0), Vector3(0, 3.0, 0), 0.6, Color(1.0, 0.85, 0.3), 0.2)
 	if _toll_t <= 0.0:
@@ -126,7 +126,7 @@ func _tick_charge(dt: float) -> void:
 			continue
 		_charge_hit[u] = true
 		charge_hits += 1
-		enemies.damage(i, CHARGE_DAMAGE * dmg())
+		enemies.damage(i, CHARGE_DAMAGE * dmg() * pw(1))
 		var side := (enemies.pos[i] - p).normalized() * 0.6 + dir
 		enemies.knock(i, side, CHARGE_THROW, 0.35)
 	if randf() < dt * 30.0 and fx:
@@ -174,7 +174,7 @@ func _bridge_lands(a: Vector3, b: Vector3, slab: Node3D, mark: Node3D) -> void:
 		if lat.length() > BRIDGE_HALF_W + enemies.t_radius[enemies.typ[i]]:
 			continue
 		n += 1
-		enemies.damage(i, BRIDGE_DAMAGE * dmg())
+		enemies.damage(i, BRIDGE_DAMAGE * dmg() * pw(2))
 		# anything left under the rubble is shoved out to one side
 		var push := lat.normalized() if lat.length() > 0.1 else seg.normalized().cross(Vector3.UP)
 		enemies.knock(i, push, BRIDGE_HALF_W + 1.0, 0.2)

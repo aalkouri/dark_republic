@@ -50,7 +50,7 @@ func _check_pools(water: SwampWater, seed: int) -> void:
 
 
 ## Rolling ground: real hills and dips, walkable slopes, level pads for the start, every pool
-## and every shrine site, and a berm rising at the edge.
+## and every chest site, and a berm rising at the edge.
 func _check_terrain(water: SwampWater, seed: int) -> void:
 	var lo := 1e9
 	var hi := -1e9
@@ -71,14 +71,14 @@ func _check_terrain(water: SwampWater, seed: int) -> void:
 	_check("seed %d: every slope is walkable (< 40 deg)" % seed, steepest < 40.0, "steepest %.1f deg" % steepest)
 	var flat := true
 	var pads := [Vector3(0, water.ground_height(0, 0), 0)]
-	pads.append_array(water.shrine_sites)
+	pads.append_array(water.chest_sites)
 	for site in pads:
 		for k in 8:
 			var a := TAU * k / 8.0
-			var r := 6.0 if site == pads[0] else Shrine.ZONE_RADIUS
+			var r := 6.0 if site == pads[0] else ChestManager.SITE_RADIUS
 			if absf(water.ground_height(site.x + cos(a) * r, site.z + sin(a) * r) - site.y) > 0.05:
 				flat = false
-	_check("seed %d: start and shrine pads are level" % seed, flat and water.shrine_sites.size() >= ShrineManager.MAX_SHRINES, "%d sites" % water.shrine_sites.size())
+	_check("seed %d: start and chest pads are level" % seed, flat and water.chest_sites.size() >= ChestManager.MAX_CHESTS, "%d sites" % water.chest_sites.size())
 	var rise := water.ground_height(HALF, 30.0) - water.raw_hills(HALF, 30.0) * 0.4
 	_check("seed %d: ground rises into a berm at the edge" % seed, rise > SwampWater.EDGE_RISE * 0.9, "+%.1f m" % rise)
 

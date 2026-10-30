@@ -36,7 +36,7 @@ func _ready() -> void:
 	_frogs.transform_format = MultiMesh.TRANSFORM_3D
 	_frogs.use_colors = true
 	_frogs.mesh = _frog_mesh()
-	_frogs.instance_count = POLY_MAX * 2
+	_frogs.instance_count = int(POLY_MAX * Abilities.LEVEL_POWER_MAX) * 2
 	_frogs.visible_instance_count = 0
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = _frogs
@@ -88,7 +88,7 @@ func _time_warp() -> void:
 	if _warp_t <= 0.0:
 		stats.apply("attack_speed", "mult", WARP_HASTE)
 		_build_warp()
-	_warp_t = WARP_TIME
+	_warp_t = WARP_TIME * pw(0)
 	_warp_tick = 0.0
 	ring(feet(), WARP_RADIUS, k._light, 0.5)
 	fx.burst(chest(), 4.0, k._main, 0.4)
@@ -177,8 +177,9 @@ func _tick_warp(dt: float) -> void:
 func _polymorph() -> void:
 	play("polymorph")
 	var n := 0
-	for i in enemies.nearest_k(feet(), POLY_RADIUS, POLY_MAX * 2):
-		if n >= POLY_MAX:
+	var most := int(round(POLY_MAX * pw(1)))
+	for i in enemies.nearest_k(feet(), POLY_RADIUS, most * 2):
+		if n >= most:
 			break
 		if enemies.is_boss(i):
 			continue
@@ -270,7 +271,7 @@ func _rewind() -> void:
 		k.healed.emit(gain)
 	player.shield = maxf(player.shield, sh_was)
 	var at := feet()
-	for i in near(at, REWIND_RADIUS):
+	for i in near(at, REWIND_RADIUS * pw(2)):
 		var away := enemies.pos[i] - at
 		enemies.knock(i, away, REWIND_FLING, 0.45)
 		enemies.stun(i, REWIND_STUN + 0.45)
@@ -278,16 +279,16 @@ func _rewind() -> void:
 	var g := GroundDisc.create(1.0, k._light, true)
 	g.set_ring(0.9)
 	spawn(g, at)
-	g.scale = Vector3(REWIND_RADIUS, 1, REWIND_RADIUS)
+	g.scale = Vector3(REWIND_RADIUS * pw(2), 1, REWIND_RADIUS * pw(2))
 	var tw := g.create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(g, "scale", Vector3(0.5, 1, 0.5), 0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	tw.tween_property(g, "alpha", 0.0, 0.6)
 	tw.chain().tween_callback(g.queue_free)
-	after(0.45, func(): ring(feet(), REWIND_RADIUS, k._main, 0.5))
+	after(0.45, func(): ring(feet(), REWIND_RADIUS * pw(2), k._main, 0.5))
 	for m in 40:
 		var a := randf() * TAU
-		var r := randf_range(4.0, REWIND_RADIUS)
+		var r := randf_range(4.0, REWIND_RADIUS * pw(2))
 		mote(at + Vector3(cos(a) * r, randf_range(0.3, 3.0), sin(a) * r), Vector3.ZERO, 1.2, k._light if m % 2 else k._main, 0.2, true)
 	fx.burst(chest(), 5.0, k._light, 0.5)
 	flash_light(chest() + Vector3(0, 2, 0), Color(0.6, 0.75, 1.0), 6.0, 30.0, 0.8)

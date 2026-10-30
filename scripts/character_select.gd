@@ -371,6 +371,10 @@ func _build_panel() -> void:
 	_bio.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_bio.custom_minimum_size = Vector2(640, 0)
 	v.add_child(_bio)
+	var gap := Control.new()   # breathing room between the tagline and the abilities
+	gap.custom_minimum_size = Vector2(0, 22)
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(gap)
 	_build_ability_bar(v)
 	_kit = _label("", 17, Color(0.95, 0.75, 0.45))
 	_kit.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

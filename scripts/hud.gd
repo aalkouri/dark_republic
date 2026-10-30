@@ -47,8 +47,9 @@ var tooltip: PanelContainer
 var tooltip_text: RichTextLabel
 var inspect_hint: Label
 var buff_label: RichTextLabel
-var shrine_bar: ProgressBar
-var shrine_label: Label
+var key_box: HBoxContainer        # keys held (chests), top centre
+var key_labels: Array[Label] = []
+var slot_machine: SlotMachine     # the chest slot machine while it's open
 var _popups: Array = []   # [Label, age, base_pos]
 const POPUP_LIFE := 0.9
 var _hover_slot := -1
@@ -451,23 +452,21 @@ func _build_tooltip(root: Control) -> void:
 	buff_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	root.add_child(buff_label)
 
-	shrine_label = _label("", 22)
-	shrine_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	shrine_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	shrine_label.offset_left = -300
-	shrine_label.offset_right = 300
-	shrine_label.offset_top = 196
-	shrine_label.visible = false
-	root.add_child(shrine_label)
-	shrine_bar = _bar(Color(1.0, 0.8, 0.25))
-	shrine_bar.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	shrine_bar.offset_left = -170
-	shrine_bar.offset_right = 170
-	shrine_bar.offset_top = 228
-	shrine_bar.offset_bottom = 242
-	shrine_bar.max_value = Shrine.REQUIRED_TIME
-	shrine_bar.visible = false
-	root.add_child(shrine_bar)
+	key_box = HBoxContainer.new()
+	key_box.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	key_box.offset_left = -300
+	key_box.offset_right = 300
+	key_box.offset_top = 196
+	key_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	key_box.add_theme_constant_override("separation", 22)
+	key_box.visible = false
+	key_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(key_box)
+	for t in 3:
+		var kl := _label("", 20)
+		kl.add_theme_color_override("font_color", Chest.TIER_COLORS[t].lightened(0.15))
+		key_box.add_child(kl)
+		key_labels.append(kl)
 
 	inspect_hint = _label("PAUSED  ·  hover an ability for details  ·  release Alt to resume", 20)
 	inspect_hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -647,6 +646,23 @@ func show_draft(picks: Array) -> void:
 	draft_root.visible = true
 
 
+## The chest slot machine (game paused). `done` is called with (ability, levels) when the
+## player presses Continue.
+func show_slot_machine(tier: int, done: Callable) -> SlotMachine:
+	hide_slot_machine()
+	slot_machine = SlotMachine.new()
+	slot_machine.setup(main.abilities, tier, main.rng)
+	slot_machine.finished.connect(func(a: int, n: int): done.call(a, n))
+	add_child(slot_machine)
+	return slot_machine
+
+
+func hide_slot_machine() -> void:
+	if is_instance_valid(slot_machine):
+		slot_machine.queue_free()
+	slot_machine = null
+
+
 ## Grey out a banned card and stamp it.
 func mark_banned(i: int) -> void:
 	var card: Array = draft_cards[i]
@@ -685,9 +701,9 @@ func show_end(won: bool) -> void:
 	end_stats.text = tr("Time %s   ·   Level %d   ·   Kills %d") % [_fmt_time(main.run_time), main.level, main.kills]
 	show_unlocks(unlocks_for(main.boss_id) if main.first_boss_kill else [])
 	end_root.visible = true
-	# EXP for the character played (kills, elites, boss, shrines, time alive, win bonus), banked now
+	# EXP for the character played (kills, elites, boss, chests, time alive, win bonus), banked now
 	var cid := Settings.selected_character
-	run_exp = Wallet.run_exp(main.kills, main.elites_killed, 1 if main.boss_won else 0, main.shrines_completed, main.run_time, won)
+	run_exp = Wallet.run_exp(main.kills, main.elites_killed, 1 if main.boss_won else 0, main.chests_opened, main.run_time, won)
 	var gained_levels := Wallet.add_char_exp(cid, int(run_exp["total"]))
 	var lvl := Wallet.char_level(cid)
 	var next := Wallet.next_level_exp(cid)
@@ -715,10 +731,10 @@ func show_end(won: bool) -> void:
 var run_exp := {}
 
 
-## "Kills 1,200 · Elites +350 · Boss +2,000 · Shrines +500 · Time +1,000 · Win +1,262" (zero parts left out).
+## "Kills 1,200 · Elites +350 · Boss +2,000 · Chests +500 · Time +1,000 · Win +1,262" (zero parts left out).
 static func exp_breakdown(e: Dictionary) -> String:
 	var parts: Array[String] = []
-	for k in [["kills", "Kills %s"], ["elites", "Elites +%s"], ["boss", "Boss +%s"], ["shrines", "Shrines +%s"], ["time", "Time +%s"], ["win", "Win +%s"]]:
+	for k in [["kills", "Kills %s"], ["elites", "Elites +%s"], ["boss", "Boss +%s"], ["chests", "Chests +%s"], ["time", "Time +%s"], ["win", "Win +%s"]]:
 		if int(e.get(k[0], 0)) > 0:
 			parts.append(I18n.t(k[1]) % Wallet.fmt(int(e[k[0]])))
 	return "   ·   ".join(parts)
@@ -1067,13 +1083,11 @@ func _process(dt: float) -> void:
 
 	_update_tooltip()
 	_update_popups(dt)
-	var sh: Shrine = main.shrines.active
-	shrine_label.visible = sh != null
-	shrine_bar.visible = sh != null
-	if sh != null:
-		shrine_label.text = tr("%s  ·  %.1f / %d s") % [sh.describe(), sh.progress, int(Shrine.REQUIRED_TIME)]
-		shrine_bar.value = sh.progress
-		(shrine_bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color = Shrine.TIER_COLORS[sh.difficulty - 1]
+	var held: PackedInt32Array = main.keys.keys
+	key_box.visible = held[0] + held[1] + held[2] > 0
+	for t in 3:
+		key_labels[t].visible = held[t] > 0
+		key_labels[t].text = tr("%s x%d") % [tr(KeyManager.NAMES[t]), held[t]]
 	if p.burn_left > 0.0:
 		hp_label.text += "   " + tr("BURNING")
 		hp_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
@@ -1083,6 +1097,7 @@ func _process(dt: float) -> void:
 	for i in ability_slots.size():
 		ability_slots[i].set_locked(not main.abilities.is_unlocked(i))
 		ability_slots[i].set_cooldown(main.abilities.fraction_remaining(i), main.abilities.cooldown[i])
+		ability_slots[i].ab_level = main.abilities.ab_level[i]
 
 	if show_debug:
 		var pf: Dictionary = main.perf

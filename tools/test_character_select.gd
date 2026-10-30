@@ -71,7 +71,7 @@ func _ready() -> void:
 	var title: Node = get_tree().current_scene
 	(title._menu.get_child(0) as Button).pressed.emit()
 	await get_tree().create_timer(0.8).timeout
-	title._modes.cards[1].pressed.emit()   # Play > Classic
+	title._modes.cards[0].pressed.emit()   # Play > Classic
 	await get_tree().scene_changed
 	for f in 5:
 		await get_tree().process_frame
@@ -252,7 +252,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	(get_tree().current_scene._menu.get_child(0) as Button).pressed.emit()
 	await get_tree().create_timer(0.8).timeout
-	get_tree().current_scene._modes.cards[1].pressed.emit()   # Classic
+	get_tree().current_scene._modes.cards[0].pressed.emit()   # Classic
 	await get_tree().scene_changed
 	for f in 3:
 		await get_tree().process_frame

@@ -35,7 +35,7 @@ func _static_checks() -> void:
 				burnable += 1
 			if c.is_in_group("obstacle"):
 				obstacles += 1
-		counts[map] = {"props": props, "burnable": burnable, "obstacles": obstacles, "sites": water.shrine_sites.size()}
+		counts[map] = {"props": props, "burnable": burnable, "obstacles": obstacles, "sites": water.chest_sites.size()}
 		print("  %s: %s" % [map, counts[map]])
 		if map == "castle":
 			var nav := CastleNav.current
@@ -62,7 +62,7 @@ func _static_checks() -> void:
 	_check("castle: roughly the swamp's amount of props", absf(c["props"] - s["props"]) <= s["props"] * 0.3, "%d vs %d" % [c["props"], s["props"]])
 	_check("castle: plenty that burns (furniture, banners)", c["burnable"] >= 60, str(c["burnable"]))
 	_check("castle: same number of landmarks", c["obstacles"] == s["obstacles"], "%d vs %d" % [c["obstacles"], s["obstacles"]])
-	_check("castle: same number of shrine sites", c["sites"] == s["sites"], "%d vs %d" % [c["sites"], s["sites"]])
+	_check("castle: same number of chest sites", c["sites"] == s["sites"], "%d vs %d" % [c["sites"], s["sites"]])
 
 
 ## Flood the whole floor from the great hall: every room must be reachable and almost all of the

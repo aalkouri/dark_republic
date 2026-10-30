@@ -53,6 +53,10 @@ func adjust_cooldown(i: int, cd: float) -> float:
 	return 0.0 if charges > 0 else _recharge
 
 
+func clone_damage() -> float:
+	return RosterKit.CLONE_DAMAGE * pw(2)   # Reed Clones hit harder as the ability levels up
+
+
 func clone_list() -> Array:
 	var out := []
 	for c in _clones:
@@ -100,7 +104,7 @@ func _shadow_step() -> void:
 	player.velocity = Vector3.ZERO
 	_puff(at)
 	player.model.attack(enemies.center_of(best))
-	enemies.damage(best, STEP_DAMAGE * dmg(), dir * 3.0)
+	enemies.damage(best, STEP_DAMAGE * dmg() * pw(0), dir * 3.0)
 	player.invuln = maxf(player.invuln, STEP_IMMUNE)
 	if k.weapons:
 		k.weapons._sector(ep + Vector3(0, 1.0, 0), -dir, 2.2, 120.0, Color(1.0, 0.3, 0.35, 0.85), 0.25, 0.6)
@@ -139,7 +143,7 @@ func _tick_storm(dt: float) -> void:
 	for s in STORM_PER_RING:
 		var a := off + TAU * s / STORM_PER_RING
 		var dir := Vector3(cos(a), 0.0, sin(a))
-		k.weapons.spawn_projectile(from + dir * 0.5, dir * STORM_SPEED, STORM_RANGE / STORM_SPEED, STORM_DAMAGE * dmg(), 99, kind)
+		k.weapons.spawn_projectile(from + dir * 0.5, dir * STORM_SPEED, STORM_RANGE / STORM_SPEED, STORM_DAMAGE * dmg() * pw(1), 99, kind)
 	player.model.attack(from + Vector3(cos(off), 0, sin(off)) * 5.0)
 	play("whirl", -6.0)
 

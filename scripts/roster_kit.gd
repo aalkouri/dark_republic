@@ -110,6 +110,7 @@ var allies: AllyCrowd
 var part: KitPart                    # the abilities of everyone but the wizards
 var weapons: WeaponSystem            # set by main (Stake Volley and Shuriken Storm fire projectiles)
 
+var _eclipse_mult := ECLIPSE_DAMAGE   # the damage bonus this Eclipse applied (its level at cast)
 var _main: Color
 var _deep: Color
 var _light: Color
@@ -149,6 +150,11 @@ var _dimmed: Array = []              # [node, property, original value]
 var _wisps: Array = []               # {pos, life}
 var _mote_mm: MultiMesh
 var _motes: Array = []               # {pos, vel, life, max, color, home (bool), size}
+
+
+## Strength multiplier of ability slot `i` from its level (1x at level 1, 4x at level 10).
+func pw(i: int) -> float:
+	return hub.power(i) if hub != null else 1.0
 
 
 func setup(p_hub: Abilities, p_kit: String) -> void:
@@ -329,7 +335,7 @@ func tick(dt: float) -> void:
 	_tick_siphon(dt)
 	_tick_eclipse(dt)
 	if allies:
-		allies.tick(dt, _dmg())
+		allies.tick(dt, _dmg() * pw(1))
 	_tick_motes(dt)
 
 
@@ -343,11 +349,12 @@ func _cast_freeze() -> void:
 func _freeze_burst() -> void:
 	var at := player.global_position
 	var n := 0
-	for i in enemies.query_radius(at + Vector3(0, 0.8, 0), FREEZE_RADIUS, false):
+	var fr := FREEZE_RADIUS * pw(0)
+	for i in enemies.query_radius(at + Vector3(0, 0.8, 0), fr, false):
 		enemies.freeze(i, FREEZE_TIME)
 		n += 1
-	_ring(at, FREEZE_RADIUS, _light, 0.45)
-	_ice_spikes(at, FREEZE_RADIUS, 22)
+	_ring(at, fr, _light, 0.45)
+	_ice_spikes(at, fr, clampi(int(22 * pw(0)), 22, 70))
 	fx.burst(at + Vector3(0, 1.0, 0), 5.0, _light, 0.4)
 	player.add_shake(0.4)
 	print_verbose("Flash Freeze froze %d enemies" % n)
@@ -397,7 +404,7 @@ func _tick_glacial(dt: float) -> void:
 	_path_tick -= dt
 	if _path_tick <= 0.0 and not _patches.is_empty():
 		_path_tick = 0.2
-		var d := PATH_DPS * 0.2 * _dmg()
+		var d := PATH_DPS * 0.2 * _dmg() * pw(1)
 		var seen := {}
 		for pt in _patches:
 			for i in enemies.query_radius((pt["pos"] as Vector3) + Vector3(0, 0.8, 0), PATH_RADIUS, false):
@@ -464,7 +471,7 @@ func _tick_zero(dt: float) -> void:
 		_zero_tick = TICK
 		for i in enemies.query_radius(at + Vector3(0, 0.8, 0), ZERO_RADIUS, false):
 			enemies.slow(i, ZERO_SLOW, TICK + 0.3)
-			enemies.dot_damage(i, enemies.hp_max[i] * ZERO_DPS * TICK * enemies.pct_scale(i))
+			enemies.dot_damage(i, enemies.hp_max[i] * ZERO_DPS * pw(2) * TICK * enemies.pct_scale(i))
 	if _zero_t <= 0.0:
 		_zero_end(at)
 
@@ -493,7 +500,7 @@ func _zero_shatter() -> void:
 	var want := {}
 	for u in _zero_frozen:
 		want[u] = true
-	var d := ZERO_SHATTER * _dmg()
+	var d := ZERO_SHATTER * _dmg() * pw(2)
 	for i in enemies.count:
 		if not enemies.dead[i] and want.has(enemies.uid[i]):
 			fx.burst(enemies.center_of(i), 1.4, Color(0.8, 0.95, 1.0), 0.3)
@@ -598,7 +605,7 @@ func _on_air_jump() -> void:
 
 func _shock(at: Vector3) -> void:
 	_charge_cd = 0.15
-	var d := CHARGE_DAMAGE * _dmg()
+	var d := CHARGE_DAMAGE * _dmg() * pw(0)
 	var c := at + Vector3(0, 0.9, 0)
 	var k := 0
 	for i in enemies.query_radius(c, CHARGE_RADIUS, false):
@@ -639,7 +646,7 @@ func _tick_clap(dt: float) -> void:
 		var at := enemies.center_of(best)
 		_sky_bolt(at, 0.08, 0.35)
 		enemies.stun(best, CLAP_STUN)
-		enemies.damage(best, CLAP_DAMAGE * _dmg())
+		enemies.damage(best, CLAP_DAMAGE * _dmg() * pw(1))
 		player.add_shake(0.25)
 
 
@@ -710,7 +717,7 @@ func _tick_storm(dt: float) -> void:
 		if not near.is_empty():
 			var t := near[randi() % near.size()]
 			var from := _storm_cloud.global_position + Vector3(randf_range(-5, 5), -1.5, randf_range(-5, 5))
-			_chain_strike(t, from, STORM_DAMAGE * _dmg(), STORM_CHAINS)
+			_chain_strike(t, from, STORM_DAMAGE * _dmg() * pw(2), STORM_CHAINS)
 			_storm_light.light_energy = 6.0
 	if _storm_t <= 0.0:
 		var cloud := _storm_cloud
@@ -773,14 +780,14 @@ func _tick_siphon(dt: float) -> void:
 		_siphon_tick += TICK
 		var near := enemies.query_radius(at + Vector3(0, 0.8, 0), SIPHON_RADIUS, false)
 		for i in near:
-			enemies.dot_damage(i, enemies.hp_max[i] * SIPHON_DPS * TICK * enemies.pct_scale(i))
+			enemies.dot_damage(i, enemies.hp_max[i] * SIPHON_DPS * pw(0) * TICK * enemies.pct_scale(i))
 		var shown := 0
 		for i in near:   # streams of life flowing back to the caster
 			if shown >= 14:
 				break
 			shown += 1
 			_mote(enemies.center_of(i), Vector3(0, 1.5, 0), 1.2, _light if shown % 3 == 0 else _main, 0.2, true, 12.0)
-		var heal := minf(near.size() * SIPHON_HEAL_PER * TICK, player.max_hp * SIPHON_HEAL_CAP * TICK)
+		var heal := minf(near.size() * SIPHON_HEAL_PER * TICK, player.max_hp * SIPHON_HEAL_CAP * TICK) * pw(0)
 		if heal > 0.0 and player.hp < player.max_hp:
 			heal = minf(heal, player.max_hp - player.hp)
 			player.heal(heal)
@@ -815,7 +822,7 @@ func _cast_raise() -> void:
 ## Allies that time out explode (AllyCrowd calls this).
 func ally_expired(at: Vector3) -> void:
 	for i in enemies.query_radius(at + Vector3(0, 0.6, 0), RAISE_BLAST_RADIUS, false):
-		enemies.damage(i, RAISE_BLAST * _dmg())
+		enemies.damage(i, RAISE_BLAST * _dmg() * pw(1))
 	fx.burst(at + Vector3(0, 0.6, 0), RAISE_BLAST_RADIUS * 1.2, _main, 0.35)
 
 
@@ -823,7 +830,8 @@ func _cast_eclipse() -> void:
 	_play("eclipse")
 	if _eclipse_t <= 0.0:
 		enemies.lost = true
-		enemies.bonus_mult *= ECLIPSE_DAMAGE
+		_eclipse_mult = 1.0 + (ECLIPSE_DAMAGE - 1.0) * pw(2)
+		enemies.bonus_mult *= _eclipse_mult
 		_dim_world(true)
 		_eclipse_light = OmniLight3D.new()
 		_eclipse_light.light_color = Color(0.6, 0.3, 1.0)
@@ -842,7 +850,7 @@ func _tick_eclipse(dt: float) -> void:
 	_eclipse_t -= dt
 	if _eclipse_t <= 0.0:
 		enemies.lost = false
-		enemies.bonus_mult /= ECLIPSE_DAMAGE
+		enemies.bonus_mult /= _eclipse_mult
 		_dim_world(false)
 		if is_instance_valid(_eclipse_light):
 			_eclipse_light.queue_free()
@@ -873,7 +881,7 @@ func _tick_wisps(dt: float) -> void:
 		if to.length() < 0.8:
 			var hit := enemies.query_radius(p, 1.0, false)
 			if not hit.is_empty():
-				enemies.damage(hit[0], WISP_DAMAGE * _dmg())
+				enemies.damage(hit[0], WISP_DAMAGE * _dmg() * pw(2))
 				fx.burst(p, 0.9, _main, 0.25)
 				_wisps.remove_at(k)
 				continue

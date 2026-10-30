@@ -282,13 +282,29 @@ func _ready() -> void:
 	# The fall is the baked death animation: clip = death, playing forward, facing kept
 	var fwd := Vector3(cm._buf[2], cm._buf[6], cm._buf[10]).normalized()   # corpse's local +Z
 	_check("corpse plays the death animation", is_equal_approx(cm._buf[12], cm._clip_death) and cm._buf[13] > 0.15, "clip %.2f phase %.2f" % [cm._buf[12], cm._buf[13]])
-	_check("corpse keeps facing where it ran (falls backwards from there)", fwd.z > 0.9, "fwd %s" % str(fwd))
+	_check("corpse is upright on the ground (facing is flat)", absf(fwd.y) < 0.05, "fwd %s" % str(fwd))
 	for f in 120:
 		cm._process(dt)
 	_check("corpse still there at 2.5 s", cm.active_count() == 1, "")
 	for f in 31:
 		cm._process(dt)
 	_check("corpse gone after 3 s", cm.active_count() == 0, "after %.2f s" % ((30 + 120 + 31) * dt))
+	# Corpses face random directions, not the way the goblins were running
+	for n in 12:
+		var g := em.spawn(EnemyManager.GRUNT, Vector3(2 + n, 0, 2), 1.0)
+		em.vel[g] = Vector3(0, 0, 3)
+		em.damage(g, 1e6)
+	var min_dot := 1.0
+	var off_course := 0
+	var first := cm._count - 12
+	for n in range(first, cm._count):
+		var dn2: Vector2 = cm._dir[n]
+		min_dot = minf(min_dot, dn2.dot(cm._dir[first]))
+		if dn2.y < 0.9:
+			off_course += 1
+	_check("corpses lie in random directions", cm.active_count() == 12 and min_dot < 0.0 and off_course >= 6, "%d off course, min dot %.2f" % [off_course, min_dot])
+	for f in 200:
+		cm._process(dt)
 	# Mass kill: pool recycles instead of growing without bound
 	em.count = 0
 	for k in 700:
