@@ -100,7 +100,9 @@ const WAIL_SLOW_TIME := 1.5
 const SILVER_PIERCE := 3         # Silver Bolts
 const SILVER_SPEED := 1.7
 const SILVER_EPIC := 2.0
-const SHARD_FROZEN := 2.0         # Frost Shards deal double damage to frozen goblins (in place of the usual frozen bonus)
+const SHARD_DAMAGE := 1.25        # Frost Shards: +25% damage (balance pass 2026-10-30)
+const SHARD_PIERCE := 1           # ...and pierce 1 extra goblin
+const SHARD_FROZEN := 2.0        # Frost Shards deal double damage to frozen goblins (in place of the usual frozen bonus)
 const SPEAR_REACH := 6.0         # Valkyrie Spear: thrust line
 const SPEAR_WIDTH := 0.9
 const JAVELIN_EVERY := 4
@@ -514,6 +516,9 @@ func _fire_orbs(origin: Vector3, dmg_mult: float, sty := "fire", pre := "orb", m
 	var life := 1.6
 	var kind := sty
 	match sty:
+		"ice":
+			dmg *= SHARD_DAMAGE
+			pierce += SHARD_PIERCE
 		"dark":
 			speed *= DARK_SPEED
 			pierce += DARK_PIERCE

@@ -597,7 +597,7 @@ func _spawn_director(dt: float) -> void:
 	var hpm := hp_mult()
 	while _spawn_budget >= 1.0:
 		_spawn_budget -= 1.0
-		if enemies.count >= EnemyManager.MAX - 60:
+		if enemies.count >= mini(LIVE_CAP, EnemyManager.MAX - 60):
 			_spawn_budget = 0.0
 			break
 		_spawn_enemy(_pick_type(m), _spawn_point(26.0, 36.0), hpm)
@@ -626,7 +626,8 @@ func _spawn_director(dt: float) -> void:
 		hud.flash_message("A GOBLIN WARLORD APPROACHES", 4.0)
 
 
-const SKELETON_SHARE := 0.35   # castle: this share of spawns are skeletons (same overall rate)
+const LIVE_CAP := 350   # the steady trickle pauses while this many goblins are alive (swarm rings still come)
+const SKELETON_SHARE := 0.35  # castle: this share of spawns are skeletons (same overall rate)
 
 
 func _pick_type(m: float) -> int:
