@@ -96,7 +96,7 @@ These run on the same `RosterHero` model player (clip segments per character in 
 | Vampire Hunter | Silver Bolts | Fast bolts that pierce 3 enemies, double damage to epics and bosses |
 | Vicki | Valkyrie Spear | 6 m piercing thrust; every 4th throw is a javelin flying 25 m |
 | Rogue | Twin Daggers | Short-range throws in pairs; hits bleed 3% of max HP/s for 3 s |
-| Gaiden | Katana | 3-hit combo in a 3 m arc; the 3rd cut sends a 10 m wind slash |
+| Gaiden | Katana (only drawn while he attacks) | 3-hit combo in a 3 m arc; the 3rd cut sends a 10 m wind slash |
 | Dr. Croc | Volatile Flasks | Lobbed vials that shatter with breaking glass: 3 m burst, then a lumpy, bubbling acid puddle (4% of max HP/s) |
 | Thog | Big Club | Slow overhead smash in a long 9 m, 100° cone for 90 damage, throws enemies back 8 m. Thog starts with **250 max HP** (everyone else 100): with no projectile he fights up close |
 | An Argyle Sock | Static Cling | Zaps the 3 nearest enemies (18 each, every 0.6 s); moving builds a charge up to 2x |
@@ -404,7 +404,11 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 ## Chests, keys and the slot machine
 
-Each run places **8-28 chests** on level pads around the map: **Bronze** most often (60%), **Silver** sometimes (30%), **Gold** rarely (10%). A chest only opens with a **key of its tier**: walk up to it with the key and it opens; without one it says which key it needs. **Elites drop keys** (12% of them): bronze usually (65%), silver sometimes (27%), gold rarely (8%). Keys spin on the ground until you pick them up, show at the top of the screen while you hold them, and don't carry over between runs.
+Each run places **8-28 chests** on level pads around the map: **Bronze** most often (60%), **Silver** sometimes (30%), **Gold** rarely (10%). A chest only opens with a **key of its tier**: walk up to it with the key and it opens; without one it says which key it needs. **Elites drop keys** (12% of them): bronze usually (65%), silver sometimes (27%), gold rarely (8%). Keys spin on the ground until you pick them up, show at the top of the screen while you hold them, and don't carry over between runs. The **key counter** sits at the bottom left, above your upgrades: a bronze, silver and gold key with how many you hold.
+
+**Level-up cards:** under each card, a small **BAN 100** button (with a coin) throws the reward out of this and every later draft. Legendary cards also get **Convert**: skip the upgrade for one chest key, **60% bronze, 30% silver, 10% gold**. The key pops up big in the middle of the screen, then flies down into the key counter.
+
+**Hold Alt** to pause and inspect: hovering an ability shows its tooltip, and hovering one of your upgrades in the bottom left shows what it does and its stats (where they started and where they are now).
 
 Opening a chest pauses the game (like a level-up) and brings up a **slot machine** with three reels of your three abilities. Pull the handle (click it, or press Space / Enter): the reels spin and stop left to right.
 

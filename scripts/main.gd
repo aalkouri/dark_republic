@@ -138,6 +138,8 @@ var _frames_start := 0.0
 var _frames_left := 0
 var _frames_n := 0   # --shot-draft=id[:rarity],... : show these level-up cards
 var _shot_inspect := -1
+var _shot_inv: Array = []   # --shot-inv=id,id: own these upgrades and hover the first (with --shot-inspect)
+var _shot_keys := PackedInt32Array()   # --shot-keys=b,s,g
 var _shot_settings_tab := -1
 var _forced_seed := -1
 var _shot_pitch := -99.0
@@ -230,6 +232,11 @@ func _ready() -> void:
 			_shot_ignite = true
 		elif a.begins_with("--shot-timescale="):
 			Engine.time_scale = float(a.split("=")[1])
+		elif a.begins_with("--shot-inv="):
+			_shot_inv = Array(a.split("=")[1].split(","))
+		elif a.begins_with("--shot-keys="):
+			for v in a.split("=")[1].split(","):
+				_shot_keys.append(int(v))
 		elif a.begins_with("--shot-chest="):
 			_shot_chest = int(a.split("=")[1])
 		elif a.begins_with("--shot-slot="):
@@ -822,6 +829,31 @@ func ban_upgrade(i: int) -> bool:
 	return true
 
 
+const LEGENDARY := 3   # rarity index of Legendary cards
+const CONVERT_ODDS := [60.0, 30.0, 10.0]   # Convert: bronze, silver, gold key
+
+
+## Convert (Legendary cards only): skip the upgrade and take one chest key instead -
+## 60% bronze, 30% silver, 10% gold. The key pops up big, then flies to the key counter.
+func convert_upgrade(i: int) -> int:
+	if state != "levelup" or i < 0 or i >= current_draft.size() or current_draft[i].get("banned", false):
+		return -1
+	if int(current_draft[i].get("rarity", 0)) != LEGENDARY:
+		return -1
+	var r := rng.randf() * 100.0
+	var tier := 0 if r < CONVERT_ODDS[0] else (1 if r < CONVERT_ODDS[0] + CONVERT_ODDS[1] else 2)
+	keys.keys[tier] += 1
+	hud.key_popup(tier)
+	pending_levels -= 1
+	if pending_levels > 0:
+		state = "playing"
+		_open_draft(true)
+		return tier
+	hud.hide_draft()
+	_resume()
+	return tier
+
+
 func choose_upgrade(i: int) -> void:
 	if state != "levelup" or i < 0 or i >= current_draft.size() or current_draft[i].get("banned", false):
 		return
@@ -1117,6 +1149,12 @@ func _shot_tick() -> void:
 		var to := tp - player.global_position
 		player.cam_yaw = atan2(-to.x, -to.z)
 		TreeFire.ignite(best)
+	if run_time < 0.05 and (not _shot_inv.is_empty() or not _shot_keys.is_empty()):
+		for id in _shot_inv:
+			if db.defs.has(id) and db.level_of(id) == 0:
+				db.apply({"id": id, "rarity": 0}, stats)
+		for t in mini(3, _shot_keys.size()):
+			keys.keys[t] = _shot_keys[t]
 	if _shot_chest >= 0 and run_time < 0.05:
 		var fwd3 := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
 		var at := player.global_position + fwd3 * 5.0
@@ -1193,6 +1231,12 @@ func _shot_tick() -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			hud.set_inspect(true)
 			hud._on_slot_hover(_shot_inspect, true)
+			if not _shot_inv.is_empty():
+				hud._on_slot_hover(_shot_inspect, false)
+				for row in hud.inv_box.get_children():
+					for chip in row.get_children():
+						if chip.get_meta("id", "") == _shot_inv[0]:
+							hud._on_inv_hover(_shot_inv[0], chip, true)
 			hud._update_tooltip()
 		if not _shot_draft.is_empty():
 			state = "levelup"

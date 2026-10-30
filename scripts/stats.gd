@@ -46,5 +46,10 @@ func value(stat: String) -> float:
 	return (_base[stat] + _flat[stat]) * maxf(0.0, 1.0 + _add[stat]) * _mult[stat]
 
 
+## The stat's starting value, before anything was applied.
+func base_of(stat: String) -> float:
+	return float(_base.get(stat, 0.0))
+
+
 func names() -> Array:
 	return _base.keys()

@@ -481,6 +481,10 @@ func _rogue() -> void:
 
 func _gaiden() -> void:
 	_clear()
+	var hero := player.model as RosterHero
+	ws.orb_t = 999.0
+	await _secs(1.0)
+	_check("Gaiden's katana is hidden while he isn't attacking", hero.weapon != null and not hero.weapon.visible, "")
 	var a := _spawn(EnemyManager.TANK, 2.0, 0.0, 10.0)
 	await _secs(0.05)
 	ws.combo.clear()
@@ -488,6 +492,11 @@ func _gaiden() -> void:
 	ws.fire("katana", "orb", 1.0)
 	ws.fire("katana", "orb", 1.0)
 	_check("Katana: cuts in an arc", em.hp[a] < em.hp_max[a] and ws.pc == pc0, "")
+	await _secs(0.1)
+	_check("...and drawn while he swings", hero.weapon.visible, "")
+	await _secs(1.2)
+	_check("...then put away again", not hero.weapon.visible, "")
+	ws.orb_t = 0.3
 	ws.fire("katana", "orb", 1.0)
 	_check("...the 3rd cut sends a wind slash", ws.pc == pc0 + 1 and WeaponSystem.P_KINDS[ws.p_style[ws.pc - 1]] == "wind", "")
 	_clear()

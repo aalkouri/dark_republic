@@ -23,6 +23,7 @@ func _ready() -> void:
 	await _test_levels_in_game()
 	await _test_tooltip()
 	await _test_new_weapons()
+	await _test_convert()
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails > 0 else 0)
 
@@ -255,6 +256,46 @@ func _test_tooltip() -> void:
 	_check("tooltip: level and what it raises", t0.contains("Level 3 / 10") and t0.contains("shock damage") and t0.contains("cooldown"), t0)
 	_check("tooltip: current and next level numbers", t0.contains("x1.67") and t0.contains("x2"), t0)
 	_check("tooltip: max level", t2.contains("Max level") and t2.contains("x4"), t2)
+
+
+## Level-up: Convert a Legendary card into a chest key (60/30/10), a big key flies to the
+## counter; BAN shows the coin; Alt-inspect tooltips on the inventory.
+func _test_convert() -> void:
+	var hud: Hud = main.hud
+	var r := RandomNumberGenerator.new()
+	r.seed = 3
+	main.rng = r
+	var tally := [0, 0, 0]
+	for k in 3000:
+		main.state = "levelup"
+		main.current_draft = [{"id": "tome_damage", "rarity": 3}, {"id": "tome_armor", "rarity": 0}]
+		main.pending_levels = 2   # keep the draft open
+		var before: PackedInt32Array = main.keys.keys.duplicate()
+		var t: int = main.convert_upgrade(0)
+		tally[t] += 1
+		if k == 0:
+			_check("Convert: one key more", main.keys.keys[t] == before[t] + 1, str(main.keys.keys))
+	_check("Convert odds: 60% bronze, 30% silver, 10% gold", absf(tally[0] / 3000.0 - 0.6) < 0.03 and absf(tally[1] / 3000.0 - 0.3) < 0.03
+		and absf(tally[2] / 3000.0 - 0.1) < 0.02, str(tally))
+	main.state = "levelup"
+	main.current_draft = [{"id": "tome_damage", "rarity": 3}, {"id": "tome_armor", "rarity": 0}]
+	main.pending_levels = 1
+	_check("only Legendary cards convert", main.convert_upgrade(1) == -1, "")
+	hud.show_draft(main.current_draft)
+	_check("the Convert button only shows on the Legendary card", (hud.draft_cards[0][7] as Button).visible and not (hud.draft_cards[1][7] as Button).visible, "")
+	_check("BAN shows the coin icon instead of the word", (hud.draft_cards[0][5] as Button).text == "" and not (hud.draft_cards[0][5] as Button).find_children("*", "CoinIcon", true, false).is_empty(), "")
+	main.convert_upgrade(0)
+	await get_tree().process_frame
+	_check("...the last pick: the draft closes and play resumes", main.state == "playing" and not hud.draft_root.visible, main.state)
+	_check("a big key pops up", not hud._key_pops.is_empty(), "")
+	await _secs(Hud.KEY_POP_HOLD + Hud.KEY_POP_FLY + 0.3)
+	_check("...and flies into the key counter at the bottom left", hud._key_pops.is_empty() and hud.key_labels[0].text != "", "")
+	# Alt-inspect tooltips on the inventory chips
+	main.db.apply({"id": "tome_damage", "rarity": 0}, main.stats)
+	var tip := hud.upgrade_tooltip("tome_damage")
+	_check("inventory tooltip: name, level, what it does and the stat", tip.contains("Tome of Damage") and tip.contains("Damage: 1 -> 1.12"), tip)
+	var tip2 := hud.upgrade_tooltip("weapon_orb")
+	_check("...and for the main weapon its numbers", tip2.contains("Damage") and tip2.contains("Cooldown"), tip2)
 
 
 ## Thorns and Ice Aura: weapons anyone can draft, as often as a tome.

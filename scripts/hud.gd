@@ -47,8 +47,12 @@ var tooltip: PanelContainer
 var tooltip_text: RichTextLabel
 var inspect_hint: Label
 var buff_label: RichTextLabel
-var key_box: HBoxContainer        # keys held (chests), top centre
+var key_row: HBoxContainer        # keys held (chests): bottom left, above the inventory
+var key_icons: Array = []           # KeyIcon per tier
 var key_labels: Array[Label] = []
+var _key_pops: Array = []           # [KeyIcon, t, tier] big keys flying to the counter
+var _hover_inv := ""                # upgrade id under the mouse (hold Alt to inspect)
+var _hover_inv_ctrl: Control
 var slot_machine: SlotMachine     # the chest slot machine while it's open
 var _popups: Array = []   # [Label, age, base_pos]
 const POPUP_LIFE := 0.9
@@ -136,16 +140,36 @@ func setup(m) -> void:
 	inv_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	inv_label.visible = false   # replaced by the icon overlay below (kept for the debug overlay)
 	root.add_child(inv_label)
+	var bottom_left := VBoxContainer.new()   # the key counter, then your weapons/items and tomes
+	bottom_left.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	bottom_left.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	bottom_left.offset_left = 18
+	bottom_left.offset_bottom = -16
+	bottom_left.offset_top = -16
+	bottom_left.alignment = BoxContainer.ALIGNMENT_END
+	bottom_left.add_theme_constant_override("separation", 8)
+	bottom_left.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(bottom_left)
+	key_row = HBoxContainer.new()
+	key_row.add_theme_constant_override("separation", 4)
+	key_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom_left.add_child(key_row)
+	for t in 3:
+		var ki := KeyIcon.new()
+		ki.tier = t
+		ki.custom_minimum_size = Vector2(30, 30)
+		key_row.add_child(ki)
+		key_icons.append(ki)
+		var kl := _label("0", 18)
+		kl.add_theme_color_override("font_color", Chest.TIER_COLORS[t].lightened(0.2))
+		kl.custom_minimum_size = Vector2(24, 0)
+		key_row.add_child(kl)
+		key_labels.append(kl)
 	inv_box = VBoxContainer.new()
-	inv_box.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	inv_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	inv_box.offset_left = 18
-	inv_box.offset_bottom = -16
-	inv_box.offset_top = -16
 	inv_box.alignment = BoxContainer.ALIGNMENT_END
 	inv_box.add_theme_constant_override("separation", 6)
 	inv_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(inv_box)
+	bottom_left.add_child(inv_box)
 
 	var hint := _label("WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns", 14)
 	hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -272,12 +296,30 @@ func _build_draft(root: Control) -> void:
 		btn.pressed.connect(func(): main.choose_upgrade(i))
 		btn.mouse_entered.connect(func(): play_ui("hover"))
 		col.add_child(btn)
-		# BAN: pay 100 coins to throw this reward out of this and every later draft
+		# Under the card: BAN (pay coins to throw this reward out of this and every later draft)
+		# and, on Legendary cards, Convert (take a random chest key instead)
+		var under := HBoxContainer.new()
+		under.alignment = BoxContainer.ALIGNMENT_CENTER
+		under.add_theme_constant_override("separation", 10)
+		col.add_child(under)
 		var ban := Button.new()
-		ban.text = tr("BAN  ·  %d coins") % main.BAN_COST
+		ban.text = ""
 		ban.focus_mode = Control.FOCUS_NONE
-		ban.custom_minimum_size = Vector2(300, 44)
-		ban.add_theme_font_size_override("font_size", 18)
+		ban.custom_minimum_size = Vector2(140, 36)
+		ban.add_theme_font_size_override("font_size", 16)
+		var ban_row := HBoxContainer.new()
+		ban_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		ban_row.add_theme_constant_override("separation", 6)
+		ban_row.set_anchors_preset(Control.PRESET_FULL_RECT)
+		ban_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		ban.add_child(ban_row)
+		var ban_txt := _label(tr("BAN  %d") % main.BAN_COST, 16)
+		ban_txt.add_theme_color_override("font_color", Color(1.0, 0.85, 0.82))
+		ban_row.add_child(ban_txt)
+		var coin := CoinIcon.new()
+		coin.custom_minimum_size = Vector2(22, 22)
+		coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		ban_row.add_child(coin)
 		ban.add_theme_color_override("font_color", Color(1.0, 0.85, 0.82))
 		ban.add_theme_color_override("font_disabled_color", Color(0.55, 0.5, 0.48))
 		ban.add_theme_stylebox_override("normal", _ban_style(Color(0.55, 0.08, 0.06), Color(0.2, 0.03, 0.02, 0.95)))
@@ -288,7 +330,34 @@ func _build_draft(root: Control) -> void:
 			if main.ban_upgrade(i):
 				play_ui("ban"))
 		ban.mouse_entered.connect(func(): if not ban.disabled: play_ui("hover"))
-		col.add_child(ban)
+		under.add_child(ban)
+		var conv := Button.new()
+		conv.text = ""
+		conv.focus_mode = Control.FOCUS_NONE
+		conv.custom_minimum_size = Vector2(150, 36)
+		conv.tooltip_text = tr("Skip this upgrade for a chest key: 60% bronze, 30% silver, 10% gold")
+		conv.add_theme_stylebox_override("normal", _ban_style(Color(0.85, 0.65, 0.2), Color(0.16, 0.11, 0.03, 0.95)))
+		conv.add_theme_stylebox_override("hover", _ban_style(Color(1.0, 0.85, 0.35), Color(0.26, 0.18, 0.05, 0.97)))
+		conv.add_theme_stylebox_override("pressed", _ban_style(Color(1.0, 0.95, 0.6), Color(0.34, 0.24, 0.06, 1.0)))
+		var conv_row := HBoxContainer.new()
+		conv_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		conv_row.add_theme_constant_override("separation", 2)
+		conv_row.set_anchors_preset(Control.PRESET_FULL_RECT)
+		conv_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		conv.add_child(conv_row)
+		var conv_txt := _label(tr("Convert"), 16)
+		conv_txt.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+		conv_row.add_child(conv_txt)
+		for t in 3:
+			var ki := KeyIcon.new()
+			ki.tier = t
+			ki.custom_minimum_size = Vector2(22, 22)
+			ki.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			conv_row.add_child(ki)
+		conv.pressed.connect(func(): main.convert_upgrade(i))
+		conv.mouse_entered.connect(func(): play_ui("hover"))
+		conv.visible = false
+		under.add_child(conv)
 		# Shown over a banned card
 		var veil := ColorRect.new()
 		veil.color = Color(0.05, 0.0, 0.0, 0.78)
@@ -356,7 +425,7 @@ func _build_draft(root: Control) -> void:
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body_box.add_child(body)
 		btn.add_child(veil)
-		draft_cards.append([btn, ttl, body, tome, lvl, ban, veil])
+		draft_cards.append([btn, ttl, body, tome, lvl, ban, veil, conv])
 
 
 ## Card frame outlined thickly in the rarity colour (brighter on hover).
@@ -453,23 +522,8 @@ func _build_tooltip(root: Control) -> void:
 	buff_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	root.add_child(buff_label)
 
-	key_box = HBoxContainer.new()
-	key_box.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	key_box.offset_left = -300
-	key_box.offset_right = 300
-	key_box.offset_top = 196
-	key_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	key_box.add_theme_constant_override("separation", 22)
-	key_box.visible = false
-	key_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(key_box)
-	for t in 3:
-		var kl := _label("", 20)
-		kl.add_theme_color_override("font_color", Chest.TIER_COLORS[t].lightened(0.15))
-		key_box.add_child(kl)
-		key_labels.append(kl)
 
-	inspect_hint = _label("PAUSED  ·  hover an ability for details  ·  release Alt to resume", 20)
+	inspect_hint = _label(tr("PAUSED  ·  hover an ability or upgrade for details  ·  release Alt to resume"), 20)
 	inspect_hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	inspect_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	inspect_hint.offset_left = -500
@@ -539,6 +593,17 @@ func set_inspect(on: bool) -> void:
 
 
 func _update_tooltip() -> void:
+	if _hover_inv != "" and is_instance_valid(_hover_inv_ctrl) and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE and not settings_menu.visible \
+			and main.db.defs.has(_hover_inv):
+		tooltip_text.text = upgrade_tooltip(_hover_inv)
+		tooltip.visible = true
+		tooltip.reset_size()
+		var ir := _hover_inv_ctrl.get_global_rect()
+		var vpi := get_viewport().get_visible_rect().size
+		var ip := Vector2(ir.end.x + 12, ir.position.y + ir.size.y * 0.5 - tooltip.size.y * 0.5)
+		ip.y = clampf(ip.y, 10, vpi.y - tooltip.size.y - 10)
+		tooltip.position = ip
+		return
 	var show := _hover_slot >= 0 and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE and not settings_menu.visible
 	if not show:
 		tooltip.visible = false
@@ -680,6 +745,7 @@ func show_draft(picks: Array) -> void:
 		btn.visible = i < picks.size()
 		(card[5] as Button).visible = i < picks.size()
 		(card[6] as ColorRect).visible = false
+		(card[7] as Button).visible = i < picks.size() and int(picks[i].get("rarity", 0)) == main.LEGENDARY
 		btn.disabled = false
 		if i >= picks.size():
 			continue
@@ -725,6 +791,119 @@ func _show_end_shards(won: Dictionary) -> void:
 		end_shards.add_child(l)
 
 
+## A big key pops up in the middle of the screen, then flies down to its slot on the key
+## counter (bottom left).
+func key_popup(tier: int) -> void:
+	var k := KeyIcon.new()
+	k.tier = tier
+	k.size = Vector2(140, 140)
+	k.pivot_offset = k.size * 0.5
+	k.z_index = 50
+	add_child(k)
+	var vp := get_viewport().get_visible_rect().size
+	k.position = vp * 0.5 - k.size * 0.5
+	k.scale = Vector2.ZERO
+	var name := _label(tr(KeyManager.NAMES[tier]) + "!", 30)
+	name.add_theme_color_override("font_color", Chest.TIER_COLORS[tier].lightened(0.25))
+	name.position = Vector2(vp.x * 0.5 - 150, vp.y * 0.5 + 80)
+	name.size = Vector2(300, 40)
+	name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(name)
+	_key_pops.append([k, 0.0, tier, name])
+	play_ui("levelup")
+
+
+const KEY_POP_HOLD := 0.9    # seconds the big key stays up before it flies
+const KEY_POP_FLY := 0.55
+
+
+func _tick_key_pops(dt: float) -> void:
+	for n in range(_key_pops.size() - 1, -1, -1):
+		var e: Array = _key_pops[n]
+		e[1] += dt
+		var t: float = e[1]
+		var k: KeyIcon = e[0]
+		var lbl: Label = e[3]
+		var vp := get_viewport().get_visible_rect().size
+		var mid := vp * 0.5 - k.size * 0.5
+		if t < KEY_POP_HOLD:
+			var a := clampf(t / 0.25, 0.0, 1.0)
+			k.scale = Vector2.ONE * (a * (1.0 + 0.25 * sin(a * PI)))   # pops up with a little overshoot
+			k.rotation = sin(t * 6.0) * 0.08
+			k.position = mid
+			lbl.modulate.a = a
+		else:
+			var f := clampf((t - KEY_POP_HOLD) / KEY_POP_FLY, 0.0, 1.0)
+			var e2 := f * f * (3.0 - 2.0 * f)
+			var slot: Control = key_icons[int(e[2])]
+			var to := slot.get_global_rect().get_center() - k.size * 0.5
+			k.position = mid.lerp(to, e2) + Vector2(0, -120.0 * sin(f * PI))
+			k.scale = Vector2.ONE * lerpf(1.0, slot.size.x / k.size.x, e2)
+			k.rotation = lerpf(0.0, -TAU, e2)
+			lbl.modulate.a = 1.0 - f * 2.0
+			if f >= 1.0:
+				k.queue_free()
+				lbl.queue_free()
+				_key_pops.remove_at(n)
+				(key_icons[int(e[2])] as Control).pivot_offset = (key_icons[int(e[2])] as Control).size * 0.5
+				var tw := create_tween()
+				tw.tween_property(key_icons[int(e[2])], "scale", Vector2.ONE * 1.5, 0.08)
+				tw.tween_property(key_icons[int(e[2])], "scale", Vector2.ONE, 0.18)
+
+
+## What an owned upgrade does, for the Alt-inspect tooltip: name, level, description and the
+## stats it raises (where they started -> where they are now).
+func upgrade_tooltip(id: String) -> String:
+	var db: UpgradeDB = main.db
+	var d: Dictionary = db.defs[id]
+	var lv: int = db.level_of(id)
+	var lines: Array[String] = []
+	var kind := tr(str(d["kind"]).capitalize())
+	if d.has("signature"):
+		kind = tr("LEGENDARY")
+	lines.append("[font_size=22][b]%s[/b][/font_size]  [color=#ffd23f]%s[/color]" % [tr(str(d["name"])), tr("Lv %d") % lv])
+	lines.append("[color=#aaaaaa]%s[/color]" % kind)
+	var desc = d.get("desc", "")
+	if desc is Array:
+		desc = tr(str(desc[0])) % desc.slice(1).map(func(x): return tr(str(x)))
+	if str(desc) != "":
+		lines.append("")
+		lines.append(tr(str(desc)))
+	var stats_shown := []
+	for e in d.get("per_level", []):
+		stats_shown.append(str(e["stat"]))
+	if id == "weapon_orb":
+		stats_shown = ["orb_damage", "orb_cooldown", "orb_count", "orb_pierce"]
+	elif d.has("signature"):
+		stats_shown = [id + "_damage", id + "_cooldown", id + "_count", id + "_pierce"]
+	if not stats_shown.is_empty():
+		lines.append("")
+	for st in stats_shown:
+		if not main.stats.has_stat(st):
+			continue
+		var nm = db.stat_names.get(st, st)
+		if nm is Array:
+			nm = tr(str(nm[0])) % tr(str(nm[1]))
+		var now: float = main.stats.value(st)
+		var base: float = main.stats.base_of(st)
+		var pct: bool = db.percent_stats.has(st)
+		var f := func(v: float) -> String: return ("%d%%" % roundi(v * 100.0)) if pct else ("%.2f" % v).rstrip("0").rstrip(".")
+		if absf(now - base) > 0.0001:
+			lines.append("[color=#9be37a]%s: %s -> %s[/color]" % [tr(str(nm)), f.call(base), f.call(now)])
+		else:
+			lines.append("[color=#cccccc]%s: %s[/color]" % [tr(str(nm)), f.call(now)])
+	return "\n".join(lines)
+
+
+func _on_inv_hover(id: String, ctrl: Control, on: bool) -> void:
+	if on:
+		_hover_inv = id
+		_hover_inv_ctrl = ctrl
+	elif _hover_inv == id:
+		_hover_inv = ""
+		_hover_inv_ctrl = null
+
+
 ## The chest slot machine (game paused). `done` is called with (ability, levels) when the
 ## player presses Continue.
 func show_slot_machine(tier: int, done: Callable) -> SlotMachine:
@@ -748,6 +927,7 @@ func mark_banned(i: int) -> void:
 	(card[0] as Button).disabled = true
 	(card[6] as ColorRect).visible = true
 	(card[5] as Button).visible = false
+	(card[7] as Button).visible = false
 	_refresh_bans()
 
 
@@ -1034,8 +1214,10 @@ func _inv_chip(id: String, lv: int) -> Control:
 	var d: Dictionary = main.db.defs[id]
 	var chip := Control.new()
 	chip.custom_minimum_size = Vector2(46, 46)
-	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	chip.tooltip_text = tr("%s  Lv %d") % [tr(d["name"]), lv]
+	chip.mouse_filter = Control.MOUSE_FILTER_STOP   # hover (holding Alt) for details
+	chip.set_meta("id", id)
+	chip.mouse_entered.connect(func(): _on_inv_hover(id, chip, true))
+	chip.mouse_exited.connect(func(): _on_inv_hover(id, chip, false))
 	var icon := UpgradeIcon.create(d.get("icon", {}), d["kind"])
 	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
 	chip.add_child(icon)
@@ -1164,10 +1346,11 @@ func _process(dt: float) -> void:
 	_update_tooltip()
 	_update_popups(dt)
 	var held: PackedInt32Array = main.keys.keys
-	key_box.visible = held[0] + held[1] + held[2] > 0
 	for t in 3:
-		key_labels[t].visible = held[t] > 0
-		key_labels[t].text = tr("%s x%d") % [tr(KeyManager.NAMES[t]), held[t]]
+		key_labels[t].text = str(held[t])
+		(key_icons[t] as KeyIcon).dim = held[t] <= 0
+		(key_icons[t] as KeyIcon).queue_redraw()
+	_tick_key_pops(dt)
 	if p.burn_left > 0.0:
 		hp_label.text += "   " + tr("BURNING")
 		hp_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))

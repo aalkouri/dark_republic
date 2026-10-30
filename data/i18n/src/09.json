@@ -526,5 +526,45 @@
   "Dornenschaden",
   "荆棘伤害",
   "いばらダメージ"
+ ],
+ "BAN  %d": [
+  "VETAR  %d",
+  "BANNIR  %d",
+  "حظر  %d",
+  "BANN  %d",
+  "禁用  %d",
+  "禁止  %d"
+ ],
+ "Convert": [
+  "Convertir",
+  "Convertir",
+  "تحويل",
+  "Umwandeln",
+  "转换",
+  "変換"
+ ],
+ "LEGENDARY": [
+  "LEGENDARIO",
+  "LÉGENDAIRE",
+  "أسطوري",
+  "LEGENDÄR",
+  "传说",
+  "レジェンダリー"
+ ],
+ "Skip this upgrade for a chest key: 60% bronze, 30% silver, 10% gold": [
+  "Omite esta mejora a cambio de una llave: 60% bronce, 30% plata, 10% oro",
+  "Renoncez à cette amélioration contre une clé : 60% bronze, 30% argent, 10% or",
+  "تخطَّ هذه الترقية مقابل مفتاح: 60% برونزي، 30% فضي، 10% ذهبي",
+  "Überspringe dieses Upgrade für einen Schlüssel: 60% Bronze, 30% Silber, 10% Gold",
+  "放弃此升级换取一把钥匙：60% 青铜，30% 白银，10% 黄金",
+  "この強化をスキップして鍵を入手：ブロンズ60%、シルバー30%、ゴールド10%"
+ ],
+ "PAUSED  ·  hover an ability or upgrade for details  ·  release Alt to resume": [
+  "PAUSA  ·  pasa el ratón por una habilidad o mejora para ver detalles  ·  suelta Alt para continuar",
+  "PAUSE  ·  survolez une capacité ou une amélioration pour les détails  ·  relâchez Alt pour reprendre",
+  "متوقف  ·  مرّر فوق قدرة أو ترقية للتفاصيل  ·  أفلت Alt للمتابعة",
+  "PAUSE  ·  über Fähigkeit oder Upgrade fahren für Details  ·  Alt loslassen zum Fortsetzen",
+  "已暂停  ·  悬停技能或升级查看详情  ·  松开 Alt 继续",
+  "一時停止  ·  アビリティや強化にカーソルで詳細  ·  Altを離して再開"
  ]
 }

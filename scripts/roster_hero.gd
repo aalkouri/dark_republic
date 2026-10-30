@@ -76,6 +76,7 @@ const CFG := {
 		"cast": [[0.2, 1.4], [0.2, 1.4], [0.2, 1.4]], "cast_speed": [1.6, 1.4, 1.2],
 		"main": Color(1.0, 0.25, 0.3), "deep": Color(0.12, 0.08, 0.14), "light": Color(1.0, 0.85, 0.85),
 		"motes": false,
+		"weapon_when_attacking": true,   # the katana is only drawn while he swings or casts
 	},
 	"dr_croc": {
 		"fire": [1.2, 3.2], "fire_speed": 2.2,
@@ -108,6 +109,7 @@ var char_id := ""
 var tree: AnimationTree
 var skeleton: Skeleton3D
 var weapon: Node3D
+var _weapon_show := 0.0          # seconds the weapon stays drawn (weapon_when_attacking)
 var twist: SpineTwist
 var _rig: Node3D
 var _mats: Array[StandardMaterial3D] = []
@@ -380,6 +382,19 @@ func _fire(layer: String) -> void:
 		return
 	tree.set("parameters/%s/request" % layer, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 	_requested[layer] = _time
+	if bool(CFG.get(char_id, {}).get("weapon_when_attacking", false)):
+		var seg = CFG[char_id]["fire"] if layer == "fire" else CFG[char_id]["cast"][int(layer.substr(4))]
+		var spd: float = CFG[char_id]["fire_speed"] if layer == "fire" else CFG[char_id]["cast_speed"][int(layer.substr(4))]
+		var dur := (float(seg[1]) - float(seg[0])) / maxf(spd, 0.01) if seg.size() == 2 else 0.6
+		_weapon_show = maxf(_weapon_show, dur + 0.08)
+
+
+## Characters whose weapon only appears while they attack (Gaiden's katana).
+func _update_weapon_shown(dt: float) -> void:
+	if weapon == null or not bool(CFG.get(char_id, {}).get("weapon_when_attacking", false)):
+		return
+	_weapon_show = maxf(0.0, _weapon_show - dt)
+	weapon.visible = _weapon_show > 0.0
 
 
 func set_dim(f: float) -> void:
@@ -460,6 +475,7 @@ func _process(dt: float) -> void:
 		_rig.rotation = Vector3(-0.35 * lean - 0.4 * l + 0.3 * _flinch, PI + 0.08 * sin(_time * 0.7), 0.05 * sin(_time * 1.1))
 		_rig.scale = Vector3.ONE * (1.0 + 0.25 * sin(_swell * PI) + 0.08 * l)
 		return
+	_update_weapon_shown(dt)
 	tree.set("parameters/loco/blend_position", minf(_speed, RUN_SPEED))
 	tree.set("parameters/loco_speed/scale", clampf(_speed / RUN_SPEED, 1.0, 2.2) if _speed > RUN_SPEED else 1.0)
 	_twist_hold -= dt
