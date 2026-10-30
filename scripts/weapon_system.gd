@@ -142,6 +142,9 @@ const CARDS := {
 }
 
 var style := "fire"              # set by main from the selected character, before _ready
+var items: ItemEffects           # set by main (forged Fireballs' explosions)
+var fire_hits := 0               # Fireball hits so far (forged: every 5th explodes)
+var _fire_forge := 0             # the Fireballs' forge level (read once per run)
 var lightning: LightningFx
 var orb_t := 0.3
 var sig_t := {}                  # signature weapon id -> seconds to next shot
@@ -180,6 +183,7 @@ func setup(p_stats: Stats, p_db: UpgradeDB, p_enemies: EnemyManager, p_player: P
 
 
 func _ready() -> void:
+	_fire_forge = Forge.level_of("fire")
 	p_pos.resize(P_MAX)
 	p_vel.resize(P_MAX)
 	p_life.resize(P_MAX)
@@ -334,6 +338,7 @@ static func add_signature_weapons(db: UpgradeDB, stats: Stats, own_style: String
 		var who := I18n.t(_char_name(STYLE_CHAR[sty]))
 		for k in SIG_BASE:
 			stats.define("%s_%s" % [sid, k], SIG_BASE[k])
+		Forge.apply(stats, sid, sty)   # forged at the Forge: the Legendary card is forged too
 		db.stat_names["%s_damage" % sid] = ["%s Damage", c["name"]]
 		db.stat_names["%s_count" % sid] = c["name"]
 		db.stat_names["%s_pierce" % sid] = ["%s Pierce", c["name"]]
@@ -968,6 +973,11 @@ func _update_projectiles(dt: float) -> void:
 					dmg *= SHARD_FROZEN / (1.0 + enemies.freeze_bonus)   # x2 in total, not x2 on top of +50%
 				enemies.damage(e, dmg, p_vel[i].normalized() * 2.5)
 				match kind:
+					"fire":
+						if _fire_forge > 0 and items != null:   # forged Fireballs: every 5th hit explodes
+							fire_hits += 1
+							if fire_hits % Forge.FIRE_BLAST_EVERY == 0:
+								items.blast(enemies.pos[e], Forge.FIRE_BLAST_DAMAGE * stats.value("damage"), Forge.FIRE_BLAST_RADIUS * stats.value("area"))
 					"ice":
 						enemies.slow(e, SHARD_SLOW, SHARD_SLOW_TIME)
 					"dark":

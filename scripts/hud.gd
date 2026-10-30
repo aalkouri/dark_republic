@@ -557,18 +557,38 @@ func _update_tooltip() -> void:
 
 func _build_end(root: Control) -> void:
 	end_root = _dim(root)
+	(end_root as ColorRect).color = Color(0, 0, 0, 0.45)
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	end_root.add_child(center)
+	# One card, slightly see-through, holding everything in tidy sections
+	var card := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.045, 0.04, 0.84)
+	sb.border_color = Color(0.85, 0.55, 0.22, 0.85)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(18)
+	sb.shadow_color = Color(0, 0, 0, 0.5)
+	sb.shadow_size = 20
+	sb.content_margin_left = 44
+	sb.content_margin_right = 44
+	sb.content_margin_top = 26
+	sb.content_margin_bottom = 26
+	card.add_theme_stylebox_override("panel", sb)
+	card.custom_minimum_size = Vector2(720, 0)
+	center.add_child(card)
 	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 18)
-	center.add_child(vb)
-	end_title = _label("", 56)
+	vb.add_theme_constant_override("separation", 10)
+	card.add_child(vb)
+	# Header: the verdict and the run in one line
+	end_title = _label("", 54)
 	end_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(end_title)
-	end_stats = _label("", 22)
+	end_stats = _label("", 21)
 	end_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	end_stats.add_theme_color_override("font_color", Color(0.85, 0.8, 0.74))
 	vb.add_child(end_stats)
+	# Unlocks (after a first boss kill)
 	end_unlocks = VBoxContainer.new()
 	end_unlocks.add_theme_constant_override("separation", 8)
 	end_unlocks.visible = false
@@ -579,21 +599,23 @@ func _build_end(root: Control) -> void:
 	if ResourceLoader.exists("res://audio/coins/coin_done.wav"):
 		_unlock_ding.stream = load("res://audio/coins/coin_done.wav")
 	add_child(_unlock_ding)
-	# Character EXP earned this run (1 per kill, banked when the run ends)
-	end_exp = _label("", 20)
+	# Experience: character EXP earned this run (banked when the run ends)
+	vb.add_child(_end_section(tr("EXPERIENCE")))
+	end_exp = _label("", 19)
 	end_exp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	end_exp.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
 	vb.add_child(end_exp)
+	# Rewards: shards from bosses, then the coins (banked here, poured into the counter)
+	vb.add_child(_end_section(tr("REWARDS")))
 	end_shards = HBoxContainer.new()
 	end_shards.alignment = BoxContainer.ALIGNMENT_CENTER
 	end_shards.add_theme_constant_override("separation", 8)
 	end_shards.visible = false
 	vb.add_child(end_shards)
-	# Coins earned this run (banked here, poured into the counter)
 	var coin_box := VBoxContainer.new()
-	coin_box.add_theme_constant_override("separation", 4)
+	coin_box.add_theme_constant_override("separation", 2)
 	vb.add_child(coin_box)
-	end_coin_lines = _label("", 20)
+	end_coin_lines = _label("", 19)
 	end_coin_lines.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	end_coin_lines.add_theme_color_override("font_color", Color(0.95, 0.85, 0.6))
 	coin_box.add_child(end_coin_lines)
@@ -602,23 +624,51 @@ func _build_end(root: Control) -> void:
 	pot_row.add_theme_constant_override("separation", 10)
 	coin_box.add_child(pot_row)
 	end_pot_icon = CoinIcon.new()
-	end_pot_icon.custom_minimum_size = Vector2(48, 48)
+	end_pot_icon.custom_minimum_size = Vector2(44, 44)
 	pot_row.add_child(end_pot_icon)
-	end_pot = _label("", 44)
+	end_pot = _label("", 42)
 	end_pot.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	end_pot.add_theme_color_override("font_outline_color", Color(0.2, 0.1, 0.0))
 	end_pot.add_theme_constant_override("outline_size", 6)
 	pot_row.add_child(end_pot)
+	# Buttons side by side at the bottom
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0, 8)
+	vb.add_child(gap)
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 24)
+	vb.add_child(buttons)
 	var btn := Button.new()
-	btn.text = "Restart  [R]"
+	btn.text = tr("Restart  [R]")
+	btn.custom_minimum_size = Vector2(220, 52)
 	btn.add_theme_font_size_override("font_size", 24)
 	btn.pressed.connect(func(): main.restart())
-	vb.add_child(btn)
+	buttons.add_child(btn)
 	var menu_btn := Button.new()
-	menu_btn.text = "Main menu"
+	menu_btn.text = tr("Main menu")
+	menu_btn.custom_minimum_size = Vector2(220, 52)
 	menu_btn.add_theme_font_size_override("font_size", 24)
 	menu_btn.pressed.connect(func(): main.to_title())
-	vb.add_child(menu_btn)
+	buttons.add_child(menu_btn)
+
+
+## A small section heading with a thin rule under it, for the end screen.
+func _end_section(text: String) -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	var top := Control.new()
+	top.custom_minimum_size = Vector2(0, 4)
+	box.add_child(top)
+	var l := _label(text, 15)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.add_theme_color_override("font_color", Color(0.85, 0.6, 0.3, 0.9))
+	box.add_child(l)
+	var rule := ColorRect.new()
+	rule.color = Color(0.85, 0.55, 0.22, 0.35)
+	rule.custom_minimum_size = Vector2(0, 2)
+	box.add_child(rule)
+	return box
 
 
 # ------------------------------------------------------------------ public

@@ -13,6 +13,7 @@ var player: Player
 var rng: RandomNumberGenerator
 
 var _bombs := PackedVector3Array()
+var _blasts: Array = []   # [pos, damage, radius] (forged Fireballs)
 var _fx: Array = []   # [MeshInstance3D, age, radius]
 var _boom_mesh: SphereMesh
 
@@ -42,7 +43,25 @@ func _on_enemy_killed(p: Vector3, _type_id: int) -> void:
 		player.heal(2.0)
 
 
+## A Blast-Bomb-style explosion at `at` for `dmg` within `r` (queued, resolved next tick).
+func blast(at: Vector3, dmg: float, r: float) -> void:
+	if _blasts.size() < MAX_QUEUED:
+		_blasts.append([at, dmg, r])
+
+
 func tick(dt: float) -> void:
+	var nb := mini(_blasts.size(), MAX_PER_TICK)
+	for k in nb:
+		var b: Array = _blasts[k]
+		var bp: Vector3 = b[0]
+		var c := bp + Vector3(0.0, 0.6, 0.0)
+		for e in enemies.query_radius(c, b[2]):
+			var away := enemies.pos[e] - bp
+			away.y = 0.0
+			enemies.damage(e, b[1], away.normalized() * 8.0)
+		_spawn_fx(c, b[2])
+	if nb > 0:
+		_blasts = _blasts.slice(nb)
 	if not _bombs.is_empty():
 		var n := mini(_bombs.size(), MAX_PER_TICK)
 		var now := _bombs.slice(0, n)

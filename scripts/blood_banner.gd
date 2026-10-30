@@ -2,7 +2,7 @@ class_name BloodBanner
 extends Control
 ## Big blood-red title in the middle of the screen with a thick black outline and blood
 ## dripping off the letters (drawn in code, Cinzel Black). Slams in, the drips run down,
-## then it fades away.  show_text("SURVIVE 10 MINUTES")
+## then it fades away.  show_text("SURVIVE")
 
 const FONT_SIZE := 96
 const HOLD := 3.2          # seconds fully visible

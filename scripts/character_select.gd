@@ -39,6 +39,11 @@ var _weapon_box: VBoxContainer     # top right of the preview: weapon icon, name
 var _weapon_icon: UpgradeIcon
 var _weapon_name: Label
 var _weapon_short: Label
+var _forge_label: Label             # the forge level, under the weapon name
+var _shard_row: HBoxContainer       # shards the next forge level needs, lit when you have them
+var _pluses: _PlusSigns             # green pluses over the weapon when it can be forged
+var _forge_style := ""              # the shown character's weapon style ("" = none)
+var _forge_menu: ForgeMenu
 var _model_pivot: Node3D
 var _hero_preview: Node3D
 var _previews := {}          # character id -> RosterModel (built on first view)
@@ -416,6 +421,65 @@ func _build_level_box(stage: Control) -> void:
 	_level_box.add_child(_exp_bar)
 
 
+## The weapon corner's forge info: its forge level, and the shards the next level needs - one
+## crystal per kind with the count, lit once you have that many of that kind.
+func _refresh_forge() -> void:
+	for ch in _shard_row.get_children():
+		ch.queue_free()
+	_forge_label.visible = _forge_style != ""
+	_shard_row.visible = _forge_style != ""
+	if _forge_style == "":
+		return
+	var lvl := Forge.level_of(_forge_style)
+	_forge_label.text = (tr("Forged +%d") % lvl if lvl < Forge.MAX_LEVEL else tr("Fully forged")) if lvl > 0 else tr("Forge")
+	var cost := Forge.next_cost(_forge_style)
+	for kind in cost:
+		var need := int(cost[kind])
+		var have := int(Wallet.shards.get(kind, 0))
+		var lit := have >= need
+		if need <= 5:   # small costs: one crystal per shard, each lit when you have that many
+			for k in need:
+				_shard_row.add_child(_shard_pip(kind, have > k))
+		else:
+			_shard_row.add_child(_shard_pip(kind, lit))
+			var l := _label("%d" % need, 13, ShardIcon.COLORS[kind][2] if lit else Color(0.55, 0.5, 0.5), true)
+			l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_shard_row.add_child(l)
+
+
+func _shard_pip(kind: String, lit: bool) -> ShardIcon:
+	var ic := ShardIcon.new()
+	ic.kind = kind
+	ic.custom_minimum_size = Vector2(16, 22)
+	ic.modulate = Color.WHITE if lit else Color(0.3, 0.3, 0.32, 0.75)
+	return ic
+
+
+func _on_weapon_click(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		open_forge()
+
+
+## The forge for the shown character's weapon.
+func open_forge() -> void:
+	if _forge_style == "" or _forge_menu != null:
+		return
+	_on_slot_hover(WEAPON_HOVER, false)
+	var w: Dictionary = KitDB.kit(WeaponSystem.STYLE_CHAR[_forge_style]).get("weapon", {})
+	_forge_menu = ForgeMenu.new()
+	_forge_menu.setup(_forge_style, w)
+	_forge_menu.forged.connect(func(_s: String, _l: int): _refresh_forge())
+	_forge_menu.closed.connect(_close_forge)
+	add_child(_forge_menu)
+
+
+func _close_forge() -> void:
+	if _forge_menu != null:
+		_forge_menu.queue_free()
+		_forge_menu = null
+	_refresh_forge()
+
+
 ## Top-right corner of the preview: the signature weapon's icon, its name and a few words.
 func _build_weapon_box(stage: Control) -> void:
 	_weapon_box = VBoxContainer.new()
@@ -434,6 +498,11 @@ func _build_weapon_box(stage: Control) -> void:
 	_weapon_icon.mouse_entered.connect(func(): _on_slot_hover(WEAPON_HOVER, true))
 	_weapon_icon.mouse_exited.connect(func(): _on_slot_hover(WEAPON_HOVER, false))
 	_weapon_box.add_child(_weapon_icon)
+	_weapon_icon.gui_input.connect(_on_weapon_click)
+	_pluses = _PlusSigns.new()
+	_pluses.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pluses.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_weapon_icon.add_child(_pluses)
 	_weapon_name = _label("", 19, Color(1.0, 0.85, 0.5), true)
 	_weapon_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_weapon_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -445,6 +514,15 @@ func _build_weapon_box(stage: Control) -> void:
 	_weapon_short.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_weapon_short.custom_minimum_size.x = 150
 	_weapon_box.add_child(_weapon_short)
+	_forge_label = _label("", 14, Color(1.0, 0.65, 0.3), true)
+	_forge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_forge_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_weapon_box.add_child(_forge_label)
+	_shard_row = HBoxContainer.new()
+	_shard_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_shard_row.add_theme_constant_override("separation", 3)
+	_shard_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_weapon_box.add_child(_shard_row)
 	for l in [head, _weapon_name, _weapon_short]:
 		(l as Label).mouse_filter = Control.MOUSE_FILTER_IGNORE
 
@@ -540,6 +618,15 @@ static func weapon_tooltip(char_id: String) -> String:
 	lines.append(dmg)
 	lines.append("")
 	lines.append(I18n.t(w.get("desc", "")))
+	for sty in WeaponSystem.STYLE_CHAR:
+		if WeaponSystem.STYLE_CHAR[sty] == char_id and Forge.has_recipe(sty):
+			var lvl := Forge.level_of(sty)
+			lines.append("")
+			if lvl > 0:
+				lines.append("[color=#ff9a40]%s[/color]" % I18n.f("Forged +%d", lvl))
+				for l in Forge.describe(sty, lvl):
+					lines.append("[color=#9be37a]• %s[/color]" % l)
+			lines.append("[color=#cccccc]%s[/color]" % (I18n.t("Click to forge") if Forge.can_afford(sty) else I18n.t("Collect the shards below to forge it")))
 	return "\n".join(lines)
 
 
@@ -717,6 +804,11 @@ func _show(k: int) -> void:
 		_weapon_name.text = str(w.get("name", ""))
 		_weapon_name.add_theme_color_override("font_color", Color.html(str(ic.get("tint", "#ffb020"))).lerp(Color.WHITE, 0.35))
 		_weapon_short.text = str(w.get("short", ""))
+		_forge_style = ""
+		for sty in WeaponSystem.STYLE_CHAR:
+			if WeaponSystem.STYLE_CHAR[sty] == c["id"] and Forge.has_recipe(sty):
+				_forge_style = sty
+		_refresh_forge()
 		if has_abilities:
 			_kit.text = ""
 	_kit.visible = _kit.text != ""
@@ -888,7 +980,7 @@ func _open_skills() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if skills.visible or is_instance_valid(reveal):
+	if skills.visible or is_instance_valid(reveal) or _forge_menu != null:
 		return   # the skill screen / unlock reveal handle their own input
 	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		_back()
@@ -897,6 +989,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
+	# A weapon that can be forged pulses (grows and settles back) under its green plus signs
+	var ready := _forge_style != "" and _weapon_box.visible and Forge.can_afford(_forge_style) and _forge_menu == null
+	_pluses.active = ready
+	_weapon_icon.pivot_offset = _weapon_icon.size * 0.5
+	_weapon_icon.scale = Vector2.ONE * (1.0 + 0.08 * (0.5 - 0.5 * cos(_t * 2.6)) if ready else 1.0)
 	_model_pivot.rotation.y = PI - 0.55 + sin(_t * 0.5) * 0.35   # face the camera, sway to show the train
 	_shot_tick()
 
@@ -930,6 +1027,13 @@ func _shot_setup() -> void:
 				SkillTree.learn("fire_wizard", sk)
 			refresh_levels()
 			_open_skills.call_deferred()
+		elif a.begins_with("--shot-shards="):   # fire,ice,lightning,dark (not saved)
+			var n := a.split("=")[1].split(",")
+			for k in mini(4, n.size()):
+				Wallet.shards[Wallet.SHARDS[k]] = int(n[k])
+			Wallet._refresh_shards()
+		elif a == "--shot-forge":   # open the forge for the shown character
+			(func(): _refresh_forge(); open_forge()).call_deferred()
 		elif a.begins_with("--shot-coins="):
 			Wallet.coins = int(a.split("=")[1])
 			Wallet.displayed = Wallet.coins
@@ -979,3 +1083,35 @@ class ReqMark extends Control:
 		else:
 			draw_line(Vector2(7, 7), Vector2(15, 15), Color.WHITE, 2.5, true)
 			draw_line(Vector2(15, 7), Vector2(7, 15), Color.WHITE, 2.5, true)
+
+
+## Green plus signs popping in and out at random spots on and around the weapon icon while it
+## can be forged.
+class _PlusSigns extends Control:
+	var active := false
+	var _plus: Array = []   # [pos (0..1 of the icon, a bit beyond), age, life, size]
+	var _spawn := 0.0
+
+	func _process(dt: float) -> void:
+		if active:
+			_spawn -= dt
+			if _spawn <= 0.0:
+				_spawn = randf_range(0.08, 0.22)
+				_plus.append([Vector2(randf_range(-0.25, 1.25), randf_range(-0.25, 1.25)), 0.0, randf_range(0.6, 1.1), randf_range(6.0, 11.0)])
+		for k in range(_plus.size() - 1, -1, -1):
+			_plus[k][1] += dt
+			if _plus[k][1] >= _plus[k][2]:
+				_plus.remove_at(k)
+		queue_redraw()
+
+	func _draw() -> void:
+		for p in _plus:
+			var f: float = p[1] / p[2]
+			var a := sin(f * PI)   # fades in, then out
+			var c: Vector2 = p[0] * size
+			var r: float = p[3] * (0.6 + 0.4 * a)
+			var col := Color(0.35, 1.0, 0.4, a)
+			draw_rect(Rect2(c - Vector2(r, r * 0.3), Vector2(r * 2.0, r * 0.6)), Color(0, 0.2, 0, a * 0.6))
+			draw_rect(Rect2(c - Vector2(r * 0.3, r), Vector2(r * 0.6, r * 2.0)), Color(0, 0.2, 0, a * 0.6))
+			draw_rect(Rect2(c - Vector2(r * 0.8, r * 0.18), Vector2(r * 1.6, r * 0.36)), col)
+			draw_rect(Rect2(c - Vector2(r * 0.18, r * 0.8), Vector2(r * 0.36, r * 1.6)), col)

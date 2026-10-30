@@ -302,5 +302,157 @@
   "Gewonnene Splitter:",
   "获得碎片：",
   "獲得した欠片："
+ ],
+ "+%d projectile / hit": [
+  "+%d proyectil / golpe",
+  "+%d projectile / coup",
+  "+%d قذيفة / ضربة",
+  "+%d Geschoss / Treffer",
+  "+%d 发弹体 / 次攻击",
+  "投射物 / ヒット +%d"
+ ],
+ "After forging": [
+  "Tras forjar",
+  "Après la forge",
+  "بعد الصهر",
+  "Nach dem Schmieden",
+  "锻造后",
+  "鍛造後"
+ ],
+ "Attack rate +%d%%": [
+  "Velocidad de ataque +%d%%",
+  "Cadence d'attaque +%d%%",
+  "معدل الهجوم +%d%%",
+  "Angriffsrate +%d%%",
+  "攻击频率 +%d%%",
+  "攻撃速度 +%d%%"
+ ],
+ "Click to forge": [
+  "Haz clic para forjar",
+  "Cliquez pour forger",
+  "انقر للصهر",
+  "Klicken zum Schmieden",
+  "点击锻造",
+  "クリックで鍛造"
+ ],
+ "Close": [
+  "Cerrar",
+  "Fermer",
+  "إغلاق",
+  "Schließen",
+  "关闭",
+  "閉じる"
+ ],
+ "Collect the shards below to forge it": [
+  "Reúne los fragmentos de abajo para forjarla",
+  "Réunissez les éclats ci-dessous pour la forger",
+  "اجمع الشظايا أدناه لصهره",
+  "Sammle die Splitter unten, um sie zu schmieden",
+  "收集下方碎片即可锻造",
+  "下の欠片を集めて鍛造しよう"
+ ],
+ "Damage +%d%%": [
+  "Daño +%d%%",
+  "Dégâts +%d%%",
+  "الضرر +%d%%",
+  "Schaden +%d%%",
+  "伤害 +%d%%",
+  "ダメージ +%d%%"
+ ],
+ "EXPERIENCE": [
+  "EXPERIENCIA",
+  "EXPÉRIENCE",
+  "الخبرة",
+  "ERFAHRUNG",
+  "经验",
+  "経験値"
+ ],
+ "Every 5th hit explodes like a Blast Bomb": [
+  "Cada 5.º impacto explota como una Bomba explosiva",
+  "Chaque 5e coup explose comme une Bombe",
+  "كل ضربة خامسة تنفجر كقنبلة",
+  "Jeder 5. Treffer explodiert wie eine Sprengbombe",
+  "每第 5 次命中会像爆裂炸弹一样爆炸",
+  "5ヒットごとにブラストボムのように爆発"
+ ],
+ "Forge": [
+  "Forjar",
+  "Forger",
+  "صهر",
+  "Schmieden",
+  "锻造",
+  "鍛造"
+ ],
+ "Forge Weapon": [
+  "Forjar arma",
+  "Forger l'arme",
+  "صهر السلاح",
+  "Waffe schmieden",
+  "锻造武器",
+  "武器を鍛造"
+ ],
+ "Forge level %d / %d": [
+  "Nivel de forja %d / %d",
+  "Niveau de forge %d / %d",
+  "مستوى الصهر %d / %d",
+  "Schmiedestufe %d / %d",
+  "锻造等级 %d / %d",
+  "鍛造レベル %d / %d"
+ ],
+ "Forged +%d": [
+  "Forjada +%d",
+  "Forgée +%d",
+  "مصهور +%d",
+  "Geschmiedet +%d",
+  "已锻造 +%d",
+  "鍛造 +%d"
+ ],
+ "Fully forged": [
+  "Forja completa",
+  "Entièrement forgée",
+  "مصهور بالكامل",
+  "Voll geschmiedet",
+  "锻造已满",
+  "鍛造完了"
+ ],
+ "Not forged yet": [
+  "Aún sin forjar",
+  "Pas encore forgée",
+  "لم يُصهر بعد",
+  "Noch nicht geschmiedet",
+  "尚未锻造",
+  "未鍛造"
+ ],
+ "Now": [
+  "Ahora",
+  "Actuel",
+  "الآن",
+  "Jetzt",
+  "当前",
+  "現在"
+ ],
+ "REWARDS": [
+  "RECOMPENSAS",
+  "RÉCOMPENSES",
+  "المكافآت",
+  "BELOHNUNGEN",
+  "奖励",
+  "報酬"
+ ],
+ "SURVIVE": [
+  "SOBREVIVE",
+  "SURVIVEZ",
+  "انجُ",
+  "ÜBERLEBE",
+  "存活",
+  "生き延びろ"
+ ],
+ "THE FORGE": [
+  "LA FORJA",
+  "LA FORGE",
+  "المصهر",
+  "DIE SCHMIEDE",
+  "锻造炉",
+  "鍛冶場"
  ]
 }

@@ -27,7 +27,8 @@ var unlocked_chars: Array = []         # character ids bought with coins
 var bosses_defeated: Array = []        # boss ids beaten at least once ("thog": the Swamp's)
 var feats: Array = []                  # one-off achievements that unlock things ("unrelenting_swamp_15")
 var seen_unlocks: Array = []           # unlocks whose reveal has played ("map:forest"...)
-var shards := {"fire": 0, "ice": 0, "lightning": 0, "dark": 0}   # elemental shards (main weapon upgrades, later)
+var shards := {"fire": 0, "ice": 0, "lightning": 0, "dark": 0}
+var forge := {}                        # weapon style -> forge level (Forge, 0-10)   # elemental shards (main weapon upgrades, later)
 var displayed := 0.0                   # what the counter shows (lags during a payout)
 var persist := true                    # off for test/screenshot runs
 
@@ -523,9 +524,14 @@ func _load() -> void:
 		bosses_defeated = cfg.get_value("progress", "bosses", [])
 		feats = cfg.get_value("progress", "feats", [])
 		seen_unlocks = cfg.get_value("progress", "seen", [])
+		forge = cfg.get_value("characters", "forge", {})
 		var sh: Dictionary = cfg.get_value("wallet", "shards", {})
 		for kind in SHARDS:
 			shards[kind] = int(sh.get(kind, 0))
+
+
+func save_progress() -> void:
+	_save()
 
 
 func _save() -> void:
@@ -541,4 +547,5 @@ func _save() -> void:
 	cfg.set_value("progress", "feats", feats)
 	cfg.set_value("progress", "seen", seen_unlocks)
 	cfg.set_value("wallet", "shards", shards)
+	cfg.set_value("characters", "forge", forge)
 	cfg.save(PATH)

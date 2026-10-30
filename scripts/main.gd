@@ -313,6 +313,7 @@ func _ready() -> void:
 	weapons.style = WeaponSystem.style_of(who)
 	WeaponSystem.retheme_card(db, weapons.style)
 	WeaponSystem.add_signature_weapons(db, stats, weapons.style)   # unlocked characters' weapons
+	Forge.apply(stats, "orb", weapons.style)   # your own weapon, as forged
 	weapons.setup(stats, db, enemies, player)
 	weapons._fx_mgr = fx
 	add_child(weapons)
@@ -368,6 +369,7 @@ func _ready() -> void:
 
 	items = ItemEffects.new()
 	items.setup(stats, enemies, player, rng)
+	weapons.items = items
 	add_child(items)
 
 	hud = Hud.new()
@@ -437,7 +439,7 @@ func _on_entrance_landed() -> void:
 
 
 func _banner_text() -> String:
-	return "UNRELENTING" if endless else "SURVIVE 10 MINUTES"
+	return "SURVIVE"   # every mode
 
 
 ## Unrelenting: enemy contact damage multiplier (1 until 10:00, then climbing).

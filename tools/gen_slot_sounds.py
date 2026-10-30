@@ -80,3 +80,17 @@ for _ in range(40):   # coins
     jack.append((rng.uniform(0.45, 1.6), bell(f, 0.15, 30.0), rng.uniform(0.15, 0.35)))
 save("slot_jackpot.wav", mix(jack, 2.0), 0.8)
 print("slot sounds written to", OUT)
+
+
+# The Forge: two ringing hammer strikes on an anvil and a soft rush of embers (forge_hammer.wav)
+def anvil(f0, dur=1.6):
+    k = int(SR * dur)
+    tt = np.arange(k) / SR
+    s = np.zeros(k)
+    for r, a, d in [(1, 1, 3.5), (2.32, 0.6, 5), (3.9, 0.45, 7), (5.6, 0.3, 9), (8.1, 0.2, 12)]:
+        s += a * np.sin(2 * np.pi * f0 * r * tt) * np.exp(-d * tt)
+    s[: int(SR * 0.01)] += rng.normal(0, 1.2, int(SR * 0.01))
+    return s
+
+
+save("forge_hammer.wav", mix([(0.0, anvil(620), 1.0), (0.32, anvil(640, 1.28), 0.7)], 1.6))
