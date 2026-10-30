@@ -21,6 +21,8 @@ extends Node3D
 ##   flask    Volatile Flasks  (Dr. Croc) lobbed: burst 3 m, then an acid puddle (4% max HP/s)
 ##   club     Big Club         (Thog) slow overhead smash in a 4 m cone, heavy knockback
 ##   static   Static Cling     (An Argyle Sock) zaps the 3 nearest enemies; up to 2x while you keep moving
+##   maracas  Maraca Blasters  (Loco Robotico) alternating sonic pulses in a 6 m cone; faster while you keep moving
+##   acid     Acid Body        (The Blob) burns every enemy touching you (2.5 m), 30/s; grows with kills up to +50%
 ## On melee weapons "count" widens the reach (+20% each) instead of adding projectiles.
 ##
 ## Signature weapons: once a character is unlocked, their weapon can turn up for everyone
@@ -36,10 +38,10 @@ const STYLE_CHAR := {
 	"fire": "fire_wizard", "ice": "ice_wizard", "thunder": "thunder_wizard", "dark": "dark_wizard",
 	"arcane": "merlin", "trunk": "ogre", "wail": "ghast", "silver": "vampire_hunter",
 	"spear": "vicki", "daggers": "rogue", "katana": "gaiden", "flask": "dr_croc", "club": "thog",
-	"static": "argyle_sock",
+	"static": "argyle_sock", "maracas": "loco_robotico", "acid": "blob",
 }
-const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static"]
-const MELEE := ["trunk", "wail", "spear", "katana", "club"]
+const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static", "maracas", "acid"]
+const MELEE := ["trunk", "wail", "spear", "katana", "club", "maracas", "acid"]
 const SIG_WEIGHT := 0.45        # vs 3-10 for normal rewards: a rare find...
 const SIG_WEIGHT_TOTAL := 1.35  # ...and all of them together stay rare
 const SIG_RARITY := 3           # always Legendary
@@ -127,6 +129,15 @@ const STATIC_REACH := 14.0
 const STATIC_BUILD := 0.5        # charge per second while moving (0..1: up to 2x damage)...
 const STATIC_DRAIN := 0.8        # ...lost per second standing still
 const STATIC_PAIR := 2.0         # Lost Pair: an enemy zapped by both socks in one volley takes 2x
+const MARACA_REACH := 6.0        # Maraca Blasters: a sonic pulse fills a cone...
+const MARACA_ARC := 60.0
+const MARACA_BUILD := 1.0        # ...tempo built per second while moving (0..1)...
+const MARACA_DRAIN := 1.5        # ...and lost per second standing still
+const MARACA_HASTE := 0.6        # full tempo: pulses come 60% faster
+const ACID_RADIUS := 2.5         # Acid Body: burns everything touching you...
+const ACID_EVERY := 0.5          # ...in pulses this far apart ("every" in its kit: 30/s = 15 a pulse)
+const ACID_GROW := 0.01          # +1% size per kill it makes...
+const ACID_GROW_MAX := 0.5       # ...up to +50%
 const MELEE_SEEK := 1.6          # melee weapons swing once an enemy is within reach x this
 
 ## Level-up card for the starting weapon, per style (the rest come from data/abilities.json).
@@ -155,6 +166,15 @@ var swings := 0                  # melee swings made (tests)
 var static_charge := 0.0         # Static Cling: 0..1, built up by moving
 var _volley := {}                # Static Cling: uids the sock zapped in its last volley (Lost Pair doubles them)
 var zaps := 0                    # Static Cling zaps (tests)
+var maraca_tempo := 0.0          # Maraca Blasters: 0..1, built up by moving
+var pulses := 0                  # Maraca Blasters pulses (tests)
+var acid_growth := 0.0           # Acid Body: 0..ACID_GROW_MAX, from kills
+var acid_burns := 0              # Acid Body hits (tests)
+var acid_kills := 0
+var _acid_pulse := 0.0
+var acid_disc: GroundDisc        # Acid Body: a green glow on the ground around you
+var acid_ring: GroundDisc
+var _shaker: AudioStreamPlayer
 
 var mm: MultiMesh
 var tail_mm: MultiMesh
@@ -255,6 +275,13 @@ func _ready() -> void:
 	frost_ring.set_ring(0.93)
 	frost_ring.visible = false
 	add_child(frost_ring)
+	acid_disc = GroundDisc.create(1.0, Color(0.45, 1.0, 0.2, 0.16), true)
+	acid_disc.visible = false
+	add_child(acid_disc)
+	acid_ring = GroundDisc.create(1.0, Color(0.7, 1.0, 0.35, 0.4), true)
+	acid_ring.set_ring(0.9)
+	acid_ring.visible = false
+	add_child(acid_ring)
 
 	_ring_mat = _fx_material(Color(1.0, 0.9, 0.5, 0.6))
 	lightning = LightningFx.new()
@@ -417,12 +444,15 @@ func tick(dt: float) -> void:
 		var body = player.model.get("sock") if player.model != null else null
 		if body != null:
 			(body as SockBody).set_charge(static_charge)
+	# --- Maraca Blasters pick up the tempo while you keep moving (yours or a Legendary copy)
+	var moving_now := Vector2(player.velocity.x, player.velocity.z).length() > 1.5
+	maraca_tempo = clampf(maraca_tempo + (MARACA_BUILD if moving_now else -MARACA_DRAIN) * dt, 0.0, 1.0)
 	# --- The starting weapon
 	if db == null or db.level_of("weapon_orb") > 0:
 		orb_t -= dt
 		if orb_t <= 0.0:
 			var fired := fire(style, "orb", dmg_mult)
-			orb_t = stats.value("orb_cooldown") * scale_of(style).y / haste if fired else 0.1
+			orb_t = stats.value("orb_cooldown") * scale_of(style).y / (haste * tempo_of(style)) if fired else 0.1
 	# --- Signature weapons (other characters' weapons, Legendary rewards)
 	if db != null:
 		for sid in db.levels:
@@ -432,9 +462,10 @@ func tick(dt: float) -> void:
 			sig_t[sid] = float(sig_t.get(sid, 0.4)) - dt
 			if sig_t[sid] <= 0.0:
 				var ok := fire(sty, sid, dmg_mult)
-				sig_t[sid] = stats.value(sid + "_cooldown") * scale_of(sty).y / haste if ok else 0.1
+				sig_t[sid] = stats.value(sid + "_cooldown") * scale_of(sty).y / (haste * tempo_of(sty)) if ok else 0.1
 	_update_projectiles(dt)
 	_update_flasks(dt)
+	_update_acid(dt)
 
 	# --- Stink Aura: damage ticks in a radius
 	if db != null and db.level_of("weapon_aura") > 0:
@@ -518,6 +549,10 @@ func _fire_from(sty: String, pre: String, feet: Vector3, mult: float, model: Her
 			return _swing(feet, mult, pre, model, CLUB_REACH, CLUB_ARC, sty)
 		"static":
 			return _fire_static(chest, mult, pre, model)
+		"maracas":
+			return _fire_maracas(feet, mult, pre, model)
+		"acid":
+			return _fire_acid(feet, mult, pre, model)
 		"spear":
 			return _thrust(feet, mult, pre, model)
 		"flask":
@@ -631,6 +666,110 @@ func _fire_static(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBas
 		lightning.bolt(from, at, Color(0.95, 0.82, 1.0), 0.02, 0.1, 0.3, false)
 		enemies.damage(t, d)
 		zaps += 1
+	return true
+
+
+## Acid Body: reach of the burn around you (or a mini-blob) for stat prefix `pre`: grows with
+## kills (yours only), with Area, and +20% per extra count.
+func acid_radius(pre: String, own := true) -> float:
+	var r := ACID_RADIUS * stats.value("area") * (1.0 + 0.2 * maxi(0, _count(pre) - 1))
+	return r * (1.0 + acid_growth) if own else r
+
+
+## Acid Body: a pulse of the contact burn around `feet` (the Blob, a mini-blob from Split, or
+## whoever carries it as a Legendary). Every enemy touching it takes the pulse; kills make the
+## Blob grow. It pulses on a steady clock even with nothing in reach (so the mini-blobs off
+## chasing enemies keep burning), hence always true.
+func _fire_acid(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase) -> bool:
+	var own := model == null or model == player.model
+	var r := acid_radius(pre, own)
+	var d := _dmg(pre, "acid", dmg_mult) * (ACID_EVERY if pre == "orb" else 1.0)
+	var hit := false
+	for e in enemies.query_radius(feet + Vector3(0, 0.8, 0), r, false):
+		hit = true
+		acid_burns += 1
+		if enemies.damage(e, d):
+			acid_kills += 1
+			acid_growth = minf(ACID_GROW_MAX, acid_growth + ACID_GROW)
+	if hit:
+		if own:
+			_acid_pulse = 1.0
+		if model is RosterHero and (model as RosterHero).blob != null:
+			model.attack(feet)   # the jelly ripples outward
+	return true
+
+
+## The green glow of the Acid Body on the ground (yours or a Legendary copy), pulsing as it burns;
+## the Blob's body grows with it.
+func _update_acid(dt: float) -> void:
+	var pre := "orb" if style == "acid" else ("sig_acid" if db != null and db.level_of("sig_acid") > 0 else "")
+	acid_disc.visible = pre != ""
+	acid_ring.visible = pre != ""
+	if pre == "":
+		return
+	var r := acid_radius(pre)
+	var at := player.global_position + Vector3(0, 0.06, 0)
+	_acid_pulse = maxf(0.0, _acid_pulse - dt * 4.0)
+	acid_disc.global_position = at
+	acid_ring.global_position = at
+	acid_disc.scale = Vector3(r, 1.0, r)
+	var wob := r * (1.0 + 0.04 * sin(Time.get_ticks_msec() * 0.004) + 0.06 * _acid_pulse)
+	acid_ring.scale = Vector3(wob, 1.0, wob)
+	acid_disc.alpha = 0.12 + 0.16 * _acid_pulse
+	var body = player.model.get("blob") if player.model != null else null
+	if body != null:
+		(body as BlobBody).set_growth(acid_growth)
+
+
+## Attack-rate multiplier of a style right now (Maraca Blasters speed up as you keep moving).
+func tempo_of(sty: String) -> float:
+	return 1.0 + MARACA_HASTE * maraca_tempo if sty == "maracas" else 1.0
+
+
+## Maraca Blasters: one maraca shakes (alternating hands) and a sonic pulse fills a cone toward
+## the nearest enemy, hitting everything in it. Count (+ projectiles) widens the reach.
+func _fire_maracas(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase) -> bool:
+	var extra := maxi(0, _count(pre) - 1)
+	var reach := MARACA_REACH * stats.value("area") * (1.0 + 0.2 * extra)
+	var chest := feet + Vector3(0, 0.9, 0)
+	var near := enemies.nearest_k(chest, reach * MELEE_SEEK, 1)
+	if near.is_empty():
+		return false
+	var to := enemies.pos[near[0]] - feet
+	to.y = 0.0
+	var dir := to.normalized() if to.length() > 0.05 else Vector3.FORWARD
+	var from := feet + Vector3(0, 1.1, 0)
+	if model != null:
+		from = model.attack(enemies.center_of(near[0]))
+	var step: int = combo.get("maracas" + pre, 0)
+	combo["maracas" + pre] = step + 1
+	var dmg := _dmg(pre, "maracas", dmg_mult)
+	var cos_half := cos(deg_to_rad(MARACA_ARC * 0.5))
+	for e in enemies.query_radius(chest, reach, false):
+		var d := enemies.pos[e] - feet
+		d.y = 0.0
+		var l := d.length()
+		if l > enemies.t_radius[enemies.typ[e]] * enemies.sz[e] + 0.6 and d.dot(dir) / maxf(l, 0.001) < cos_half:
+			continue
+		enemies.damage(e, dmg, d.normalized() * 2.0 if l > 0.05 else dir * 2.0)
+	pulses += 1
+	swings += 1
+	# Rings of sound rolling out from the maraca, pink and teal by turns
+	var col := Color(1.0, 0.45, 0.85, 0.5) if step % 2 == 0 else Color(0.35, 1.0, 0.85, 0.5)
+	var at := Vector3(feet.x, minf(from.y, feet.y + 1.3), feet.z)
+	for k in 3:
+		_sector(at, dir, reach * (0.4 + 0.3 * k), MARACA_ARC, col, 0.22 + 0.06 * k, 0.0, 0.05 * k)
+	if _shaker == null:
+		_shaker = AudioStreamPlayer.new()
+		_shaker.bus = Settings.SFX_BUS
+		_shaker.max_polyphony = 3
+		_shaker.volume_db = -11.0
+		if ResourceLoader.exists("res://audio/abilities/maraca_shake.wav"):
+			_shaker.stream = load("res://audio/abilities/maraca_shake.wav")
+		add_child(_shaker)
+	if _shaker.stream != null:
+		_shaker.pitch_scale = randf_range(0.92, 1.12)
+		_shaker.play()
 	return true
 
 

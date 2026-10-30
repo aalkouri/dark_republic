@@ -31,7 +31,7 @@
   "slot_machine.gd:331"
  ],
  "%s  LEVEL %d": [
-  "main.gd:915"
+  "main.gd:918"
  ],
  "%s  Lv %d": [
   "hud.gd:1336"
@@ -56,7 +56,7 @@
   "hud.gd:969"
  ],
  "%s APPROACHES": [
-  "main.gd:706"
+  "main.gd:709"
  ],
  "%s Chest": [
   "chest.gd:56",
@@ -74,7 +74,7 @@
   "weapon_system.gd:380"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:736"
+  "main.gd:739"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:394"
@@ -191,7 +191,7 @@
   "skill_tree.gd:105"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:530"
+  "main.gd:533"
  ],
  "2 yd": [
   "abilities.gd:246"
@@ -224,7 +224,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:648"
+  "main.gd:651"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -599,7 +599,7 @@
   "hud.gd:348"
  ],
  "Cooldowns reset": [
-  "main.gd:1015"
+  "main.gd:1018"
  ],
  "Cowboy": [
   "characters.json"
@@ -608,7 +608,7 @@
   "taglines.json"
  ],
  "DARK REPUBLIC": [
-  "title.gd:199"
+  "title.gd:209"
  ],
  "DESTROY Mode": [
   "abilities.json"
@@ -872,7 +872,7 @@
   "forge.gd:44"
  ],
  "Every ability is at max level!  Fully healed": [
-  "main.gd:900"
+  "main.gd:903"
  ],
  "Every chest is a mimic until proven innocent": [
   "taglines.json"
@@ -1087,7 +1087,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:761"
+  "main.gd:764"
  ],
  "Gaiden": [
   "characters.json"
@@ -1611,7 +1611,7 @@
   "upgrade_db.gd:168"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:782"
+  "main.gd:785"
  ],
  "NEW CHAMPION": [
   "hud.gd:1025"
@@ -1762,7 +1762,7 @@
  ],
  "Play": [
   "character_select.gd:747",
-  "title.gd:252"
+  "title.gd:262"
  ],
  "Poison kick, slows": [
   "abilities.json"
@@ -1810,7 +1810,7 @@
   "mode_menu.gd:15"
  ],
  "Quit": [
-  "title.gd:254"
+  "title.gd:264"
  ],
  "Quit to desktop": [
   "hud.gd:248"
@@ -1930,7 +1930,7 @@
   "settings_menu.gd:47"
  ],
  "SHARDS: %s": [
-  "main.gd:725"
+  "main.gd:728"
  ],
  "SIGNATURE WEAPON": [
   "character_select.gd:496",
@@ -1941,10 +1941,10 @@
   "skill_screen.gd:108"
  ],
  "SURVIVE": [
-  "main.gd:456"
+  "main.gd:459"
  ],
  "SWARM!": [
-  "main.gd:637"
+  "main.gd:640"
  ],
  "Sage": [
   "skill_tree.gd:65"
@@ -1976,7 +1976,7 @@
  ],
  "Settings": [
   "hud.gd:245",
-  "title.gd:253"
+  "title.gd:263"
  ],
  "Shackle Swing": [
   "abilities.json"
@@ -2242,13 +2242,13 @@
  ],
  "THOG": [
   "main.gd:76",
-  "main.gd:711"
+  "main.gd:714"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:381"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:734"
+  "main.gd:737"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:469"
@@ -2257,7 +2257,7 @@
   "thog_boss.gd:399"
  ],
  "THOG THE TROLL": [
-  "main.gd:691",
+  "main.gd:694",
   "thog_boss.gd:545"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2267,7 +2267,7 @@
   "thog_boss.gd:580"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:692"
+  "main.gd:695"
  ],
  "Take less damage.": [
   "upgrades.json"

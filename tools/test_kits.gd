@@ -1,11 +1,11 @@
 extends Node
 ## The roster characters built on 3D models - Merlin, Ogre, Ghast, Vampire Hunter, Vicki, Rogue,
-## Gaiden, Dr. Croc, Thog (on the Ogre's rig for now) and An Argyle Sock (built in code): each is playable (character select lets you pick them), runs
+## Gaiden, Dr. Croc, Thog (on the Ogre's rig for now) and An Argyle Sock, Loco Robotico and the Blob (built in code): each is playable (character select lets you pick them), runs
 ## with its own model, its own weapon hits enemies the way its card says, and all three of its
 ## abilities do what they say.
 ##   godot --headless --path . res://tools/test_kits.tscn [-- --only=<id>]
 
-const CHARS := ["merlin", "ogre", "ghast", "vampire_hunter", "vicki", "rogue", "gaiden", "dr_croc", "thog", "argyle_sock"]
+const CHARS := ["merlin", "ogre", "ghast", "vampire_hunter", "vicki", "rogue", "gaiden", "dr_croc", "thog", "argyle_sock", "loco_robotico", "blob"]
 
 var fails := 0
 var main: Node
@@ -176,6 +176,288 @@ func _argyle_sock() -> void:
 		if i >= 0 and em.shrink_t[i] > 15.0 and em.sz[i] < 0.7 and em.hit_mult(i) == 0.5 and em.taken_mult(i) >= 2.0:
 			small += 1
 	_check("...survivors come out shrunk: half damage, double damage taken", kit.shrunk == 6 and small == 6, "%d" % small)
+
+
+func _loco_robotico() -> void:
+	var h := player.model as RosterHero
+	var body := h.loco
+	_check("Loco Robotico is built in code: wheels, a TV face, a sombrero and two maracas", body != null and body.mat != null
+		and body.screen_mat != null and body._wheels.size() == 2 and body._maracas.size() == 2 and body._hat != null, "")
+	_clear()
+	var front := []
+	for k in 3:
+		front.append(_spawn(EnemyManager.GRUNT, 2.5 + k, (k - 1) * 0.12, 50.0))
+	var behind := _spawn(EnemyManager.GRUNT, 3.0, PI, 50.0)
+	var far := _spawn(EnemyManager.GRUNT, 10.0, 0.0, 50.0)
+	await _secs(0.05)
+	ws.maraca_tempo = 0.0
+	var s0 := body.shakes
+	var side0 := body._side
+	ws.fire("maracas", "orb", 1.0)
+	var all_front := true
+	for i in front:
+		all_front = all_front and em.hp[i] < em.hp_max[i]
+	_check("Maraca Blasters: a sonic pulse hits everything in the 6 m cone", all_front and ws.pulses >= 1, "")
+	_check("...but not behind him or past 6 m", em.hp[behind] == em.hp_max[behind] and em.hp[far] == em.hp_max[far], "")
+	var hit1: float = em.hp_max[front[0]] - em.hp[front[0]]
+	ws.fire("maracas", "orb", 1.0)
+	_check("...shaking the maracas by turns (alternating hands)", body.shakes - s0 == 2 and body._side == side0, "%d shakes" % (body.shakes - s0))
+	_check("...20 damage a pulse (scaled like every weapon)", hit1 > 0.0 and absf((em.hp_max[front[0]] - em.hp[front[0]]) - 2.0 * hit1) < 0.01, "%.1f" % hit1)
+	player.velocity = Vector3(8, 0, 0)
+	ws.maraca_tempo = 0.0
+	ws.tick(0.5)
+	var tempo := ws.maraca_tempo
+	ws.maraca_tempo = 0.0
+	player.velocity = Vector3.ZERO
+	ws.orb_t = 0.0
+	ws.tick(0.001)
+	var slow_cd := ws.orb_t
+	ws.maraca_tempo = 1.0
+	player.velocity = Vector3(8, 0, 0)
+	ws.orb_t = 0.0
+	ws.tick(0.001)
+	var fast_cd := ws.orb_t
+	player.velocity = Vector3.ZERO
+	ws.orb_t = 999.0
+	_check("...faster while he keeps moving", tempo > 0.4 and fast_cd < slow_cd * 0.7, "tempo %.2f, %.2f s vs %.2f s" % [tempo, fast_cd, slow_cd])
+
+	var kit: KitLoco = ab.roster.part
+	_clear()
+	for k in 6:
+		_spawn(EnemyManager.GRUNT, 8.0, TAU * k / 6.0, 50.0)
+	var outside := _spawn(EnemyManager.GRUNT, 22.0, 0.3, 50.0)
+	await _secs(0.05)
+	_cast(0)
+	await _secs(0.1)
+	var start := {}
+	for i in em.count:
+		start[i] = em.pos[i]
+	_check("Party Mode: everyone within 15 m dances", kit.danced == 6 and body.party
+		and _all(func(i): return i == outside or (em.stun_t[i] > 5.0 and em.is_harmless(i))), "%d" % kit.danced)
+	_check("...not past 15 m", em.stun_t[outside] == 0.0, "")
+	await _secs(2.0)
+	var still := true
+	var lost := true
+	for i in em.count:
+		if i == outside:
+			continue
+		var m: Vector3 = em.pos[i] - start[i]
+		still = still and Vector2(m.x, m.z).length() < 0.6
+		lost = lost and (em.hp_max[i] - em.hp[i]) >= em.hp_max[i] * 0.05 * 1.6
+	_check("...on the spot: they can't move or attack", still, "")
+	_check("...losing 5% of max HP a second", lost, "%.1f%%" % (100.0 * (em.hp_max[0] - em.hp[0]) / em.hp_max[0]))
+	await _secs(4.2)
+	_check("...for 6 s", not kit.active("party") and not body.party and em.stun_t[0] <= 0.0, "")
+
+	_clear()
+	var at := ab.aim_point(KitLoco.PINATA_RANGE)
+	var ids := []
+	for k in 6:
+		ids.append(em.uid[_spawn_at(EnemyManager.TANK, at + Vector3(cos(k) * 9.0, 0, sin(k) * 9.0), 40.0)])
+	await _secs(0.05)
+	_cast(1)
+	await _secs(KitLoco.PINATA_FLIGHT + 2.2)
+	var crowd := 0
+	for u in ids:
+		var i := em.index_of(u)
+		if i >= 0 and Vector2(em.pos[i].x - at.x, em.pos[i].z - at.z).length() < 2.5:
+			crowd += 1
+	_check("Pinata Drop: it lands where you aim and enemies swarm it", kit.lured == 6 and crowd == 6 and kit.active("pinata"), "%d round it" % crowd)
+	await _secs(2.0)
+	var blasted := 0
+	for u in ids:
+		var i := em.index_of(u)
+		if i >= 0 and em.hp_max[i] - em.hp[i] >= KitLoco.BOMB_DAMAGE:
+			blasted += 1
+	_check("...then bursts after 3 s into 20 candy bombs, 60 each within 3 m", kit.bombs_burst == KitLoco.BOMBS and blasted == 6 and not kit.active("pinata"), "%d bombs, %d blasted" % [kit.bombs_burst, blasted])
+
+	_clear()
+	var ring := []
+	for k in 8:
+		ring.append(_spawn(EnemyManager.GRUNT, 10.0, TAU * k / 8.0 + 0.2, 50.0))
+	var beyond := _spawn(EnemyManager.GRUNT, 24.0, 0.5, 50.0)
+	await _secs(0.05)
+	for i in em.count:
+		em.stun(i, 20.0)   # hold them in place for the sweep
+	var taken0: float = player.dmg_taken
+	_cast(2)
+	await _secs(0.1)
+	_check("DESTROY Mode: +50% armour", kit.active("destroy") and body.destroy and is_equal_approx(player.dmg_taken, taken0 / 1.5), "%.2f" % player.dmg_taken)
+	await _secs(3.0)
+	var burnt := 0
+	for i in ring:
+		if em.hp[i] < em.hp_max[i]:
+			burnt += 1
+	_check("...twin lasers sweep all the way round", burnt == 8 and kit.beam_hits > 0, "%d of 8 hit" % burnt)
+	_check("...out to 20 m", em.hp[beyond] == em.hp_max[beyond], "")
+	# Stand an enemy right in a beam for a second: 8% of max HP
+	_clear()
+	await _secs(0.05)
+	var d := kit.beam_dir(0)
+	var victim := _spawn_at(EnemyManager.TANK, player.global_position + d * 8.0, 50.0)
+	em.stun(victim, 5.0)
+	var hpv: float = em.hp[victim]
+	for f in 60:
+		em.pos[victim] = player.global_position + kit.beam_dir(0) * 8.0
+		await get_tree().physics_frame
+	var frac: float = (hpv - em.hp[victim]) / em.hp_max[victim]
+	var want := KitLoco.BEAM_FRAC * kit.pw(2)
+	_check("...8% of max HP a second in the beams", frac > want * 0.8 and frac < want * 1.2, "%.1f%% (want %.1f%%)" % [frac * 100.0, want * 100.0])
+	await _secs(9.0)
+	_check("...for 12 s", not kit.active("destroy") and not body.destroy and is_equal_approx(player.dmg_taken, taken0), "%.2f" % player.dmg_taken)
+
+
+func _blob() -> void:
+	var h := player.model as RosterHero
+	var b := h.blob
+	_check("the Blob is built in code: a see-through jelly with eyes and bubbles inside", b != null and b.mat != null and b.mat_in != null
+		and b._eyes.size() == 2 and b._bubbles.size() >= 8 and h.sock == null, "")
+	var sy0 := b._sy
+	for f in 30:
+		b.animate(1.0 / 60.0, 0.0, true)
+	var tall := b._sy
+	for f in 8:
+		b.animate(1.0 / 60.0, 0.0, false)
+	var flat := b._sy
+	_check("...it stretches tall in the air and splats on landing", tall > 1.12 and flat < 0.95, "%.2f -> %.2f -> %.2f" % [sy0, tall, flat])
+	var s0 := b.splats
+	h.play_hit()
+	await _secs(0.1)
+	_check("...and splats, spraying droplets, when it's hit", b.splats > s0, "")
+	# Acid Body
+	_clear()
+	var close := []
+	for k in 3:
+		close.append(em.uid[_spawn(EnemyManager.TANK, 1.4, k * 2.0, 50.0)])
+	var far := em.uid[_spawn(EnemyManager.TANK, 7.0, 0.0, 50.0)]
+	await _secs(0.05)
+	ws.acid_growth = 0.0
+	var b0 := ws.acid_burns
+	ws.fire("acid", "orb", 1.0)
+	var burnt := 0
+	var per := 0.0
+	for u in close:
+		var i := em.index_of(u)
+		if i >= 0 and em.hp[i] < em.hp_max[i]:
+			burnt += 1
+			per = em.hp_max[i] - em.hp[i]
+	var fi := em.index_of(far)
+	_check("Acid Body burns everything touching you (2.5 m), nothing further", burnt == 3 and ws.acid_burns - b0 == 3 and em.hp[fi] == em.hp_max[fi], "%d burnt" % burnt)
+	var every: float = main.stats.value("orb_cooldown") * WeaponSystem.scale_of("acid").y
+	_check("...for 30 damage a second (in pulses)", absf(per / every - 30.0) < 1.5, "%.1f every %.2f s" % [per, every])
+	_clear()
+	for k in 10:
+		_spawn(EnemyManager.GRUNT, 1.0, k * 0.6, 0.01)
+	await _secs(0.05)
+	var r0 := ws.acid_radius("orb")
+	ws.fire("acid", "orb", 1.0)
+	await _secs(0.1)
+	_check("...and grows with kills", is_equal_approx(ws.acid_growth, 0.1) and ws.acid_radius("orb") > r0 * 1.09 and is_equal_approx(b.growth, 0.1),
+		"growth %.2f, body %.2f" % [ws.acid_growth, b.growth])
+	ws.acid_growth = 0.495
+	_clear()
+	for k in 5:
+		_spawn(EnemyManager.GRUNT, 1.0, k * 1.2, 0.01)
+	await _secs(0.05)
+	ws.fire("acid", "orb", 1.0)
+	_check("...up to +50% size", is_equal_approx(ws.acid_growth, 0.5), "%.3f" % ws.acid_growth)
+	ws.acid_growth = 0.0
+	# Engulf
+	var kit: KitBlob = ab.roster.part
+	_clear()
+	var eat := []
+	for k in 25:
+		eat.append(em.uid[_spawn(EnemyManager.TANK, 2.0 + 3.5 * (k % 5) / 4.0, k * 1.3, 50.0)])
+	var boss := em.uid[_spawn(EnemyManager.BOSS, 3.0, 0.5, 50.0)]
+	var bi := em.index_of(boss)
+	var boss_sz := em.sz[bi]
+	await _secs(0.05)
+	player.hp = player.max_hp * 0.5
+	_cast(0)
+	await _secs(0.7)
+	var inside := 0
+	for u in eat:
+		var i := em.index_of(u)
+		if i >= 0 and em.sz[i] < 0.5 and Vector2(em.pos[i].x - player.global_position.x, em.pos[i].z - player.global_position.z).length() < 1.0:
+			inside += 1
+	_check("Engulf swallows 20 enemies (they show inside the jelly)", kit.swallowed == 20 and inside == 20, "%d swallowed, %d inside" % [kit.swallowed, inside])
+	bi = em.index_of(boss)
+	_check("...but not the boss", bi >= 0 and em.sz[bi] == boss_sz, "")
+	_check("...and you heal 1% of max HP for each", player.hp >= player.max_hp * 0.69, "%.0f / %.0f" % [player.hp, player.max_hp])
+	var digest0 := kit.digested
+	await _secs(1.0)
+	var per_sec := (kit.digested - digest0) / 20.0
+	var one := 0
+	for u in eat:
+		var i := em.index_of(u)
+		if i >= 0 and em.sz[i] < 0.5:
+			one = i
+			break
+	_check("...digesting them for 8% of max HP a second", absf(per_sec / em.hp_max[one] - 0.08) < 0.025, "%.3f" % (per_sec / em.hp_max[one]))
+	await _secs(5.0)
+	var out := 0
+	for u in eat:
+		var i := em.index_of(u)
+		if i >= 0 and em.sz[i] >= 0.99:
+			out += 1
+	_check("...for 6 s, then spits the survivors back out full size", not kit.active("engulf") and kit.spat == 20 and out == 25, "%d spat, %d full size" % [kit.spat, out])
+	# Split
+	_clear()
+	_cast(1)
+	await _secs(0.2)
+	var minis := kit.clone_list()
+	_check("Split: 2 mini-blobs split off", kit.active("split") and minis.size() == 2 and (minis[0][0] as RosterHero).blob != null
+		and (minis[0][0] as RosterHero).blob.size == 0.5, "%d" % minis.size())
+	var prey := em.uid[_spawn(EnemyManager.TANK, 10.0, 0.0, 50.0)]
+	var pr := em.index_of(prey)
+	em.slow(pr, 0.001, 20.0)
+	await _secs(2.0)
+	pr = em.index_of(prey)
+	var chased := 0
+	for c in kit.clone_list():
+		if (c[1] as Vector3).distance_to(em.pos[pr]) < 2.0:
+			chased += 1
+	_check("...that chase enemies", chased >= 1, "%d" % chased)
+	var hp_p := em.hp[pr]
+	ws.fire("acid", "orb", 1.0)
+	var took := hp_p - em.hp[pr]
+	_check("...each with its own Acid Body at 60%", absf(took - per * KitBlob.SPLIT_DAMAGE * chased) < 1.0, "%.1f (a pulse is %.1f)" % [took, per])
+	await _secs(8.0)
+	_check("...for 10 s", not kit.active("split") and kit.clone_list().is_empty(), "")
+	# The Great Puddle
+	_clear()
+	var wet := []
+	for k in 6:
+		wet.append(em.uid[_spawn(EnemyManager.TANK, 6.0 + k * 2.0, k, 50.0)])
+	await _secs(0.05)
+	var at := player.global_position
+	_cast(2)
+	await _secs(0.4)
+	var glow := false
+	for mi in player.model.find_children("*", "GeometryInstance3D", true, false):
+		if (mi as GeometryInstance3D).material_overlay != null:
+			glow = true
+	_check("The Great Puddle: you spread flat, invulnerable (glowing)", kit.active("puddle") and b.puddle > 0.5 and player.untouchable
+		and not player.hurt(500.0) and glow, "puddle %.2f" % b.puddle)
+	player.velocity = Vector3(10, 0, 0)
+	await _secs(0.5)
+	_check("...and can't move", player.global_position.distance_to(at) < 0.3, "%.2f m" % player.global_position.distance_to(at))
+	_check("...enemies in it are slowed 90%", _all(func(i): return em.slow_t[i] > 0.0 and em.slow_f[i] <= 0.11), "")
+	var hpp := _total_hp()
+	await _secs(1.0)
+	var frac := (hpp - _total_hp()) / (6.0 * em.hp_max[em.index_of(wet[0])])
+	_check("...and take 6% of max HP a second", absf(frac - 0.06) < 0.02, "%.3f" % frac)
+	await _secs(3.95)
+	var d0 := 0.0
+	for u in wet:
+		d0 += em.pos[em.index_of(u)].distance_to(at)
+	await _secs(0.25)
+	_check("...for 6 s, then you pull back together", not kit.active("puddle") and not player.untouchable and not player.scripted and b.puddle_target == 0.0, "")
+	await _secs(0.4)
+	var d1 := 0.0
+	for u in wet:
+		d1 += em.pos[em.index_of(u)].distance_to(at)
+	_check("...flinging the survivors out 6 yd", kit.flung == 6 and (d1 - d0) / 6.0 > 4.0, "%.1f m further" % ((d1 - d0) / 6.0))
 
 
 func _thog() -> void:

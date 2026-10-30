@@ -1,0 +1,26 @@
+{
+ "bomb damage": [
+  "daño de bomba",
+  "dégâts des bombes",
+  "ضرر القنابل",
+  "Bombenschaden",
+  "炸弹伤害",
+  "爆弾ダメージ"
+ ],
+ "digest damage": [
+  "daño de digestión",
+  "dégâts de digestion",
+  "ضرر الهضم",
+  "Verdauungsschaden",
+  "消化伤害",
+  "消化ダメージ"
+ ],
+ "mini-blob damage": [
+  "daño de las miniblobs",
+  "dégâts des mini-blobs",
+  "ضرر الكتل الصغيرة",
+  "Mini-Blob-Schaden",
+  "小史莱姆伤害",
+  "ミニブロブのダメージ"
+ ]
+}

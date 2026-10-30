@@ -36,6 +36,8 @@ const RECIPES := {
 	"flask": {"fire": 2, "ice": 1, "dark": 2},            # Dr. Croc
 	"club": {"fire": 2, "ice": 2, "dark": 1},             # Thog
 	"static": {"lightning": 3, "dark": 2},                # An Argyle Sock
+	"maracas": {"fire": 2, "lightning": 3},               # Loco Robotico
+	"acid": {"fire": 2, "dark": 3},                       # The Blob
 }
 ## Weapon specials, unlocked at forge level 1.
 const SPECIALS := {

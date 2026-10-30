@@ -96,6 +96,20 @@ const CFG := {
 		"main": Color(0.72, 0.35, 1.0), "deep": Color(0.38, 0.16, 0.55), "light": Color(0.92, 0.8, 1.0),
 		"motes": false,
 	},
+	# The Blob has no model either: BlobBody builds the slime in code
+	"blob": {
+		"procedural": "blob",
+		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"main": Color(0.55, 1.0, 0.3), "deep": Color(0.12, 0.42, 0.06), "light": Color(0.85, 1.0, 0.6),
+		"motes": false,
+	},
+	# Loco Robotico has no model either: LocoBody builds the party robot in code
+	"loco_robotico": {
+		"procedural": "loco",
+		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"main": Color(1.0, 0.45, 0.85), "deep": Color(0.12, 0.42, 0.48), "light": Color(0.75, 1.0, 0.85),
+		"motes": false,
+	},
 	"thog": {
 		"model": "ogre", "skin": "res://models/ogre/thog_skin.jpg", "scale": 1.2, "weapon_scale": 1.35,
 		"fire": [0.8, 1.8667], "fire_speed": 1.3,
@@ -160,6 +174,9 @@ static func color(id: String, key: String) -> Color:
 
 var sock: SockBody          # An Argyle Sock: built in code, no rig
 var sock_colors := {}       # ...in other colours (the Lost Pair), set before it's added
+var loco: LocoBody          # Loco Robotico: built in code, no rig
+var blob: BlobBody          # The Blob: built in code, no rig
+var blob_opts := {}         # ...its size and colours (Split's mini-blobs), set before it's added
 
 
 func _ready() -> void:
@@ -168,6 +185,18 @@ func _ready() -> void:
 		sock = SockBody.create(sock_colors)
 		_rig = sock
 		add_child(sock)
+		_floaty = true
+		return
+	if cfg0.get("procedural", "") == "loco":
+		loco = LocoBody.create()
+		_rig = loco
+		add_child(loco)
+		_floaty = true
+		return
+	if cfg0.get("procedural", "") == "blob":
+		blob = BlobBody.create(blob_opts)
+		_rig = blob
+		add_child(blob)
 		_floaty = true
 		return
 	var mid := model_of(char_id)
@@ -331,6 +360,9 @@ func _build_tree() -> void:
 # ------------------------------------------------------------------ interface
 
 func attack(target: Vector3) -> Vector3:
+	if loco:   # shakes a maraca (alternating hands)
+		loco.shake()
+		return loco.tip()
 	if _floaty:
 		_lunge = 1.0
 		return staff_tip()
@@ -345,6 +377,10 @@ func attack(target: Vector3) -> Vector3:
 func staff_tip() -> Vector3:
 	if sock:
 		return sock.tip()
+	if loco:
+		return loco.tip()
+	if blob:
+		return blob.tip()
 	if _floaty:   # the Ghast's mouth
 		return global_transform * Vector3(0, 1.45, -0.35)
 	if weapon == null or not weapon.is_inside_tree():
@@ -403,6 +439,10 @@ func set_dim(f: float) -> void:
 	_dim = f
 	if sock:
 		sock.set_dim(f)
+	if loco:
+		loco.set_dim(f)
+	if blob:
+		blob.set_dim(f)
 	for k in _mats.size():
 		var c := _base_albedo[k]
 		_mats[k].albedo_color = Color(c.r * f, c.g * f, c.b * f, c.a)
@@ -416,6 +456,10 @@ func set_hurt(amount: float) -> void:
 	_hurt = amount
 	if sock:
 		sock.set_hurt(clampf(amount, 0.0, 1.0))
+	if loco:
+		loco.set_hurt(clampf(amount, 0.0, 1.0))
+	if blob:
+		blob.set_hurt(clampf(amount, 0.0, 1.0))
 	_apply_emission()
 
 
@@ -464,6 +508,17 @@ func _process(dt: float) -> void:
 		_swell = maxf(0.0, _swell - dt * 1.8)
 		_flinch = maxf(0.0, _flinch - dt * 5.0)
 		sock.animate(dt, _speed, _airborne, _lunge, _swell, _flinch)
+		return
+	if loco:   # rolls along, shakes his maracas, throws his arms up when he casts
+		_swell = maxf(0.0, _swell - dt * 1.8)
+		_flinch = maxf(0.0, _flinch - dt * 5.0)
+		loco.animate(dt, _speed, _airborne, _swell, _flinch)
+		return
+	if blob:   # wobbles, hops along, ripples as it burns, swells when it casts, splats when hit
+		_lunge = maxf(0.0, _lunge - dt * 4.0)
+		_swell = maxf(0.0, _swell - dt * 1.8)
+		_flinch = maxf(0.0, _flinch - dt * 3.0)
+		blob.animate(dt, _speed, _airborne, _lunge, _swell, _flinch)
 		return
 	if _floaty:   # hover, sway, lunge at targets, swell when casting, jerk back when hit
 		_lunge = maxf(0.0, _lunge - dt * 4.0)

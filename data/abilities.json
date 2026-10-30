@@ -249,7 +249,7 @@
 
     "blob": {
       "role": "Tanky puddle that eats enemies",
-      "weapon": { "name": "Acid Body", "icon": { "glyph": "bubble", "cover": "#1f3a14", "tint": "#a8ff5a" }, "desc": "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size", "short": "Burns on touch, grows", "damage": "30/s" },
+      "weapon": { "name": "Acid Body", "icon": { "glyph": "bubble", "cover": "#1f3a14", "tint": "#a8ff5a" }, "desc": "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size", "short": "Burns on touch, grows", "damage": "30/s", "every": 0.5 },
       "abilities": [
         { "name": "Engulf", "cooldown": 30, "icon": { "glyph": "ring", "color": "#7cf08a" },
           "text": "Swallows the enemies closest to you.",

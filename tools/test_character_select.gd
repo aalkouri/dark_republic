@@ -177,15 +177,15 @@ func _ready() -> void:
 	cs._shown = -1
 	cs._show(mi)
 	_check("unlocked Merlin (3D model + kit): Skills open and Play is ready", not cs._skills_btn.disabled and not cs._play_btn.disabled and cs._level_box.visible, "")
-	var bi: int = cs.index_of("blob")
-	Wallet.unlocked_chars.append("blob")
+	var bi: int = cs.index_of("cowboy")
+	Wallet.unlocked_chars.append("cowboy")
 	cs._shown = -1
 	cs._show(bi)
-	_check("unlocked Blob (no model yet): Skills open, Play waits for his kit", not cs._skills_btn.disabled and cs._play_btn.disabled and cs._level_box.visible, "")
+	_check("unlocked Cowboy (no model yet): Skills open, Play waits for his kit", not cs._skills_btn.disabled and cs._play_btn.disabled and cs._level_box.visible, "")
 	cs._shown = -1
 	cs._show(mi)
 	Wallet.unlocked_chars.erase("merlin")
-	Wallet.unlocked_chars.erase("blob")
+	Wallet.unlocked_chars.erase("cowboy")
 	# Thog: coins AND beating him in the Swamp
 	var th: int = cs.index_of("thog")
 	Wallet.coins = 20000

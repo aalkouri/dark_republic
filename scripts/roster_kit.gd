@@ -38,6 +38,7 @@ const PARTS := {
 	"vicki": "res://scripts/kits/kit_vicki.gd", "rogue": "res://scripts/kits/kit_rogue.gd",
 	"gaiden": "res://scripts/kits/kit_gaiden.gd", "dr_croc": "res://scripts/kits/kit_croc.gd",
 	"thog": "res://scripts/kits/kit_thog.gd", "argyle_sock": "res://scripts/kits/kit_sock.gd",
+	"loco_robotico": "res://scripts/kits/kit_loco.gd", "blob": "res://scripts/kits/kit_blob.gd",
 }
 
 const YARD := 0.9144

@@ -45,6 +45,8 @@ const LEVEL_STATS := {
 	"dr_croc": [["speed bonus"], ["damage"], ["damage"]],
 	"thog": [["damage"], ["damage"], ["damage"]],
 	"argyle_sock": [["damage"], ["partner damage"], ["damage"]],
+	"loco_robotico": [["damage"], ["bomb damage"], ["damage"]],
+	"blob": [["digest damage"], ["mini-blob damage"], ["damage"]],
 }
 
 # Ability slots (index into DEFS / cooldown; key = index + 1)
@@ -57,6 +59,7 @@ const METEOR := 2
 const ULT_FIRE_RADIUS := {
 	"ice_wizard": 25.0, "thunder_wizard": 18.0, "dark_wizard": 15.0, "merlin": 25.0, "ogre": 10.0,
 	"ghast": 30.0, "vampire_hunter": 20.0, "vicki": 25.0, "rogue": 20.0, "gaiden": 12.0, "dr_croc": 20.0,
+	"loco_robotico": 20.0, "blob": 20.0,
 }
 const METEOR_COOLDOWN := 120.0       # ultimate
 const METEOR_FALL_TIME := 3.0
