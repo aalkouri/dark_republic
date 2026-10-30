@@ -254,5 +254,53 @@
   "Irrlichtschaden",
   "幽魂伤害",
   "ウィスプのダメージ"
+ ],
+ "Fire Shard": [
+  "Fragmento de fuego",
+  "Éclat de feu",
+  "شظية النار",
+  "Feuersplitter",
+  "火焰碎片",
+  "炎の欠片"
+ ],
+ "Ice Shard": [
+  "Fragmento de hielo",
+  "Éclat de glace",
+  "شظية الجليد",
+  "Eissplitter",
+  "寒冰碎片",
+  "氷の欠片"
+ ],
+ "Lightning Shard": [
+  "Fragmento de rayo",
+  "Éclat de foudre",
+  "شظية البرق",
+  "Blitzsplitter",
+  "雷电碎片",
+  "雷の欠片"
+ ],
+ "Dark Shard": [
+  "Fragmento oscuro",
+  "Éclat obscur",
+  "شظية الظلام",
+  "Schattensplitter",
+  "暗影碎片",
+  "闇の欠片"
+ ],
+ "SHARDS: %s": [
+  "FRAGMENTOS: %s",
+  "ÉCLATS : %s",
+  "شظايا: %s",
+  "SPLITTER: %s",
+  "碎片：%s",
+  "欠片：%s"
+ ],
+ "Shards won:": [
+  "Fragmentos obtenidos:",
+  "Éclats gagnés :",
+  "الشظايا المكتسبة:",
+  "Gewonnene Splitter:",
+  "获得碎片：",
+  "獲得した欠片："
  ]
 }

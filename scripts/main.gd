@@ -61,6 +61,7 @@ var xp_next := 0.0
 var kills := 0
 var elites_killed := 0              # for character EXP
 var chests_opened := 0
+var shards_won := {}   # elemental shards from bosses this run (banked as they drop)
 var _chest_queue: Array[int] = []   # tiers of chests opened while a menu was up
 var pending_levels := 0
 var current_draft: Array = []
@@ -688,9 +689,23 @@ func _on_thog_defeated() -> void:
 	_on_boss_defeated()
 
 
+## A boss fell: 1-5 elemental shards of random kinds, banked at once and listed at the end.
+func _award_shards() -> void:
+	var won := Wallet.roll_boss_shards(rng)
+	for kind in won:
+		shards_won[kind] = int(shards_won.get(kind, 0)) + int(won[kind])
+	Wallet.add_shards(won)
+	var parts := []
+	for kind in Wallet.SHARDS:
+		if won.has(kind):
+			parts.append("%d %s" % [won[kind], tr(Wallet.SHARD_NAMES[kind])])
+	hud.flash_message(tr("SHARDS: %s") % ", ".join(parts), 3.0)
+
+
 ## A map boss has fallen: gems fly in, first kills unlock things, and the run is won.
 func _on_boss_defeated() -> void:
 	gems.magnetise_all()
+	_award_shards()
 	first_boss_kill = Wallet.defeat_boss(boss_id)
 	if boss_id == "thog":
 		hud.flash_message("THOG IS DEFEATED!", 4.0)
@@ -719,6 +734,7 @@ func _on_enemy_killed(p: Vector3, type_id: int) -> void:
 	gems.spawn(p + Vector3(0, 0.5, 0), enemies.t_xp[type_id] * xp_drop_mult() * enemies.kill_xp_mult)
 	if type_id == EnemyManager.BOSS:
 		gems.magnetise_all()
+		_award_shards()
 		hud.flash_message("GOBLIN WARLORD SLAIN!", 4.0)
 
 

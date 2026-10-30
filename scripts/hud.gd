@@ -57,6 +57,7 @@ var end_title: Label
 var end_stats: Label
 var end_coin_lines: Label
 var end_exp: Label
+var end_shards: HBoxContainer   # elemental shards won from bosses this run
 var end_pot: Label
 var end_unlocks: VBoxContainer       # "UNLOCKED!" after a first boss kill: cards swirl in
 var unlock_cards: Array[Control] = []
@@ -583,6 +584,11 @@ func _build_end(root: Control) -> void:
 	end_exp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	end_exp.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
 	vb.add_child(end_exp)
+	end_shards = HBoxContainer.new()
+	end_shards.alignment = BoxContainer.ALIGNMENT_CENTER
+	end_shards.add_theme_constant_override("separation", 8)
+	end_shards.visible = false
+	vb.add_child(end_shards)
 	# Coins earned this run (banked here, poured into the counter)
 	var coin_box := VBoxContainer.new()
 	coin_box.add_theme_constant_override("separation", 4)
@@ -644,6 +650,29 @@ func show_draft(picks: Array) -> void:
 			art.set_icon(icon, info["kind"])
 	_refresh_bans()
 	draft_root.visible = true
+
+
+## "Shards won:" and a crystal + count for each kind the bosses dropped this run.
+func _show_end_shards(won: Dictionary) -> void:
+	for c in end_shards.get_children():
+		c.queue_free()
+	end_shards.visible = not won.is_empty()
+	if won.is_empty():
+		return
+	var head := _label(tr("Shards won:"), 20)
+	head.add_theme_color_override("font_color", Color(0.85, 0.75, 1.0))
+	end_shards.add_child(head)
+	for kind in Wallet.SHARDS:
+		if not won.has(kind):
+			continue
+		var ic := ShardIcon.new()
+		ic.kind = kind
+		ic.custom_minimum_size = Vector2(24, 32)
+		end_shards.add_child(ic)
+		var l := _label("x%d" % int(won[kind]), 20)
+		l.add_theme_color_override("font_color", ShardIcon.COLORS[kind][2])
+		l.tooltip_text = tr(Wallet.SHARD_NAMES[kind])
+		end_shards.add_child(l)
 
 
 ## The chest slot machine (game paused). `done` is called with (ability, levels) when the
@@ -710,6 +739,7 @@ func show_end(won: bool) -> void:
 	var progress := (tr("%s / %s EXP") % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else tr("max level")
 	end_exp.text = tr("EXP +%s   ·   lvl %d  (%s)") % [Wallet.fmt(int(run_exp["total"])), lvl, progress]
 	end_exp.text += "\n" + exp_breakdown(run_exp)
+	_show_end_shards(main.shards_won)
 	if gained_levels > 0:
 		end_exp.text += "\n" + (tr("LEVEL UP!  lvl %d   ·   +%d skill points") if gained_levels > 1 else tr("LEVEL UP!  lvl %d   ·   +%d skill point")) % [lvl, gained_levels]
 		end_exp.add_theme_color_override("font_color", Color(0.55, 1.0, 0.6))

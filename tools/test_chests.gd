@@ -13,6 +13,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	get_tree().current_scene = stand_in
 	_test_odds()
+	_test_shards()
 	_test_levels_math()
 	for map in ["swamp", "forest", "castle"]:
 		await _start("fire_wizard", map)
@@ -81,6 +82,30 @@ func _test_odds() -> void:
 		if ww[0] == 1:
 			bad += 1
 	_check("a maxed ability is never the one levelled", bad == 0, "%d" % bad)
+
+
+func _test_shards() -> void:
+	var r := RandomNumberGenerator.new()
+	r.seed = 77
+	var lo := 99
+	var hi := 0
+	var kinds := {}
+	for k in 2000:
+		var won := Wallet.roll_boss_shards(r)
+		var n := 0
+		for kind in won:
+			n += int(won[kind])
+			kinds[kind] = true
+		lo = mini(lo, n)
+		hi = maxi(hi, n)
+	_check("a boss drops 1-5 shards", lo == 1 and hi == 5, "%d..%d" % [lo, hi])
+	_check("of all four kinds, at random", kinds.size() == 4 and kinds.has("fire") and kinds.has("ice") and kinds.has("lightning") and kinds.has("dark"), str(kinds.keys()))
+	var before: int = Wallet.shards["ice"]
+	Wallet.add_shards({"ice": 2})
+	_check("shards bank into the wallet and the counter shows them", Wallet.shards["ice"] == before + 2
+		and (Wallet.shard_labels["ice"] as Label).text == str(before + 2) and Wallet.shard_panel != null, "")
+	Wallet.shards["ice"] = before
+	Wallet._refresh_shards()
 
 
 func _test_levels_math() -> void:
@@ -171,6 +196,13 @@ func _test_keys_and_open() -> void:
 	sm._finish()
 	await _secs(0.2)
 	_check("Continue: back to the run", main.state == "playing" and not get_tree().paused and main.hud.slot_machine == null, main.state)
+	main._award_shards()
+	var got := 0
+	for kind in main.shards_won:
+		got += int(main.shards_won[kind])
+	main.hud._show_end_shards(main.shards_won)
+	_check("defeating a boss: 1-5 shards, listed on the end screen", got >= 1 and got <= 5 and main.hud.end_shards.visible
+		and main.hud.end_shards.get_child_count() == 1 + 2 * main.shards_won.size(), str(main.shards_won))
 	_check("opened chests count for character EXP", main.chests_opened == 1 and Wallet.run_exp(0, 0, 0, 1, 0.0, false)["chests"] == Wallet.EXP_PER_CHEST, "")
 
 

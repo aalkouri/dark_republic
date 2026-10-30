@@ -27,10 +27,13 @@ var unlocked_chars: Array = []         # character ids bought with coins
 var bosses_defeated: Array = []        # boss ids beaten at least once ("thog": the Swamp's)
 var feats: Array = []                  # one-off achievements that unlock things ("unrelenting_swamp_15")
 var seen_unlocks: Array = []           # unlocks whose reveal has played ("map:forest"...)
+var shards := {"fire": 0, "ice": 0, "lightning": 0, "dark": 0}   # elemental shards (main weapon upgrades, later)
 var displayed := 0.0                   # what the counter shows (lags during a payout)
 var persist := true                    # off for test/screenshot runs
 
 var panel: Control
+var shard_panel: Control               # the shard counters, left of the coins
+var shard_labels := {}                 # kind -> Label
 var icon: CoinIcon
 var label: Label
 var _flying: Array = []                # {node, value, t, start, vel, phase, dur, burst}
@@ -265,6 +268,35 @@ func finish_now() -> void:
 
 func set_shown(v: bool) -> void:
 	panel.visible = v
+	shard_panel.visible = v
+
+
+## Elemental shards (fire, ice, lightning, dark): a separate, persistent currency for upgrading
+## the main weapon. Every boss defeated gives 1-5 of them, of random kinds.
+const SHARDS := ["fire", "ice", "lightning", "dark"]
+const SHARD_NAMES := {"fire": "Fire Shard", "ice": "Ice Shard", "lightning": "Lightning Shard", "dark": "Dark Shard"}
+const BOSS_SHARDS := Vector2i(1, 5)
+
+
+## Roll a boss's shard drop: 1-5 shards, each of a random kind. {kind: count} (only kinds won).
+static func roll_boss_shards(r: RandomNumberGenerator) -> Dictionary:
+	var out := {}
+	for k in r.randi_range(BOSS_SHARDS.x, BOSS_SHARDS.y):
+		var kind: String = SHARDS[r.randi() % SHARDS.size()]
+		out[kind] = int(out.get(kind, 0)) + 1
+	return out
+
+
+func add_shards(won: Dictionary) -> void:
+	for kind in won:
+		shards[kind] = int(shards.get(kind, 0)) + int(won[kind])
+	_save()
+	_refresh_shards()
+
+
+func _refresh_shards() -> void:
+	for kind in shard_labels:
+		(shard_labels[kind] as Label).text = str(int(shards.get(kind, 0)))
 
 
 ## Centre of the counter's coin, in screen space (where flying coins go).
@@ -298,6 +330,7 @@ func _build() -> void:
 	panel.offset_top = 14
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(panel)
+	_build_shards(font)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -317,6 +350,59 @@ func _build() -> void:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(label)
 	_refresh()
+
+
+## The shard counters: a pill like the coin counter's, just left of it: four crystals, each with
+## how many you hold.
+func _build_shards(font: Font) -> void:
+	shard_panel = PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.03, 0.06, 0.72)
+	sb.border_color = Color(0.6, 0.5, 0.85, 0.8)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(22)
+	sb.content_margin_left = 12
+	sb.content_margin_right = 14
+	sb.content_margin_top = 4
+	sb.content_margin_bottom = 4
+	shard_panel.add_theme_stylebox_override("panel", sb)
+	shard_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	shard_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	shard_panel.offset_top = 14
+	shard_panel.offset_right = -220
+	shard_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(shard_panel)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shard_panel.add_child(row)
+	for kind in SHARDS:
+		var ic := ShardIcon.new()
+		ic.kind = kind
+		ic.custom_minimum_size = Vector2(26, 34)
+		row.add_child(ic)
+		var l := Label.new()
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		if font:
+			l.add_theme_font_override("font", font)
+		l.add_theme_font_size_override("font_size", 22)
+		l.add_theme_color_override("font_color", (ShardIcon.COLORS[kind][2] as Color))
+		l.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.08))
+		l.add_theme_constant_override("outline_size", 5)
+		l.custom_minimum_size = Vector2(22, 0)
+		row.add_child(l)
+		shard_labels[kind] = l
+		if kind != SHARDS[-1]:
+			var gap := Control.new()
+			gap.custom_minimum_size = Vector2(4, 0)
+			row.add_child(gap)
+	_refresh_shards()
+
+
+func _process_shard_panel() -> void:
+	# sit just left of the coin counter, however wide it is
+	if panel and shard_panel:
+		shard_panel.offset_right = panel.offset_right - panel.size.x - 10.0
 
 
 func _build_audio() -> void:
@@ -353,6 +439,7 @@ func _refresh() -> void:
 # ------------------------------------------------------------------ animation
 
 func _process(dt: float) -> void:
+	_process_shard_panel()
 	icon.glint += dt * 0.35
 	_pulse = maxf(0.0, _pulse - dt * 4.0)
 	panel.pivot_offset = panel.size * Vector2(1.0, 0.5)
@@ -436,6 +523,9 @@ func _load() -> void:
 		bosses_defeated = cfg.get_value("progress", "bosses", [])
 		feats = cfg.get_value("progress", "feats", [])
 		seen_unlocks = cfg.get_value("progress", "seen", [])
+		var sh: Dictionary = cfg.get_value("wallet", "shards", {})
+		for kind in SHARDS:
+			shards[kind] = int(sh.get(kind, 0))
 
 
 func _save() -> void:
@@ -450,4 +540,5 @@ func _save() -> void:
 	cfg.set_value("progress", "bosses", bosses_defeated)
 	cfg.set_value("progress", "feats", feats)
 	cfg.set_value("progress", "seen", seen_unlocks)
+	cfg.set_value("wallet", "shards", shards)
 	cfg.save(PATH)
