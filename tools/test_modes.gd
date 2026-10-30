@@ -105,7 +105,7 @@ func _ready() -> void:
 	var names := []
 	for b in modes.cards:
 		names.append(b.get_meta("mode"))
-	_check("Play reveals Quickplay / Classic / Unrelenting cards", modes.is_open() and modes.visible and names == ["quickplay", "classic", "unrelenting"], str(names))
+	_check("Play reveals Classic / Quickplay / Unrelenting cards", modes.is_open() and modes.visible and names == ["classic", "quickplay", "unrelenting"], str(names))
 	_check("cards are on screen and clickable after the reveal", modes.cards.all(func(b): return not b.disabled and b.get_global_rect().end.x < 1600 and b.scale.is_equal_approx(Vector2.ONE) or b.has_focus()), "")
 	modes.close()
 	await get_tree().create_timer(0.3).timeout
