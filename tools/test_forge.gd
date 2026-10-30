@@ -74,6 +74,12 @@ func _test_select() -> void:
 	for f in 5:
 		await get_tree().process_frame
 	var cs = get_tree().current_scene
+	var picked: int = cs._picked
+	cs._on_tile_hover(5, true)
+	_check("hovering a character shows its panel", cs._shown == 5, "%d" % cs._shown)
+	cs._on_tile_hover(5, false)
+	await get_tree().process_frame
+	_check("...and moving off the tiles goes back to the last one clicked", cs._shown == picked, "%d vs %d" % [cs._shown, picked])
 	var k := -1
 	for i in cs.characters.size():
 		if cs.characters[i]["id"] == "argyle_sock":

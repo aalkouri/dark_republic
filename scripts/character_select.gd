@@ -44,6 +44,8 @@ var _shard_row: HBoxContainer       # shards the next forge level needs, lit whe
 var _pluses: _PlusSigns             # green pluses over the weapon when it can be forged
 var _forge_style := ""              # the shown character's weapon style ("" = none)
 var _forge_menu: ForgeMenu
+var _picked := -1                   # the last character clicked (the panel returns to it)
+var _hovered := -1                  # the tile under the mouse, if any
 var _model_pivot: Node3D
 var _hero_preview: Node3D
 var _previews := {}          # character id -> RosterModel (built on first view)
@@ -81,6 +83,7 @@ func _ready() -> void:
 	add_child(_fade)
 	create_tween().tween_property(_fade, "color:a", 0.0, 0.5)
 	var start := maxi(0, index_of(Settings.selected_character))
+	_picked = start
 	_show(start)
 	_tiles[start].grab_focus.call_deferred()
 	_shot_setup()
@@ -299,7 +302,9 @@ func _build_grid() -> void:
 		price.add_child(amount)
 		b.add_child(price)
 		b.set_meta("price", price)
-		b.focus_entered.connect(_show.bind(k))   # keyboard/gamepad navigation; hovering does nothing
+		b.focus_entered.connect(_show.bind(k))   # keyboard/gamepad navigation
+		b.mouse_entered.connect(_on_tile_hover.bind(k, true))   # hovering previews that character...
+		b.mouse_exited.connect(_on_tile_hover.bind(k, false))   # ...and leaving goes back to the picked one
 		b.pressed.connect(_choose.bind(k))
 		grid.add_child(b)
 		_tiles.append(b)
@@ -915,7 +920,25 @@ func _reveal_weapon(k: int) -> void:
 	reveal = UnlockReveal.show_for(self, str(characters[k]["name"]), w, ribbon, _font, _font_bold)
 
 
+## Hovering a tile shows that character's panel; with no tile under the mouse the panel goes
+## back to the last one clicked.
+func _on_tile_hover(k: int, on: bool) -> void:
+	if on:
+		_hovered = k
+		if _shown != k:
+			_show(k)
+	elif _hovered == k:
+		_hovered = -1
+		_revert_hover.call_deferred()
+
+
+func _revert_hover() -> void:
+	if _hovered < 0 and _picked >= 0 and _shown != _picked and _forge_menu == null and not skills.visible:
+		_show(_picked)
+
+
 func _choose(k: int) -> void:
+	_picked = k
 	_show(k)
 	if can_unlock(k):
 		_play_btn.grab_focus()   # "Unlock" is ready to press
