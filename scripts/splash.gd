@@ -1,5 +1,5 @@
 extends Control
-## Startup splash: plays the AtomAI studio logo, then the intro cinematic (scenes/intro.tscn,
+## Startup splash: plays the AtomAI studio logo, then the anime intro (scenes/intro.tscn,
 ## unless turned off in Settings > Gameplay), then the title.
 ## Any key, mouse click or gamepad button skips it. Test/screenshot runs skip it automatically.
 

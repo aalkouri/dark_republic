@@ -1,7 +1,7 @@
 extends Node
-## Intro cinematic ("The Sock Incident"): after the studio logo the splash goes to the intro
-## (unless Settings > Gameplay turns it off); it has the cast and the horde, runs ~30 s, and
-## any key, click or pad button skips to the title.
+## Intro (the anime short): after the studio logo the splash goes to the intro (unless
+## Settings > Gameplay turns it off); it plays video/intro_anime.ogv (~30 s, sound effects on the
+## SFX bus), and any key, click or pad button skips to the title.
 ##   godot --headless --path . res://tools/test_intro.tscn
 
 var fails := 0
@@ -21,11 +21,11 @@ func _ready() -> void:
 	for f in 5:
 		await get_tree().process_frame
 	_check("about 30 seconds long", intro.LENGTH >= 28.0 and intro.LENGTH <= 33.0, str(intro.LENGTH))
-	_check("the wizard is asleep by the fire", intro._wizard != null, "")
-	var cast := ["ogre", "vicki", "gaiden", "ghast", "dr_croc"]
-	_check("heroes answer the call: " + ", ".join(cast), cast.all(func(id): return intro._heroes.has(id)), str(intro._heroes.keys()))
-	_check("a goblin horde (and the sock thief)", intro._horde.size() >= 100 and intro._thief != null, str(intro._horde.size()))
-	_check("the title card is there for the end", intro._title != null and intro._title.text == "DARK REPUBLIC", "")
+	_check("the anime video is loaded", intro._player != null and intro._player.stream != null, "")
+	_check("its sound plays on the SFX bus", intro._player.bus == Settings.SFX_BUS, intro._player.bus)
+	_check("the coin counter is hidden during the intro", not Wallet.panel.visible, "")
+	var v: VideoStream = load(intro.VIDEO)
+	_check("video file is in the project", v != null, intro.VIDEO)
 	var ev := InputEventKey.new()
 	ev.physical_keycode = KEY_SPACE
 	ev.pressed = true
