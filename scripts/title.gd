@@ -92,6 +92,9 @@ func _build_world() -> void:
 			env.glow_intensity = 1.1
 
 
+var hero: Node3D   # the model on the dais (the last character played)
+
+
 func _build_wizard() -> void:
 	# Mossy stone dais
 	var mb := MeshBuilder.new()
@@ -108,10 +111,17 @@ func _build_wizard() -> void:
 	dais.mesh = mb.commit()
 	add_child(dais)
 
-	var wizard := HeroModel.new()
+	# The character you played last stands on the dais (the Fire Wizard to begin with)
+	var who := Settings.last_played
+	var wizard: Node3D
+	if who != "fire_wizard" and RosterHero.is_playable(who):
+		wizard = RosterHero.create(who)
+	else:
+		wizard = HeroModel.new()
 	wizard.position = Vector3(0, DAIS_HEIGHT + 0.06, 0)
 	add_child(wizard)
 	wizard.rotation.y = PI * 0.15
+	hero = wizard
 
 	# Embers drifting up around him
 	var embers := Abilities._flame_particles(0.12, 3.0, 60)

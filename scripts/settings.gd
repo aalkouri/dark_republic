@@ -37,6 +37,7 @@ const I18N_DIR := "res://data/i18n/"
 
 ## Character picked on the character select screen (session only, not saved).
 var selected_character := "fire_wizard"
+var last_played := "fire_wizard"   # shown on the title screen's dais (saved)
 var selected_map := "swamp"            # "swamp" or "forest" (MapPicker, before a run)
 ## Mode picked from the title's Play menu (session only): "classic" - survive 10 minutes;
 ## "unrelenting" - no time limit, the clock counts up and everything keeps getting harder.
@@ -190,6 +191,7 @@ func save_settings() -> void:
 	var cf := ConfigFile.new()
 	cf.set_value("gameplay", "language", language)
 	cf.set_value("gameplay", "play_intro", play_intro)
+	cf.set_value("gameplay", "last_played", last_played)
 	cf.set_value("sound", "music_volume", music_volume)
 	cf.set_value("sound", "music_muted", music_muted)
 	cf.set_value("sound", "sfx_volume", sfx_volume)
@@ -212,6 +214,8 @@ func load_settings() -> void:
 		return
 	language = cf.get_value("gameplay", "language", language)
 	play_intro = cf.get_value("gameplay", "play_intro", play_intro)
+	last_played = cf.get_value("gameplay", "last_played", last_played)
+	selected_character = last_played
 	music_volume = cf.get_value("sound", "music_volume", music_volume)
 	music_muted = cf.get_value("sound", "music_muted", music_muted)
 	sfx_volume = cf.get_value("sound", "sfx_volume", sfx_volume)

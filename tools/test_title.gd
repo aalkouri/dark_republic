@@ -128,6 +128,16 @@ func _ready() -> void:
 	await get_tree().scene_changed
 	_check("Main menu returns to the title", get_tree().current_scene.name == "Title", get_tree().current_scene.name)
 
+	# The title's dais shows the character you played last
+	Settings.last_played = "thunder_wizard"
+	get_tree().change_scene_to_file.call_deferred("res://scenes/title.tscn")
+	await get_tree().scene_changed
+	for f in 3:
+		await get_tree().process_frame
+	var t2 = get_tree().current_scene
+	_check("the title shows the character you played last", t2.hero is RosterHero and (t2.hero as RosterHero).char_id == "thunder_wizard", str(t2.hero))
+	Settings.last_played = "fire_wizard"
+
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
 

@@ -160,6 +160,9 @@ func _ready() -> void:
 
 	var args := OS.get_cmdline_user_args()
 	smoke = args.has("--smoketest")
+	if Wallet.persist and not smoke and Settings.last_played != Settings.selected_character:
+		Settings.last_played = Settings.selected_character   # the title screen shows them next time
+		Settings.save_settings()
 	for a in args:
 		if a.begins_with("--smoke-seconds="):
 			smoke_seconds = float(a.split("=")[1])
