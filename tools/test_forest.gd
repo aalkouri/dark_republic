@@ -35,6 +35,26 @@ func _ready() -> void:
 		counts[map] = {"burnable": burnable, "obstacles": obstacles, "pools": water.pools.size(),
 			"glowing": glowing, "lights": lights, "bushes": (bushes[0] as BushField).pos.size() if not bushes.is_empty() else 0}
 		print("  %s: %s" % [map, counts[map]])
+		# Plants sit on the rolling ground (not at y = 0, floating over every dip)
+		var worst := 0.0
+		var checked := 0
+		var span := Vector2(INF, -INF)
+		for mmi in root.find_children("*", "MultiMeshInstance3D", true, false):
+			var origins: PackedVector3Array = mmi.get_meta("origins", PackedVector3Array())
+			if origins.size() < 1000:
+				continue   # the grass fields (reeds ring pools and dip into the water)
+			for k in range(0, origins.size(), 7):
+				var o := origins[k]
+				worst = maxf(worst, absf(o.y - water.ground_height(o.x, o.z)))
+				span = Vector2(minf(span.x, o.y), maxf(span.y, o.y))
+				checked += 1
+		_check("%s: grass sits on the hills (%d tufts checked)" % [map, checked], checked > 1000 and worst < 0.1 and span.y - span.x > 2.0, "worst %.2f m off, tufts from %.1f to %.1f m high" % [worst, span.x, span.y])
+		if not bushes.is_empty():
+			var bf := bushes[0] as BushField
+			var off := 0.0
+			for p in bf.pos:
+				off = maxf(off, p.y - water.ground_height(p.x, p.z))
+			_check("%s: no bush floats above the ground" % map, off <= 0.0, "%.2f m" % off)
 		if map == "forest":
 			_check("forest: 180 trees + 72 fallen logs", burnable == WorldBuilder.TREES + WorldBuilder.FALLEN, str(burnable))
 			_check("forest: 24 landmarks", obstacles == WorldBuilder.RUINS, str(obstacles))

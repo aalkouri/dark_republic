@@ -180,7 +180,7 @@ static func _grass(parent: Node3D, rng: RandomNumberGenerator, half: float, wate
 			var m := WorldBuilder._sample(patches, extent, px, pz)
 			if m.g > 0.6 and m.r < 0.57 and not water.near_pool(px, pz, 0.8) and Vector2(px, pz).length() > 3.0:
 				var s := rng.randf_range(0.7, 1.35)
-				xforms.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.3), s)), Vector3(px, 0, pz)))
+				xforms.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.3), s)), Vector3(px, water.ground_height(px, pz) - 0.04, pz)))   # on the hills, not at y = 0
 			x += step
 		z += step
 	var st := SurfaceTool.new()

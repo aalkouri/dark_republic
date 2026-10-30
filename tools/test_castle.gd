@@ -41,10 +41,10 @@ func _static_checks() -> void:
 			var nav := CastleNav.current
 			_check("castle: a walkable grid over the whole 440 m", nav != null and nav.n * CastleNav.CELL >= 440.0, "")
 			var feast := root.find_children("*", "CastleFeast", true, false)
-			_check("castle: one long feast table", feast.size() == 1, "")
+			_check("castle: one feast table", feast.size() == 1, "")
 			if feast.size() == 1:
 				var f: CastleFeast = feast[0]
-				_check("castle: hundreds of plates, goblets and dishes", f.items.size() >= 500, str(f.items.size()))
+				_check("castle: the table is laid end to end (plates, goblets, dishes)", f.items.size() >= 150, str(f.items.size()))
 				var kinds := {}
 				for it in f.items:
 					kinds[it.get_meta("kind", "")] = true
@@ -99,7 +99,7 @@ func _check_nav(nav: CastleNav) -> void:
 					any = true
 		_check("castle: the %s is reachable" % r[0], any, "")
 	_check("castle: outer walls are solid", nav.is_blocked(0, -219.5) and nav.is_blocked(219.5, 0) and nav.is_blocked(-219.5, 50), "")
-	_check("castle: the table is solid to goblins", nav.is_blocked(0, -20) and nav.is_blocked(0.5, 30), "")
+	_check("castle: the table is solid to goblins", nav.is_blocked(0, -20) and nav.is_blocked(0.5, -10), "")
 	_check("castle: open floor beside the table", not nav.is_blocked(-12, -20) and not nav.is_blocked(12, -20), "")
 	var t0 := Time.get_ticks_usec()
 	nav.update(1.0, Vector3(0, 1.0, -20))   # standing on the table
@@ -156,7 +156,7 @@ func _run_checks() -> void:
 	for it in feast.items:
 		if it.global_position.y > feast.top_y - 0.1:
 			top += 1
-	player.global_position = Vector3(0, feast.top_y + 0.6, 20)
+	player.global_position = Vector3(0, feast.top_y + 0.6, -9)
 	player.velocity = Vector3.ZERO
 	player.bot_move = Vector2(0, -1)   # walk north along the table
 	for f in 60 * 2:
@@ -175,11 +175,11 @@ func _run_checks() -> void:
 			floor += 1
 	_check("kicked food falls off onto the floor (normal gravity)", floor > 0 and after < top, "%d on the floor" % floor)
 	var b0 := feast.blasts
-	main.fx.burst(Vector3(0, feast.top_y + 0.5, -60), 4.0)
+	main.fx.burst(Vector3(0, feast.top_y + 0.5, -38), 4.0)
 	await get_tree().physics_frame
 	_check("explosions near the table blast the food", feast.blasts > b0 and feast.awake_count() > 0, "")
 	var nova_b := feast.blasts
-	player.global_position = Vector3(0, feast.top_y + 0.6, -30)
+	player.global_position = Vector3(0, feast.top_y + 0.6, -25)
 	main.abilities._erupt_shockwave()
 	await get_tree().physics_frame
 	_check("Fire Nova sweeps the table", feast.blasts > nova_b, "")

@@ -5,7 +5,7 @@ extends RefCounted
 ##
 ##   z = +220 (south)  great front doors (you walk in; they slam shut behind you)
 ##   Great Hall        x -100..100, z 60..220   two rows of columns, braziers, a long runner
-##   Dining Hall       x -60..60,  z -110..60   one very long table laid with a feast (CastleFeast)
+##   Dining Hall       x -60..60,  z -110..60   a long table laid with a feast (CastleFeast)
 ##   Galleries         x +-(60..100), z -110..60 flanking the dining hall
 ##   Throne Room       x -100..100, z -220..-110 the throne on a dais
 ##   West wing         Barracks (z 20..220) and Armory (z -220..20)
@@ -58,7 +58,7 @@ const ROOMS := [
 	["library", 100.0, 20.0, 220.0, 220.0],
 	["chapel", 100.0, -220.0, 220.0, 20.0],
 ]
-const TABLE := [-1.8, -96.0, 1.8, 46.0]   # the dining table top (x0, z0, x1, z1)
+const TABLE := [-1.8, -42.75, 1.8, -7.25]   # the dining table top (x0, z0, x1, z1): 35.5 m, mid-hall
 const TABLE_H := 0.95
 
 const STONE := Color(0.36, 0.33, 0.31, 0.0)

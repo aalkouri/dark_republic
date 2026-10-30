@@ -87,7 +87,7 @@ func scatter(rng: RandomNumberGenerator, half: float, water: SwampWater, placed:
 					break
 		if not ok:
 			continue
-		p.y = water.ground_height(p.x, p.z) - 0.05
+		p.y = WorldBuilder._low_point(water, p, 0.6) - 0.05   # on a slope, the downhill edge touches the ground
 		pos.append(p)
 		size.append(rng.randf_range(0.8, 1.35))
 	_build(rng)

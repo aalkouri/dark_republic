@@ -383,7 +383,7 @@ static func _grass(parent: Node3D, rng: RandomNumberGenerator, half: float, wate
 			var m := _sample(patches, extent, px, pz)
 			if m.g > 0.6 and m.r < 0.57 and not water.near_pool(px, pz, 0.8) and Vector2(px, pz).length() > 3.0:
 				var s := rng.randf_range(0.7, 1.35)
-				xforms.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.3), s)), Vector3(px, 0, pz)))
+				xforms.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.3), s)), Vector3(px, water.ground_height(px, pz) - 0.04, pz)))   # on the hills, not at y = 0
 			x += step
 		z += step
 	_multimesh(parent, _tuft_mesh(rng), xforms)
@@ -446,6 +446,7 @@ static func _multimesh(parent: Node3D, mesh: Mesh, xforms: Array[Transform3D]) -
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mmi.set_meta("origins", PackedVector3Array(xforms.map(func(x: Transform3D): return x.origin)))   # tests (headless can't read instances back)
 	parent.add_child(mmi)
 
 
