@@ -10,6 +10,8 @@ extends Node
 ## is), aims the Fire Wizard's Meteor at the thickest crowd, and picks level-up cards from a
 ## priority list: its weapon, then damage, health, armour, regen, area, attack speed, speed.
 ## A run ends when it dies (time of death reported) or wins (kills the map's boss).
+## Each run's details (upgrades taken in order, potions and power-ups picked up) are also
+## appended as one JSON line to <out>.jsonl.
 
 const UPGRADE_PRIORITY := {
 	"weapon_orb": 100, "tome_damage": 60, "tome_vitality": 55, "tome_armor": 50, "tome_quantity": 50,
@@ -35,6 +37,9 @@ var _side := 1.0
 var _dodge_t := 0.0
 var _wander := 0.0
 var _log_t := 0.0
+var _picks: Array = []           # upgrade titles taken this run, in order
+var _potions := {}               # potion name -> count picked up
+var _powerups := {}              # power-up name -> count picked up
 
 
 func _ready() -> void:
@@ -74,6 +79,15 @@ func _next() -> void:
 	_stuck_t = 0.0
 	_log_t = 0.0
 	_wander = randf() * TAU
+	_picks = []
+	_potions = {}
+	_powerups = {}
+	main.potions.collected.connect(func(k: int): _bump(_potions, PotionManager.NAMES[k].get_slice(":", 0)))
+	main.powerups.collected.connect(func(k: int): _bump(_powerups, PowerupManager.NAMES[k]))
+
+
+func _bump(d: Dictionary, key: String) -> void:
+	d[key] = int(d.get(key, 0)) + 1
 
 
 func _physics_process(dt: float) -> void:
@@ -104,6 +118,17 @@ func _record(st: String) -> void:
 	var r := {"char": _cur["char"], "n": _cur["n"], "won": won, "time": main.run_time, "level": main.level,
 		"kills": main.kills, "boss_hp": _boss_hp()}
 	_results.append(r)
+	var detail := r.duplicate()
+	detail["result"] = "WON" if won else ("DIED" if st == "dead" else "TIMEOUT")
+	detail["time_s"] = r["time"]
+	detail["upgrades"] = _picks
+	detail["potions"] = _potions
+	detail["powerups"] = _powerups
+	var jf := FileAccess.open(out_path + ".jsonl", FileAccess.READ_WRITE if FileAccess.file_exists(out_path + ".jsonl") else FileAccess.WRITE)
+	if jf:
+		jf.seek_end()
+		jf.store_line(JSON.stringify(detail))
+		jf.close()
 	var line := "%s #%d: %s at %s  (lvl %d, %d kills%s)" % [r["char"], r["n"], "WON" if won else ("DIED" if st == "dead" else "TIMEOUT"),
 		_fmt(r["time"]), r["level"], r["kills"], "" if won or r["boss_hp"] < 0 else ", Thog at %d%% HP" % roundi(r["boss_hp"] * 100)]
 	print("RESULT " + line)
@@ -162,7 +187,10 @@ func _pick_upgrade() -> void:
 		if s > best_s:
 			best_s = s
 			best = k
-	main.choose_upgrade(best if best >= 0 else 0)
+	var pick := best if best >= 0 else 0
+	if pick < draft.size():
+		_picks.append(str(draft[pick].get("title", draft[pick]["id"])))
+	main.choose_upgrade(pick)
 
 
 # ------------------------------------------------------------------ movement
