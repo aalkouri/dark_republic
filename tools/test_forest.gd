@@ -65,7 +65,9 @@ func _ready() -> void:
 			_check("forest: ~480 bushes", counts[map]["bushes"] >= 440, str(counts[map]["bushes"]))
 			var we: WorldEnvironment = root.find_children("*", "WorldEnvironment", true, false)[0]
 			var sun: DirectionalLight3D = root.find_children("*", "DirectionalLight3D", true, false)[0]
-			_check("forest: daylight, vivid colours", sun.light_energy >= 1.3 and we.environment.adjustment_saturation > 1.1, "sun %.2f" % sun.light_energy)
+			var night := ForestBuilder.time_of_day == "night"
+			_check("forest (%s): %s" % [ForestBuilder.time_of_day, "moonlight" if night else "daylight, vivid colours"],
+				(sun.light_energy < 0.8) if night else (sun.light_energy >= 1.3 and we.environment.adjustment_saturation > 1.1), "sun %.2f" % sun.light_energy)
 			var ground_mi: MeshInstance3D = null
 			for mi in root.find_children("*", "MeshInstance3D", true, false):
 				var m := (mi as MeshInstance3D).mesh
@@ -86,13 +88,37 @@ func _ready() -> void:
 				if b.get_luminance() < 0.4:
 					bark_ok = false
 			_check("forest: every species has bright bark", bark_ok, "")
-			_check("forest: fireflies", root.find_children("*", "Fireflies", true, false).size() == 1, "")
+			_check("forest (%s): %s" % [ForestBuilder.time_of_day, "fireflies at night" if night else "butterflies by day"],
+				root.find_children("*", "Fireflies", true, false).size() == (1 if night else 0)
+				and root.find_children("*", "Butterflies", true, false).size() == (0 if night else 1), "")
 			await _test_bushes(bushes[0] as BushField)
 			await _test_bush_fire(bushes[0] as BushField)
 		root.free()
 	_check("same landmarks and ponds as the swamp", counts["swamp"]["obstacles"] == counts["forest"]["obstacles"] and counts["swamp"]["pools"] == counts["forest"]["pools"], "")
 	_check("the swamp has no bushes or neon", counts["swamp"]["bushes"] == 0 and counts["swamp"]["glowing"] == 0, "")
 	_check("7 tree kinds", ForestProps.VARIANTS == 7, "")
+	# Every time of day: noon and golden afternoon get butterflies, night gets fireflies
+	var seen := {}
+	for t in ForestBuilder.TIMES:
+		ForestBuilder.force_time = t
+		var r := Node3D.new()
+		add_child(r)
+		var rr := RandomNumberGenerator.new()
+		rr.seed = 3
+		WorldBuilder.build(r, rr, 220.0, "forest")
+		var ff := r.find_children("*", "Fireflies", true, false).size()
+		var bf := r.find_children("*", "Butterflies", true, false).size()
+		var sun2: DirectionalLight3D = r.find_children("*", "DirectionalLight3D", true, false)[0]
+		seen[t] = (ff == 1 and bf == 0 and sun2.light_energy < 0.8) if t == "night" else (bf == 1 and ff == 0 and sun2.light_energy >= 1.3)
+		r.free()
+	ForestBuilder.force_time = ""
+	_check("forest: fireflies at night, butterflies at noon and in the golden afternoon", seen.values().all(func(v): return v), str(seen))
+	var picks := {}
+	for k in 60:
+		var r2 := RandomNumberGenerator.new()
+		r2.seed = k
+		picks[ForestBuilder.TIMES[r2.randi() % 3]] = true
+	_check("all three times of day come up", picks.size() == 3, str(picks.keys()))
 
 	# A run on the forest
 	var stand_in := Node.new()

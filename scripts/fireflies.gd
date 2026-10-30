@@ -1,6 +1,6 @@
 class_name Fireflies
 extends Node3D
-## Magical Forest fireflies: soft glowing motes drifting and blinking in a box that follows the
+## Magical Forest fireflies (at night; Butterflies by day): soft glowing motes drifting and blinking in a box that follows the
 ## camera, so there are always some around you without filling the whole 440 m arena.
 
 const EXTENT := Vector3(28.0, 3.5, 28.0)
@@ -32,18 +32,19 @@ func _ready() -> void:
 	grad.set_color(0, Color(0.7, 1.0, 0.45))
 	grad.set_color(1, Color(0.35, 0.95, 1.0))
 	_p.color_initial_ramp = grad
-	var quad := QuadMesh.new()
-	quad.size = Vector2(0.14, 0.14)
+	var dot := SphereMesh.new()   # a glowing bead (a sprite's dot texture draws black-centred here)
+	dot.radius = 0.06
+	dot.height = 0.12
+	dot.radial_segments = 6
+	dot.rings = 3
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	m.disable_fog = true
-	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	m.vertex_color_use_as_albedo = true
-	m.albedo_texture = Abilities._soft_dot()
-	quad.material = m
-	_p.mesh = quad
+	m.albedo_color = Color(1.6, 1.8, 1.0)   # over-bright, so they bloom
+	dot.material = m
+	_p.mesh = dot
 	add_child(_p)
 
 

@@ -5,9 +5,14 @@ extends RefCounted
 ## same, but greener and thicker: TREES realistic trees of 7 species with bright bark
 ## (ForestProps), 72 mossy fallen logs, 24 landmarks (glowing crystal clusters and rune stones,
 ## the magic in it), 14 clear blue ponds, a carpet of bright grass with wildflowers and ferns
-## everywhere (no bare dirt), BUSHES walk-through flowering bushes (BushField), and fireflies.
+## everywhere (no bare dirt), BUSHES walk-through flowering bushes (BushField).
 ##
-## Always daytime: 50% sunny noon, 50% warm golden afternoon.
+## Time of day, a third each: sunny noon, warm golden afternoon (butterflies flutter about by
+## day), or a moonlit night (fireflies blink in the dark and the flowering bushes glow).
+
+const TIMES := ["noon", "golden", "night"]
+static var force_time := ""     # tests / screenshots: pick the time of day (--forest-time=...)
+static var time_of_day := ""    # what the last build chose
 
 const TREES := 320
 const BUSHES := 480
@@ -37,8 +42,9 @@ const BUSH_FLOWERS := [Color(1.0, 0.3, 0.45, 1.0), Color(1.0, 0.95, 0.9, 1.0), C
 
 
 static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> SwampWater:
-	var golden := rng.randf() < 0.5
-	_environment(parent, rng, golden)
+	var pick: String = TIMES[rng.randi() % TIMES.size()]
+	time_of_day = force_time if TIMES.has(force_time) else pick
+	_environment(parent, rng, time_of_day)
 
 	var water := SwampWater.generate(rng, WorldBuilder.POOLS, half, 35.0)
 	water.build_terrain(rng, half, WorldBuilder.SHRINE_SITES, Shrine.ZONE_RADIUS)
@@ -90,12 +96,12 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	var bushes := BushField.new()
 	bushes.leaf_colors = BUSH_LEAVES
 	bushes.berry_colors = BUSH_FLOWERS
-	bushes.glow_berry = 0.35
+	bushes.glow_berry = 2.2 if time_of_day == "night" else 0.35   # blossoms glow in the dark
 	bushes.glow_leaf = 0.12
 	bushes.leaf_darken = 0.15
 	bushes.scatter(rng, half, water, placed, patches, BUSHES)
 	parent.add_child(bushes)
-	parent.add_child(_fireflies())
+	parent.add_child(Fireflies.new() if time_of_day == "night" else Butterflies.new())
 	return water
 
 
@@ -113,14 +119,25 @@ static func _light(parent: Node3D, data: Dictionary, xf: Transform3D) -> void:
 
 # ------------------------------------------------------------------ sky, light, fog
 
-static func _environment(parent: Node3D, rng: RandomNumberGenerator, golden: bool) -> void:
+static func _environment(parent: Node3D, rng: RandomNumberGenerator, time: String) -> void:
+	var golden := time == "golden"
+	var night := time == "night"
 	var sh := Shader.new()
 	sh.code = WorldBuilder.SKY_SHADER
 	var sky_mat := ShaderMaterial.new()
 	sky_mat.shader = sh
-	sky_mat.set_shader_parameter("night", 0.0)
+	sky_mat.set_shader_parameter("night", 1.0 if night else 0.0)
 	sky_mat.set_shader_parameter("seed", rng.randf() * 50.0)
-	if golden:   # warm late afternoon
+	if night:    # clear moonlit night, deep blue, lots of stars
+		sky_mat.set_shader_parameter("top_color", Color(0.02, 0.04, 0.12))
+		sky_mat.set_shader_parameter("horizon_color", Color(0.08, 0.16, 0.28))
+		sky_mat.set_shader_parameter("ground_color", Color(0.02, 0.04, 0.05))
+		sky_mat.set_shader_parameter("cloud_dark", Color(0.04, 0.06, 0.12))
+		sky_mat.set_shader_parameter("cloud_light", Color(0.25, 0.32, 0.45))
+		sky_mat.set_shader_parameter("body_color", Color(0.92, 0.96, 1.0))
+		sky_mat.set_shader_parameter("body_size", 0.06)
+		sky_mat.set_shader_parameter("coverage", 0.15)
+	elif golden:   # warm late afternoon
 		sky_mat.set_shader_parameter("top_color", Color(0.22, 0.45, 0.85))
 		sky_mat.set_shader_parameter("horizon_color", Color(1.0, 0.78, 0.5))
 		sky_mat.set_shader_parameter("ground_color", Color(0.35, 0.4, 0.2))
@@ -159,12 +176,22 @@ static func _environment(parent: Node3D, rng: RandomNumberGenerator, golden: boo
 	env.ambient_light_energy = 1.0
 	env.fog_light_color = Color(0.85, 0.75, 0.6) if golden else Color(0.66, 0.8, 0.95)
 	env.fog_density = 0.006
+	if night:
+		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		env.ambient_light_color = Color(0.32, 0.42, 0.62)
+		env.ambient_light_energy = 0.9
+		env.fog_light_color = Color(0.05, 0.09, 0.16)
+		env.fog_density = 0.01
+		env.glow_intensity = 0.9
+		env.glow_bloom = 0.06
+		env.glow_hdr_threshold = 0.9
+		env.adjustment_saturation = 1.1
 	var we := WorldEnvironment.new()
 	we.environment = env
 	parent.add_child(we)
 
 	var az := rng.randf() * TAU
-	var el := deg_to_rad(rng.randf_range(22.0, 32.0) if golden else rng.randf_range(50.0, 65.0))
+	var el := deg_to_rad(rng.randf_range(22.0, 32.0) if golden else (rng.randf_range(35.0, 50.0) if night else rng.randf_range(50.0, 65.0)))
 	var to_light := Vector3(cos(az) * cos(el), sin(el), sin(az) * cos(el))
 	var light := DirectionalLight3D.new()
 	light.basis = Basis.looking_at(-to_light, Vector3.UP)
@@ -172,6 +199,9 @@ static func _environment(parent: Node3D, rng: RandomNumberGenerator, golden: boo
 	light.directional_shadow_max_distance = 80.0
 	light.light_color = Color(1.0, 0.82, 0.6) if golden else Color(1.0, 0.97, 0.9)
 	light.light_energy = 1.35 if golden else 1.5
+	if night:   # moonlight
+		light.light_color = Color(0.6, 0.72, 1.0)
+		light.light_energy = 0.5
 	parent.add_child(light)
 
 
@@ -312,9 +342,3 @@ static func _chunk_meshes(parent: Node3D, chunks: Dictionary, mesh: Mesh) -> voi
 ## Reeds and cattails ringing the ponds.
 static func _reeds(parent: Node3D, rng: RandomNumberGenerator, water: SwampWater) -> void:
 	WorldBuilder._reeds(parent, rng, water)
-
-
-## Fireflies drifting around the player (the emitter follows the camera's player).
-static func _fireflies() -> Node3D:
-	var f := Fireflies.new()
-	return f

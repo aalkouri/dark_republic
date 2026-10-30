@@ -12,7 +12,7 @@
   "(runtime)"
  ],
  "%d min": [
-  "abilities.gd:225",
+  "abilities.gd:231",
   "kit_db.gd:96"
  ],
  "%d of %d unlocked": [
@@ -48,7 +48,7 @@
   "hud.gd:693"
  ],
  "%s APPROACHES": [
-  "main.gd:657"
+  "main.gd:659"
  ],
  "%s Chest": [
   "chest.gd:52"
@@ -65,7 +65,7 @@
   "weapon_system.gd:302"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:673"
+  "main.gd:675"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:394"
@@ -90,7 +90,7 @@
   "hud.gd:1029"
  ],
  "+%d%% from Damage": [
-  "abilities.gd:195"
+  "abilities.gd:201"
  ],
  "+0.5 luck: better rewards, more epic enemies and power-ups (like 5 Tomes of Luck)": [
   "skill_tree.gd:62",
@@ -182,10 +182,10 @@
   "skill_tree.gd:105"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:488"
+  "main.gd:490"
  ],
  "2 yd": [
-  "abilities.gd:208"
+  "abilities.gd:214"
  ],
  "3-hit combo, wind slash": [
   "abilities.json"
@@ -197,7 +197,7 @@
   "abilities.json"
  ],
  "5 yd": [
-  "abilities.gd:212"
+  "abilities.gd:218"
  ],
  "5x DAMAGE for 10 s!": [
   "powerup_manager.gd:18"
@@ -212,7 +212,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:600"
+  "main.gd:602"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -248,7 +248,7 @@
   "abilities.json"
  ],
  "A ring of fire bursts out from the ground under you.": [
-  "abilities.gd:210"
+  "abilities.gd:216"
  ],
  "A ring of mushrooms springs up around you.": [
   "abilities.json"
@@ -564,7 +564,7 @@
   "settings_menu.gd:233"
  ],
  "Cooldowns reset": [
-  "main.gd:886"
+  "main.gd:888"
  ],
  "Cowboy": [
   "characters.json"
@@ -586,7 +586,7 @@
   "upgrades.json"
  ],
  "Damage stat: %+d%% to flat damage": [
-  "abilities.gd:178"
+  "abilities.gd:184"
  ],
  "Damage: %s": [
   "character_select.gd:533"
@@ -916,7 +916,7 @@
   "abilities.json"
  ],
  "Fire Nova": [
-  "abilities.gd:85",
+  "abilities.gd:91",
   "abilities.json"
  ],
  "Fireball Cooldown": [
@@ -1021,7 +1021,7 @@
   "intro.gd:446"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:694"
+  "main.gd:696"
  ],
  "Gaiden": [
   "characters.json"
@@ -1191,7 +1191,7 @@
   "characters.json"
  ],
  "Inferno": [
-  "abilities.gd:84",
+  "abilities.gd:90",
   "abilities.json"
  ],
  "Inspect abilities (hold)": [
@@ -1238,7 +1238,7 @@
   "characters.json"
  ],
  "Key %s  ·  Cooldown %s": [
-  "abilities.gd:202",
+  "abilities.gd:208",
   "kit_db.gd:83"
  ],
  "Key bindings  (click, then press a key; Esc cancels)": [
@@ -1380,7 +1380,7 @@
   "abilities.json"
  ],
  "Locked: unlocks at level %d": [
-  "abilities.gd:183"
+  "abilities.gd:189"
  ],
  "Loco Robotico": [
   "characters.json"
@@ -1411,7 +1411,7 @@
   "hud.gd:640"
  ],
  "Lv %d → %d": [
-  "upgrade_db.gd:138"
+  "upgrade_db.gd:168"
  ],
  "MAGNET! All orbs incoming": [
   "powerup_manager.gd:18"
@@ -1457,7 +1457,7 @@
   "characters.json"
  ],
  "Meteor": [
-  "abilities.gd:86",
+  "abilities.gd:92",
   "abilities.json"
  ],
  "Midas Touch": [
@@ -1498,10 +1498,10 @@
   "settings_menu.gd:220"
  ],
  "NEW": [
-  "upgrade_db.gd:138"
+  "upgrade_db.gd:168"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:715"
+  "main.gd:717"
  ],
  "NEW CHAMPION": [
   "hud.gd:735"
@@ -1513,10 +1513,7 @@
   "hud.gd:729"
  ],
  "NEW WEAPON": [
-  "upgrade_db.gd:131"
- ],
- "Neon trees, glowing ponds and bushes that rustle.": [
-  "map_picker.gd:20"
+  "upgrade_db.gd:161"
  ],
  "Never stands still. Neither does anything near him.": [
   "characters.json"
@@ -1717,10 +1714,10 @@
   "abilities.json"
  ],
  "Ready": [
-  "abilities.gd:187"
+  "abilities.gd:193"
  ],
  "Ready in %s": [
-  "abilities.gd:185"
+  "abilities.gd:191"
  ],
  "Ready to unlock": [
   "character_select.gd:29",
@@ -1801,7 +1798,7 @@
   "settings_menu.gd:47"
  ],
  "SHRINE COMPLETE!  %s chest": [
-  "main.gd:326"
+  "main.gd:328"
  ],
  "SIGNATURE WEAPON": [
   "character_select.gd:423",
@@ -1812,10 +1809,10 @@
   "skill_screen.gd:108"
  ],
  "SURVIVE 10 MINUTES": [
-  "main.gd:415"
+  "main.gd:417"
  ],
  "SWARM!": [
-  "main.gd:589"
+  "main.gd:591"
  ],
  "Sage": [
   "skill_tree.gd:65"
@@ -1840,7 +1837,7 @@
   "characters.json"
  ],
  "Sets [b]every enemy[/b] on fire.": [
-  "abilities.gd:206"
+  "abilities.gd:212"
  ],
  "Sets down her cauldron. It spits.": [
   "abilities.json"
@@ -2046,6 +2043,9 @@
  "Summon {4} shadow clones for {12 s}": [
   "abilities.json"
  ],
+ "Sunlit glades, blossoming trees and butterflies.": [
+  "map_picker.gd:20"
+ ],
  "Supernova": [
   "abilities.json"
  ],
@@ -2096,19 +2096,19 @@
  ],
  "THOG": [
   "main.gd:69",
-  "main.gd:662"
+  "main.gd:664"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:367"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:671"
+  "main.gd:673"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:394"
  ],
  "THOG THE TROLL": [
-  "main.gd:642",
+  "main.gd:644",
   "thog_boss.gd:469"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2118,7 +2118,7 @@
   "thog_boss.gd:504"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:643"
+  "main.gd:645"
  ],
  "Take less damage.": [
   "upgrades.json"
@@ -2370,7 +2370,7 @@
   "abilities.json"
  ],
  "ULTIMATE": [
-  "abilities.gd:200",
+  "abilities.gd:206",
   "kit_db.gd:81"
  ],
  "UNLOCK": [
@@ -2386,7 +2386,7 @@
  "UNRELENTING": [
   "character_select.gd:222",
   "character_select.gd:223",
-  "main.gd:415"
+  "main.gd:417"
  ],
  "Ultimate": [
   "settings.gd:26"
@@ -2563,7 +2563,7 @@
   "abilities.json"
  ],
  "You vanish and become a giant flaming copy of your own head. [b]Invulnerable[/b] while falling.": [
-  "abilities.gd:214"
+  "abilities.gd:220"
  ],
  "Your attack speed is {+50%} while it lasts": [
   "abilities.json"
@@ -2684,24 +2684,24 @@
   "abilities.json"
  ],
  "• %s damage to every enemy within %s": [
-  "abilities.gd:211"
- ],
- "• Burn: %s of max HP per second for %s (%s total)": [
-  "abilities.gd:207"
- ],
- "• Burning enemies that die explode for %s of their max HP to enemies within %s; explosions chain": [
-  "abilities.gd:208"
- ],
- "• Crashes where you aim after %s: %s damage within %s, plus knockback": [
-  "abilities.gd:215"
- ],
- "• Knocks them back %s": [
-  "abilities.gd:212"
- ],
- "• The ground burns for %s: %s of max HP per second within %s": [
   "abilities.gd:217"
  ],
+ "• Burn: %s of max HP per second for %s (%s total)": [
+  "abilities.gd:213"
+ ],
+ "• Burning enemies that die explode for %s of their max HP to enemies within %s; explosions chain": [
+  "abilities.gd:214"
+ ],
+ "• Crashes where you aim after %s: %s damage within %s, plus knockback": [
+  "abilities.gd:221"
+ ],
+ "• Knocks them back %s": [
+  "abilities.gd:218"
+ ],
+ "• The ground burns for %s: %s of max HP per second within %s": [
+  "abilities.gd:223"
+ ],
  "• You reappear at the crash site": [
-  "abilities.gd:216"
+  "abilities.gd:222"
  ]
 }

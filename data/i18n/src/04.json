@@ -1,162 +1,1282 @@
 {
-"Lunging bites, shakes": ["Mordiscos al lanzarse, sacudidas", "Morsures bondissantes, secousses", "عضّات منقضّة، هزّ", "Sprungbisse, Schütteln", "扑咬，甩动", "飛びかかり噛みつき、振り回し"],
-"Lv %d": ["Nv %d", "Niv %d", "مستوى %d", "St. %d", "等级 %d", "Lv %d"],
-"Lv %d → %d": ["Nv %d → %d", "Niv %d → %d", "مستوى %d ← %d", "St. %d → %d", "等级 %d → %d", "Lv %d → %d"],
-"MAGNET! All orbs incoming": ["¡IMÁN! Todos los orbes vienen hacia ti", "AIMANT ! Tous les orbes arrivent", "مغناطيس! كل الكرات قادمة", "MAGNET! Alle Kugeln im Anflug", "磁铁！所有经验球飞来", "マグネット！オーブがすべて集まる"],
-"MOVEMENT +80% for 15 s!": ["¡MOVIMIENTO +80% durante 15 s!", "DÉPLACEMENT +80 % pendant 15 s !", "الحركة +80% لمدة 15 ث!", "BEWEGUNG +80 % für 15 s!", "移动速度 +80%，持续 15 秒！", "15秒間移動速度+80%！"],
-"Mage against the machine": ["Mago contra la máquina", "Mage contre la machine", "ساحر ضد الآلة", "Magier gegen die Maschine", "法师对抗机器", "マシーンに挑むメイジ"],
-"Magical Forest": ["Bosque mágico", "Forêt magique", "الغابة السحرية", "Zauberwald", "魔法森林", "魔法の森"],
-"Magnet": ["Imán", "Aimant", "المغناطيس", "Magnet", "磁铁", "マグネット"],
-"Magnetism": ["Magnetismo", "Magnétisme", "المغناطيسية", "Magnetismus", "磁力", "磁力"],
-"Main menu": ["Menú principal", "Menu principal", "القائمة الرئيسية", "Hauptmenü", "主菜单", "メインメニュー"],
-"Maraca Blasters": ["Maracas explosivas", "Maracas explosives", "ماراكاس المدمّرة", "Maraca-Blaster", "沙锤冲击炮", "マラカスブラスター"],
-"Mark of the Inevitable": ["Marca de lo inevitable", "Marque de l'inévitable", "علامة المحتوم", "Mal des Unausweichlichen", "必然之印", "必然の刻印"],
-"Marks the {8} enemies with the most HP within {30 m}": ["Marca a los {8} enemigos con más PV a {30 m}", "Marque les {8} ennemis avec le plus de PV à {30 m}", "يَسِم الأعداء الـ{8} الأكثر صحة ضمن {30 م}", "Markiert die {8} Gegner mit den meisten LP im Umkreis von {30 m}", "标记 {30 米} 内生命最高的 {8} 个敌人", "{30 m}以内でHPが最も高い敵{8}体に印をつける"],
-"Max HP": ["PV máx.", "PV max", "الصحة القصوى", "Max. LP", "最大生命", "最大HP"],
-"Melee kick that poisons for 2% of max HP per second; each stack slows 10% (max 5)": ["Patada cuerpo a cuerpo que envenena por 2% de PV máx. por segundo; cada acumulación ralentiza un 10% (máx. 5)", "Coup de pied qui empoisonne pour 2 % des PV max par seconde ; chaque cumul ralentit de 10 % (max 5)", "ركلة قريبة تسمّم بـ2% من الصحة القصوى في الثانية؛ كل تراكم يبطئ 10% (حتى 5)", "Nahkampftritt, der mit 2 % der max. LP pro Sekunde vergiftet; jede Stufe verlangsamt um 10 % (max. 5)", "近战踢击，每秒造成 2% 最大生命的中毒；每层减速 10%（最多 5 层）", "毎秒最大HPの2%の毒を与える蹴り；1スタックごとに10%減速（最大5）"],
-"Mending": ["Remiendo", "Raccommodage", "الترميم", "Ausbessern", "修补", "修復"],
-"Merlin": ["Merlín", "Merlin", "ميرلين", "Merlin", "梅林", "マーリン"],
-"Meteor": ["Meteoro", "Météore", "النيزك", "Meteor", "陨石", "メテオ"],
-"Midas Touch": ["Toque de Midas", "Toucher de Midas", "لمسة ميداس", "Midas-Berührung", "点金术", "ミダスの手"],
-"More health.": ["Más salud.", "Plus de vie.", "صحة أكثر.", "Mehr Lebenspunkte.", "更多生命。", "体力が増える。"],
-"Mouse sensitivity": ["Sensibilidad del ratón", "Sensibilité de la souris", "حساسية الفأرة", "Mausempfindlichkeit", "鼠标灵敏度", "マウス感度"],
-"Move Speed": ["Velocidad de movimiento", "Vitesse de déplacement", "سرعة الحركة", "Lauftempo", "移动速度", "移動速度"],
-"Move back": ["Retroceder", "Reculer", "تحرّك للخلف", "Rückwärts", "后退", "後退"],
-"Move forward": ["Avanzar", "Avancer", "تحرّك للأمام", "Vorwärts", "前进", "前進"],
-"Move left": ["Izquierda", "Gauche", "تحرّك يسارًا", "Links", "向左", "左へ移動"],
-"Move right": ["Derecha", "Droite", "تحرّك يمينًا", "Rechts", "向右", "右へ移動"],
-"Movement Enhancer": ["Potenciador de movimiento", "Amplificateur de déplacement", "معزز الحركة", "Bewegungsverstärker", "移动增强", "移動強化"],
-"Music": ["Música", "Musique", "الموسيقى", "Musik", "音乐", "音楽"],
-"Mutagen": ["Mutágeno", "Mutagène", "المُطفِّر", "Mutagen", "诱变剂", "変異薬"],
-"Mute": ["Silenciar", "Muet", "كتم", "Stumm", "静音", "ミュート"],
-"NEW": ["NUEVO", "NOUVEAU", "جديد", "NEU", "新", "NEW"],
-"NEW ABILITY UNLOCKED: %s  [%s]": ["NUEVA HABILIDAD DESBLOQUEADA: %s  [%s]", "NOUVELLE CAPACITÉ DÉBLOQUÉE : %s  [%s]", "قدرة جديدة مفتوحة: %s  [%s]", "NEUE FÄHIGKEIT FREIGESCHALTET: %s  [%s]", "新技能已解锁：%s  [%s]", "新アビリティ解放：%s  [%s]"],
-"NEW CHAMPION": ["NUEVO CAMPEÓN", "NOUVEAU CHAMPION", "بطل جديد", "NEUER CHAMPION", "新勇士", "新チャンピオン"],
-"NEW LEGENDARY LEVEL-UP REWARD": ["NUEVA RECOMPENSA LEGENDARIA DE NIVEL", "NOUVELLE RÉCOMPENSE DE NIVEAU LÉGENDAIRE", "مكافأة ترقية أسطورية جديدة", "NEUE LEGENDÄRE STUFENBELOHNUNG", "新的传说升级奖励", "新たなレジェンダリーのレベルアップ報酬"],
-"NEW MAP": ["NUEVO MAPA", "NOUVELLE CARTE", "خريطة جديدة", "NEUE KARTE", "新地图", "新マップ"],
-"NEW WEAPON": ["NUEVA ARMA", "NOUVELLE ARME", "سلاح جديد", "NEUE WAFFE", "新武器", "新武器"],
-"Neon trees, glowing ponds and bushes that rustle.": ["Árboles de neón, estanques brillantes y arbustos que crujen.", "Arbres fluo, étangs lumineux et buissons qui bruissent.", "أشجار نيون وبرك متوهجة وشجيرات تحفّ.", "Neonbäume, leuchtende Teiche und raschelnde Büsche.", "霓虹树、发光池塘和沙沙作响的灌木。", "ネオンの木、光る池、ざわめく茂み。"],
-"Never stands still. Neither does anything near him.": ["Nunca se está quieto. Ni nada que esté cerca de él.", "Ne tient jamais en place. Rien autour de lui non plus.", "لا يقف ساكنًا أبدًا. ولا أي شيء بقربه.", "Steht nie still. Nichts in seiner Nähe auch.", "从不停下。他附近的一切也是。", "決してじっとしない。彼の周りの何もかもも。"],
-"Never stands still. Now he really can't.": ["Nunca se está quieto. Ahora de verdad que no puede.", "Ne tient jamais en place. Maintenant, il ne peut vraiment plus.", "لا يقف ساكنًا أبدًا. والآن لا يستطيع حقًا.", "Steht nie still. Jetzt kann er es wirklich nicht.", "从不停下。现在是真停不下来了。", "決してじっとしない。今や本当にできない。"],
-"No skill points (earn one each level)": ["Sin puntos de habilidad (ganas uno por nivel)", "Aucun point de compétence (un par niveau)", "لا نقاط مهارة (تكسب واحدة كل مستوى)", "Keine Fertigkeitspunkte (einer pro Stufe)", "没有技能点（每级获得一点）", "スキルポイントがない（レベルごとに1獲得）"],
-"Nobody can resist. Then he barks.": ["Nadie puede resistirse. Luego ladra.", "Personne ne résiste. Puis il aboie.", "لا أحد يقاوم. ثم ينبح.", "Niemand kann widerstehen. Dann bellt er.", "没人能抗拒。然后他叫了一声。", "誰も抗えない。そして吠える。"],
-"Nobody has seen his face. The goblins say that's a mercy.": ["Nadie ha visto su cara. Los goblins dicen que es una suerte.", "Personne n'a vu son visage. Les gobelins disent que c'est une chance.", "لم يرَ أحد وجهه. يقول الغوبلن إن هذه رحمة.", "Niemand hat sein Gesicht gesehen. Die Goblins sagen, das ist eine Gnade.", "没人见过他的脸。哥布林说这是一种仁慈。", "誰も彼の顔を見たことがない。ゴブリンいわく、それは慈悲だ。"],
-"Nobody knows how it got here. Nobody knows why it fights. It just does.": ["Nadie sabe cómo llegó aquí. Nadie sabe por qué lucha. Simplemente lo hace.", "Personne ne sait comment elle est arrivée là. Ni pourquoi elle se bat. Elle se bat, c'est tout.", "لا أحد يعرف كيف وصل إلى هنا. ولا لماذا يقاتل. هو يقاتل فقط.", "Niemand weiß, wie es hierherkam. Niemand weiß, warum es kämpft. Es tut es einfach.", "没人知道它怎么来的，也没人知道它为什么战斗。它就是要打。", "どうやって来たのか誰も知らない。なぜ戦うのかも。ただ戦うのだ。"],
-"None shall pass. Without paying.": ["Nadie pasará. Sin pagar.", "Nul ne passera. Sans payer.", "لن يمرّ أحد. دون أن يدفع.", "Keiner kommt vorbei. Ohne zu zahlen.", "谁也别想过去。除非付钱。", "誰も通さん。払わぬ限りは。"],
-"Now for sale in Characters: %s coins": ["Ya a la venta en Personajes: %s monedas", "Désormais en vente dans Personnages : %s pièces", "متاح الآن للشراء في الشخصيات: %s عملة", "Jetzt bei den Charakteren erhältlich: %s Münzen", "现已在角色中出售：%s 金币", "キャラクター画面で販売中：%s コイン"],
-"OGRE": ["OGRO", "OGRE", "الغول", "OGER", "食人魔", "オーガ"],
-"Offense": ["Ataque", "Attaque", "الهجوم", "Angriff", "进攻", "攻撃"],
-"Ogre": ["Ogro", "Ogre", "الغول", "Oger", "食人魔", "オーガ"],
-"Orc-estrating total chaos": ["Orc-uestando el caos total", "Orc-hestrer le chaos total", "تنظيم الفوضى الشاملة على طريقة الأورك", "Orc-hestriertes totales Chaos", "兽人指挥的彻底混乱", "オークが奏でる大混乱"],
-"Over {3 s}, strike the {20} nearest enemies: {120} damage each, plus a bleed": ["En {3 s}, golpea a los {20} enemigos más cercanos: {120} de daño a cada uno, más sangrado", "En {3 s}, frappez les {20} ennemis les plus proches : {120} dégâts chacun, plus un saignement", "خلال {3 ث} اضرب أقرب {20} عدوًا: {120} ضرر لكل منهم مع نزيف", "Triff in {3 s} die {20} nächsten Gegner: je {120} Schaden plus Blutung", "{3 秒} 内打击最近的 {20} 个敌人：各 {120} 伤害，并造成流血", "{3秒}かけて最も近い敵{20}体を斬る：各{120}ダメージと出血"],
-"Overcharge": ["Sobrecarga", "Surcharge", "الشحن الزائد", "Überladung", "超载", "オーバーチャージ"],
-"Overhead smash in a 4 m cone: 50 damage, slow but with heavy knockback": ["Golpe descendente en un cono de 4 m: 50 de daño, lento pero con gran retroceso", "Frappe verticale dans un cône de 4 m : 50 dégâts, lente mais avec un fort recul", "ضربة علوية في مخروط 4 م: 50 ضرر، بطيئة لكن بدفع قوي", "Überkopfschlag in einem 4-m-Kegel: 50 Schaden, langsam, aber mit starkem Rückstoß", "4 米锥形范围下砸：50 伤害，缓慢但击退强", "4 mの円錐に振り下ろし：50ダメージ、遅いが強いノックバック"],
-"Overtime": ["Horas extra", "Heures sup", "الوقت الإضافي", "Überstunden", "加时", "残業"],
-"Owlbear with me": ["Ten oso-lechuza conmigo", "Hibours avec moi", "تحمّلني يا دبّ البوم", "Eulenbär mit mir", "枭熊陪着我", "オウルベアと一緒に"],
-"PAUSED": ["PAUSA", "PAUSE", "متوقف مؤقتًا", "PAUSIERT", "已暂停", "一時停止"],
-"PAUSED  ·  hover an ability for details  ·  release Alt to resume": ["PAUSA  ·  pasa el ratón sobre una habilidad para ver detalles  ·  suelta Alt para continuar", "PAUSE  ·  survolez une capacité pour les détails  ·  relâchez Alt pour reprendre", "متوقف  ·  مرّر فوق قدرة لرؤية التفاصيل  ·  اترك Alt للمتابعة", "PAUSIERT  ·  Fähigkeit überfahren für Details  ·  Alt loslassen zum Fortsetzen", "已暂停  ·  悬停技能查看详情  ·  松开 Alt 继续", "一時停止  ·  アビリティにカーソルで詳細  ·  Altを離すと再開"],
-"PLAY": ["JUGAR", "JOUER", "العب", "SPIELEN", "开始", "プレイ"],
-"Padding": ["Acolchado", "Rembourrage", "الحشوة", "Polsterung", "护垫", "パッド"],
-"Paladin? I hardly know 'im!": ["¿Paladín? ¡Si apenas lo conozco!", "Paladin ? Je le connais à peine !", "فارس مقدس؟ بالكاد أعرفه!", "Paladin? Kenn ich kaum!", "圣骑士？我跟他不熟！", "パラディン？ほとんど知らない奴だ！"],
-"Party Mode": ["Modo fiesta", "Mode fête", "وضع الحفلة", "Partymodus", "派对模式", "パーティーモード"],
-"Pause / menu": ["Pausa / menú", "Pause / menu", "إيقاف مؤقت / القائمة", "Pause / Menü", "暂停 / 菜单", "一時停止 / メニュー"],
-"Periodically slams the ground, knocking enemies back.": ["Golpea el suelo periódicamente y hace retroceder a los enemigos.", "Frappe régulièrement le sol, repoussant les ennemis.", "يضرب الأرض دوريًا ويدفع الأعداء للخلف.", "Schlägt regelmäßig auf den Boden und stößt Gegner zurück.", "定期猛击地面，击退敌人。", "定期的に地面を叩き、敵を吹き飛ばす。"],
-"Phase": ["Fase", "Phase", "الطور", "Phase", "相位", "フェーズ"],
-"Phoenix Heart": ["Corazón de fénix", "Cœur de phénix", "قلب العنقاء", "Phönixherz", "凤凰之心", "不死鳥の心臓"],
-"Pick up XP from further away.": ["Recoge XP desde más lejos.", "Ramassez l'XP de plus loin.", "التقط الخبرة من مسافة أبعد.", "Sammle EP aus größerer Entfernung.", "从更远处拾取经验。", "より遠くの経験値を拾う。"],
-"Pickpocket": ["Carterista", "Pickpocket", "النشّال", "Taschendieb", "扒窃", "スリ"],
-"Pickup Range": ["Alcance de recogida", "Portée de ramassage", "مدى الالتقاط", "Sammelradius", "拾取范围", "回収範囲"],
-"Piercing": ["Perforación", "Perforation", "الاختراق", "Durchschlag", "穿透", "貫通"],
-"Piercing icicles that slow enemies 30% for 2 s": ["Carámbanos perforantes que ralentizan a los enemigos un 30% durante 2 s", "Stalactites perforantes qui ralentissent les ennemis de 30 % pendant 2 s", "رقاقات جليد مخترقة تبطئ الأعداء 30% لمدة 2 ث", "Durchschlagende Eiszapfen, die Gegner 2 s um 30 % verlangsamen", "穿透冰锥，使敌人减速 30%，持续 2 秒", "敵を2秒間30%減速させる貫通つらら"],
-"Piercing thrusts, javelins": ["Estocadas perforantes, jabalinas", "Estocs perforants, javelots", "طعنات مخترقة، رماح", "Durchschlagende Stöße, Speere", "穿刺突击，标枪", "貫通の突き、投槍"],
-"Piercing, curses": ["Perforante, maldice", "Perforant, maudit", "مخترق، يلعن", "Durchschlagend, verflucht", "穿透，诅咒", "貫通、呪い"],
-"Piercing, slows": ["Perforante, ralentiza", "Perforant, ralentit", "مخترق، يبطئ", "Durchschlagend, verlangsamt", "穿透，减速", "貫通、減速"],
-"Piercing, strong vs epics": ["Perforante, fuerte contra épicos", "Perforant, fort contre les épiques", "مخترق، قوي ضد الملحميين", "Durchschlagend, stark gegen Epische", "穿透，克制史诗敌人", "貫通、エピックに強い"],
-"Piñata Drop": ["Lluvia de piñata", "Largage de piñata", "إسقاط البينياتا", "Piñata-Abwurf", "皮纳塔空投", "ピニャータ投下"],
-"Plating": ["Blindaje", "Blindage", "التصفيح", "Panzerung", "装甲板", "装甲"],
-"Play": ["Jugar", "Jouer", "العب", "Spielen", "开始游戏", "プレイ"],
-"Poison kick, slows": ["Patada venenosa, ralentiza", "Coup de pied empoisonné, ralentit", "ركلة سامة، تبطئ", "Gifttritt, verlangsamt", "毒踢，减速", "毒の蹴り、減速"],
-"Polymorph": ["Polimorfia", "Métamorphose", "التحويل", "Verwandlung", "变形术", "変身"],
-"Possess the biggest enemy around.": ["Posee al enemigo más grande de los alrededores.", "Possédez le plus gros ennemi des environs.", "استحوذ على أكبر عدو حولك.", "Besetze den größten Gegner in der Nähe.", "附身附近最大的敌人。", "近くの最も大きな敵に憑依する。"],
-"Press Apply to switch the language.": ["Pulsa Aplicar para cambiar el idioma.", "Appuyez sur Appliquer pour changer de langue.", "اضغط تطبيق لتغيير اللغة.", "Drücke Übernehmen, um die Sprache zu wechseln.", "点击“应用”切换语言。", "「適用」を押すと言語が切り替わります。"],
-"Press Enter to choose": ["Pulsa Enter para elegir", "Appuyez sur Entrée pour choisir", "اضغط Enter للاختيار", "Enter drücken zum Wählen", "按 Enter 选择", "Enterで選択"],
-"Press a key...": ["Pulsa una tecla...", "Appuyez sur une touche...", "اضغط مفتاحًا...", "Taste drücken...", "请按键……", "キーを押してください…"],
-"Projectile Speed": ["Velocidad de proyectil", "Vitesse des projectiles", "سرعة المقذوفات", "Projektiltempo", "投射物速度", "弾速"],
-"Projectiles": ["Proyectiles", "Projectiles", "المقذوفات", "Projektile", "投射物", "弾数"],
-"Projectiles pierce 1 more enemy": ["Los proyectiles perforan 1 enemigo más", "Les projectiles transpercent 1 ennemi de plus", "المقذوفات تخترق عدوًا إضافيًا", "Projektile durchschlagen 1 weiteren Gegner", "投射物多穿透 1 个敌人", "弾の貫通 +1"],
-"Purple Potion: cooldowns -30%": ["Poción morada: enfriamientos -30%", "Potion violette : recharges -30 %", "جرعة بنفسجية: أوقات التهدئة -30%", "Lila Trank: Abklingzeiten -30 %", "紫色药水：冷却 -30%", "紫のポーション：クールダウン -30%"],
-"Pyromastery": ["Piromaestría", "Pyromaîtrise", "إتقان النار", "Pyromeisterschaft", "火焰精通", "火術の極意"],
-"Quick Hands": ["Manos rápidas", "Mains rapides", "أيدٍ سريعة", "Flinke Hände", "快手", "早業"],
-"Quickfire": ["Fuego rápido", "Tir rapide", "النار السريعة", "Schnellfeuer", "速射", "速射"],
-"Quit": ["Salir", "Quitter", "خروج", "Beenden", "退出", "終了"],
-"Quit to desktop": ["Salir al escritorio", "Quitter vers le bureau", "الخروج إلى سطح المكتب", "Zum Desktop beenden", "退出到桌面", "デスクトップに戻る"],
-"Rage against the dungeon": ["Rabia contra el calabozo", "Rage contre le donjon", "ثورة على الزنزانة", "Wut gegen den Dungeon", "向地下城怒吼", "ダンジョンに怒りを"],
-"Raise Dead": ["Alzar muertos", "Relever les morts", "إحياء الموتى", "Tote erwecken", "亡者复生", "死者蘇生"],
-"Raises a shield cap.": ["Levanta un sombrerete escudo.", "Lève un chapeau-bouclier.", "يرفع قبعة درع.", "Hebt einen Schildhut.", "举起菌盖护盾。", "盾のかさを掲げる。"],
-"Rampage": ["Arrasar", "Saccage", "الهياج", "Amoklauf", "狂暴", "大暴れ"],
-"Ranger danger": ["Peligro explorador", "Rôdeur en danger", "خطر الجوّال", "Waldläufer-Gefahr", "游侠危机", "レンジャーは危険"],
-"Rapid shots, reload": ["Disparos rápidos, recarga", "Tirs rapides, rechargement", "طلقات سريعة، إعادة تعبئة", "Schnellschüsse, Nachladen", "速射，装填", "速射、リロード"],
-"Rare": ["Raro", "Rare", "نادر", "Selten", "稀有", "レア"],
-"Reads aloud from his treatise on monotremes.": ["Lee en voz alta su tratado sobre monotremas.", "Lit à voix haute son traité sur les monotrèmes.", "يقرأ بصوت عالٍ من أطروحته عن أحاديات المسلك.", "Liest laut aus seiner Abhandlung über Kloakentiere vor.", "大声朗读他关于单孔目动物的论文。", "単孔類についての論文を朗読する。"],
-"Ready": ["Listo", "Prêt", "جاهز", "Bereit", "就绪", "準備完了"],
-"Ready in %s": ["Listo en %s", "Prêt dans %s", "جاهز خلال %s", "Bereit in %s", "%s 后就绪", "あと %s で準備完了"],
-"Ready to unlock": ["Listo para desbloquear", "Prêt à débloquer", "جاهز للفتح", "Bereit zum Freischalten", "可以解锁", "解放可能"],
-"Reaps every enemy within {12 m} below {30%} HP (not the boss)": ["Siega a todos los enemigos a {12 m} por debajo del {30%} de PV (no al jefe)", "Fauche tous les ennemis à {12 m} sous {30 %} de PV (pas le boss)", "يحصد كل عدو ضمن {12 م} تحت {30%} صحة (ليس الزعيم)", "Mäht jeden Gegner im Umkreis von {12 m} unter {30 %} LP nieder (nicht den Boss)", "收割 {12 米} 内生命低于 {30%} 的所有敌人（首领除外）", "{12 m}以内のHP{30%}未満の敵をすべて刈り取る（ボス以外）"],
-"Red Potion: +10% health": ["Poción roja: +10% salud", "Potion rouge : +10 % de vie", "جرعة حمراء: +10% صحة", "Roter Trank: +10 % Leben", "红色药水：+10% 生命", "赤いポーション：体力 +10%"],
-"Reed Clones": ["Clones de junco", "Clones de roseau", "مستنسخات القصب", "Schilfklone", "芦苇分身", "葦の分身"],
-"Regenerate 0.6 HP/s": ["Regenera 0,6 PV/s", "Régénère 0,6 PV/s", "تجديد 0.6 صحة/ث", "Regeneriert 0,6 LP/s", "每秒回复 0.6 生命", "HPを毎秒0.6回復"],
-"Regenerate 1.5 HP/s": ["Regenera 1,5 PV/s", "Régénère 1,5 PV/s", "تجديد 1.5 صحة/ث", "Regeneriert 1,5 LP/s", "每秒回复 1.5 生命", "HPを毎秒1.5回復"],
-"Render scale": ["Escala de renderizado", "Échelle de rendu", "مقياس العرض", "Renderskalierung", "渲染比例", "描画スケール"],
-"Reset keys to defaults": ["Restablecer teclas", "Réinitialiser les touches", "استعادة المفاتيح الافتراضية", "Tasten zurücksetzen", "恢复默认按键", "キーを初期設定に戻す"],
-"Resets the cooldowns of your other two abilities": ["Reinicia los enfriamientos de tus otras dos habilidades", "Réinitialise les recharges de vos deux autres capacités", "يعيد ضبط تهدئة قدرتيك الأخريين", "Setzt die Abklingzeiten deiner anderen beiden Fähigkeiten zurück", "重置你另外两个技能的冷却", "他の2つのアビリティのクールダウンをリセット"],
-"Restart  [R]": ["Reiniciar  [R]", "Recommencer  [R]", "إعادة  [R]", "Neustart  [R]", "重新开始  [R]", "リスタート  [R]"],
-"Restart run": ["Reiniciar partida", "Recommencer la partie", "إعادة الجولة", "Lauf neu starten", "重新开始本局", "ランをやり直す"],
-"Restores your HP and shield to what they were {8 s} ago": ["Restaura tus PV y escudo a como estaban hace {8 s}", "Restaure vos PV et votre bouclier tels qu'ils étaient il y a {8 s}", "يعيد صحتك ودرعك إلى ما كانا عليه قبل {8 ث}", "Stellt deine LP und deinen Schild auf den Stand von vor {8 s} wieder her", "将你的生命和护盾恢复到 {8 秒} 前的状态", "HPとシールドを{8秒}前の状態に戻す"],
-"Resume": ["Continuar", "Reprendre", "متابعة", "Fortsetzen", "继续", "再開"],
-"Rewind": ["Rebobinar", "Rembobiner", "الترجيع", "Zurückspulen", "倒带", "巻き戻し"],
-"Ride of the Valkyries": ["La cabalgata de las valquirias", "La Chevauchée des Walkyries", "ركوب الفالكيريات", "Walkürenritt", "女武神的骑行", "ワルキューレの騎行"],
-"Rings of shuriken spiral out from you.": ["Anillos de shuriken salen en espiral desde ti.", "Des anneaux de shuriken jaillissent en spirale autour de vous.", "حلقات من الشوريكن تنطلق منك حلزونيًا.", "Shuriken-Ringe wirbeln spiralförmig von dir weg.", "一圈圈手里剑从你身上螺旋射出。", "手裏剣の輪が渦を巻いて放たれる。"],
-"Rips up a log and bowls it at them.": ["Arranca un tronco y se lo lanza rodando.", "Arrache une bûche et la fait rouler sur eux.", "يقتلع جذعًا ويدحرجه نحوهم.", "Reißt einen Stamm heraus und kegelt ihn auf sie.", "拔起一根原木朝他们滚过去。", "丸太を引き抜き、転がしてぶつける。"],
-"Rode a winged horse into the swamp. The horse refused to come back.": ["Llegó al pantano a lomos de un caballo alado. El caballo se negó a volver.", "Est arrivée au marais sur un cheval ailé. Le cheval a refusé de revenir.", "دخلت المستنقع على حصان مجنّح. رفض الحصان العودة.", "Ritt auf einem Flügelpferd in den Sumpf. Das Pferd weigerte sich zurückzukommen.", "骑着飞马进了沼泽。马拒绝回来。", "天馬に乗って沼へ来た。馬は戻るのを拒んだ。"],
-"Rogue one, rogue all": ["Uno pícaro, todos pícaros", "Un roublard pour tous", "محتال واحد، الكل محتالون", "Einer für alle, alle Schurken", "一人为盗，人人为盗", "一人はローグのために"],
-"Roll {15 m} where you aim, grabbing enemies in your path": ["Rueda {15 m} hacia donde apuntas y atrapa a los enemigos a tu paso", "Roulez sur {15 m} là où vous visez, en happant les ennemis sur votre chemin", "تدحرج {15 م} حيث تصوّب وأمسك الأعداء في طريقك", "Rolle {15 m} in Zielrichtung und schnappe dir Gegner auf dem Weg", "朝瞄准方向翻滚 {15 米}，抓住路上的敌人", "狙った方向へ{15 m}転がり、途中の敵を捕まえる"],
-"Ropes the biggest enemy and uses it as a weapon.": ["Enlaza al enemigo más grande y lo usa como arma.", "Prend au lasso le plus gros ennemi et s'en sert comme arme.", "يربط أكبر عدو بالحبل ويستخدمه سلاحًا.", "Fängt den größten Gegner mit dem Lasso und benutzt ihn als Waffe.", "套住最大的敌人当武器用。", "最大の敵を縄で捕らえ、武器として使う。"],
-"Row %d  ·  1 point each": ["Fila %d  ·  1 punto cada una", "Rangée %d  ·  1 point chacune", "الصف %d  ·  نقطة واحدة لكل منها", "Reihe %d  ·  je 1 Punkt", "第 %d 排  ·  每个 1 点", "%d列目  ·  各1ポイント"],
-"Run faster.": ["Corre más rápido.", "Courez plus vite.", "اركض أسرع.", "Lauf schneller.", "跑得更快。", "より速く走る。"],
-"Runs around leaving scorch marks on everything.": ["Corretea dejando quemaduras por todas partes.", "Court partout en laissant des brûlures.", "يركض في كل مكان تاركًا آثار حروق.", "Rennt herum und hinterlässt überall Brandflecken.", "到处乱跑，留下一地焦痕。", "走り回ってあらゆる物に焦げ跡を残す。"],
-"SELECTED": ["SELECCIONADO", "SÉLECTIONNÉ", "مُختار", "AUSGEWÄHLT", "已选择", "選択中"],
-"SETTINGS": ["AJUSTES", "PARAMÈTRES", "الإعدادات", "EINSTELLUNGEN", "设置", "設定"],
-"SHRINE COMPLETE!  %s chest": ["¡SANTUARIO COMPLETADO!  Cofre de %s", "SANCTUAIRE TERMINÉ !  Coffre en %s", "اكتمل المزار!  صندوق %s", "SCHREIN ABGESCHLOSSEN!  %struhe", "神龛完成！  %s宝箱", "祠クリア！  %sの宝箱"],
-"SIGNATURE WEAPON": ["ARMA DISTINTIVA", "ARME FÉTICHE", "السلاح المميز", "MARKENWAFFE", "专属武器", "固有武器"],
-"SKILL POINTS": ["PUNTOS DE HABILIDAD", "POINTS DE COMPÉTENCE", "نقاط المهارة", "FERTIGKEITSPUNKTE", "技能点", "スキルポイント"],
-"SURVIVE 10 MINUTES": ["SOBREVIVE 10 MINUTOS", "SURVIVEZ 10 MINUTES", "انجُ 10 دقائق", "ÜBERLEBE 10 MINUTEN", "存活 10 分钟", "10分間生き延びろ"],
-"SWARM!": ["¡ENJAMBRE!", "ESSAIM !", "سرب!", "SCHWARM!", "虫潮来袭！", "大群襲来！"],
-"Sage": ["Sabio", "Sage", "الحكيم", "Weiser", "贤者", "賢者"],
-"Scholar": ["Erudito", "Érudit", "العالِم", "Gelehrter", "学者", "学者"],
-"Scythe Sweep": ["Barrido de guadaña", "Balayage de faux", "اكتساح المنجل", "Sensenschwung", "镰刀横扫", "大鎌の薙ぎ払い"],
-"Searing Pierce": ["Perforación abrasadora", "Perforation brûlante", "الاختراق الحارق", "Sengender Durchschlag", "灼热穿透", "灼熱の貫通"],
-"Select a skill": ["Selecciona una habilidad", "Sélectionnez une compétence", "اختر مهارة", "Wähle eine Fertigkeit", "选择一个技能", "スキルを選択"],
-"Senses every enemy nearby. Then shocks them.": ["Percibe a todos los enemigos cercanos. Luego los electrocuta.", "Détecte tous les ennemis proches. Puis les électrocute.", "يستشعر كل عدو قريب. ثم يصعقه.", "Spürt jeden Gegner in der Nähe. Dann schockt er sie.", "感知附近所有敌人，然后电击他们。", "近くの敵をすべて感知し、感電させる。"],
-"Sentient Platypus": ["Ornitorrinco consciente", "Ornithorynque conscient", "خلد الماء الواعي", "Bewusstes Schnabeltier", "有意识的鸭嘴兽", "知性あるカモノハシ"],
-"Sets [b]every enemy[/b] on fire.": ["Prende fuego a [b]todos los enemigos[/b].", "Met le feu à [b]tous les ennemis[/b].", "يشعل النار في [b]كل الأعداء[/b].", "Setzt [b]jeden Gegner[/b] in Brand.", "点燃[b]所有敌人[/b]。", "[b]すべての敵[/b]に火をつける。"],
-"Sets down her cauldron. It spits.": ["Planta su caldero. Escupe.", "Pose son chaudron. Il crache.", "تضع قِدرها. إنه يبصق.", "Stellt ihren Kessel ab. Er spuckt.", "放下她的大锅。它会喷吐。", "大釜を置く。それは吐く。"],
-"Settings": ["Ajustes", "Paramètres", "الإعدادات", "Einstellungen", "设置", "設定"],
-"Shackle Swing": ["Golpe de grilletes", "Balancement de chaînes", "تلويح الأغلال", "Fesselschwung", "镣铐挥舞", "枷の振り回し"],
-"Shadow Bolts": ["Rayos de sombra", "Traits d'ombre", "صواعق الظل", "Schattengeschosse", "暗影箭", "シャドウボルト"],
-"Shadow Step": ["Paso sombrío", "Pas de l'ombre", "خطوة الظل", "Schattenschritt", "暗影步", "影歩き"],
-"Shadow of the Reeds": ["Sombra de los juncos", "Ombre des roseaux", "ظلّ القصب", "Schatten im Schilf", "芦苇之影", "葦の影"],
-"Sharpen": ["Afilar", "Affûtage", "الشحذ", "Schärfen", "磨利", "研磨"],
-"Shield Wall": ["Muro de escudos", "Mur de boucliers", "جدار الدروع", "Schildwall", "盾墙", "盾の壁"],
-"Shoots a web where you aim.": ["Dispara una telaraña donde apuntas.", "Tire une toile là où vous visez.", "يطلق شبكة حيث تصوّب.", "Schießt ein Netz dorthin, wohin du zielst.", "朝你瞄准的地方射出蛛网。", "狙った場所に糸を放つ。"],
-"Shuriken Storm": ["Tormenta de shuriken", "Tempête de shuriken", "عاصفة الشوريكن", "Shuriken-Sturm", "手里剑风暴", "手裏剣の嵐"],
-"Side effect: you take {+10%} damage while it lasts": ["Efecto secundario: recibes {+10%} de daño mientras dura", "Effet secondaire : vous subissez {+10 %} de dégâts pendant la durée", "أثر جانبي: تتلقى {+10%} ضررًا طوال مدتها", "Nebenwirkung: Du erleidest währenddessen {+10 %} Schaden", "副作用：持续期间你受到的伤害 {+10%}", "副作用：効果中は被ダメージ{+10%}"],
-"Silver": ["plata", "argent", "فضي", "Silber", "白银", "シルバー"],
-"Silver Bolts": ["Virotes de plata", "Carreaux d'argent", "السهام الفضية", "Silberbolzen", "银弩箭", "銀の矢"],
-"Singe": ["Singe", "Singe", "سِنج", "Singe", "焦焦", "シンジ"],
-"Siphon": ["Sifón", "Siphon", "الاستنزاف", "Absaugen", "虹吸", "吸い取り"],
-"Six-Shooter": ["Revólver de seis tiros", "Six-coups", "المسدس السداسي", "Sechsschüsser", "六发左轮", "六連発"],
-"Skate across the swamp on a trail of ice.": ["Patina por el pantano sobre un rastro de hielo.", "Patinez à travers le marais sur une traînée de glace.", "تزلّج عبر المستنقع على أثر من الجليد.", "Gleite auf einer Eisspur über den Sumpf.", "沿着冰道滑过沼泽。", "氷の道で沼を滑り抜ける。"],
-"Skeleton": ["Esqueleto", "Squelette", "هيكل عظمي", "Skelett", "骷髅", "スケルトン"],
-"Skills": ["Habilidades", "Compétences", "المهارات", "Fertigkeiten", "技能", "スキル"],
-"Skills  →   +%s coins": ["Habilidades  →   +%s monedas", "Compétences  →   +%s pièces", "المهارات  →   +%s عملة", "Fertigkeiten  →   +%s Münzen", "技能  →   +%s 金币", "スキル  →   +%s コイン"]
+ "Lunging bites, shakes": [
+  "Mordiscos al lanzarse, sacudidas",
+  "Morsures bondissantes, secousses",
+  "عضّات منقضّة، هزّ",
+  "Sprungbisse, Schütteln",
+  "扑咬，甩动",
+  "飛びかかり噛みつき、振り回し"
+ ],
+ "Lv %d": [
+  "Nv %d",
+  "Niv %d",
+  "مستوى %d",
+  "St. %d",
+  "等级 %d",
+  "Lv %d"
+ ],
+ "Lv %d → %d": [
+  "Nv %d → %d",
+  "Niv %d → %d",
+  "مستوى %d ← %d",
+  "St. %d → %d",
+  "等级 %d → %d",
+  "Lv %d → %d"
+ ],
+ "MAGNET! All orbs incoming": [
+  "¡IMÁN! Todos los orbes vienen hacia ti",
+  "AIMANT ! Tous les orbes arrivent",
+  "مغناطيس! كل الكرات قادمة",
+  "MAGNET! Alle Kugeln im Anflug",
+  "磁铁！所有经验球飞来",
+  "マグネット！オーブがすべて集まる"
+ ],
+ "MOVEMENT +80% for 15 s!": [
+  "¡MOVIMIENTO +80% durante 15 s!",
+  "DÉPLACEMENT +80 % pendant 15 s !",
+  "الحركة +80% لمدة 15 ث!",
+  "BEWEGUNG +80 % für 15 s!",
+  "移动速度 +80%，持续 15 秒！",
+  "15秒間移動速度+80%！"
+ ],
+ "Mage against the machine": [
+  "Mago contra la máquina",
+  "Mage contre la machine",
+  "ساحر ضد الآلة",
+  "Magier gegen die Maschine",
+  "法师对抗机器",
+  "マシーンに挑むメイジ"
+ ],
+ "Magical Forest": [
+  "Bosque mágico",
+  "Forêt magique",
+  "الغابة السحرية",
+  "Zauberwald",
+  "魔法森林",
+  "魔法の森"
+ ],
+ "Magnet": [
+  "Imán",
+  "Aimant",
+  "المغناطيس",
+  "Magnet",
+  "磁铁",
+  "マグネット"
+ ],
+ "Magnetism": [
+  "Magnetismo",
+  "Magnétisme",
+  "المغناطيسية",
+  "Magnetismus",
+  "磁力",
+  "磁力"
+ ],
+ "Main menu": [
+  "Menú principal",
+  "Menu principal",
+  "القائمة الرئيسية",
+  "Hauptmenü",
+  "主菜单",
+  "メインメニュー"
+ ],
+ "Maraca Blasters": [
+  "Maracas explosivas",
+  "Maracas explosives",
+  "ماراكاس المدمّرة",
+  "Maraca-Blaster",
+  "沙锤冲击炮",
+  "マラカスブラスター"
+ ],
+ "Mark of the Inevitable": [
+  "Marca de lo inevitable",
+  "Marque de l'inévitable",
+  "علامة المحتوم",
+  "Mal des Unausweichlichen",
+  "必然之印",
+  "必然の刻印"
+ ],
+ "Marks the {8} enemies with the most HP within {30 m}": [
+  "Marca a los {8} enemigos con más PV a {30 m}",
+  "Marque les {8} ennemis avec le plus de PV à {30 m}",
+  "يَسِم الأعداء الـ{8} الأكثر صحة ضمن {30 م}",
+  "Markiert die {8} Gegner mit den meisten LP im Umkreis von {30 m}",
+  "标记 {30 米} 内生命最高的 {8} 个敌人",
+  "{30 m}以内でHPが最も高い敵{8}体に印をつける"
+ ],
+ "Max HP": [
+  "PV máx.",
+  "PV max",
+  "الصحة القصوى",
+  "Max. LP",
+  "最大生命",
+  "最大HP"
+ ],
+ "Melee kick that poisons for 2% of max HP per second; each stack slows 10% (max 5)": [
+  "Patada cuerpo a cuerpo que envenena por 2% de PV máx. por segundo; cada acumulación ralentiza un 10% (máx. 5)",
+  "Coup de pied qui empoisonne pour 2 % des PV max par seconde ; chaque cumul ralentit de 10 % (max 5)",
+  "ركلة قريبة تسمّم بـ2% من الصحة القصوى في الثانية؛ كل تراكم يبطئ 10% (حتى 5)",
+  "Nahkampftritt, der mit 2 % der max. LP pro Sekunde vergiftet; jede Stufe verlangsamt um 10 % (max. 5)",
+  "近战踢击，每秒造成 2% 最大生命的中毒；每层减速 10%（最多 5 层）",
+  "毎秒最大HPの2%の毒を与える蹴り；1スタックごとに10%減速（最大5）"
+ ],
+ "Mending": [
+  "Remiendo",
+  "Raccommodage",
+  "الترميم",
+  "Ausbessern",
+  "修补",
+  "修復"
+ ],
+ "Merlin": [
+  "Merlín",
+  "Merlin",
+  "ميرلين",
+  "Merlin",
+  "梅林",
+  "マーリン"
+ ],
+ "Meteor": [
+  "Meteoro",
+  "Météore",
+  "النيزك",
+  "Meteor",
+  "陨石",
+  "メテオ"
+ ],
+ "Midas Touch": [
+  "Toque de Midas",
+  "Toucher de Midas",
+  "لمسة ميداس",
+  "Midas-Berührung",
+  "点金术",
+  "ミダスの手"
+ ],
+ "More health.": [
+  "Más salud.",
+  "Plus de vie.",
+  "صحة أكثر.",
+  "Mehr Lebenspunkte.",
+  "更多生命。",
+  "体力が増える。"
+ ],
+ "Mouse sensitivity": [
+  "Sensibilidad del ratón",
+  "Sensibilité de la souris",
+  "حساسية الفأرة",
+  "Mausempfindlichkeit",
+  "鼠标灵敏度",
+  "マウス感度"
+ ],
+ "Move Speed": [
+  "Velocidad de movimiento",
+  "Vitesse de déplacement",
+  "سرعة الحركة",
+  "Lauftempo",
+  "移动速度",
+  "移動速度"
+ ],
+ "Move back": [
+  "Retroceder",
+  "Reculer",
+  "تحرّك للخلف",
+  "Rückwärts",
+  "后退",
+  "後退"
+ ],
+ "Move forward": [
+  "Avanzar",
+  "Avancer",
+  "تحرّك للأمام",
+  "Vorwärts",
+  "前进",
+  "前進"
+ ],
+ "Move left": [
+  "Izquierda",
+  "Gauche",
+  "تحرّك يسارًا",
+  "Links",
+  "向左",
+  "左へ移動"
+ ],
+ "Move right": [
+  "Derecha",
+  "Droite",
+  "تحرّك يمينًا",
+  "Rechts",
+  "向右",
+  "右へ移動"
+ ],
+ "Movement Enhancer": [
+  "Potenciador de movimiento",
+  "Amplificateur de déplacement",
+  "معزز الحركة",
+  "Bewegungsverstärker",
+  "移动增强",
+  "移動強化"
+ ],
+ "Music": [
+  "Música",
+  "Musique",
+  "الموسيقى",
+  "Musik",
+  "音乐",
+  "音楽"
+ ],
+ "Mutagen": [
+  "Mutágeno",
+  "Mutagène",
+  "المُطفِّر",
+  "Mutagen",
+  "诱变剂",
+  "変異薬"
+ ],
+ "Mute": [
+  "Silenciar",
+  "Muet",
+  "كتم",
+  "Stumm",
+  "静音",
+  "ミュート"
+ ],
+ "NEW": [
+  "NUEVO",
+  "NOUVEAU",
+  "جديد",
+  "NEU",
+  "新",
+  "NEW"
+ ],
+ "NEW ABILITY UNLOCKED: %s  [%s]": [
+  "NUEVA HABILIDAD DESBLOQUEADA: %s  [%s]",
+  "NOUVELLE CAPACITÉ DÉBLOQUÉE : %s  [%s]",
+  "قدرة جديدة مفتوحة: %s  [%s]",
+  "NEUE FÄHIGKEIT FREIGESCHALTET: %s  [%s]",
+  "新技能已解锁：%s  [%s]",
+  "新アビリティ解放：%s  [%s]"
+ ],
+ "NEW CHAMPION": [
+  "NUEVO CAMPEÓN",
+  "NOUVEAU CHAMPION",
+  "بطل جديد",
+  "NEUER CHAMPION",
+  "新勇士",
+  "新チャンピオン"
+ ],
+ "NEW LEGENDARY LEVEL-UP REWARD": [
+  "NUEVA RECOMPENSA LEGENDARIA DE NIVEL",
+  "NOUVELLE RÉCOMPENSE DE NIVEAU LÉGENDAIRE",
+  "مكافأة ترقية أسطورية جديدة",
+  "NEUE LEGENDÄRE STUFENBELOHNUNG",
+  "新的传说升级奖励",
+  "新たなレジェンダリーのレベルアップ報酬"
+ ],
+ "NEW MAP": [
+  "NUEVO MAPA",
+  "NOUVELLE CARTE",
+  "خريطة جديدة",
+  "NEUE KARTE",
+  "新地图",
+  "新マップ"
+ ],
+ "NEW WEAPON": [
+  "NUEVA ARMA",
+  "NOUVELLE ARME",
+  "سلاح جديد",
+  "NEUE WAFFE",
+  "新武器",
+  "新武器"
+ ],
+ "Never stands still. Neither does anything near him.": [
+  "Nunca se está quieto. Ni nada que esté cerca de él.",
+  "Ne tient jamais en place. Rien autour de lui non plus.",
+  "لا يقف ساكنًا أبدًا. ولا أي شيء بقربه.",
+  "Steht nie still. Nichts in seiner Nähe auch.",
+  "从不停下。他附近的一切也是。",
+  "決してじっとしない。彼の周りの何もかもも。"
+ ],
+ "Never stands still. Now he really can't.": [
+  "Nunca se está quieto. Ahora de verdad que no puede.",
+  "Ne tient jamais en place. Maintenant, il ne peut vraiment plus.",
+  "لا يقف ساكنًا أبدًا. والآن لا يستطيع حقًا.",
+  "Steht nie still. Jetzt kann er es wirklich nicht.",
+  "从不停下。现在是真停不下来了。",
+  "決してじっとしない。今や本当にできない。"
+ ],
+ "No skill points (earn one each level)": [
+  "Sin puntos de habilidad (ganas uno por nivel)",
+  "Aucun point de compétence (un par niveau)",
+  "لا نقاط مهارة (تكسب واحدة كل مستوى)",
+  "Keine Fertigkeitspunkte (einer pro Stufe)",
+  "没有技能点（每级获得一点）",
+  "スキルポイントがない（レベルごとに1獲得）"
+ ],
+ "Nobody can resist. Then he barks.": [
+  "Nadie puede resistirse. Luego ladra.",
+  "Personne ne résiste. Puis il aboie.",
+  "لا أحد يقاوم. ثم ينبح.",
+  "Niemand kann widerstehen. Dann bellt er.",
+  "没人能抗拒。然后他叫了一声。",
+  "誰も抗えない。そして吠える。"
+ ],
+ "Nobody has seen his face. The goblins say that's a mercy.": [
+  "Nadie ha visto su cara. Los goblins dicen que es una suerte.",
+  "Personne n'a vu son visage. Les gobelins disent que c'est une chance.",
+  "لم يرَ أحد وجهه. يقول الغوبلن إن هذه رحمة.",
+  "Niemand hat sein Gesicht gesehen. Die Goblins sagen, das ist eine Gnade.",
+  "没人见过他的脸。哥布林说这是一种仁慈。",
+  "誰も彼の顔を見たことがない。ゴブリンいわく、それは慈悲だ。"
+ ],
+ "Nobody knows how it got here. Nobody knows why it fights. It just does.": [
+  "Nadie sabe cómo llegó aquí. Nadie sabe por qué lucha. Simplemente lo hace.",
+  "Personne ne sait comment elle est arrivée là. Ni pourquoi elle se bat. Elle se bat, c'est tout.",
+  "لا أحد يعرف كيف وصل إلى هنا. ولا لماذا يقاتل. هو يقاتل فقط.",
+  "Niemand weiß, wie es hierherkam. Niemand weiß, warum es kämpft. Es tut es einfach.",
+  "没人知道它怎么来的，也没人知道它为什么战斗。它就是要打。",
+  "どうやって来たのか誰も知らない。なぜ戦うのかも。ただ戦うのだ。"
+ ],
+ "None shall pass. Without paying.": [
+  "Nadie pasará. Sin pagar.",
+  "Nul ne passera. Sans payer.",
+  "لن يمرّ أحد. دون أن يدفع.",
+  "Keiner kommt vorbei. Ohne zu zahlen.",
+  "谁也别想过去。除非付钱。",
+  "誰も通さん。払わぬ限りは。"
+ ],
+ "Now for sale in Characters: %s coins": [
+  "Ya a la venta en Personajes: %s monedas",
+  "Désormais en vente dans Personnages : %s pièces",
+  "متاح الآن للشراء في الشخصيات: %s عملة",
+  "Jetzt bei den Charakteren erhältlich: %s Münzen",
+  "现已在角色中出售：%s 金币",
+  "キャラクター画面で販売中：%s コイン"
+ ],
+ "OGRE": [
+  "OGRO",
+  "OGRE",
+  "الغول",
+  "OGER",
+  "食人魔",
+  "オーガ"
+ ],
+ "Offense": [
+  "Ataque",
+  "Attaque",
+  "الهجوم",
+  "Angriff",
+  "进攻",
+  "攻撃"
+ ],
+ "Ogre": [
+  "Ogro",
+  "Ogre",
+  "الغول",
+  "Oger",
+  "食人魔",
+  "オーガ"
+ ],
+ "Orc-estrating total chaos": [
+  "Orc-uestando el caos total",
+  "Orc-hestrer le chaos total",
+  "تنظيم الفوضى الشاملة على طريقة الأورك",
+  "Orc-hestriertes totales Chaos",
+  "兽人指挥的彻底混乱",
+  "オークが奏でる大混乱"
+ ],
+ "Over {3 s}, strike the {20} nearest enemies: {120} damage each, plus a bleed": [
+  "En {3 s}, golpea a los {20} enemigos más cercanos: {120} de daño a cada uno, más sangrado",
+  "En {3 s}, frappez les {20} ennemis les plus proches : {120} dégâts chacun, plus un saignement",
+  "خلال {3 ث} اضرب أقرب {20} عدوًا: {120} ضرر لكل منهم مع نزيف",
+  "Triff in {3 s} die {20} nächsten Gegner: je {120} Schaden plus Blutung",
+  "{3 秒} 内打击最近的 {20} 个敌人：各 {120} 伤害，并造成流血",
+  "{3秒}かけて最も近い敵{20}体を斬る：各{120}ダメージと出血"
+ ],
+ "Overcharge": [
+  "Sobrecarga",
+  "Surcharge",
+  "الشحن الزائد",
+  "Überladung",
+  "超载",
+  "オーバーチャージ"
+ ],
+ "Overhead smash in a 4 m cone: 50 damage, slow but with heavy knockback": [
+  "Golpe descendente en un cono de 4 m: 50 de daño, lento pero con gran retroceso",
+  "Frappe verticale dans un cône de 4 m : 50 dégâts, lente mais avec un fort recul",
+  "ضربة علوية في مخروط 4 م: 50 ضرر، بطيئة لكن بدفع قوي",
+  "Überkopfschlag in einem 4-m-Kegel: 50 Schaden, langsam, aber mit starkem Rückstoß",
+  "4 米锥形范围下砸：50 伤害，缓慢但击退强",
+  "4 mの円錐に振り下ろし：50ダメージ、遅いが強いノックバック"
+ ],
+ "Overtime": [
+  "Horas extra",
+  "Heures sup",
+  "الوقت الإضافي",
+  "Überstunden",
+  "加时",
+  "残業"
+ ],
+ "Owlbear with me": [
+  "Ten oso-lechuza conmigo",
+  "Hibours avec moi",
+  "تحمّلني يا دبّ البوم",
+  "Eulenbär mit mir",
+  "枭熊陪着我",
+  "オウルベアと一緒に"
+ ],
+ "PAUSED": [
+  "PAUSA",
+  "PAUSE",
+  "متوقف مؤقتًا",
+  "PAUSIERT",
+  "已暂停",
+  "一時停止"
+ ],
+ "PAUSED  ·  hover an ability for details  ·  release Alt to resume": [
+  "PAUSA  ·  pasa el ratón sobre una habilidad para ver detalles  ·  suelta Alt para continuar",
+  "PAUSE  ·  survolez une capacité pour les détails  ·  relâchez Alt pour reprendre",
+  "متوقف  ·  مرّر فوق قدرة لرؤية التفاصيل  ·  اترك Alt للمتابعة",
+  "PAUSIERT  ·  Fähigkeit überfahren für Details  ·  Alt loslassen zum Fortsetzen",
+  "已暂停  ·  悬停技能查看详情  ·  松开 Alt 继续",
+  "一時停止  ·  アビリティにカーソルで詳細  ·  Altを離すと再開"
+ ],
+ "PLAY": [
+  "JUGAR",
+  "JOUER",
+  "العب",
+  "SPIELEN",
+  "开始",
+  "プレイ"
+ ],
+ "Padding": [
+  "Acolchado",
+  "Rembourrage",
+  "الحشوة",
+  "Polsterung",
+  "护垫",
+  "パッド"
+ ],
+ "Paladin? I hardly know 'im!": [
+  "¿Paladín? ¡Si apenas lo conozco!",
+  "Paladin ? Je le connais à peine !",
+  "فارس مقدس؟ بالكاد أعرفه!",
+  "Paladin? Kenn ich kaum!",
+  "圣骑士？我跟他不熟！",
+  "パラディン？ほとんど知らない奴だ！"
+ ],
+ "Party Mode": [
+  "Modo fiesta",
+  "Mode fête",
+  "وضع الحفلة",
+  "Partymodus",
+  "派对模式",
+  "パーティーモード"
+ ],
+ "Pause / menu": [
+  "Pausa / menú",
+  "Pause / menu",
+  "إيقاف مؤقت / القائمة",
+  "Pause / Menü",
+  "暂停 / 菜单",
+  "一時停止 / メニュー"
+ ],
+ "Periodically slams the ground, knocking enemies back.": [
+  "Golpea el suelo periódicamente y hace retroceder a los enemigos.",
+  "Frappe régulièrement le sol, repoussant les ennemis.",
+  "يضرب الأرض دوريًا ويدفع الأعداء للخلف.",
+  "Schlägt regelmäßig auf den Boden und stößt Gegner zurück.",
+  "定期猛击地面，击退敌人。",
+  "定期的に地面を叩き、敵を吹き飛ばす。"
+ ],
+ "Phase": [
+  "Fase",
+  "Phase",
+  "الطور",
+  "Phase",
+  "相位",
+  "フェーズ"
+ ],
+ "Phoenix Heart": [
+  "Corazón de fénix",
+  "Cœur de phénix",
+  "قلب العنقاء",
+  "Phönixherz",
+  "凤凰之心",
+  "不死鳥の心臓"
+ ],
+ "Pick up XP from further away.": [
+  "Recoge XP desde más lejos.",
+  "Ramassez l'XP de plus loin.",
+  "التقط الخبرة من مسافة أبعد.",
+  "Sammle EP aus größerer Entfernung.",
+  "从更远处拾取经验。",
+  "より遠くの経験値を拾う。"
+ ],
+ "Pickpocket": [
+  "Carterista",
+  "Pickpocket",
+  "النشّال",
+  "Taschendieb",
+  "扒窃",
+  "スリ"
+ ],
+ "Pickup Range": [
+  "Alcance de recogida",
+  "Portée de ramassage",
+  "مدى الالتقاط",
+  "Sammelradius",
+  "拾取范围",
+  "回収範囲"
+ ],
+ "Piercing": [
+  "Perforación",
+  "Perforation",
+  "الاختراق",
+  "Durchschlag",
+  "穿透",
+  "貫通"
+ ],
+ "Piercing icicles that slow enemies 30% for 2 s": [
+  "Carámbanos perforantes que ralentizan a los enemigos un 30% durante 2 s",
+  "Stalactites perforantes qui ralentissent les ennemis de 30 % pendant 2 s",
+  "رقاقات جليد مخترقة تبطئ الأعداء 30% لمدة 2 ث",
+  "Durchschlagende Eiszapfen, die Gegner 2 s um 30 % verlangsamen",
+  "穿透冰锥，使敌人减速 30%，持续 2 秒",
+  "敵を2秒間30%減速させる貫通つらら"
+ ],
+ "Piercing thrusts, javelins": [
+  "Estocadas perforantes, jabalinas",
+  "Estocs perforants, javelots",
+  "طعنات مخترقة، رماح",
+  "Durchschlagende Stöße, Speere",
+  "穿刺突击，标枪",
+  "貫通の突き、投槍"
+ ],
+ "Piercing, curses": [
+  "Perforante, maldice",
+  "Perforant, maudit",
+  "مخترق، يلعن",
+  "Durchschlagend, verflucht",
+  "穿透，诅咒",
+  "貫通、呪い"
+ ],
+ "Piercing, slows": [
+  "Perforante, ralentiza",
+  "Perforant, ralentit",
+  "مخترق، يبطئ",
+  "Durchschlagend, verlangsamt",
+  "穿透，减速",
+  "貫通、減速"
+ ],
+ "Piercing, strong vs epics": [
+  "Perforante, fuerte contra épicos",
+  "Perforant, fort contre les épiques",
+  "مخترق، قوي ضد الملحميين",
+  "Durchschlagend, stark gegen Epische",
+  "穿透，克制史诗敌人",
+  "貫通、エピックに強い"
+ ],
+ "Piñata Drop": [
+  "Lluvia de piñata",
+  "Largage de piñata",
+  "إسقاط البينياتا",
+  "Piñata-Abwurf",
+  "皮纳塔空投",
+  "ピニャータ投下"
+ ],
+ "Plating": [
+  "Blindaje",
+  "Blindage",
+  "التصفيح",
+  "Panzerung",
+  "装甲板",
+  "装甲"
+ ],
+ "Play": [
+  "Jugar",
+  "Jouer",
+  "العب",
+  "Spielen",
+  "开始游戏",
+  "プレイ"
+ ],
+ "Poison kick, slows": [
+  "Patada venenosa, ralentiza",
+  "Coup de pied empoisonné, ralentit",
+  "ركلة سامة، تبطئ",
+  "Gifttritt, verlangsamt",
+  "毒踢，减速",
+  "毒の蹴り、減速"
+ ],
+ "Polymorph": [
+  "Polimorfia",
+  "Métamorphose",
+  "التحويل",
+  "Verwandlung",
+  "变形术",
+  "変身"
+ ],
+ "Possess the biggest enemy around.": [
+  "Posee al enemigo más grande de los alrededores.",
+  "Possédez le plus gros ennemi des environs.",
+  "استحوذ على أكبر عدو حولك.",
+  "Besetze den größten Gegner in der Nähe.",
+  "附身附近最大的敌人。",
+  "近くの最も大きな敵に憑依する。"
+ ],
+ "Press Apply to switch the language.": [
+  "Pulsa Aplicar para cambiar el idioma.",
+  "Appuyez sur Appliquer pour changer de langue.",
+  "اضغط تطبيق لتغيير اللغة.",
+  "Drücke Übernehmen, um die Sprache zu wechseln.",
+  "点击“应用”切换语言。",
+  "「適用」を押すと言語が切り替わります。"
+ ],
+ "Press Enter to choose": [
+  "Pulsa Enter para elegir",
+  "Appuyez sur Entrée pour choisir",
+  "اضغط Enter للاختيار",
+  "Enter drücken zum Wählen",
+  "按 Enter 选择",
+  "Enterで選択"
+ ],
+ "Press a key...": [
+  "Pulsa una tecla...",
+  "Appuyez sur une touche...",
+  "اضغط مفتاحًا...",
+  "Taste drücken...",
+  "请按键……",
+  "キーを押してください…"
+ ],
+ "Projectile Speed": [
+  "Velocidad de proyectil",
+  "Vitesse des projectiles",
+  "سرعة المقذوفات",
+  "Projektiltempo",
+  "投射物速度",
+  "弾速"
+ ],
+ "Projectiles": [
+  "Proyectiles",
+  "Projectiles",
+  "المقذوفات",
+  "Projektile",
+  "投射物",
+  "弾数"
+ ],
+ "Projectiles pierce 1 more enemy": [
+  "Los proyectiles perforan 1 enemigo más",
+  "Les projectiles transpercent 1 ennemi de plus",
+  "المقذوفات تخترق عدوًا إضافيًا",
+  "Projektile durchschlagen 1 weiteren Gegner",
+  "投射物多穿透 1 个敌人",
+  "弾の貫通 +1"
+ ],
+ "Purple Potion: cooldowns -30%": [
+  "Poción morada: enfriamientos -30%",
+  "Potion violette : recharges -30 %",
+  "جرعة بنفسجية: أوقات التهدئة -30%",
+  "Lila Trank: Abklingzeiten -30 %",
+  "紫色药水：冷却 -30%",
+  "紫のポーション：クールダウン -30%"
+ ],
+ "Pyromastery": [
+  "Piromaestría",
+  "Pyromaîtrise",
+  "إتقان النار",
+  "Pyromeisterschaft",
+  "火焰精通",
+  "火術の極意"
+ ],
+ "Quick Hands": [
+  "Manos rápidas",
+  "Mains rapides",
+  "أيدٍ سريعة",
+  "Flinke Hände",
+  "快手",
+  "早業"
+ ],
+ "Quickfire": [
+  "Fuego rápido",
+  "Tir rapide",
+  "النار السريعة",
+  "Schnellfeuer",
+  "速射",
+  "速射"
+ ],
+ "Quit": [
+  "Salir",
+  "Quitter",
+  "خروج",
+  "Beenden",
+  "退出",
+  "終了"
+ ],
+ "Quit to desktop": [
+  "Salir al escritorio",
+  "Quitter vers le bureau",
+  "الخروج إلى سطح المكتب",
+  "Zum Desktop beenden",
+  "退出到桌面",
+  "デスクトップに戻る"
+ ],
+ "Rage against the dungeon": [
+  "Rabia contra el calabozo",
+  "Rage contre le donjon",
+  "ثورة على الزنزانة",
+  "Wut gegen den Dungeon",
+  "向地下城怒吼",
+  "ダンジョンに怒りを"
+ ],
+ "Raise Dead": [
+  "Alzar muertos",
+  "Relever les morts",
+  "إحياء الموتى",
+  "Tote erwecken",
+  "亡者复生",
+  "死者蘇生"
+ ],
+ "Raises a shield cap.": [
+  "Levanta un sombrerete escudo.",
+  "Lève un chapeau-bouclier.",
+  "يرفع قبعة درع.",
+  "Hebt einen Schildhut.",
+  "举起菌盖护盾。",
+  "盾のかさを掲げる。"
+ ],
+ "Rampage": [
+  "Arrasar",
+  "Saccage",
+  "الهياج",
+  "Amoklauf",
+  "狂暴",
+  "大暴れ"
+ ],
+ "Ranger danger": [
+  "Peligro explorador",
+  "Rôdeur en danger",
+  "خطر الجوّال",
+  "Waldläufer-Gefahr",
+  "游侠危机",
+  "レンジャーは危険"
+ ],
+ "Rapid shots, reload": [
+  "Disparos rápidos, recarga",
+  "Tirs rapides, rechargement",
+  "طلقات سريعة، إعادة تعبئة",
+  "Schnellschüsse, Nachladen",
+  "速射，装填",
+  "速射、リロード"
+ ],
+ "Rare": [
+  "Raro",
+  "Rare",
+  "نادر",
+  "Selten",
+  "稀有",
+  "レア"
+ ],
+ "Reads aloud from his treatise on monotremes.": [
+  "Lee en voz alta su tratado sobre monotremas.",
+  "Lit à voix haute son traité sur les monotrèmes.",
+  "يقرأ بصوت عالٍ من أطروحته عن أحاديات المسلك.",
+  "Liest laut aus seiner Abhandlung über Kloakentiere vor.",
+  "大声朗读他关于单孔目动物的论文。",
+  "単孔類についての論文を朗読する。"
+ ],
+ "Ready": [
+  "Listo",
+  "Prêt",
+  "جاهز",
+  "Bereit",
+  "就绪",
+  "準備完了"
+ ],
+ "Ready in %s": [
+  "Listo en %s",
+  "Prêt dans %s",
+  "جاهز خلال %s",
+  "Bereit in %s",
+  "%s 后就绪",
+  "あと %s で準備完了"
+ ],
+ "Ready to unlock": [
+  "Listo para desbloquear",
+  "Prêt à débloquer",
+  "جاهز للفتح",
+  "Bereit zum Freischalten",
+  "可以解锁",
+  "解放可能"
+ ],
+ "Reaps every enemy within {12 m} below {30%} HP (not the boss)": [
+  "Siega a todos los enemigos a {12 m} por debajo del {30%} de PV (no al jefe)",
+  "Fauche tous les ennemis à {12 m} sous {30 %} de PV (pas le boss)",
+  "يحصد كل عدو ضمن {12 م} تحت {30%} صحة (ليس الزعيم)",
+  "Mäht jeden Gegner im Umkreis von {12 m} unter {30 %} LP nieder (nicht den Boss)",
+  "收割 {12 米} 内生命低于 {30%} 的所有敌人（首领除外）",
+  "{12 m}以内のHP{30%}未満の敵をすべて刈り取る（ボス以外）"
+ ],
+ "Red Potion: +10% health": [
+  "Poción roja: +10% salud",
+  "Potion rouge : +10 % de vie",
+  "جرعة حمراء: +10% صحة",
+  "Roter Trank: +10 % Leben",
+  "红色药水：+10% 生命",
+  "赤いポーション：体力 +10%"
+ ],
+ "Reed Clones": [
+  "Clones de junco",
+  "Clones de roseau",
+  "مستنسخات القصب",
+  "Schilfklone",
+  "芦苇分身",
+  "葦の分身"
+ ],
+ "Regenerate 0.6 HP/s": [
+  "Regenera 0,6 PV/s",
+  "Régénère 0,6 PV/s",
+  "تجديد 0.6 صحة/ث",
+  "Regeneriert 0,6 LP/s",
+  "每秒回复 0.6 生命",
+  "HPを毎秒0.6回復"
+ ],
+ "Regenerate 1.5 HP/s": [
+  "Regenera 1,5 PV/s",
+  "Régénère 1,5 PV/s",
+  "تجديد 1.5 صحة/ث",
+  "Regeneriert 1,5 LP/s",
+  "每秒回复 1.5 生命",
+  "HPを毎秒1.5回復"
+ ],
+ "Render scale": [
+  "Escala de renderizado",
+  "Échelle de rendu",
+  "مقياس العرض",
+  "Renderskalierung",
+  "渲染比例",
+  "描画スケール"
+ ],
+ "Reset keys to defaults": [
+  "Restablecer teclas",
+  "Réinitialiser les touches",
+  "استعادة المفاتيح الافتراضية",
+  "Tasten zurücksetzen",
+  "恢复默认按键",
+  "キーを初期設定に戻す"
+ ],
+ "Resets the cooldowns of your other two abilities": [
+  "Reinicia los enfriamientos de tus otras dos habilidades",
+  "Réinitialise les recharges de vos deux autres capacités",
+  "يعيد ضبط تهدئة قدرتيك الأخريين",
+  "Setzt die Abklingzeiten deiner anderen beiden Fähigkeiten zurück",
+  "重置你另外两个技能的冷却",
+  "他の2つのアビリティのクールダウンをリセット"
+ ],
+ "Restart  [R]": [
+  "Reiniciar  [R]",
+  "Recommencer  [R]",
+  "إعادة  [R]",
+  "Neustart  [R]",
+  "重新开始  [R]",
+  "リスタート  [R]"
+ ],
+ "Restart run": [
+  "Reiniciar partida",
+  "Recommencer la partie",
+  "إعادة الجولة",
+  "Lauf neu starten",
+  "重新开始本局",
+  "ランをやり直す"
+ ],
+ "Restores your HP and shield to what they were {8 s} ago": [
+  "Restaura tus PV y escudo a como estaban hace {8 s}",
+  "Restaure vos PV et votre bouclier tels qu'ils étaient il y a {8 s}",
+  "يعيد صحتك ودرعك إلى ما كانا عليه قبل {8 ث}",
+  "Stellt deine LP und deinen Schild auf den Stand von vor {8 s} wieder her",
+  "将你的生命和护盾恢复到 {8 秒} 前的状态",
+  "HPとシールドを{8秒}前の状態に戻す"
+ ],
+ "Resume": [
+  "Continuar",
+  "Reprendre",
+  "متابعة",
+  "Fortsetzen",
+  "继续",
+  "再開"
+ ],
+ "Rewind": [
+  "Rebobinar",
+  "Rembobiner",
+  "الترجيع",
+  "Zurückspulen",
+  "倒带",
+  "巻き戻し"
+ ],
+ "Ride of the Valkyries": [
+  "La cabalgata de las valquirias",
+  "La Chevauchée des Walkyries",
+  "ركوب الفالكيريات",
+  "Walkürenritt",
+  "女武神的骑行",
+  "ワルキューレの騎行"
+ ],
+ "Rings of shuriken spiral out from you.": [
+  "Anillos de shuriken salen en espiral desde ti.",
+  "Des anneaux de shuriken jaillissent en spirale autour de vous.",
+  "حلقات من الشوريكن تنطلق منك حلزونيًا.",
+  "Shuriken-Ringe wirbeln spiralförmig von dir weg.",
+  "一圈圈手里剑从你身上螺旋射出。",
+  "手裏剣の輪が渦を巻いて放たれる。"
+ ],
+ "Rips up a log and bowls it at them.": [
+  "Arranca un tronco y se lo lanza rodando.",
+  "Arrache une bûche et la fait rouler sur eux.",
+  "يقتلع جذعًا ويدحرجه نحوهم.",
+  "Reißt einen Stamm heraus und kegelt ihn auf sie.",
+  "拔起一根原木朝他们滚过去。",
+  "丸太を引き抜き、転がしてぶつける。"
+ ],
+ "Rode a winged horse into the swamp. The horse refused to come back.": [
+  "Llegó al pantano a lomos de un caballo alado. El caballo se negó a volver.",
+  "Est arrivée au marais sur un cheval ailé. Le cheval a refusé de revenir.",
+  "دخلت المستنقع على حصان مجنّح. رفض الحصان العودة.",
+  "Ritt auf einem Flügelpferd in den Sumpf. Das Pferd weigerte sich zurückzukommen.",
+  "骑着飞马进了沼泽。马拒绝回来。",
+  "天馬に乗って沼へ来た。馬は戻るのを拒んだ。"
+ ],
+ "Rogue one, rogue all": [
+  "Uno pícaro, todos pícaros",
+  "Un roublard pour tous",
+  "محتال واحد، الكل محتالون",
+  "Einer für alle, alle Schurken",
+  "一人为盗，人人为盗",
+  "一人はローグのために"
+ ],
+ "Roll {15 m} where you aim, grabbing enemies in your path": [
+  "Rueda {15 m} hacia donde apuntas y atrapa a los enemigos a tu paso",
+  "Roulez sur {15 m} là où vous visez, en happant les ennemis sur votre chemin",
+  "تدحرج {15 م} حيث تصوّب وأمسك الأعداء في طريقك",
+  "Rolle {15 m} in Zielrichtung und schnappe dir Gegner auf dem Weg",
+  "朝瞄准方向翻滚 {15 米}，抓住路上的敌人",
+  "狙った方向へ{15 m}転がり、途中の敵を捕まえる"
+ ],
+ "Ropes the biggest enemy and uses it as a weapon.": [
+  "Enlaza al enemigo más grande y lo usa como arma.",
+  "Prend au lasso le plus gros ennemi et s'en sert comme arme.",
+  "يربط أكبر عدو بالحبل ويستخدمه سلاحًا.",
+  "Fängt den größten Gegner mit dem Lasso und benutzt ihn als Waffe.",
+  "套住最大的敌人当武器用。",
+  "最大の敵を縄で捕らえ、武器として使う。"
+ ],
+ "Row %d  ·  1 point each": [
+  "Fila %d  ·  1 punto cada una",
+  "Rangée %d  ·  1 point chacune",
+  "الصف %d  ·  نقطة واحدة لكل منها",
+  "Reihe %d  ·  je 1 Punkt",
+  "第 %d 排  ·  每个 1 点",
+  "%d列目  ·  各1ポイント"
+ ],
+ "Run faster.": [
+  "Corre más rápido.",
+  "Courez plus vite.",
+  "اركض أسرع.",
+  "Lauf schneller.",
+  "跑得更快。",
+  "より速く走る。"
+ ],
+ "Runs around leaving scorch marks on everything.": [
+  "Corretea dejando quemaduras por todas partes.",
+  "Court partout en laissant des brûlures.",
+  "يركض في كل مكان تاركًا آثار حروق.",
+  "Rennt herum und hinterlässt überall Brandflecken.",
+  "到处乱跑，留下一地焦痕。",
+  "走り回ってあらゆる物に焦げ跡を残す。"
+ ],
+ "SELECTED": [
+  "SELECCIONADO",
+  "SÉLECTIONNÉ",
+  "مُختار",
+  "AUSGEWÄHLT",
+  "已选择",
+  "選択中"
+ ],
+ "SETTINGS": [
+  "AJUSTES",
+  "PARAMÈTRES",
+  "الإعدادات",
+  "EINSTELLUNGEN",
+  "设置",
+  "設定"
+ ],
+ "SHRINE COMPLETE!  %s chest": [
+  "¡SANTUARIO COMPLETADO!  Cofre de %s",
+  "SANCTUAIRE TERMINÉ !  Coffre en %s",
+  "اكتمل المزار!  صندوق %s",
+  "SCHREIN ABGESCHLOSSEN!  %struhe",
+  "神龛完成！  %s宝箱",
+  "祠クリア！  %sの宝箱"
+ ],
+ "SIGNATURE WEAPON": [
+  "ARMA DISTINTIVA",
+  "ARME FÉTICHE",
+  "السلاح المميز",
+  "MARKENWAFFE",
+  "专属武器",
+  "固有武器"
+ ],
+ "SKILL POINTS": [
+  "PUNTOS DE HABILIDAD",
+  "POINTS DE COMPÉTENCE",
+  "نقاط المهارة",
+  "FERTIGKEITSPUNKTE",
+  "技能点",
+  "スキルポイント"
+ ],
+ "SURVIVE 10 MINUTES": [
+  "SOBREVIVE 10 MINUTOS",
+  "SURVIVEZ 10 MINUTES",
+  "انجُ 10 دقائق",
+  "ÜBERLEBE 10 MINUTEN",
+  "存活 10 分钟",
+  "10分間生き延びろ"
+ ],
+ "SWARM!": [
+  "¡ENJAMBRE!",
+  "ESSAIM !",
+  "سرب!",
+  "SCHWARM!",
+  "虫潮来袭！",
+  "大群襲来！"
+ ],
+ "Sage": [
+  "Sabio",
+  "Sage",
+  "الحكيم",
+  "Weiser",
+  "贤者",
+  "賢者"
+ ],
+ "Scholar": [
+  "Erudito",
+  "Érudit",
+  "العالِم",
+  "Gelehrter",
+  "学者",
+  "学者"
+ ],
+ "Scythe Sweep": [
+  "Barrido de guadaña",
+  "Balayage de faux",
+  "اكتساح المنجل",
+  "Sensenschwung",
+  "镰刀横扫",
+  "大鎌の薙ぎ払い"
+ ],
+ "Searing Pierce": [
+  "Perforación abrasadora",
+  "Perforation brûlante",
+  "الاختراق الحارق",
+  "Sengender Durchschlag",
+  "灼热穿透",
+  "灼熱の貫通"
+ ],
+ "Select a skill": [
+  "Selecciona una habilidad",
+  "Sélectionnez une compétence",
+  "اختر مهارة",
+  "Wähle eine Fertigkeit",
+  "选择一个技能",
+  "スキルを選択"
+ ],
+ "Senses every enemy nearby. Then shocks them.": [
+  "Percibe a todos los enemigos cercanos. Luego los electrocuta.",
+  "Détecte tous les ennemis proches. Puis les électrocute.",
+  "يستشعر كل عدو قريب. ثم يصعقه.",
+  "Spürt jeden Gegner in der Nähe. Dann schockt er sie.",
+  "感知附近所有敌人，然后电击他们。",
+  "近くの敵をすべて感知し、感電させる。"
+ ],
+ "Sentient Platypus": [
+  "Ornitorrinco consciente",
+  "Ornithorynque conscient",
+  "خلد الماء الواعي",
+  "Bewusstes Schnabeltier",
+  "有意识的鸭嘴兽",
+  "知性あるカモノハシ"
+ ],
+ "Sets [b]every enemy[/b] on fire.": [
+  "Prende fuego a [b]todos los enemigos[/b].",
+  "Met le feu à [b]tous les ennemis[/b].",
+  "يشعل النار في [b]كل الأعداء[/b].",
+  "Setzt [b]jeden Gegner[/b] in Brand.",
+  "点燃[b]所有敌人[/b]。",
+  "[b]すべての敵[/b]に火をつける。"
+ ],
+ "Sets down her cauldron. It spits.": [
+  "Planta su caldero. Escupe.",
+  "Pose son chaudron. Il crache.",
+  "تضع قِدرها. إنه يبصق.",
+  "Stellt ihren Kessel ab. Er spuckt.",
+  "放下她的大锅。它会喷吐。",
+  "大釜を置く。それは吐く。"
+ ],
+ "Settings": [
+  "Ajustes",
+  "Paramètres",
+  "الإعدادات",
+  "Einstellungen",
+  "设置",
+  "設定"
+ ],
+ "Shackle Swing": [
+  "Golpe de grilletes",
+  "Balancement de chaînes",
+  "تلويح الأغلال",
+  "Fesselschwung",
+  "镣铐挥舞",
+  "枷の振り回し"
+ ],
+ "Shadow Bolts": [
+  "Rayos de sombra",
+  "Traits d'ombre",
+  "صواعق الظل",
+  "Schattengeschosse",
+  "暗影箭",
+  "シャドウボルト"
+ ],
+ "Shadow Step": [
+  "Paso sombrío",
+  "Pas de l'ombre",
+  "خطوة الظل",
+  "Schattenschritt",
+  "暗影步",
+  "影歩き"
+ ],
+ "Shadow of the Reeds": [
+  "Sombra de los juncos",
+  "Ombre des roseaux",
+  "ظلّ القصب",
+  "Schatten im Schilf",
+  "芦苇之影",
+  "葦の影"
+ ],
+ "Sharpen": [
+  "Afilar",
+  "Affûtage",
+  "الشحذ",
+  "Schärfen",
+  "磨利",
+  "研磨"
+ ],
+ "Shield Wall": [
+  "Muro de escudos",
+  "Mur de boucliers",
+  "جدار الدروع",
+  "Schildwall",
+  "盾墙",
+  "盾の壁"
+ ],
+ "Shoots a web where you aim.": [
+  "Dispara una telaraña donde apuntas.",
+  "Tire une toile là où vous visez.",
+  "يطلق شبكة حيث تصوّب.",
+  "Schießt ein Netz dorthin, wohin du zielst.",
+  "朝你瞄准的地方射出蛛网。",
+  "狙った場所に糸を放つ。"
+ ],
+ "Shuriken Storm": [
+  "Tormenta de shuriken",
+  "Tempête de shuriken",
+  "عاصفة الشوريكن",
+  "Shuriken-Sturm",
+  "手里剑风暴",
+  "手裏剣の嵐"
+ ],
+ "Side effect: you take {+10%} damage while it lasts": [
+  "Efecto secundario: recibes {+10%} de daño mientras dura",
+  "Effet secondaire : vous subissez {+10 %} de dégâts pendant la durée",
+  "أثر جانبي: تتلقى {+10%} ضررًا طوال مدتها",
+  "Nebenwirkung: Du erleidest währenddessen {+10 %} Schaden",
+  "副作用：持续期间你受到的伤害 {+10%}",
+  "副作用：効果中は被ダメージ{+10%}"
+ ],
+ "Silver": [
+  "plata",
+  "argent",
+  "فضي",
+  "Silber",
+  "白银",
+  "シルバー"
+ ],
+ "Silver Bolts": [
+  "Virotes de plata",
+  "Carreaux d'argent",
+  "السهام الفضية",
+  "Silberbolzen",
+  "银弩箭",
+  "銀の矢"
+ ],
+ "Singe": [
+  "Singe",
+  "Singe",
+  "سِنج",
+  "Singe",
+  "焦焦",
+  "シンジ"
+ ],
+ "Siphon": [
+  "Sifón",
+  "Siphon",
+  "الاستنزاف",
+  "Absaugen",
+  "虹吸",
+  "吸い取り"
+ ],
+ "Six-Shooter": [
+  "Revólver de seis tiros",
+  "Six-coups",
+  "المسدس السداسي",
+  "Sechsschüsser",
+  "六发左轮",
+  "六連発"
+ ],
+ "Skate across the swamp on a trail of ice.": [
+  "Patina por el pantano sobre un rastro de hielo.",
+  "Patinez à travers le marais sur une traînée de glace.",
+  "تزلّج عبر المستنقع على أثر من الجليد.",
+  "Gleite auf einer Eisspur über den Sumpf.",
+  "沿着冰道滑过沼泽。",
+  "氷の道で沼を滑り抜ける。"
+ ],
+ "Skeleton": [
+  "Esqueleto",
+  "Squelette",
+  "هيكل عظمي",
+  "Skelett",
+  "骷髅",
+  "スケルトン"
+ ],
+ "Skills": [
+  "Habilidades",
+  "Compétences",
+  "المهارات",
+  "Fertigkeiten",
+  "技能",
+  "スキル"
+ ],
+ "Skills  →   +%s coins": [
+  "Habilidades  →   +%s monedas",
+  "Compétences  →   +%s pièces",
+  "المهارات  →   +%s عملة",
+  "Fertigkeiten  →   +%s Münzen",
+  "技能  →   +%s 金币",
+  "スキル  →   +%s コイン"
+ ],
+ "Sunlit glades, blossoming trees and butterflies.": [
+  "Claros soleados, árboles en flor y mariposas.",
+  "Clairières ensoleillées, arbres en fleurs et papillons.",
+  "فسحات مشمسة وأشجار مزهرة وفراشات.",
+  "Sonnige Lichtungen, blühende Bäume und Schmetterlinge.",
+  "阳光林间空地、盛开的树木和蝴蝶。",
+  "日差しの空き地、花咲く木々と蝶。"
+ ]
 }

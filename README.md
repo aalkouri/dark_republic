@@ -241,7 +241,7 @@ The two outdoor maps share the same 440 m arena, terrain generator (hills, berm,
 
 ## The Magical Forest
 
-`scripts/forest_builder.gd`, props in `scripts/forest_props.gd`. A bright, sunlit woodland, deliberately unlike the gloomy swamp: always daytime (50% sunny noon with fair-weather clouds, 50% warm golden afternoon), vivid colour grading and only a light haze.
+`scripts/forest_builder.gd`, props in `scripts/forest_props.gd`. A bright, sunlit woodland, deliberately unlike the gloomy swamp: a third of the time each: sunny noon with fair-weather clouds, a warm golden afternoon, or a clear moonlit night (the flowering bushes glow). Vivid colour grading and only a light haze. Screenshots take `--forest-time=noon|golden|night`.
 
 - **320 trees** (the swamp has 180) of **7 realistic species**, grown procedurally: a leaning, bending trunk with a root flare, branches that fork and spread, and lumpy leaf clumps along the branches and at every tip in a few shades of the species' colour. Bark is bright so trunks stand out. Each species has 4 shared shapes, rotated and scaled, to keep the forest cheap to draw.
 
@@ -259,7 +259,7 @@ The two outdoor maps share the same 440 m arena, terrain generator (hills, berm,
 - **72 mossy fallen logs** with root plates and red toadstools. The **landmarks** keep the magic: giant glowing crystal clusters and rune stones, every 3rd one casting coloured light.
 - **Ponds** are clear blue with lily pads and a sandy bed, ringed with reeds.
 - **Bushes** (`scripts/bush_field.gd`): 480 bright flowering bushes you can walk through, with no collision. Moving through one shakes it, rustles (4 synthesised variants from `tools/gen_forest_sounds.py`, at most about 3 times a second per bush, from the bush), and sometimes throws out a burst of leaves (45% when you push in, plus about once a second while you keep moving). Standing still in one is silent.
-- **Fireflies** drifting and blinking around you (`scripts/fireflies.gd`).
+- **By day, butterflies** (`scripts/butterflies.gd`): 70 of them in bright colours with dark-bordered, spotted wings flutter around you on meandering paths, bobbing with each wingbeat, and now and then settle on the grass with their wings slowly opening and closing. **At night, fireflies** (`scripts/fireflies.gd`) drift and blink instead. Both follow the camera, so there are always some nearby.
 - **Tests:** `godot --headless --path . res://tools/test_forest.tscn` (more trees than the swamp, daylight, green ground, bright bark, grass and flowers everywhere, bushes react and burn, a run starts on it). To preview the props: `godot --path . res://tools/render_forest_props.tscn -- /out.png [centre-x]`.
 
 ### Fire in the woods

@@ -17,7 +17,7 @@ signal cancelled
 const MAPS := [
 	{"id": "swamp", "name": "The Swamp", "blurb": "Fog, cypress trees and stinking pools.", "image": "res://images/maps/swamp.png"},
 	# The Castle will need the Forest's boss once it has one; until then Thog opens both.
-	{"id": "forest", "name": "Magical Forest", "blurb": "Neon trees, glowing ponds and bushes that rustle.", "image": "res://images/maps/forest.png", "requires": "thog"},
+	{"id": "forest", "name": "Magical Forest", "blurb": "Sunlit glades, blossoming trees and butterflies.", "image": "res://images/maps/forest.png", "requires": "thog"},
 	{"id": "castle", "name": "The Castle", "blurb": "Torch-lit halls, a feast to trample, skeletons.", "image": "res://images/maps/castle.png", "requires": "toadstool_knight"},
 ]
 
