@@ -22,6 +22,7 @@ func _ready() -> void:
 	await _test_keys_and_open()
 	await _test_levels_in_game()
 	await _test_tooltip()
+	await _test_new_weapons()
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails > 0 else 0)
 
@@ -254,6 +255,43 @@ func _test_tooltip() -> void:
 	_check("tooltip: level and what it raises", t0.contains("Level 3 / 10") and t0.contains("shock damage") and t0.contains("cooldown"), t0)
 	_check("tooltip: current and next level numbers", t0.contains("x1.67") and t0.contains("x2"), t0)
 	_check("tooltip: max level", t2.contains("Max level") and t2.contains("x4"), t2)
+
+
+## Thorns and Ice Aura: weapons anyone can draft, as often as a tome.
+func _test_new_weapons() -> void:
+	var db: UpgradeDB = main.db
+	_check("Thorns and Ice Aura are in the pool, as common as tomes", db.defs.has("weapon_thorns") and db.defs.has("weapon_frost")
+		and int(db.defs["weapon_thorns"]["weight"]) == int(db.defs["tome_damage"]["weight"]) and int(db.defs["weapon_frost"]["weight"]) == int(db.defs["tome_damage"]["weight"]), "")
+	_check("...with their own icons", db.defs["weapon_thorns"]["icon"]["glyph"] == "thorns" and db.defs["weapon_frost"]["icon"]["glyph"] == "frost_aura", "")
+	var e: EnemyManager = main.enemies
+	for i in e.count:
+		e.dead[i] = 1
+	e._dead_count = e.count
+	e.count = 0
+	var p: Vector3 = main.player.global_position
+	main.weapons.orb_t = 999.0
+	# Thorns: an enemy that hits you takes its damage back (x2 at level 1)
+	db.apply({"id": "weapon_thorns", "rarity": 0}, main.stats)
+	var g := e.spawn(EnemyManager.GRUNT, p + Vector3(0.2, 0, 0), 1000.0)
+	await get_tree().physics_frame   # into the crowd's spatial grid
+	e.pos[g] = main.player.global_position + Vector3(0.2, 0, 0)
+	e.tick(0.0, main.player.global_position)
+	var h0: float = e.hp[g]
+	main.player.invuln = 0.0
+	main._contact_damage()
+	var back: float = h0 - e.hp[g]
+	var want: float = e.t_damage[EnemyManager.GRUNT] * main.enemy_damage_mult() * main.stats.value("thorns_return") * main.stats.value("damage")
+	_check("Thorns: whatever hits you takes its damage back", back > 0.0 and absf(back - want) < 1.0, "%.1f vs %.1f" % [back, want])
+	e.dead[g] = 1
+	# Ice Aura: enemies within its radius are slowed, those outside aren't
+	db.apply({"id": "weapon_frost", "rarity": 0}, main.stats)
+	var r: float = main.stats.value("frost_radius")
+	var near := e.spawn(EnemyManager.GRUNT, p + Vector3(r * 0.6, 0, 0), 1000.0)
+	var far := e.spawn(EnemyManager.GRUNT, p + Vector3(r + 6.0, 0, 0), 1000.0)
+	await _secs(0.5)
+	_check("Ice Aura slows everything around you", e.slow_t[near] > 0.0 and e.slow_f[near] <= 0.61, "slow %.2f" % e.slow_f[near])
+	_check("...but not beyond its radius", e.slow_t[far] <= 0.0, "")
+	_check("...and shows on the ground", main.weapons.frost_mesh.visible, "")
 
 
 func _check(name: String, ok: bool, detail: String) -> void:

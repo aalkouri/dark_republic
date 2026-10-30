@@ -119,8 +119,8 @@ const FLASK_FLIGHT := 0.6
 const FLASK_RANGE := 16.0
 const ACID_FRAC := 0.04
 const ACID_TIME := 3.0
-const CLUB_REACH := 4.0          # Big Club: overhead smash in a cone
-const CLUB_ARC := 90.0
+const CLUB_REACH := 9.0          # Big Club: overhead smash in a long cone (no projectile, so it reaches far)
+const CLUB_ARC := 100.0
 const CLUB_KNOCK := 8.0
 const STATIC_TARGETS := 3       # Static Cling: zaps this many nearest enemies (+1 per extra count)
 const STATIC_REACH := 14.0
@@ -161,6 +161,10 @@ var tail_mm: MultiMesh
 var tail_buf := PackedFloat32Array()
 var buf := PackedFloat32Array()
 var aura_mesh: GroundDisc
+var frost_mesh: GroundDisc       # Ice Aura: a frosty ring on the ground
+var frost_ring: GroundDisc
+var _frost_t := 0.0
+var _frost_spin := 0.0
 var aura_mat: StandardMaterial3D
 var _aura_pulse := 0.0
 var _rings: Array = []     # [MeshInstance3D, age, radius]
@@ -244,6 +248,13 @@ func _ready() -> void:
 	aura_mesh = GroundDisc.create(1.0, Color(0.55, 1.0, 0.35, 0.18))   # drapes over the hills
 	aura_mesh.visible = false
 	add_child(aura_mesh)
+	frost_mesh = GroundDisc.create(1.0, Color(0.55, 0.85, 1.0, 0.16), true)
+	frost_mesh.visible = false
+	add_child(frost_mesh)
+	frost_ring = GroundDisc.create(1.0, Color(0.8, 0.95, 1.0, 0.45), true)
+	frost_ring.set_ring(0.93)
+	frost_ring.visible = false
+	add_child(frost_ring)
 
 	_ring_mat = _fx_material(Color(1.0, 0.9, 0.5, 0.6))
 	lightning = LightningFx.new()
@@ -440,6 +451,26 @@ func tick(dt: float) -> void:
 				enemies.damage(e, d)
 		_aura_pulse = maxf(0.0, _aura_pulse - dt * 5.0)
 		aura_mesh.alpha = 0.14 + 0.16 * _aura_pulse
+
+	# --- Ice Aura: everything in the ring around you is slowed (refreshed every 0.2 s)
+	if db != null and db.level_of("weapon_frost") > 0:
+		var fr := stats.value("frost_radius") * area
+		var at := feet + Vector3(0.0, 0.06, 0.0)
+		frost_mesh.visible = true
+		frost_ring.visible = true
+		frost_mesh.global_position = at
+		frost_ring.global_position = at
+		_frost_spin += dt
+		frost_mesh.scale = Vector3(fr, 1.0, fr)
+		var breathe := 1.0 + 0.03 * sin(_frost_spin * 2.0)
+		frost_ring.scale = Vector3(fr * breathe, 1.0, fr * breathe)
+		frost_ring.rotation.y = _frost_spin * 0.4
+		_frost_t -= dt
+		if _frost_t <= 0.0:
+			_frost_t = 0.2
+			var slow := clampf(stats.value("frost_slow"), 0.15, 1.0)
+			for e in enemies.query_radius(chest, fr, false):
+				enemies.slow(e, slow, 0.35)
 
 	# --- Ground Slam: periodic knockback nova
 	if db != null and db.level_of("weapon_slam") > 0:

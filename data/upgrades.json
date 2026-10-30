@@ -14,6 +14,7 @@
     "orb_damage": "Fireball Damage", "orb_cooldown": "Fireball Cooldown", "orb_count": "Fireballs", "orb_pierce": "Fireball Pierce",
     "aura_damage": "Aura Damage", "aura_radius": "Aura Size", "aura_tick": "Aura Tick Rate",
     "slam_damage": "Slam Damage", "slam_radius": "Slam Size", "slam_cooldown": "Slam Cooldown",
+    "thorns_return": "Thorns Damage", "frost_radius": "Ice Aura Size", "frost_slow": "Ice Aura Slow",
     "bomb_chance": "Explode Chance", "bomb_damage": "Explosion Damage", "fang_chance": "Heal-on-Kill Chance"
   },
   "percent_stats": ["luck", "bomb_chance", "fang_chance"],
@@ -37,6 +38,17 @@
       "per_level": [
         { "stat": "slam_damage", "op": "add", "value": 0.25 },
         { "stat": "slam_cooldown", "op": "mult", "value": 0.92 } ] },
+
+    { "id": "weapon_thorns", "kind": "weapon", "icon": { "glyph": "thorns", "cover": "#2a3a14", "tint": "#b8e05a" }, "name": "Thorns", "weight": 10, "max_level": 8,
+      "desc": "Enemies that hit you take their damage back, and more.",
+      "per_level": [
+        { "stat": "thorns_return", "op": "add", "value": 0.35 } ] },
+
+    { "id": "weapon_frost", "kind": "weapon", "icon": { "glyph": "frost_aura", "cover": "#163a5a", "tint": "#a8e4ff" }, "name": "Ice Aura", "weight": 10, "max_level": 8,
+      "desc": "Slows every enemy in a radius around you.",
+      "per_level": [
+        { "stat": "frost_radius", "op": "add", "value": 0.12 },
+        { "stat": "frost_slow", "op": "mult", "value": 0.92 } ] },
 
     { "id": "tome_damage", "kind": "tome", "icon": { "glyph": "blade", "cover": "#8e1f1a" }, "name": "Tome of Damage", "weight": 10, "max_level": 99,
       "desc": "Hit harder.", "per_level": [ { "stat": "damage", "op": "add", "value": 0.12 } ] },

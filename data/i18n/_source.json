@@ -31,7 +31,7 @@
   "slot_machine.gd:331"
  ],
  "%s  LEVEL %d": [
-  "main.gd:870"
+  "main.gd:880"
  ],
  "%s  Lv %d": [
   "hud.gd:1038",
@@ -57,35 +57,35 @@
   "hud.gd:789"
  ],
  "%s APPROACHES": [
-  "main.gd:686"
+  "main.gd:696"
  ],
  "%s Chest": [
   "chest.gd:55",
   "slot_machine.gd:143"
  ],
  "%s Cooldown": [
-  "weapon_system.gd:305"
+  "weapon_system.gd:316"
  ],
  "%s DEFEATED!": [
   "hud.gd:778",
-  "main.gd:75"
+  "main.gd:76"
  ],
  "%s Damage": [
-  "weapon_system.gd:304",
-  "weapon_system.gd:342"
+  "weapon_system.gd:315",
+  "weapon_system.gd:353"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:716"
+  "main.gd:726"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:394"
  ],
  "%s Pierce": [
-  "weapon_system.gd:307",
-  "weapon_system.gd:344"
+  "weapon_system.gd:318",
+  "weapon_system.gd:355"
  ],
  "%s Reach": [
-  "weapon_system.gd:306"
+  "weapon_system.gd:317"
  ],
  "%s can't fight here: it's home turf": [
   "map_picker.gd:90"
@@ -192,7 +192,7 @@
   "skill_tree.gd:105"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:516"
+  "main.gd:520"
  ],
  "2 yd": [
   "abilities.gd:243"
@@ -225,7 +225,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:628"
+  "main.gd:638"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -594,7 +594,7 @@
   "settings_menu.gd:233"
  ],
  "Cooldowns reset": [
-  "main.gd:970"
+  "main.gd:980"
  ],
  "Cowboy": [
   "characters.json"
@@ -815,6 +815,9 @@
  "Enemies that die in it burst for {30%} of their max HP within {3 m}": [
   "abilities.json"
  ],
+ "Enemies that hit you take their damage back, and more.": [
+  "upgrades.json"
+ ],
  "Enemies that hit you while it holds take {2x} their contact damage back": [
   "abilities.json"
  ],
@@ -864,7 +867,7 @@
   "forge.gd:42"
  ],
  "Every ability is at max level!  Fully healed": [
-  "main.gd:855"
+  "main.gd:865"
  ],
  "Every chest is a mimic until proven innocent": [
   "taglines.json"
@@ -1079,7 +1082,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:741"
+  "main.gd:751"
  ],
  "Gaiden": [
   "characters.json"
@@ -1195,9 +1198,6 @@
  "Heavy crossbow bolts that pierce 3 enemies; double damage to epics": [
   "abilities.json"
  ],
- "Heavy smash, knockback": [
-  "abilities.json"
- ],
  "Her horse comes back. Just this once.": [
   "abilities.json"
  ],
@@ -1234,6 +1234,9 @@
  "Hotfoot": [
   "abilities.json"
  ],
+ "Huge smash, knockback": [
+  "abilities.json"
+ ],
  "Hunter's Night": [
   "abilities.json"
  ],
@@ -1249,6 +1252,15 @@
  ],
  "I cast Magic Missile at the darkness!": [
   "taglines.json"
+ ],
+ "Ice Aura": [
+  "upgrades.json"
+ ],
+ "Ice Aura Size": [
+  "upgrades.json"
+ ],
+ "Ice Aura Slow": [
+  "upgrades.json"
  ],
  "Ice Shard": [
   "wallet.gd:278"
@@ -1340,7 +1352,7 @@
   "characters.json"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:347"
+  "weapon_system.gd:358"
  ],
  "LEVEL UP!": [
   "hud.gd:255"
@@ -1590,7 +1602,7 @@
   "upgrade_db.gd:168"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:762"
+  "main.gd:772"
  ],
  "NEW CHAMPION": [
   "hud.gd:845"
@@ -1667,7 +1679,7 @@
  "Overcharge": [
   "abilities.json"
  ],
- "Overhead smash in a 4 m cone: 50 damage, slow but with heavy knockback": [
+ "Overhead smash in a 9 m cone: 90 damage, slow but with heavy knockback": [
   "abilities.json"
  ],
  "Overtime": [
@@ -1906,7 +1918,7 @@
   "settings_menu.gd:47"
  ],
  "SHARDS: %s": [
-  "main.gd:705"
+  "main.gd:715"
  ],
  "SIGNATURE WEAPON": [
   "character_select.gd:491",
@@ -1917,10 +1929,10 @@
   "skill_screen.gd:108"
  ],
  "SURVIVE": [
-  "main.gd:442"
+  "main.gd:446"
  ],
  "SWARM!": [
-  "main.gd:617"
+  "main.gd:627"
  ],
  "Sage": [
   "skill_tree.gd:65"
@@ -2043,6 +2055,9 @@
   "abilities.json"
  ],
  "Slowly heal over time.": [
+  "upgrades.json"
+ ],
+ "Slows every enemy in a radius around you.": [
   "upgrades.json"
  ],
  "Slows time for everyone but you.": [
@@ -2211,14 +2226,14 @@
   "toadstool_boss.gd:68"
  ],
  "THOG": [
-  "main.gd:75",
-  "main.gd:691"
+  "main.gd:76",
+  "main.gd:701"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:381"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:714"
+  "main.gd:724"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:469"
@@ -2227,7 +2242,7 @@
   "thog_boss.gd:399"
  ],
  "THOG THE TROLL": [
-  "main.gd:671",
+  "main.gd:681",
   "thog_boss.gd:545"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2237,7 +2252,7 @@
   "thog_boss.gd:580"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:672"
+  "main.gd:682"
  ],
  "Take less damage.": [
   "upgrades.json"
@@ -2366,6 +2381,12 @@
  ],
  "Thog the Troll in the Swamp": [
   "map_picker.gd:24"
+ ],
+ "Thorns": [
+  "upgrades.json"
+ ],
+ "Thorns Damage": [
+  "upgrades.json"
  ],
  "Three hundred years, and now THIS noise.": [
   "abilities.json"

@@ -15,7 +15,8 @@ extends Node
 
 const UPGRADE_PRIORITY := {
 	"weapon_orb": 100, "tome_damage": 60, "tome_vitality": 55, "tome_armor": 50, "tome_quantity": 50,
-	"tome_regen": 45, "tome_haste": 45, "tome_area": 40, "weapon_aura": 40, "tome_swift": 38,
+	"tome_regen": 45, "tome_haste": 45, "tome_area": 40, "weapon_frost": 42, "weapon_aura": 40, "tome_swift": 38,
+	"weapon_thorns": 36,
 	"weapon_slam": 35, "item_fang": 34, "tome_magnet": 30, "tome_xp": 28, "item_bomb": 26,
 	"tome_velocity": 20, "tome_luck": 15, "item_feather": 10,
 }

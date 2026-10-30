@@ -190,6 +190,13 @@ func _thog() -> void:
 	_check("Big Club smashes the enemy in front", ws.swings == s0 + 1 and em.hp[a] < em.hp_max[a], "")
 	_check("...not behind him (a cone)", em.hp[b] >= em.hp_max[b], "")
 	_check("...and throws it back", em.kb_t[a] > 0.0, "")
+	_clear()
+	var club_far := _spawn(EnemyManager.TANK, 8.0, 0.0, 100.0)
+	await _secs(0.05)
+	var hf: float = em.hp[club_far]
+	ws.fire("club", "orb", 1.0)
+	_check("...and reaches much farther: an enemy 8 m away is hit", em.hp[club_far] < hf, "")
+	_check("Thog starts with 250 max HP", is_equal_approx(player.max_hp, 250.0) and is_equal_approx(player.hp, 250.0), "%.0f / %.0f" % [player.hp, player.max_hp])
 	var kit: KitThog = ab.roster.part
 	_clear()
 	for k in 10:

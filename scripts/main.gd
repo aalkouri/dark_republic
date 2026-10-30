@@ -24,6 +24,7 @@ const BASE_STATS := {
 	"projectile_count": 0.0, "pickup_range": 4.0, "xp_gain": 1.0, "luck": 0.0, "extra_jumps": 0.0,
 	"orb_damage": 12.0, "orb_cooldown": 0.9, "orb_count": 1.0, "orb_pierce": 0.0, "orb_speed": 24.0,
 	"aura_damage": 5.0, "aura_radius": 3.2, "aura_tick": 0.45,
+	"thorns_return": 2.0, "frost_radius": 5.5, "frost_slow": 0.6,
 	"slam_damage": 18.0, "slam_radius": 5.5, "slam_cooldown": 2.6,
 	"bomb_chance": 0.0, "bomb_damage": 25.0, "fang_chance": 0.0,
 	"coin_gain": 1.0, "ability_cdr": 1.0, "start_shield": 0.0,   # from character skills
@@ -268,6 +269,9 @@ func _ready() -> void:
 	stats = Stats.new()
 	for k in BASE_STATS:
 		stats.define(k, BASE_STATS[k])
+	var kit_hp := float(KitDB.kit(Settings.selected_character).get("max_hp", 0.0))
+	if kit_hp > 0.0:   # some characters start tougher (Thog: a melee bruiser, 250 HP)
+		stats.apply("max_hp", "flat", kit_hp - float(BASE_STATS["max_hp"]))
 	skills_applied = SkillTree.apply(Settings.selected_character, stats)   # skill tree bonuses
 	db = UpgradeDB.new("res://data/upgrades.json", rng)
 
@@ -555,10 +559,16 @@ func _contact_damage() -> void:
 			return
 		player.hurt(dmg)
 		_smoke_contacts += 1
-		if player.thorns > 0.0:   # Shield Wall: hitting her hurts
+		# Thorns (the weapon) and Shield Wall: whatever hits you takes its damage back
+		var thorns := player.thorns
+		if db.level_of("weapon_thorns") > 0:
+			thorns += stats.value("thorns_return") * stats.value("damage")
+		if thorns > 0.0:
 			for i in hits:
 				if not enemies.is_harmless(i):
-					enemies.damage(i, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * player.thorns)
+					enemies.damage(i, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * thorns)
+					if db.level_of("weapon_thorns") > 0:
+						fx.burst(enemies.center_of(i), 0.9, Color(0.72, 0.9, 0.3), 0.2)
 		if push.length_squared() < 0.0001:
 			push = -player.velocity
 		player.knockback(push)

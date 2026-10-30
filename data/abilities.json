@@ -460,7 +460,8 @@
 
     "thog": {
       "role": "Slow, heavy smasher who controls space",
-      "weapon": { "name": "Big Club", "icon": { "glyph": "slam", "cover": "#14304a", "tint": "#8ab8ff" }, "desc": "Overhead smash in a 4 m cone: 50 damage, slow but with heavy knockback", "short": "Heavy smash, knockback", "damage": "50", "every": 1.6 },
+      "max_hp": 250,
+      "weapon": { "name": "Big Club", "icon": { "glyph": "slam", "cover": "#14304a", "tint": "#8ab8ff" }, "desc": "Overhead smash in a 9 m cone: 90 damage, slow but with heavy knockback", "short": "Huge smash, knockback", "damage": "90", "every": 1.6 },
       "abilities": [
         { "name": "Toll Booth", "cooldown": 30, "icon": { "glyph": "crown", "color": "#6a9ad8" },
           "text": "None shall pass. Without paying.",

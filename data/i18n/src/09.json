@@ -454,5 +454,77 @@
   "DIE SCHMIEDE",
   "锻造炉",
   "鍛冶場"
+ ],
+ "Enemies that hit you take their damage back, and more.": [
+  "Los enemigos que te golpean reciben su daño de vuelta, y más.",
+  "Les ennemis qui vous frappent subissent leurs dégâts en retour, et plus.",
+  "الأعداء الذين يضربونك يتلقون ضررهم مضاعفًا.",
+  "Gegner, die dich treffen, bekommen ihren Schaden zurück – und mehr.",
+  "击中你的敌人会受到反弹伤害，而且更多。",
+  "攻撃してきた敵にダメージを倍返しする。"
+ ],
+ "Huge smash, knockback": [
+  "Golpe enorme, retroceso",
+  "Énorme coup, recul",
+  "ضربة هائلة، دفع",
+  "Gewaltiger Schlag, Rückstoß",
+  "巨力重击，击退",
+  "巨大な一撃、ノックバック"
+ ],
+ "Ice Aura": [
+  "Aura de hielo",
+  "Aura de glace",
+  "هالة الجليد",
+  "Eisaura",
+  "寒冰光环",
+  "氷のオーラ"
+ ],
+ "Ice Aura Size": [
+  "Tamaño del aura de hielo",
+  "Taille de l'aura de glace",
+  "حجم هالة الجليد",
+  "Eisaura-Größe",
+  "寒冰光环范围",
+  "氷のオーラの範囲"
+ ],
+ "Ice Aura Slow": [
+  "Ralentización del aura de hielo",
+  "Ralentissement de l'aura de glace",
+  "إبطاء هالة الجليد",
+  "Eisaura-Verlangsamung",
+  "寒冰光环减速",
+  "氷のオーラの減速"
+ ],
+ "Overhead smash in a 9 m cone: 90 damage, slow but with heavy knockback": [
+  "Golpe por encima de la cabeza en un cono de 9 m: 90 de daño, lento pero con gran retroceso",
+  "Coup par-dessus la tête dans un cône de 9 m : 90 dégâts, lent mais avec un fort recul",
+  "ضربة علوية في مخروط 9 م: 90 ضررًا، بطيئة لكن بدفع قوي",
+  "Überkopfschlag in einem 9-m-Kegel: 90 Schaden, langsam, aber mit starkem Rückstoß",
+  "在 9 米锥形范围内过顶重击：90 点伤害，缓慢但击退强",
+  "9mの扇状に振り下ろす一撃：90ダメージ、遅いが強いノックバック"
+ ],
+ "Slows every enemy in a radius around you.": [
+  "Ralentiza a todos los enemigos a tu alrededor.",
+  "Ralentit tous les ennemis autour de vous.",
+  "يبطئ كل الأعداء من حولك.",
+  "Verlangsamt alle Gegner in deiner Nähe.",
+  "减速你周围范围内的所有敌人。",
+  "周囲の敵をすべて減速させる。"
+ ],
+ "Thorns": [
+  "Espinas",
+  "Épines",
+  "الأشواك",
+  "Dornen",
+  "荆棘",
+  "いばら"
+ ],
+ "Thorns Damage": [
+  "Daño de espinas",
+  "Dégâts des épines",
+  "ضرر الأشواك",
+  "Dornenschaden",
+  "荆棘伤害",
+  "いばらダメージ"
  ]
 }

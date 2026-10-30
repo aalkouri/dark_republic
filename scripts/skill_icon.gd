@@ -2,7 +2,8 @@ class_name SkillIcon
 extends Control
 ## Small vector glyphs for skill squares (drawn in a 64x64 design space and scaled).
 ## kinds: heart, shield, cross, bubble, blade, clock, orb, burst, arrow, boot, feather, coin,
-## magnet, book, clover, flame, expand, eye, triple, fireball, stink, slam, bomb, fang.
+## magnet, book, clover, flame, expand, eye, triple, fireball, stink, slam, bomb, fang, thorns,
+## frost_aura.
 
 var kind := "orb"
 var color := Color.WHITE
@@ -161,6 +162,39 @@ func _draw() -> void:
 				draw_line(Vector2(14, 42) + Vector2(cos(a), sin(a)) * 3, Vector2(14, 42) + Vector2(cos(a), sin(a)) * 11, light, 2.5)
 				var b := -0.35 - k * 0.25
 				draw_line(Vector2(50, 42) + Vector2(cos(b), sin(b)) * 3, Vector2(50, 42) + Vector2(cos(b), sin(b)) * 11, light, 2.5)
+		"thorns":   # a ring of thorny vine with sharp spikes all round, a red drop on one
+			draw_arc(Vector2(32, 32), 18, 0, TAU, 40, dark, 9)
+			draw_arc(Vector2(32, 32), 18, 0, TAU, 40, c, 6)
+			for k in 10:
+				var a := TAU * k / 10.0 + 0.2
+				var d := Vector2(cos(a), sin(a))
+				var n := d.orthogonal()
+				var base := Vector2(32, 32) + d * 18.0
+				var out := 1.0 if k % 2 == 0 else -1.0   # alternate outward / inward thorns
+				var tip := base + d * 12.0 * out + n * 3.0
+				_poly([base + n * 3.5, base - n * 3.5, tip], light if k % 3 == 0 else c)
+			for k in 3:   # vine leaves
+				var a := TAU * k / 3.0 + 1.1
+				draw_circle(Vector2(32, 32) + Vector2(cos(a), sin(a)) * 18.0, 4.0, light)
+			_poly([Vector2(46, 10), Vector2(43, 17), Vector2(49, 17)], Color(0.85, 0.12, 0.1))
+			draw_circle(Vector2(46, 18), 3.2, Color(0.85, 0.12, 0.1))
+		"frost_aura":   # a snowflake inside icy rings, frost crystals drifting at the edge
+			draw_circle(Vector2(32, 32), 28, Color(c, 0.18))
+			draw_arc(Vector2(32, 32), 27, 0, TAU, 40, Color(light, 0.9), 2.5)
+			draw_arc(Vector2(32, 32), 21, 0.3, TAU - 0.3, 36, Color(c, 0.6), 2.0)
+			for k in 6:
+				var d := Vector2.from_angle(TAU * k / 6.0 - PI / 2)
+				var n := d.orthogonal()
+				draw_line(Vector2(32, 32), Vector2(32, 32) + d * 15, c, 3.5)
+				for f in [0.5, 0.8]:
+					var p: Vector2 = Vector2(32, 32) + d * 15 * f
+					draw_line(p, p + (d - n) * 4.5, light, 2.2)
+					draw_line(p, p + (d + n) * 4.5, light, 2.2)
+			draw_circle(Vector2(32, 32), 3.5, Color(1, 1, 1))
+			for k in 4:
+				var a := TAU * k / 4.0 + 0.75
+				var p := Vector2(32, 32) + Vector2(cos(a), sin(a)) * 27.0
+				_poly([p + Vector2(0, -3.5), p + Vector2(2.5, 0), p + Vector2(0, 3.5), p + Vector2(-2.5, 0)], Color(1, 1, 1, 0.9))
 		"bomb":
 			draw_circle(Vector2(28, 38), 19, Color(0.12, 0.12, 0.14))
 			draw_circle(Vector2(22, 32), 6, Color(0.45, 0.45, 0.5))

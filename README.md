@@ -98,7 +98,7 @@ These run on the same `RosterHero` model player (clip segments per character in 
 | Rogue | Twin Daggers | Short-range throws in pairs; hits bleed 3% of max HP/s for 3 s |
 | Gaiden | Katana | 3-hit combo in a 3 m arc; the 3rd cut sends a 10 m wind slash |
 | Dr. Croc | Volatile Flasks | Lobbed vials that shatter with breaking glass: 3 m burst, then a lumpy, bubbling acid puddle (4% of max HP/s) |
-| Thog | Big Club | Slow overhead smash in a 4 m, 90° cone, throws enemies back 8 m |
+| Thog | Big Club | Slow overhead smash in a long 9 m, 100° cone for 90 damage, throws enemies back 8 m. Thog starts with **250 max HP** (everyone else 100): with no projectile he fights up close |
 | An Argyle Sock | Static Cling | Zaps the 3 nearest enemies (18 each, every 0.6 s); moving builds a charge up to 2x |
 
 Once bought, every character's weapon can also turn up for the others as a rare Legendary level-up reward. The odds are shared out, so the rewards stay rare however many characters you own.
@@ -459,7 +459,7 @@ Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): abo
 ## What's in the slice
 
 - **Run structure:** 10-minute run, spawn rate and enemy HP scale with time, a swarm ring every minute. On the Swamp, **Thog the Troll** arrives at 8:00 and the run is won by killing him (see *Thog the Troll*); on the other maps a Goblin Warlord comes at 5:00 (his death vacuums all XP) and surviving 10:00 wins.
-- **3 weapons:** Fireballs (auto-targeted, pierce), Stink Aura (damage field), Ground Slam (knockback nova). Max 3 weapons per run.
+- **5 weapons:** Fireballs (auto-targeted, pierce), Stink Aura (damage field), Ground Slam (knockback nova), **Thorns** (anything that hits you takes 2x its damage back, +35% a level) and **Ice Aura** (everything within 5.5 m is slowed 40%, wider and colder each level). Thorns and Ice Aura come up as often as tomes and have their own icons (`skill_icon.gd`: `thorns`, `frost_aura`). Max 3 weapons per run.
 - **13 tomes** (stat upgrades) and **3 items** (explode on kill, heal on kill, extra jumps).
 - **Rarity rolls** (Common → Legendary, x1–x3 effect): Luck raises the weight of Rare, Epic and Legendary by its value (0.1 per Tome of Luck level).
 - **Arena:** procedurally scattered platforms, ramps and pillars.
