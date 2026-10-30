@@ -168,6 +168,20 @@ func _ready() -> void:
 				sig_seen += 1
 				legendary = legendary and int(pk["rarity"]) == 3
 	_check("they're rare (a few % of cards) and always Legendary", legendary and sig_seen > 0 and float(sig_seen) / drafts < 0.04, "%d / %d cards" % [sig_seen, drafts])
+	# Once you take one, it levels up as often as any weapon and the others stop showing
+	sdb.levels["sig_dark"] = 1
+	var dark := 0
+	var fire := 0
+	var orb := 0
+	sdb.levels["weapon_orb"] = 1
+	for k in 3000:
+		for pk in sdb.draft(3, 0.0, 3):
+			match pk["id"]:
+				"sig_dark": dark += 1
+				"sig_fire": fire += 1
+				"weapon_aura": orb += 1
+	_check("taking another character's weapon: it now comes up as often as any weapon", is_equal_approx(sdb.weight_of("sig_dark"), sdb.weapon_weight()) and dark > orb * 0.6, "%d vs Stink Aura %d" % [dark, orb])
+	_check("...and no other legendary weapon can be pulled", fire == 0 and not sdb._eligible(3).has("sig_fire"), "%d" % fire)
 	db.banned["tome_damage"] = true
 	var seen_banned := false
 	for k in 300:

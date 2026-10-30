@@ -49,8 +49,38 @@ func _eligible(max_weapons: int) -> Array:
 			continue
 		if d["kind"] == "weapon" and lv == 0 and owned_of_kind("weapon") >= max_weapons:
 			continue
+		if d.has("signature") and lv == 0 and has_signature():
+			continue   # one other character's weapon per run: once you have one, the rest stop showing
 		out.append(id)
 	return out
+
+
+## True once you've taken another character's (Legendary) weapon this run.
+func has_signature() -> bool:
+	for id in levels:
+		if levels[id] > 0 and defs.has(id) and defs[id].has("signature"):
+			return true
+	return false
+
+
+## How likely a card is to come up. A signature weapon you already have levels up as often as
+## any other weapon (it's only rare to find).
+func weight_of(id: String) -> float:
+	var d: Dictionary = defs[id]
+	if d.has("signature") and level_of(id) > 0:
+		return weapon_weight()
+	return float(d["weight"])
+
+
+## The average weight of the ordinary weapon cards.
+func weapon_weight() -> float:
+	var total := 0.0
+	var n := 0
+	for k in defs:
+		if defs[k]["kind"] == "weapon" and not defs[k].has("signature"):
+			total += float(defs[k]["weight"])
+			n += 1
+	return total / n if n > 0 else 8.0
 
 
 ## Returns up to n picks: [{ "id": String, "rarity": int }, ...] with distinct ids.
@@ -60,11 +90,11 @@ func draft(n: int, luck: float, max_weapons: int) -> Array:
 	while picks.size() < n and not pool.is_empty():
 		var total := 0.0
 		for id in pool:
-			total += float(defs[id]["weight"])
+			total += weight_of(id)
 		var r := rng.randf() * total
 		var chosen: String = pool[pool.size() - 1]
 		for id in pool:
-			r -= float(defs[id]["weight"])
+			r -= weight_of(id)
 			if r <= 0.0:
 				chosen = id
 				break
