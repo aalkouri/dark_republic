@@ -299,7 +299,25 @@ func _ready() -> void:
 		em.damage(k, 1e6)
 	_check("mass kills stay within the corpse pool", cm._count <= CorpseManager.MAX, "%d" % cm._count)
 
-	# 10) Potions: slow spin, leaning bottle, blink every 0.3 s in the last 5 s
+	# 10) Potions drop from 15% of epics, and never more than 3 on the ground
+	var pm_drops := 0
+	for k in 2000:
+		if pm.on_elite_killed(Vector3(60 + k % 10, 0, 60)):
+			pm_drops += 1
+		while pm.count() > 0:   # pick them straight up so the cap doesn't kick in
+			var it: Dictionary = pm._potions.pop_back()
+			(it["node"] as Node).queue_free()
+	_check("epics drop a potion 15% of the time", absf(pm_drops / 2000.0 - PotionManager.DROP_CHANCE) < 0.03, "%d / 2000" % pm_drops)
+	var capped := 0
+	for k in 200:
+		pm.on_elite_killed(Vector3(70, 0, 70))
+		capped = maxi(capped, pm.count())
+	_check("never more than 3 potions on the ground", capped == PotionManager.MAX_ON_MAP, str(capped))
+	while pm.count() > 0:
+		var it2: Dictionary = pm._potions.pop_back()
+		(it2["node"] as Node).queue_free()
+
+	# Potions: slow spin, leaning bottle, blink every 0.3 s in the last 5 s
 	pm.drop(Vector3(50, 0, 50), PotionManager.RED)
 	var pot: Dictionary = pm._potions[pm._potions.size() - 1]
 	var spinner: Node3D = pot["bottle"]

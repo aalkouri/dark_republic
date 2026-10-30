@@ -319,7 +319,7 @@ func _ready() -> void:
 		hud.show_heal(amount)
 		numbers.add(player.global_position + Vector3(0, 2.6, 0), amount, DamageNumbers.HEAL))
 	potions.cooldowns_cut.connect(func(cuts: PackedFloat32Array): hud.show_cooldown_cuts(cuts))
-	enemies.epic_killed.connect(func(p: Vector3): potions.drop(p))
+	enemies.epic_killed.connect(func(p: Vector3): potions.on_elite_killed(p))
 	shrines = ShrineManager.new()
 	shrines.setup(player, water, rng)
 	add_child(shrines)
