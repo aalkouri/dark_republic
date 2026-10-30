@@ -189,6 +189,7 @@ static func _environment(parent: Node3D, rng: RandomNumberGenerator, time: Strin
 	var we := WorldEnvironment.new()
 	we.environment = env
 	parent.add_child(we)
+	WorldBuilder._add_distant_castle(parent, env.fog_light_color, night)
 
 	var az := rng.randf() * TAU
 	var el := deg_to_rad(rng.randf_range(22.0, 32.0) if golden else (rng.randf_range(35.0, 50.0) if night else rng.randf_range(50.0, 65.0)))

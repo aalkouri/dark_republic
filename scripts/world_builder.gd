@@ -265,6 +265,14 @@ static func _prop(parent: Node3D, data: Dictionary, xf: Transform3D, burnable :=
 
 # ------------------------------------------------------------------ sky, light, fog
 
+## The castle on the horizon (Swamp and Forest): a fresh direction every load, from its own
+## random numbers so the map's seeded layout doesn't change.
+static func _add_distant_castle(parent: Node3D, haze: Color, night: bool) -> void:
+	var r := RandomNumberGenerator.new()
+	r.randomize()
+	DistantCastle.add(parent, r, haze, night)
+
+
 static func _environment(parent: Node3D, rng: RandomNumberGenerator, night: bool) -> void:
 	var sh := Shader.new()
 	sh.code = SKY_SHADER
@@ -317,6 +325,7 @@ static func _environment(parent: Node3D, rng: RandomNumberGenerator, night: bool
 	var we := WorldEnvironment.new()
 	we.environment = env
 	parent.add_child(we)
+	_add_distant_castle(parent, env.fog_light_color, night)
 
 	# Sun or moon: random direction, 28-50 degrees above the horizon
 	var az := rng.randf() * TAU

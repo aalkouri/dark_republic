@@ -4,9 +4,9 @@
 
     {"id": "ice_wizard", "name": "Ice Wizard", "epithet": "Warden of the Frozen Fen", "bio": "Freezes the swamp solid and skates circles around the horde.", "icon": {"bg": ["#0b2a44", "#04101c"], "body": "robe", "body_col": "#5aa7d8", "skin": "#e9cdbf", "head": "round", "hat": "wizard", "hat_col": "#bfe6ff", "beard": "#f2f8ff", "eyes": "#9fe8ff", "item": "staff_ice", "fx": "snow"}, "price": 2000},
 
-    {"id": "merlin", "name": "Merlin", "epithet": "The Old Enchanter", "bio": "Has seen this whole goblin business before. Several times. Mostly in reverse.", "icon": {"bg": ["#1b1c55", "#07071c"], "body": "robe", "body_col": "#2c3a9e", "skin": "#efcfb5", "head": "round", "hat": "wizard_stars", "hat_col": "#2c3a9e", "beard": "#ffffff", "beard_long": true, "eyes": "#cfe3ff", "item": "staff_wood", "fx": "stars"}, "price": 7000},
-
     {"id": "thunder_wizard", "name": "Thunder Wizard", "epithet": "Caller of the Storm", "bio": "Never stands still. Neither does anything near him.", "icon": {"bg": ["#2a1f4f", "#0b0718"], "body": "robe", "body_col": "#5b3fa8", "skin": "#e8c7a6", "head": "round", "hat": "wizard_bent", "hat_col": "#f2c230", "beard": "#c9c9c9", "eyes": "#fff27a", "item": "staff_thunder", "fx": "sparks"}, "price": 2000},
+
+    {"id": "merlin", "name": "Merlin", "epithet": "The Old Enchanter", "bio": "Has seen this whole goblin business before. Several times. Mostly in reverse.", "icon": {"bg": ["#1b1c55", "#07071c"], "body": "robe", "body_col": "#2c3a9e", "skin": "#efcfb5", "head": "round", "hat": "wizard_stars", "hat_col": "#2c3a9e", "beard": "#ffffff", "beard_long": true, "eyes": "#cfe3ff", "item": "staff_wood", "fx": "stars"}, "price": 7000},
 
     {"id": "dark_wizard", "name": "Dark Wizard", "epithet": "Whisperer in the Reeds", "bio": "Nobody has seen his face. The goblins say that's a mercy.", "icon": {"bg": ["#1d0a26", "#050208"], "body": "robe", "body_col": "#1c1024", "skin": "#2a1a33", "head": "hooded", "hat": "hood", "hat_col": "#2b1636", "eyes": "#c45bff", "eyes_glow": true, "item": "staff_dark", "fx": "shadow"}, "price": 2000},
 

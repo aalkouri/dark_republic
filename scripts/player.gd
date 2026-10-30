@@ -47,6 +47,14 @@ var max_hp := 100.0
 var invuln := 0.0
 var god_mode := false
 var shield := 0.0
+var _ability_invuln := 0.0   # seconds of ability-granted invulnerability left (glows)
+var _last_invuln := 0.0
+var _glowing := false
+var _glow_mat: StandardMaterial3D
+var _glow_t := 0.0
+var _glow_col := Color.WHITE
+var _glow_from := Color.WHITE
+var _glow_to := Color.WHITE
 var untouchable := false   # no damage at all, telegraphed boss hits included (Death Roll)
 var _break_sfx: AudioStreamPlayer
 const SHIELD_BREAK_SOUND := "res://audio/ui/shield_break.wav"
@@ -386,7 +394,46 @@ func _friction(hv: Vector3, friction: float, dt: float) -> Vector3:
 	return hv * (maxf(sp - drop, 0.0) / sp)
 
 
+## Invincible (an ability's invulnerability, Death Roll, Phase...): the model glows in random,
+## shifting colours. Plain hit immunity (IFRAMES after a bump) doesn't count.
+func is_invincible() -> bool:
+	return untouchable or phase or _ability_invuln > 0.0
+
+
+func _update_invincible_glow(dt: float) -> void:
+	if invuln > _last_invuln + 0.01 and invuln > IFRAMES + 0.01:
+		_ability_invuln = invuln   # an ability granted invulnerability (not a hit's i-frames)
+	_last_invuln = invuln
+	_ability_invuln = maxf(0.0, _ability_invuln - dt)
+	var on := is_invincible() and not meteor_form and model != null
+	if on:
+		if _glow_mat == null:
+			_glow_mat = StandardMaterial3D.new()
+			_glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			_glow_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			_glow_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+			_glow_mat.disable_fog = true
+		_glow_t -= dt
+		if _glow_t <= 0.0:   # a new random colour every so often, blended into
+			_glow_t = 0.12
+			_glow_from = _glow_col
+			_glow_to = Color.from_hsv(randf(), 0.85, 1.0)
+		_glow_col = _glow_from.lerp(_glow_to, 1.0 - _glow_t / 0.12)
+		_glow_mat.albedo_color = Color(_glow_col, 0.5 + 0.15 * sin(Time.get_ticks_msec() * 0.02))
+		if not _glowing:
+			_glowing = true
+			for mi in model.find_children("*", "GeometryInstance3D", true, false):
+				(mi as GeometryInstance3D).material_overlay = _glow_mat
+	elif _glowing:
+		_glowing = false
+		if model != null:
+			for mi in model.find_children("*", "GeometryInstance3D", true, false):
+				if (mi as GeometryInstance3D).material_overlay == _glow_mat:
+					(mi as GeometryInstance3D).material_overlay = null
+
+
 func _update_visuals(dt: float) -> void:
+	_update_invincible_glow(dt)
 	var hv := Vector3(velocity.x, 0.0, velocity.z)
 	var target_yaw := cam_yaw
 	if face_camera:

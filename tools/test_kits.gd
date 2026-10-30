@@ -576,11 +576,23 @@ func _dr_croc() -> void:
 	var hit := player.hurt(200.0)
 	player.god_mode = true
 	_check("Death Roll: invulnerable while rolling", not hit and player.hp == hp0, "hit=%s hp %.0f -> %.0f" % [hit, hp0, player.hp])
+	var glow := false
+	for mi in player.model.find_children("*", "GeometryInstance3D", true, false):
+		if (mi as GeometryInstance3D).material_overlay != null:
+			glow = true
+	_check("...and glows in shifting colours while invincible", player.is_invincible() and glow, "")
+
 	await _secs(0.4)
 	_check("Death Roll: grabs enemies in his path", (ab.roster.part as KitCroc)._held.size() >= 3, str((ab.roster.part as KitCroc)._held.size()))
 	await _secs(0.5)
 	_check("...rolls 15 m", player.global_position.distance_to(start) > 10.0, "%.1f m" % player.global_position.distance_to(start))
 	_check("...hurting them all the way, then flings them", _all(func(i): return em.hp_max[i] - em.hp[i] >= 100.0 and em.kb_t[i] > 0.0), "")
+	await _secs(0.5)
+	var still := false
+	for mi in player.model.find_children("*", "GeometryInstance3D", true, false):
+		if (mi as GeometryInstance3D).material_overlay != null:
+			still = true
+	_check("...the glow stops when he's hittable again", not player.is_invincible() and not still, "")
 	await _secs(0.3)
 	_check("...and can be hurt again once he stops", player.hurt(1.0), "")
 	_clear()
