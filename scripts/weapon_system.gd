@@ -580,7 +580,7 @@ func _fire_static(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBas
 	var dmg := _dmg(pre, "static", dmg_mult)
 	if pre == "orb":
 		dmg *= 1.0 + static_charge
-	var col := Color(1.0, 0.95, 0.5)
+	var col := Color(0.72, 0.3, 1.0)
 	if own and pre == "orb":
 		_volley.clear()
 	for t in targets:
@@ -592,7 +592,7 @@ func _fire_static(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBas
 			_volley[u] = true
 		var at := enemies.center_of(t)
 		lightning.bolt(from, at, col, 0.035, 0.12, 0.25)
-		lightning.bolt(from, at, Color(0.75, 0.6, 1.0), 0.02, 0.1, 0.3, false)
+		lightning.bolt(from, at, Color(0.95, 0.82, 1.0), 0.02, 0.1, 0.3, false)
 		enemies.damage(t, d)
 		zaps += 1
 	return true

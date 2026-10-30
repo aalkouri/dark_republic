@@ -364,7 +364,7 @@
 
     "argyle_sock": {
       "role": "Odd little whirlwind with static shocks",
-      "weapon": { "name": "Static Cling", "icon": { "glyph": "chainbolt", "cover": "#2a2440", "tint": "#fff27a" }, "desc": "Zaps the 3 nearest enemies for 18 damage; builds up to 2x damage while you keep moving", "short": "Zaps 3, builds charge", "damage": "18", "every": 0.6 },
+      "weapon": { "name": "Static Cling", "icon": { "glyph": "chainbolt", "cover": "#2a2440", "tint": "#c78aff" }, "desc": "Zaps the 3 nearest enemies for 18 damage; builds up to 2x damage while you keep moving", "short": "Zaps 3, builds charge", "damage": "18", "every": 0.6 },
       "abilities": [
         { "name": "Spin Cycle", "cooldown": 30, "icon": { "glyph": "swirl", "color": "#e05a8a" },
           "text": "Spins like it's back in the machine.",

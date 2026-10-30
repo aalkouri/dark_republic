@@ -92,7 +92,7 @@ const CFG := {
 	"argyle_sock": {
 		"procedural": "sock",
 		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
-		"main": Color(1.0, 0.92, 0.45), "deep": Color(0.48, 0.24, 0.62), "light": Color(1.0, 1.0, 0.85),
+		"main": Color(0.72, 0.35, 1.0), "deep": Color(0.38, 0.16, 0.55), "light": Color(0.92, 0.8, 1.0),
 		"motes": false,
 	},
 	"thog": {

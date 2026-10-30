@@ -29,7 +29,7 @@ uniform float bend_z = 0.0;
 uniform float squash = 1.0;
 uniform float dim = 1.0;
 uniform float hurt = 0.0;
-uniform float charge = 0.0;   // static build-up: crackling yellow glow
+uniform float charge = 0.0;   // static build-up: crackling purple glow
 
 void vertex() {
 	float h = clamp((VERTEX.y - 0.35) / 1.1, 0.0, 1.0);
@@ -62,7 +62,7 @@ void fragment() {
 	ROUGHNESS = 0.97;
 	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 2.0);
 	float crackle = step(0.93, fract(sin(dot(floor(UV * vec2(40.0, 30.0)) + floor(TIME * 12.0), vec2(12.9898, 78.233))) * 43758.5453));
-	EMISSION = vec3(1.0, 0.92, 0.45) * charge * (rim * 1.2 + crackle * 1.5) + vec3(1.0, 0.85, 0.75) * hurt;
+	EMISSION = vec3(0.72, 0.35, 1.0) * charge * (rim * 1.2 + crackle * 1.5) + vec3(1.0, 0.85, 0.75) * hurt;
 }
 """
 
