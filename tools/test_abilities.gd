@@ -291,9 +291,9 @@ func _ready() -> void:
 	_check("corpse gone after 3 s", cm.active_count() == 0, "after %.2f s" % ((30 + 120 + 31) * dt))
 	# Corpses face random directions, not the way the goblins were running
 	for n in 12:
-		var g := em.spawn(EnemyManager.GRUNT, Vector3(2 + n, 0, 2), 1.0)
-		em.vel[g] = Vector3(0, 0, 3)
-		em.damage(g, 1e6)
+		var cg := em.spawn(EnemyManager.GRUNT, Vector3(2 + n, 0, 2), 1.0)
+		em.vel[cg] = Vector3(0, 0, 3)
+		em.damage(cg, 1e6)
 	var min_dot := 1.0
 	var off_course := 0
 	var first := cm._count - 12
