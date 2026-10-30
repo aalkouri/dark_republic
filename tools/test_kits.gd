@@ -35,6 +35,7 @@ func _ready() -> void:
 		_check("%s: its weapon is the starting weapon" % id, ws.style == WeaponSystem.style_of(id) and ws.style != "fire", ws.style)
 		_check("%s: abilities come from its kit" % id, ab.roster != null and ab.roster.part != null, "")
 		await call("_" + id)
+		await _ult_burns(id)
 	_finish()
 
 
@@ -419,6 +420,26 @@ func _dr_croc() -> void:
 	em.damage(g, 1.0e6)
 	await _secs(0.1)
 	_check("...enemies that die in it burst", bursts[0] >= 1, "")
+
+
+# ------------------------------------------------------------------ ultimates set the woods ablaze
+
+func _ult_burns(id: String) -> void:
+	_clear()
+	var tree: Node3D = null
+	for t in get_tree().get_nodes_in_group(TreeFire.GROUP):
+		var tb := t as Node3D
+		if not tb.has_meta("burn_state") and float(tb.get_meta("reach")) < 2.0 and (tree == null or tb.global_position.length() < tree.global_position.length()):
+			tree = tb
+	var away := Vector3(tree.global_position.x, 0, tree.global_position.z).normalized()
+	var at := tree.global_position - away * 4.0
+	player.global_position = Vector3(at.x, main.water.ground_height(at.x, at.z) + 0.3, at.z)
+	player.velocity = Vector3.ZERO
+	await _secs(0.1)
+	_cast(2)
+	await _secs(0.1)
+	_check("%s: the ultimate sets the trees around it ablaze" % id, TreeFire.state_of(tree) == "burning", TreeFire.state_of(tree))
+	await _secs(3.0)   # let scripted ultimates (Thousand Cuts, Belly Flop...) finish
 
 
 # ------------------------------------------------------------------ helpers

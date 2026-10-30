@@ -1,16 +1,16 @@
 extends Node3D
-## Renders the Magical Forest's 7 trees, a fallen log and both landmarks side by side at night:
+## Renders the Magical Forest's 7 tree species, a fallen log and both landmarks side by side in daylight:
 ##   godot --path . res://tools/render_forest_props.tscn -- /out.png
 var t := 0.0
 func _ready():
 	var env := WorldEnvironment.new()
 	var e := Environment.new()
 	e.background_mode = Environment.BG_COLOR
-	e.background_color = Color(0.04, 0.03, 0.08)
+	e.background_color = Color(0.55, 0.75, 0.95)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(0.35, 0.3, 0.55)
-	e.ambient_light_energy = 0.6
-	e.glow_enabled = true
+	e.ambient_light_color = Color(0.7, 0.75, 0.8)
+	e.ambient_light_energy = 0.7
+	e.glow_enabled = false
 	e.glow_intensity = 0.9
 	e.glow_bloom = 0.1
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
@@ -18,14 +18,14 @@ func _ready():
 	add_child(env)
 	var moon := DirectionalLight3D.new()
 	moon.rotation_degrees = Vector3(-40, 30, 0)
-	moon.light_color = Color(0.6, 0.65, 1.0)
-	moon.light_energy = 0.35
+	moon.light_color = Color(1.0, 0.96, 0.88)
+	moon.light_energy = 1.4
 	add_child(moon)
 	var ground := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(120, 60)
 	var gm := StandardMaterial3D.new()
-	gm.albedo_color = Color(0.05, 0.08, 0.07)
+	gm.albedo_color = Color(0.36, 0.62, 0.16)
 	pm.material = gm
 	ground.mesh = pm
 	add_child(ground)
@@ -41,8 +41,10 @@ func _ready():
 	bsh.code = BushField.SHADER
 	var bmat := ShaderMaterial.new()
 	bmat.shader = bsh
+	bmat.set_shader_parameter("glow_berry", 0.25)
+	bmat.set_shader_parameter("glow_leaf", 0.0)
 	for k in 4:
-		items.append({"mesh": BushField._bush_mesh(rng, k, bmat)})
+		items.append({"mesh": BushField._bush_mesh(rng, k, bmat, ForestBuilder.BUSH_LEAVES[k % 4], ForestBuilder.BUSH_FLOWERS[k % 4])})
 	for k in items.size():
 		var mi := MeshInstance3D.new()
 		mi.mesh = items[k]["mesh"]

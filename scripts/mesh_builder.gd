@@ -10,6 +10,7 @@ uniform float wind = 1.0;
 uniform float char_amount = 0.0;   // 0 = normal, 1 = burnt black
 uniform float burning = 0.0;       // ember glow while on fire
 uniform float glow = 0.0;          // self-lit parts (magical forest): emission = colour * glow
+uniform float up_normal = 0.0;     // 1 = light it as if facing the sky (grass, ferns: no dark back faces)
 varying vec3 lpos;
 float hash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float noise(vec3 p) {
@@ -29,6 +30,7 @@ void vertex() {
 void fragment() {
 	// Never let a bad normal through (NaN pixels bloom into white flashes on some GPUs)
 	if (any(isnan(NORMAL)) || dot(NORMAL, NORMAL) < 1e-6) { NORMAL = vec3(0.0, 0.0, 1.0); }
+	if (up_normal > 0.5) { NORMAL = normalize((VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz); }
 	// Vertex colors are authored in sRGB
 	vec3 col = pow(max(COLOR.rgb, vec3(0.0)), vec3(2.2));
 	// Charring creeps in patchily, then covers everything
@@ -64,6 +66,16 @@ static func prop_material() -> ShaderMaterial:
 
 
 ## The prop material with self-lit colours (glowing mushrooms, runes, lanterns).
+static var _foliage_material: ShaderMaterial
+
+## The prop material for ground foliage (grass, ferns, flowers): always lit from above.
+static func foliage_material() -> ShaderMaterial:
+	if _foliage_material == null:
+		_foliage_material = prop_material().duplicate() as ShaderMaterial
+		_foliage_material.set_shader_parameter("up_normal", 1.0)
+	return _foliage_material
+
+
 static func glow_material() -> ShaderMaterial:
 	if _glow_material == null:
 		_glow_material = prop_material().duplicate() as ShaderMaterial

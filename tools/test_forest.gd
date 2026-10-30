@@ -1,5 +1,6 @@
 extends Node3D
-## Magical Forest map: same size, counts and layout rules as the swamp; 7 glowing tree kinds;
+## Magical Forest map: same size and layout rules as the swamp, but a bright sunlit wood: more
+## trees (7 realistic species with bright bark), more bushes, grass, flowers and ferns all over;
 ## walk-through bushes that shake, rustle and throw leaves; a run starts on it.
 ##   godot --headless --path . res://tools/test_forest.tscn
 
@@ -56,17 +57,40 @@ func _ready() -> void:
 				off = maxf(off, p.y - water.ground_height(p.x, p.z))
 			_check("%s: no bush floats above the ground" % map, off <= 0.0, "%.2f m" % off)
 		if map == "forest":
-			_check("forest: 180 trees + 72 fallen logs", burnable == WorldBuilder.TREES + WorldBuilder.FALLEN, str(burnable))
+			_check("forest: %d trees + 72 fallen logs (more than the swamp's %d)" % [ForestBuilder.TREES, WorldBuilder.TREES], burnable == ForestBuilder.TREES + WorldBuilder.FALLEN and ForestBuilder.TREES > WorldBuilder.TREES, str(burnable))
 			_check("forest: 24 landmarks", obstacles == WorldBuilder.RUINS, str(obstacles))
 			_check("forest: 14 ponds", water.pools.size() == WorldBuilder.POOLS, str(water.pools.size()))
-			_check("forest: every tree, log and landmark has neon parts", glowing == burnable + obstacles, "%d of %d" % [glowing, burnable + obstacles])
-			_check("forest: coloured lights on some trees and landmarks", lights >= 40 and lights <= 50, str(lights))
-			_check("forest: ~260 bushes", counts[map]["bushes"] >= 240, str(counts[map]["bushes"]))
+			_check("forest: only the landmarks glow (the trees are natural)", glowing == obstacles, "%d glowing" % glowing)
+			_check("forest: landmark lights only", lights >= 6 and lights <= 10, str(lights))
+			_check("forest: ~480 bushes", counts[map]["bushes"] >= 440, str(counts[map]["bushes"]))
+			var we: WorldEnvironment = root.find_children("*", "WorldEnvironment", true, false)[0]
+			var sun: DirectionalLight3D = root.find_children("*", "DirectionalLight3D", true, false)[0]
+			_check("forest: daylight, vivid colours", sun.light_energy >= 1.3 and we.environment.adjustment_saturation > 1.1, "sun %.2f" % sun.light_energy)
+			var ground_mi: MeshInstance3D = null
+			for mi in root.find_children("*", "MeshInstance3D", true, false):
+				var m := (mi as MeshInstance3D).mesh
+				if m and m.get_surface_count() > 0 and m.surface_get_material(0) is ShaderMaterial and (m.surface_get_material(0) as ShaderMaterial).get_shader_parameter("grass_col") != null:
+					ground_mi = mi
+					break
+			var gm := ground_mi.mesh.surface_get_material(0) as ShaderMaterial if ground_mi else null
+			var mud: Color = gm.get_shader_parameter("mud_col") if gm else Color.BLACK
+			_check("forest: bright green ground, no dirt patches", gm != null and mud.g > mud.r and mud.g > 0.5 and float(gm.get_shader_parameter("wet_amount")) == 0.0, str(mud))
+			var chunks := 0
+			for mmi in root.find_children("*", "MultiMeshInstance3D", true, false):
+				if mmi.has_meta("chunk"):
+					chunks += 1
+			_check("forest: grass, flowers and ferns everywhere, drawn in near-camera chunks", chunks > 150, str(chunks))
+			var bark_ok := true
+			for v in ForestProps.VARIANTS:
+				var b: Color = ForestProps.SPECIES[v]["bark"]
+				if b.get_luminance() < 0.4:
+					bark_ok = false
+			_check("forest: every species has bright bark", bark_ok, "")
 			_check("forest: fireflies", root.find_children("*", "Fireflies", true, false).size() == 1, "")
 			await _test_bushes(bushes[0] as BushField)
+			await _test_bush_fire(bushes[0] as BushField)
 		root.free()
-	_check("same layout counts as the swamp", counts["swamp"]["burnable"] == counts["forest"]["burnable"]
-		and counts["swamp"]["obstacles"] == counts["forest"]["obstacles"] and counts["swamp"]["pools"] == counts["forest"]["pools"], "")
+	_check("same landmarks and ponds as the swamp", counts["swamp"]["obstacles"] == counts["forest"]["obstacles"] and counts["swamp"]["pools"] == counts["forest"]["pools"], "")
 	_check("the swamp has no bushes or neon", counts["swamp"]["bushes"] == 0 and counts["swamp"]["glowing"] == 0, "")
 	_check("7 tree kinds", ForestProps.VARIANTS == 7, "")
 
@@ -112,6 +136,21 @@ func _test_bushes(b: BushField) -> void:
 		await get_tree().physics_frame
 	_check("the shake settles once you leave", b.shake[0] == 0.0, "%.2f" % b.shake[0])
 	p.queue_free()
+
+
+## Fire reaches bushes too: they burn, char, vanish and leave a smoking scorch mark.
+func _test_bush_fire(bf: BushField) -> void:
+	var i := 5
+	var p := bf.pos[i]
+	var marks0 := get_tree().get_nodes_in_group(ScorchMark.GROUP).size()
+	var lit := Abilities.ignite_area(get_tree(), p, 1.0)
+	_check("fire spreads to bushes (ignite_area)", lit >= 1 and bf.is_burning(i), "%d lit" % lit)
+	_check("a burning bush can't be lit again", not bf.ignite(i), "")
+	await get_tree().create_timer(BushField.BURN_TIME * 0.5).timeout
+	await get_tree().create_timer(BushField.BURN_TIME * 0.5 + 0.3).timeout
+	_check("the burnt bush is gone", bf.burnt[i] == 1 and not bf.bushes_at(p).has(i), "")
+	_check("...leaving a smoking scorch mark for the rest of the match", get_tree().get_nodes_in_group(ScorchMark.GROUP).size() > marks0, "")
+	_check("...and you can't light it again", not bf.ignite(i), "")
 
 
 func _check(name: String, ok: bool, detail: String) -> void:

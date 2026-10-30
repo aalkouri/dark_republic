@@ -204,7 +204,7 @@ To add a clip: generate it on the same rig in Higgsfield, then run `godot --head
 |---|---|---|---|
 | 1 | Inferno | 30 s | Ignites every goblin: 5% of max HP per second for 10 s. Burning goblins that die explode for 50% of their max HP within 2 yd (chains) |
 | 2 | Fire Nova | 45 s | Ring of fire expands from the floor under you to 18 m: 80 dmg, knocks enemies back 5 yd |
-| 3 | **Meteor (ultimate)** | 2 min | Trees and fallen trees in the blast catch fire and burn for 15 s, leaving them charred black. The wizard vanishes (invulnerable, untouchable) and becomes a giant flaming copy of his own head, which crashes where you aim 3 s later: 250 dmg (scales with Damage) in 8 m plus knockback. He reappears at the crash site, and the ground burns for 3 s, dealing 3% of max HP per second to goblins in a 7 m radius |
+| 3 | **Meteor (ultimate)** | 2 min | Trees, fallen trees and bushes in the blast catch fire and burn, then crumble away leaving a smoking scorch mark. The wizard vanishes (invulnerable, untouchable) and becomes a giant flaming copy of his own head, which crashes where you aim 3 s later: 250 dmg (scales with Damage) in 8 m plus knockback. He reappears at the crash site, and the ground burns for 3 s, dealing 3% of max HP per second to goblins in a 7 m radius |
 
 **Attacks:** his starting weapon hurls **Fireballs**. Each time it fires, he swings his staff down at the target and the fireballs launch from the staff tip.
 
@@ -241,27 +241,30 @@ The two outdoor maps share the same 440 m arena, terrain generator (hills, berm,
 
 ## The Magical Forest
 
-`scripts/forest_builder.gd`, props in `scripts/forest_props.gd`. Always after dark so the neon shows: 50% purple twilight, 50% deep blue night, with stars, a big moon, glow and tinted fog.
+`scripts/forest_builder.gd`, props in `scripts/forest_props.gd`. A bright, sunlit woodland, deliberately unlike the gloomy swamp: always daytime (50% sunny noon with fair-weather clouds, 50% warm golden afternoon), vivid colour grading and only a light haze.
 
-- **7 tree kinds**, each a body plus a self-lit neon surface (`MeshBuilder.glow_material`), lights swaying with the leaves:
+- **320 trees** (the swamp has 180) of **7 realistic species**, grown procedurally: a leaning, bending trunk with a root flare, branches that fork and spread, and lumpy leaf clumps along the branches and at every tip in a few shades of the species' colour. Bark is bright so trunks stand out. Each species has 4 shared shapes, rotated and scaled, to keep the forest cheap to draw.
 
 | Tree | Look |
 |---|---|
-| Lantern Willow | Curving violet trunk, dark dome, long vines strung with cyan bulbs |
-| Spiral Crystalwood | Silver trunk twisting in a helix, branches tipped with magenta crystals |
-| Mushroom Spire | Stacked giant caps with glowing teal gills and spots, glowing toadstools at its foot |
-| Starcanopy | Thin twisted trunk under a flat umbrella canopy dripping strings of gold fairy lights |
-| Coral Tree | Leafless branching coral limbs with glowing orange-pink tips |
-| Orb Tree | Trunk wrapped in green neon vines, purple orbs floating through its canopy |
-| Ribbon Arch | Two trunks arching into one, blue neon ribbons and drips draped between them |
+| Silver Birch | Slender white trunk with black bark marks, airy yellow-green crown |
+| Oak | Thick light-brown trunk, wide spreading limbs, big rich-green crown |
+| Beech | Tall smooth pale-grey trunk, bright lime crown |
+| Maple | Tan trunk, autumn crown in orange, scarlet and gold |
+| Cherry | Rosy-brown trunk, a cloud of pink and white blossom |
+| Pine | Straight orange-tan trunk under tiers of deep-green boughs |
+| Aspen | White trunk, golden crown |
 
-- **Fallen logs** overgrown with glowing shelf fungus and a neon vine; **landmarks** alternate between giant glowing crystal clusters and standing stones carved with glowing runes.
-- **Lights:** every 5th tree and every 3rd landmark also casts real coloured light on the ground around it (44 lights, no shadows); the rest glow through emission and bloom.
-- **Ponds** with glowing algae (same depth and half-speed wading as the swamp pools), glowing reeds around them, and dark grass with faintly luminous tips.
-- **Bushes** (`scripts/bush_field.gd`): 260 walk-through bushes with glowing berries, no collision. Moving through one shakes it, rustles (4 synthesised variants from `tools/gen_forest_sounds.py`, at most about 3 times a second per bush, from the bush), and sometimes throws out a burst of leaves (45% when you push in, plus about once a second while you keep moving). Standing still in one is silent.
+- **The ground** is bright green grass everywhere (no dirt or mud), carpeted with grass tufts, drifts of wildflowers (white, yellow, pink, purple, blue, red) and ferns. These are drawn in 40 m chunks that only render within 75 m of the camera. Ground foliage is always lit from above (`MeshBuilder.foliage_material`), so blades never show dark backs.
+- **72 mossy fallen logs** with root plates and red toadstools. The **landmarks** keep the magic: giant glowing crystal clusters and rune stones, every 3rd one casting coloured light.
+- **Ponds** are clear blue with lily pads and a sandy bed, ringed with reeds.
+- **Bushes** (`scripts/bush_field.gd`): 480 bright flowering bushes you can walk through, with no collision. Moving through one shakes it, rustles (4 synthesised variants from `tools/gen_forest_sounds.py`, at most about 3 times a second per bush, from the bush), and sometimes throws out a burst of leaves (45% when you push in, plus about once a second while you keep moving). Standing still in one is silent.
 - **Fireflies** drifting and blinking around you (`scripts/fireflies.gd`).
-- Trees and logs still catch fire from the Meteor and char black.
-- **Tests:** `godot --headless --path . res://tools/test_forest.tscn` (counts match the swamp, every prop has neon, bushes react, a run starts on it). To preview the props: `godot --path . res://tools/render_forest_props.tscn -- /out.png`.
+- **Tests:** `godot --headless --path . res://tools/test_forest.tscn` (more trees than the swamp, daylight, green ground, bright bark, grass and flowers everywhere, bushes react and burn, a run starts on it). To preview the props: `godot --path . res://tools/render_forest_props.tscn -- /out.png [centre-x]`.
+
+### Fire in the woods
+
+Trees, fallen logs and bushes all burn (`TreeFire`, `BushField.ignite`). The Fire Wizard's Meteor lights everything in its blast. **Every other character's ultimate** sets the woods around them ablaze too (`Abilities.ULT_FIRE_RADIUS`: 10-30 m depending on the ultimate's reach). A tree burns for 15 s and a bush for 7 s, charring black. Then the remains crumble into the ground and are **gone**, collision and all. Each leaves a **scorch mark** (`scripts/scorch_mark.gd`) for the rest of the match: a black patch draped over the ground and ringed with ash, glowing embers, a thin column of smoke, and a quiet looping sizzle (`audio/forest/sizzle.wav`) you hear within 16 m. Nothing burns twice.
 
 ## The Castle
 
@@ -321,7 +324,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 ## The Toadstool Knight (the Magical Forest boss)
 
-`scripts/toadstool_boss.gd`, body in `scripts/toadstool_model.gd`. At **8:00** a 6 m mushroom-capped knight marches out of the neon trees. Like Thog, he enrages 2 minutes after arriving and must be killed to win the Forest.
+`scripts/toadstool_boss.gd`, body in `scripts/toadstool_model.gd`. At **8:00** a 6 m mushroom-capped knight marches out of the trees. Like Thog, he enrages 2 minutes after arriving and must be killed to win the Forest.
 
 - **Spore Slash** (close): an overhead cut across a 120° wedge in front of him (34 damage). It leaves a violet spore cloud that hurts while you stand in it.
 - **Fairy Ring:** a ring of mushrooms bursts out of the ground around you (30 damage). The red band shows where it will burst, so step into the middle or out past it.
@@ -419,6 +422,7 @@ scripts/
   roster_hero.gd     rigged roster character in runs: clips, staff, twist, colours
   roster_kit.gd      the Ice / Thunder / Dark Wizards' abilities; hands everyone else's to scripts/kits/
   kits/              KitPart and one kit per character (Merlin ... Dr. Croc)
+  scorch_mark.gd     the smoking, sizzling black patch a burnt-out tree or bush leaves behind
   ally_crowd.gd      Raise Dead's risen goblins
   lightning_fx.gd    pooled jagged lightning bolts
   vat_crowd.gd       baked vertex-animation playback for the goblin crowd (clip/phase per instance, tint, burn, epic, hit flash)

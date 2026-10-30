@@ -26,6 +26,12 @@ const INFERNO := 0
 const SHOCKWAVE := 1
 const METEOR := 2
 
+## Every ultimate sets the trees and bushes around it ablaze, like the Meteor does: this far
+## from the caster (the reach of each ultimate's effect).
+const ULT_FIRE_RADIUS := {
+	"ice_wizard": 25.0, "thunder_wizard": 18.0, "dark_wizard": 15.0, "merlin": 25.0, "ogre": 10.0,
+	"ghast": 30.0, "vampire_hunter": 20.0, "vicki": 25.0, "rogue": 20.0, "gaiden": 12.0, "dr_croc": 20.0,
+}
 const METEOR_COOLDOWN := 120.0       # ultimate
 const METEOR_FALL_TIME := 3.0
 const METEOR_RADIUS := 8.0
@@ -247,6 +253,8 @@ func try_cast(i: int) -> bool:
 		return false
 	if roster:
 		roster.cast(i)
+		if i == METEOR:   # every ultimate sets the woods around it on fire
+			ignite_area(get_tree(), player.global_position, float(ULT_FIRE_RADIUS.get(kit, 15.0)))
 	else:
 		match i:
 			INFERNO:
@@ -474,12 +482,19 @@ func _update_meteors(dt: float) -> void:
 
 ## Trees (and fallen trees) caught in the blast catch fire and char over 15 s.
 func _ignite_trees(at: Vector3) -> int:
+	return ignite_area(get_tree(), at, METEOR_RADIUS)
+
+
+## Set every tree, fallen log and bush within `radius` of `at` ablaze. Returns how many caught.
+static func ignite_area(tree: SceneTree, at: Vector3, radius: float) -> int:
 	var n := 0
-	for b in get_tree().get_nodes_in_group(TreeFire.GROUP):
+	for b in tree.get_nodes_in_group(TreeFire.GROUP):
 		var body := b as Node3D
 		var d := Vector2(body.global_position.x - at.x, body.global_position.z - at.z).length()
-		if d <= METEOR_RADIUS + float(body.get_meta("reach", 1.5)) and TreeFire.ignite(body):
+		if d <= radius + float(body.get_meta("reach", 1.5)) and TreeFire.ignite(body):
 			n += 1
+	for f in tree.get_nodes_in_group(BushField.GROUP):
+		n += (f as BushField).ignite_area(at, radius)
 	return n
 
 

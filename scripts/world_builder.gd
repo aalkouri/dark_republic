@@ -96,6 +96,7 @@ uniform vec4 pool_phases[16];
 uniform vec3 base_col : source_color = vec3(0.17, 0.16, 0.1);
 uniform vec3 grass_col : source_color = vec3(0.15, 0.21, 0.08);
 uniform vec3 mud_col : source_color = vec3(0.12, 0.085, 0.055);
+uniform float wet_amount = 1.0;   // how wet and dark the mud patches look (0 = dry meadow)
 varying vec3 wpos;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -130,7 +131,7 @@ void fragment() {
 	vec3 col = base_col * (0.8 + 0.4 * n);
 	col = mix(col, grass_col * (0.75 + 0.5 * n), grass);
 	col = mix(col, mud_col * (0.85 + 0.3 * n), mud);
-	float wet = max(mud * (0.6 + 0.4 * n), bank);
+	float wet = max(mud * (0.6 + 0.4 * n) * wet_amount, bank * max(wet_amount, 0.35));
 	col *= 1.0 - 0.35 * wet;
 	ALBEDO = col;
 	ROUGHNESS = mix(0.95, 0.28, wet);

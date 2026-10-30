@@ -4,6 +4,8 @@ extends Node3D
 ## clump of dark leaves with glowing berries); no collision. When the player moves through one
 ## it shakes (per-instance shake in the shader), rustles (one of 4 synthesised sounds, from the
 ## bush, rate-limited) and sometimes throws out a little burst of leaves.
+## Bushes burn (ignite / ignite_area): BURN_TIME s of flames while they char black, then they're
+## gone, leaving a ScorchMark that smokes for the rest of the match.
 
 const RADIUS := 1.3              # how close (metres, horizontally) counts as "in" a bush
 const MIN_SPEED := 1.2           # standing still in a bush doesn't rustle it
@@ -12,15 +14,22 @@ const LEAF_CHANCE_ENTER := 0.45  # chance of leaves flying when you push into a 
 const LEAF_RATE := 1.2           # ...and per second while you keep moving through it
 const SHAKE_DECAY := 2.2
 const CELL := 4.0
+const GROUP := "bush_field"
+const BURN_TIME := 7.0
+const BURN_RAMP := 0.8
 const SOUNDS := ["res://audio/forest/rustle_1.wav", "res://audio/forest/rustle_2.wav",
 	"res://audio/forest/rustle_3.wav", "res://audio/forest/rustle_4.wav"]
 
 const SHADER := """
 shader_type spatial;
 render_mode cull_disabled;
+uniform float glow_berry = 2.6;   // berries' self-light
+uniform float glow_leaf = 0.6;    // leaves' faint glow (0 in daylight)
 varying float glow;
+varying float charred;
+varying float burning;
 void vertex() {
-	// INSTANCE_CUSTOM.r = shake (0..1), .g = phase. COLOR.a = 1 on berries.
+	// INSTANCE_CUSTOM.r = shake (0..1), .g = phase, .b = char (0..1), .a = burning. COLOR.a = 1 on berries.
 	float sh = INSTANCE_CUSTOM.r;
 	float h = clamp(VERTEX.y / 1.6, 0.0, 1.0);
 	float t = TIME * 26.0 + INSTANCE_CUSTOM.g * 6.28;
@@ -29,13 +38,18 @@ void vertex() {
 	// a slow idle breeze
 	VERTEX.x += sin(TIME * 1.3 + INSTANCE_CUSTOM.g * 6.28) * 0.03 * h;
 	glow = COLOR.a;
+	charred = INSTANCE_CUSTOM.b;
+	burning = INSTANCE_CUSTOM.a;
+	VERTEX.x += sin(TIME * 30.0 + VERTEX.y * 5.0) * 0.04 * burning * h;   // heat shimmer
 }
 void fragment() {
 	if (any(isnan(NORMAL)) || dot(NORMAL, NORMAL) < 1e-6) { NORMAL = vec3(0.0, 0.0, 1.0); }
 	vec3 col = pow(max(COLOR.rgb, vec3(0.0)), vec3(2.2));
+	col = mix(col, vec3(0.012, 0.01, 0.008), charred);
 	ALBEDO = col;
 	ROUGHNESS = 0.9;
-	EMISSION = col * (glow * 2.6 + 0.6);   // leaves faintly luminous, berries bright
+	EMISSION = col * (glow * glow_berry + glow_leaf) * (1.0 - charred)
+		+ vec3(1.0, 0.36, 0.06) * burning * (0.8 + 0.25 * sin(TIME * 15.0) * sin(TIME * 6.3)) * (0.4 + 0.6 * charred);
 }
 """
 
@@ -44,6 +58,11 @@ const LEAF_B := Color(0.3, 0.28, 0.65, 0.0)
 const LEAF_C := Color(0.48, 0.22, 0.55, 0.0)
 const BERRIES := [Color(0.25, 0.95, 1.0, 1.0), Color(1.0, 0.3, 0.85, 1.0), Color(1.0, 0.8, 0.3, 1.0), Color(0.5, 1.0, 0.35, 1.0)]
 
+var leaf_colors: Array = [LEAF_A, LEAF_B, LEAF_C, LEAF_A]   # per bush shape (set before scatter)
+var berry_colors: Array = BERRIES
+var glow_berry := 2.6
+var glow_leaf := 0.6
+var leaf_darken := 0.4                 # how dark the shadowed leaf clumps get (0..1)
 var pos := PackedVector3Array()
 var size := PackedFloat32Array()
 var shake := PackedFloat32Array()
@@ -58,6 +77,9 @@ var _streams: Array[AudioStream] = []
 var _leaves: Array[CPUParticles3D] = []
 var _next_leaf := 0
 var _time := 0.0
+var burn_t := PackedFloat32Array()   # < 0: not burning; else seconds alight
+var burnt := PackedByteArray()       # 1 = burnt away
+var _fires := {}                     # bush index -> [flames, light]
 var rustles := 0                      # counters for tests
 var leaf_bursts := 0
 var player: Node3D                    # set at runtime (the Player); found automatically if unset
@@ -99,12 +121,17 @@ func _build(rng: RandomNumberGenerator) -> void:
 	_last.resize(n)
 	_last.fill(-10.0)
 	_inside.resize(n)
+	burn_t.resize(n)
+	burn_t.fill(-1.0)
+	burnt.resize(n)
 	_kind.resize(n)
 	_slot.resize(n)
 	var sh := Shader.new()
 	sh.code = SHADER
 	var mat := ShaderMaterial.new()
 	mat.shader = sh
+	mat.set_shader_parameter("glow_berry", glow_berry)
+	mat.set_shader_parameter("glow_leaf", glow_leaf)
 	var shapes := 4
 	var counts := PackedInt32Array()
 	counts.resize(shapes)
@@ -116,7 +143,8 @@ func _build(rng: RandomNumberGenerator) -> void:
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
-		mm.mesh = _bush_mesh(rng, s, mat)
+		mm.use_colors = true   # (white) without it the Compatibility renderer reads the custom data as colour: black bushes
+		mm.mesh = _bush_mesh(rng, s, mat, leaf_colors[s % leaf_colors.size()], berry_colors[s % berry_colors.size()], leaf_darken)
 		mm.instance_count = counts[s]
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
@@ -127,6 +155,7 @@ func _build(rng: RandomNumberGenerator) -> void:
 		var b := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * size[i])
 		_mms[_kind[i]].set_instance_transform(_slot[i], Transform3D(b, pos[i]))
 		_mms[_kind[i]].set_instance_custom_data(_slot[i], Color(0.0, rng.randf(), 0, 0))
+		_mms[_kind[i]].set_instance_color(_slot[i], Color.WHITE)
 		var c := Vector2i(floori(pos[i].x / CELL), floori(pos[i].z / CELL))
 		var cell: PackedInt32Array = _grid.get(c, PackedInt32Array())   # packed arrays are copied:
 		cell.append(i)                                                 # write it back
@@ -134,15 +163,13 @@ func _build(rng: RandomNumberGenerator) -> void:
 
 
 ## A clump of leafy blobs (a few colours) with glowing berries tucked in.
-static func _bush_mesh(rng: RandomNumberGenerator, shape: int, mat: Material) -> ArrayMesh:
+static func _bush_mesh(rng: RandomNumberGenerator, _shape: int, mat: Material, leaf: Color, berry: Color, darken := 0.4) -> ArrayMesh:
 	var mb := MeshBuilder.new()
-	var leaf: Color = [LEAF_A, LEAF_B, LEAF_C, LEAF_A][shape]
-	var berry: Color = BERRIES[shape]
 	for k in rng.randi_range(5, 8):
 		var a := rng.randf() * TAU
 		var d := rng.randf_range(0.0, 0.75)
 		var r := rng.randf_range(0.6, 0.95)
-		mb.add(MeshBuilder.sphere(r, 8, 5), Transform3D(Basis.from_scale(Vector3(1.0, 0.75, 1.0)), Vector3(cos(a) * d, r * 0.65, sin(a) * d)), leaf.lerp(Color(0.02, 0.04, 0.05, 0.0), rng.randf() * 0.4))
+		mb.add(MeshBuilder.sphere(r, 8, 5), Transform3D(Basis.from_scale(Vector3(1.0, 0.75, 1.0)), Vector3(cos(a) * d, r * 0.65, sin(a) * d)), leaf.lerp(Color(0.02, 0.04, 0.05, 0.0), rng.randf() * darken))
 	for k in rng.randi_range(10, 16):
 		var a := rng.randf() * TAU
 		var d := rng.randf_range(0.5, 1.05)
@@ -151,6 +178,7 @@ static func _bush_mesh(rng: RandomNumberGenerator, shape: int, mat: Material) ->
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	for p in SOUNDS:
 		if ResourceLoader.exists(p):
 			_streams.append(load(p))
@@ -227,6 +255,8 @@ func bushes_at(p: Vector3) -> PackedInt32Array:
 			if list == null:
 				continue
 			for i in list:
+				if burnt[i]:
+					continue
 				var r := RADIUS * size[i]
 				if Vector2(p.x - pos[i].x, p.z - pos[i].z).length_squared() < r * r:
 					out.append(i)
@@ -256,6 +286,7 @@ func _physics_process(dt: float) -> void:
 		for i in now_in:
 			_inside[i] = 1
 	_decay(dt)
+	_tick_fires(dt)
 
 
 ## Ease shakes back to rest; only touched bushes are rewritten.
@@ -270,6 +301,62 @@ func _decay(dt: float) -> void:
 		var c := mm.get_instance_custom_data(_slot[i])
 		c.r = s
 		mm.set_instance_custom_data(_slot[i], c)
+
+
+# ------------------------------------------------------------------ fire
+
+## Set every bush within `r` of `at` on fire. Returns how many caught.
+func ignite_area(at: Vector3, r: float) -> int:
+	var n := 0
+	for i in pos.size():
+		if Vector2(pos[i].x - at.x, pos[i].z - at.z).length() <= r + RADIUS * size[i] and ignite(i):
+			n += 1
+	return n
+
+
+## Set bush `i` alight. False if it's already burning or burnt.
+func ignite(i: int) -> bool:
+	if burnt[i] or burn_t[i] >= 0.0:
+		return false
+	burn_t[i] = 0.0
+	var f := Abilities._flame_particles(0.9 * size[i], 0.7, 36)
+	f.emission_sphere_radius = 0.7 * size[i]
+	add_child(f)
+	f.global_position = pos[i] + Vector3(0, 0.7 * size[i], 0)
+	var l := OmniLight3D.new()
+	l.light_color = Color(1.0, 0.45, 0.12)
+	l.omni_range = 6.0
+	l.shadow_enabled = false
+	add_child(l)
+	l.global_position = pos[i] + Vector3(0, 1.2, 0)
+	_fires[i] = [f, l]
+	return true
+
+
+func is_burning(i: int) -> bool:
+	return burn_t[i] >= 0.0 and not burnt[i]
+
+
+func _tick_fires(dt: float) -> void:
+	for i in _fires.keys():
+		burn_t[i] += dt
+		var t := burn_t[i]
+		var heat := clampf(t / BURN_RAMP, 0.0, 1.0) * clampf((BURN_TIME - t) / 1.5, 0.0, 1.0)
+		var fl: Array = _fires[i]
+		(fl[0] as CPUParticles3D).emitting = heat > 0.05
+		(fl[1] as OmniLight3D).light_energy = heat * (1.8 + 0.6 * sin(t * 21.0) * sin(t * 6.0))
+		var mm := _mms[_kind[i]]
+		var c := mm.get_instance_custom_data(_slot[i])
+		c.b = clampf(t / (BURN_TIME * 0.6), 0.0, 1.0)   # blackened well before the flames die
+		c.a = heat
+		mm.set_instance_custom_data(_slot[i], c)
+		if t >= BURN_TIME:   # burnt away: gone, a scorch mark left
+			burnt[i] = 1
+			mm.set_instance_transform(_slot[i], Transform3D(Basis.from_scale(Vector3.ONE * 0.0001), pos[i]))
+			(fl[0] as Node).queue_free()
+			(fl[1] as Node).queue_free()
+			_fires.erase(i)
+			ScorchMark.spawn(self, pos[i], clampf(RADIUS * size[i] * 0.95, 1.0, 2.2))
 
 
 func _rustle(at: Vector3) -> void:

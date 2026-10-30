@@ -173,7 +173,7 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	_check("burning ground: ~3%/s while it lasts (3 s)", absf(burned - 0.09) < 0.01, "lost %.1f%% of max HP" % (burned * 100.0))
 	_check("burning ground goes out", ab.scorch_count() == 0, "zones %d" % ab.scorch_count())
 
-	# Meteor sets trees on fire; they char black after 15 s and stay charred
+	# Meteor sets trees on fire; they char black over 15 s, then crumble away leaving a scorch mark
 	var trees := get_tree().get_nodes_in_group(TreeFire.GROUP)
 	var standing: Node3D = null
 	for t in trees:
@@ -200,11 +200,24 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	var mid_char: float = fire._mat.get_shader_parameter("char_amount")
 	_check("tree is charring while it burns", mid_char > 0.4 and mid_char < 0.6 and TreeFire.state_of(standing) == "burning", "char %.2f at 7 s" % mid_char)
 	var mat: ShaderMaterial = (standing.get_meta("mesh_instance") as MeshInstance3D).material_override
+	fire.set_process(false)
 	for f in 60 * 8 + 2:
 		if is_instance_valid(fire):
 			fire._process(1.0 / 60.0)
 	_check("after 15 s the tree is charred black and the fire is out", TreeFire.state_of(standing) == "charred" and is_equal_approx(mat.get_shader_parameter("char_amount"), 1.0) and is_equal_approx(mat.get_shader_parameter("burning"), 0.0), TreeFire.state_of(standing))
 	_check("a charred tree can't burn again", not TreeFire.ignite(standing), "")
+	await get_tree().physics_frame
+	_check("...and it's no longer a tree (out of the burnable group, no collision)", not standing.is_in_group(TreeFire.GROUP)
+		and standing.find_children("*", "CollisionShape3D", false, false).all(func(c): return c.disabled), "")
+	var marks := get_tree().get_nodes_in_group(ScorchMark.GROUP)
+	var mark_ok := false
+	for m in marks:
+		if Vector2((m as Node3D).global_position.x - standing.global_position.x, (m as Node3D).global_position.z - standing.global_position.z).length() < 3.0:
+			mark_ok = true
+	_check("...a smoking scorch mark is left where it stood", mark_ok, "%d marks" % marks.size())
+	await get_tree().create_timer(TreeFire.COLLAPSE + 0.5).timeout
+	_check("...the charred tree crumbles away and is gone", not is_instance_valid(standing), "")
+	_check("...the scorch mark stays for the rest of the match", get_tree().get_nodes_in_group(ScorchMark.GROUP).size() == marks.size(), "")
 	var shared: ShaderMaterial = MeshBuilder.prop_material()
 	var shared_char = shared.get_shader_parameter("char_amount")
 	_check("only the burnt tree is blackened", shared_char == null or is_equal_approx(shared_char, 0.0), "")
