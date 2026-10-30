@@ -212,7 +212,7 @@ To add a clip: generate it on the same rig in Higgsfield, then run `godot --head
 
 **Collisions:** when an enemy touches you, you take its contact damage (shield first), become immune for 0.5 s (shown by dimming the character 50%), and you and the enemy are knocked apart. Enemies that run into you while you're immune bounce back opposite to the way they were heading.
 
-**Epic enemies:** each spawn has a 5% chance to be epic, plus 10% per point of Luck. A Tome of Luck level is 0.1 Luck (+1%), and the Fortune skills give 0.5: 1.5x size, 4x HP and a purple tint. An epic has a 15% chance to drop a potion, and none drop while 3 are already on the ground (`PotionManager.DROP_CHANCE`, `MAX_ON_MAP`). Which potion:
+**Epic enemies:** each spawn has a 5% chance to be epic, plus 10% per point of Luck. A Tome of Luck level is 0.1 Luck (+1%), and the Fortune skills give 0.5: 1.5x size, 4x HP and a purple tint. An epic has a 15% chance to drop a potion (`PotionManager.DROP_CHANCE`). Which potion:
 
 | Potion | Chance | Effect |
 |---|---|---|
@@ -220,7 +220,7 @@ To add a clip: generate it on the same rig in Higgsfield, then run `godot --head
 | Red | 50% | Heal 10% of max HP (a red "+N" pops up next to the health bar and above the wizard) |
 | Blue | 20% | Shield worth 10% of max HP (absorbs damage first, stacks) |
 
-Potions lean and spin slowly so they're easy to spot, last 45 s, and blink every 0.3 s during their final 5 s.
+Potions lean and spin slowly so they're easy to spot. They never despawn and there's no limit on how many can lie around: they wait until you pick them up.
 
 **Power-ups:** each elite kill also has a 2% chance to drop one of these, plus 10% per point of Luck (+1% per Tome of Luck level):
 

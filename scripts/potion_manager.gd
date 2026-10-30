@@ -1,8 +1,7 @@
 class_name PotionManager
 extends Node3D
-## Potions dropped by epic enemies: each one killed has a DROP_CHANCE of dropping a potion, and
-## never while MAX_ON_MAP are already lying around (spawns climb to ~50 goblins a second, so
-## without this the ground fills with them). Which potion:
+## Potions dropped by epic enemies: each one killed has a DROP_CHANCE of dropping a potion. They
+## stay where they fell until picked up (no despawning, no limit on how many). Which potion:
 ##   30% purple  -> every ability's cooldown is reduced by 30% of its full duration
 ##   50% red     -> heal 10% of max HP
 ##   20% blue    -> shield worth 10% of max HP (absorbs damage first, stacks)
@@ -21,11 +20,6 @@ const COOLDOWN_CUT := 0.30
 const HEAL_FRAC := 0.10
 const SHIELD_FRAC := 0.10
 const DROP_CHANCE := 0.15
-const MAX_ON_MAP := 3
-const LIFETIME := 45.0
-const BLINK_WINDOW := 5.0      # start blinking this many seconds before disappearing
-const BLINK_PERIOD := 0.3      # one blink every 0.3 s
-const BLINK_ON := 0.6          # visible for 60% of each blink period
 const SPIN_SPEED := 0.9        # rad/s - a slow turn
 const LEAN := deg_to_rad(22.0) # tilt so the spin is easy to see
 const PICKUP_DIST := 1.2
@@ -74,7 +68,7 @@ func roll_kind() -> int:
 
 ## An epic died at `at`: maybe drop a potion there. Returns true if one dropped.
 func on_elite_killed(at: Vector3) -> bool:
-	if _potions.size() >= MAX_ON_MAP or rng.randf() >= DROP_CHANCE:
+	if rng.randf() >= DROP_CHANCE:
 		return false
 	drop(at)
 	return true
@@ -172,18 +166,6 @@ func tick(dt: float, pickup_range: float) -> void:
 			root.queue_free()
 			_potions.remove_at(k)
 			continue
-		if age > LIFETIME:
-			root.queue_free()
-			_potions.remove_at(k)
-		else:
-			root.visible = is_visible_at(age)
-
-
-## Blink in the last BLINK_WINDOW seconds: on for 60% of every BLINK_PERIOD.
-static func is_visible_at(age: float) -> bool:
-	if age < LIFETIME - BLINK_WINDOW:
-		return true
-	return fmod(age - (LIFETIME - BLINK_WINDOW), BLINK_PERIOD) < BLINK_PERIOD * BLINK_ON
 
 
 func _apply(kind: int) -> void:

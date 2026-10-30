@@ -299,25 +299,21 @@ func _ready() -> void:
 		em.damage(k, 1e6)
 	_check("mass kills stay within the corpse pool", cm._count <= CorpseManager.MAX, "%d" % cm._count)
 
-	# 10) Potions drop from 15% of epics, and never more than 3 on the ground
+	# 10) Potions drop from 15% of epics; they never despawn and there's no limit on them
 	var pm_drops := 0
 	for k in 2000:
 		if pm.on_elite_killed(Vector3(60 + k % 10, 0, 60)):
 			pm_drops += 1
-		while pm.count() > 0:   # pick them straight up so the cap doesn't kick in
-			var it: Dictionary = pm._potions.pop_back()
-			(it["node"] as Node).queue_free()
 	_check("epics drop a potion 15% of the time", absf(pm_drops / 2000.0 - PotionManager.DROP_CHANCE) < 0.03, "%d / 2000" % pm_drops)
-	var capped := 0
-	for k in 200:
-		pm.on_elite_killed(Vector3(70, 0, 70))
-		capped = maxi(capped, pm.count())
-	_check("never more than 3 potions on the ground", capped == PotionManager.MAX_ON_MAP, str(capped))
+	_check("no limit on how many potions lie around", pm.count() == pm_drops and pm.count() > 3, "%d on the ground" % pm.count())
+	for f in 60 * 120:   # two minutes later...
+		pm.tick(1.0 / 60.0, 0.1)
+	_check("potions never despawn", pm.count() == pm_drops, "%d left" % pm.count())
 	while pm.count() > 0:
 		var it2: Dictionary = pm._potions.pop_back()
 		(it2["node"] as Node).queue_free()
 
-	# Potions: slow spin, leaning bottle, blink every 0.3 s in the last 5 s
+	# Potions: slow spin, leaning bottle
 	pm.drop(Vector3(50, 0, 50), PotionManager.RED)
 	var pot: Dictionary = pm._potions[pm._potions.size() - 1]
 	var spinner: Node3D = pot["bottle"]
@@ -328,18 +324,6 @@ func _ready() -> void:
 		pm.tick(dt, 0.1)
 	var turned := angle_difference(y0, spinner.rotation.y)
 	_check("potion spins slowly (< 1 turn per 5 s)", absf(turned) > 0.5 and absf(turned) < TAU / 5.0, "%.2f rad in 1 s" % turned)
-	var blinks := 0
-	var prev := true
-	var t := 0.0
-	while t < PotionManager.LIFETIME:
-		var v := PotionManager.is_visible_at(t)
-		if t < PotionManager.LIFETIME - 5.0:
-			_check("no blinking before the last 5 s", v, "t %.2f" % t) if not v else null
-		if prev and not v:
-			blinks += 1
-		prev = v
-		t += 0.01
-	_check("blinks every 0.3 s for the last 5 s", blinks >= 16 and blinks <= 17, "%d blinks" % blinks)
 
 	# 11) Power-ups from elites
 	var gm := GemManager.new()

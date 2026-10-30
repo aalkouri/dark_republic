@@ -21,6 +21,9 @@ const COLORS := [Color(1.0, 0.25, 0.2), Color(0.65, 0.3, 1.0), Color(1.0, 0.55, 
 const DAMAGE_MULT := 5.0
 const SPEED_MULT := 1.8
 const LIFETIME := 45.0
+const BLINK_WINDOW := 5.0      # start blinking this many seconds before disappearing
+const BLINK_PERIOD := 0.3      # one blink every 0.3 s
+const BLINK_ON := 0.6          # visible for 60% of each blink period
 const PICKUP_DIST := 1.2
 
 var player: Player
@@ -234,7 +237,7 @@ func tick(dt: float, pickup_range: float) -> void:
 			root.queue_free()
 			_pickups.remove_at(k)
 		else:
-			root.visible = PotionManager.is_visible_at(age)
+			root.visible = is_visible_at(age)
 
 
 func activate(kind: int) -> void:
@@ -279,3 +282,10 @@ func status_text() -> String:
 		if active[kind] > 0.0:
 			parts.append("[color=#%s]%s %ds[/color]" % [COLORS[kind].to_html(false), tr(NAMES[kind]).to_upper(), ceili(active[kind])])
 	return "   ".join(parts)
+
+
+## Blink in the last BLINK_WINDOW seconds: on for 60% of every BLINK_PERIOD.
+static func is_visible_at(age: float) -> bool:
+	if age < LIFETIME - BLINK_WINDOW:
+		return true
+	return fmod(age - (LIFETIME - BLINK_WINDOW), BLINK_PERIOD) < BLINK_PERIOD * BLINK_ON
