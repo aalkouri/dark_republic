@@ -140,6 +140,7 @@ var _frames_n := 0   # --shot-draft=id[:rarity],... : show these level-up cards
 var _shot_inspect := -1
 var _shot_inv: Array = []   # --shot-inv=id,id: own these upgrades and hover the first (with --shot-inspect)
 var _shot_keys := PackedInt32Array()   # --shot-keys=b,s,g
+var _shot_castle := false   # --shot-castle: look toward the castle on the horizon
 var _shot_settings_tab := -1
 var _forced_seed := -1
 var _shot_pitch := -99.0
@@ -232,6 +233,8 @@ func _ready() -> void:
 			_shot_ignite = true
 		elif a.begins_with("--shot-timescale="):
 			Engine.time_scale = float(a.split("=")[1])
+		elif a == "--shot-castle":
+			_shot_castle = true
 		elif a.begins_with("--shot-inv="):
 			_shot_inv = Array(a.split("=")[1].split(","))
 		elif a.begins_with("--shot-keys="):
@@ -1155,6 +1158,10 @@ func _shot_tick() -> void:
 				db.apply({"id": id, "rarity": 0}, stats)
 		for t in mini(3, _shot_keys.size()):
 			keys.keys[t] = _shot_keys[t]
+	if _shot_castle:
+		var dc := find_child("DistantCastle", true, false) as DistantCastle
+		if dc != null:
+			player.cam_yaw = atan2(-cos(dc.bearing), -sin(dc.bearing)) + _shot_turn
 	if _shot_chest >= 0 and run_time < 0.05:
 		var fwd3 := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
 		var at := player.global_position + fwd3 * 5.0
