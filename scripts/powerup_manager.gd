@@ -25,6 +25,7 @@ const BLINK_WINDOW := 5.0      # start blinking this many seconds before disappe
 const BLINK_PERIOD := 0.3      # one blink every 0.3 s
 const BLINK_ON := 0.6          # visible for 60% of each blink period
 const PICKUP_DIST := 1.2
+const ACTIVATE_DIST := 2.6     # this close, press Activate (E) to take a power-up
 
 var player: Player
 var stats: Stats
@@ -91,7 +92,10 @@ func drop(at: Vector3, kind: int) -> void:
 	ring.position.y = 0.04
 	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(ring)
-	_pickups.append({"node": root, "spinner": spinner, "kind": kind, "age": 0.0, "pulled": false})
+	var prompt := ActivatePrompt.new()   # Press E (Activate) when you are close enough to take it
+	prompt.position.y = 1.9
+	root.add_child(prompt)
+	_pickups.append({"node": root, "spinner": spinner, "kind": kind, "age": 0.0, "prompt": prompt})
 
 
 static func _glow(c: Color, energy := 1.2) -> StandardMaterial3D:
@@ -224,11 +228,9 @@ func tick(dt: float, pickup_range: float) -> void:
 		spinner.rotation.y += 1.1 * dt
 		var to := target - (root.global_position + Vector3(0, 0.6, 0))
 		var d := to.length()
-		if d < pickup_range:
-			p["pulled"] = true
-		if p["pulled"]:
-			root.global_position += to.normalized() * minf(d, (10.0 + age) * dt * 2.0)
-		if d < PICKUP_DIST:
+		var near := d < ACTIVATE_DIST
+		(p["prompt"] as ActivatePrompt).visible = near
+		if near and player.activate_pressed():   # press Activate (E) to take it
 			activate(p["kind"])
 			root.queue_free()
 			_pickups.remove_at(k)

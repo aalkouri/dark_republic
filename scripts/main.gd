@@ -1040,6 +1040,7 @@ static func setup_inputs() -> void:
 	_bind("debug_spawn", [KEY_F2], [], [])
 	_bind("debug_cooldowns", [KEY_F3], [], [])
 	_bind("inspect", [KEY_ALT], [], [])
+	_bind("activate", [KEY_E], [JOY_BUTTON_DPAD_UP], [])
 
 
 static func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:

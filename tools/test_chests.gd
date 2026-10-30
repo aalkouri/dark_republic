@@ -24,6 +24,7 @@ func _ready() -> void:
 	await _test_tooltip()
 	await _test_new_weapons()
 	await _test_convert()
+	await _test_powerup_activate()
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails > 0 else 0)
 
@@ -170,8 +171,11 @@ func _test_keys_and_open() -> void:
 	# Walk over a dropped silver key: picked up
 	km.drop(main.player.global_position + Vector3(0, 0, 0.5), 1)
 	await _secs(0.6)
-	_check("silver key picked up", km.keys[1] == 0 or c.is_open, str(km.keys))
+	_check("silver key picked up", km.keys[1] == 1, str(km.keys))
+	_check("with the key it waits for Activate: 'Press E' over it", not c.is_open and c.prompt.visible and c.prompt.text == "Press E", c.prompt.text)
+	main.player.bot_activate = true   # press E
 	await _secs(0.3)
+	main.player.bot_activate = false
 	_check("with the key: the chest opens and the game pauses for the slot machine", c.is_open and main.state == "chest" and get_tree().paused
 		and main.hud.slot_machine != null, main.state)
 	_check("the key was used", km.keys[1] == 0 and km.keys[0] == 1, str(km.keys))
@@ -296,6 +300,21 @@ func _test_convert() -> void:
 	_check("inventory tooltip: name, level, what it does and the stat", tip.contains("Tome of Damage") and tip.contains("Damage: 1 -> 1.12"), tip)
 	var tip2 := hud.upgrade_tooltip("weapon_orb")
 	_check("...and for the main weapon its numbers", tip2.contains("Damage") and tip2.contains("Cooldown"), tip2)
+
+
+## Power-ups wait for Activate (E) too, with a "Press E" prompt over them.
+func _test_powerup_activate() -> void:
+	var pu: PowerupManager = main.powerups
+	var p: Vector3 = main.player.global_position
+	pu.drop(p + Vector3(1.0, 0, 0), PowerupManager.SPEED)
+	await _secs(0.4)
+	var pk: Dictionary = pu._pickups[pu._pickups.size() - 1]
+	_check("a power-up next to you isn't taken until you press Activate", pu.count() >= 1 and (pk["prompt"] as ActivatePrompt).visible, "")
+	var n0 := pu.count()
+	main.player.bot_activate = true
+	await _secs(0.2)
+	main.player.bot_activate = false
+	_check("...press E: taken", pu.count() == n0 - 1 and pu.active[PowerupManager.SPEED] > 0.0, "")
 
 
 ## Thorns and Ice Aura: weapons anyone can draft, as often as a tome.

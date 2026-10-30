@@ -96,6 +96,7 @@ var face_offset := 0.0     # extra yaw for portraits (3/4 views)
 var bot := false
 var bot_move := Vector2.ZERO
 var bot_jump := false
+var bot_activate := false   # bots / tests "press" Activate
 var bot_slide := false
 
 var sliding := false
@@ -582,6 +583,11 @@ func hurt_true(frac: float) -> bool:
 		hp = 0.0
 		died.emit()
 	return true
+
+
+## Was Activate (E by default) pressed this frame? Bots always count as pressing it.
+func activate_pressed() -> bool:
+	return bot or bot_activate or Input.is_action_just_pressed("activate")
 
 
 ## Shove the player along `dir` (horizontal) with a small hop.

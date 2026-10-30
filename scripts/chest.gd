@@ -13,6 +13,7 @@ var is_open := false
 var _t := 0.0
 var _lid: Node3D
 var _hint: Label3D
+var prompt: ActivatePrompt   # Press E (the Activate key) when you can open it
 var _light: OmniLight3D
 
 
@@ -69,6 +70,9 @@ func _ready() -> void:
 	_hint.position.y = 1.95
 	_hint.visible = false
 	add_child(_hint)
+	prompt = ActivatePrompt.new()
+	prompt.position.y = 2.0
+	add_child(prompt)
 
 
 func _box(parent: Node3D, size: Vector3, at: Vector3, mat: Material) -> void:
@@ -100,5 +104,6 @@ func open() -> void:
 		return
 	is_open = true
 	_hint.visible = false
+	prompt.visible = false
 	_light.light_energy = 3.0
 	opened.emit(self)

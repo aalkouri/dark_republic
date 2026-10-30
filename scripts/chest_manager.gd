@@ -2,7 +2,8 @@ class_name ChestManager
 extends Node3D
 ## Places the run's chests (MIN_CHESTS..MAX_CHESTS of them, on the level pads the world
 ## reserved) - Bronze most often, Gold rarely - and watches for the player walking up to one.
-## With a key of that tier it opens (`open_requested`, main runs the slot machine); without
+## With a key of that tier, press Activate (E) to open it (`open_requested`, main runs the
+## slot machine); without
 ## one, the chest says which key it needs.
 
 signal open_requested(chest: Chest)
@@ -11,7 +12,7 @@ const MIN_CHESTS := 8
 const MAX_CHESTS := 28
 const SITE_RADIUS := 3.0              # level pad kept clear around each chest site
 const TIER_WEIGHTS := [60.0, 30.0, 10.0]   # bronze, silver, gold
-const OPEN_DIST := 1.9                # walk this close to open it
+const OPEN_DIST := 2.6                # this close, press Activate (E) to open it
 const HINT_DIST := 3.5
 
 var player: Player
@@ -74,7 +75,8 @@ func tick(_dt: float) -> void:
 			d = INF
 		var has := keys.has_key(c.tier)
 		c.show_hint(d < HINT_DIST and not has)
-		if d < OPEN_DIST and has:
+		c.prompt.visible = d < OPEN_DIST and has
+		if d < OPEN_DIST and has and player.activate_pressed():   # press Activate (E) to open
 			keys.use_key(c.tier)
 			c.open()
 			opened_count += 1

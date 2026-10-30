@@ -566,5 +566,21 @@
   "PAUSE  ·  über Fähigkeit oder Upgrade fahren für Details  ·  Alt loslassen zum Fortsetzen",
   "已暂停  ·  悬停技能或升级查看详情  ·  松开 Alt 继续",
   "一時停止  ·  アビリティや強化にカーソルで詳細  ·  Altを離して再開"
+ ],
+ "Activate (open chests, pick up power-ups)": [
+  "Activar (abrir cofres, recoger potenciadores)",
+  "Activer (ouvrir les coffres, ramasser les bonus)",
+  "تفعيل (فتح الصناديق، التقاط المعززات)",
+  "Aktivieren (Truhen öffnen, Power-ups aufheben)",
+  "激活（打开宝箱、拾取强化）",
+  "アクティブ（宝箱を開ける、パワーアップを拾う）"
+ ],
+ "Press %s": [
+  "Pulsa %s",
+  "Appuyez sur %s",
+  "اضغط %s",
+  "Drücke %s",
+  "按 %s",
+  "%sを押す"
  ]
 }
