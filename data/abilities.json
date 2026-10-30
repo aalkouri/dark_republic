@@ -32,7 +32,7 @@
 
     "merlin": {
       "role": "Control mage who bends time",
-      "weapon": { "name": "Arcane Bolts", "icon": { "glyph": "orb", "cover": "#22306e", "tint": "#8fb8ff" }, "desc": "Homing bolts that bounce to 2 more enemies", "short": "Homing, bouncing", "damage": "12", "every": 0.9 },
+      "weapon": { "name": "Arcane Bolts", "icon": { "glyph": "orb", "cover": "#22306e", "tint": "#8fb8ff" }, "desc": "Homing bolts that bounce to 2 more enemies; triple damage to epics and bosses", "short": "Homing, strong vs epics", "damage": "12", "every": 0.9 },
       "abilities": [
         { "name": "Time Warp", "cooldown": 35, "icon": { "glyph": "hourglass", "color": "#9fb8ff" },
           "text": "Slows time for everyone but you.",

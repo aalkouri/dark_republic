@@ -63,15 +63,15 @@
   "slot_machine.gd:143"
  ],
  "%s Cooldown": [
-  "weapon_system.gd:351"
+  "weapon_system.gd:352"
  ],
  "%s DEFEATED!": [
   "hud.gd:958",
   "main.gd:76"
  ],
  "%s Damage": [
-  "weapon_system.gd:350",
-  "weapon_system.gd:388"
+  "weapon_system.gd:351",
+  "weapon_system.gd:389"
  ],
  "%s IS DEFEATED!": [
   "main.gd:739"
@@ -80,11 +80,11 @@
   "map_boss.gd:394"
  ],
  "%s Pierce": [
-  "weapon_system.gd:353",
-  "weapon_system.gd:390"
+  "weapon_system.gd:354",
+  "weapon_system.gd:391"
  ],
  "%s Reach": [
-  "weapon_system.gd:352"
+  "weapon_system.gd:353"
  ],
  "%s can't fight here: it's home turf": [
   "map_picker.gd:90"
@@ -541,7 +541,7 @@
   "characters.json"
  ],
  "Chain Lightning": [
-  "weapon_system.gd:151",
+  "weapon_system.gd:152",
   "abilities.json"
  ],
  "Chain spin, knockback": [
@@ -1026,7 +1026,7 @@
   "taglines.json"
  ],
  "Fireballs": [
-  "weapon_system.gd:147",
+  "weapon_system.gd:148",
   "abilities.json",
   "upgrades.json",
   "upgrades.json"
@@ -1107,7 +1107,7 @@
   "abilities.json"
  ],
  "Frost Shards": [
-  "weapon_system.gd:149",
+  "weapon_system.gd:150",
   "abilities.json"
  ],
  "Frozen enemies that die shatter for {40%} of their max HP to enemies within {2 yd}; shatters chain": [
@@ -1269,10 +1269,10 @@
  "Holy Water": [
   "abilities.json"
  ],
- "Homing bolts that bounce to 2 more enemies": [
+ "Homing bolts that bounce to 2 more enemies; triple damage to epics and bosses": [
   "abilities.json"
  ],
- "Homing, bouncing": [
+ "Homing, strong vs epics": [
   "abilities.json"
  ],
  "Hotfoot": [
@@ -1288,11 +1288,11 @@
   "abilities.json"
  ],
  "Hurls fireballs from your staff at the nearest enemies.": [
-  "weapon_system.gd:147",
+  "weapon_system.gd:148",
   "upgrades.json"
  ],
  "Hurls icicles from your staff that slow the enemies they hit.": [
-  "weapon_system.gd:149"
+  "weapon_system.gd:150"
  ],
  "I cast Magic Missile at the darkness!": [
   "taglines.json"
@@ -1399,7 +1399,7 @@
   "hud.gd:863"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:393"
+  "weapon_system.gd:394"
  ],
  "LEVEL UP!": [
   "hud.gd:279"
@@ -1498,7 +1498,7 @@
   "wallet.gd:278"
  ],
  "Lightning arcs from your staff and jumps between enemies.": [
-  "weapon_system.gd:151"
+  "weapon_system.gd:152"
  ],
  "Lightning chains to 2 more enemies": [
   "forge.gd:63"
@@ -2027,7 +2027,7 @@
   "abilities.json"
  ],
  "Shadow Bolts": [
-  "weapon_system.gd:153",
+  "weapon_system.gd:154",
   "abilities.json"
  ],
  "Shadow Step": [
@@ -2109,7 +2109,7 @@
   "settings.gd:24"
  ],
  "Slow bolts of shadow that pierce and curse the enemies they hit.": [
-  "weapon_system.gd:153"
+  "weapon_system.gd:154"
  ],
  "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)": [
   "abilities.json"

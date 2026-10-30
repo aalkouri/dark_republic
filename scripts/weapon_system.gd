@@ -11,7 +11,7 @@ extends Node3D
 ##   ice      Frost Shards     icicles that slow goblins (SHARD_SLOW for SHARD_SLOW_TIME)
 ##   thunder  Chain Lightning  instant arcs that jump CHAIN_JUMPS (+ pierce) times, losing 20% each
 ##   dark     Shadow Bolts     slow, extra-piercing bolts; CURSE_CHANCE to curse for CURSE_TIME
-##   arcane   Arcane Bolts     (Merlin) homing bolts that bounce to ARCANE_BOUNCES more enemies
+##   arcane   Arcane Bolts     (Merlin) homing bolts that bounce to ARCANE_BOUNCES more enemies, triple damage to epics and bosses
 ##   trunk    Tree Trunk       (Ogre) 120 deg cleave, 3 m, heavy knockback (360 deg in Swamp Rage)
 ##   wail     Wail             (Ghast) 8 m cone of sound: hits everything in it, slows 25%
 ##   silver   Silver Bolts     (Vampire Hunter) heavy bolts, pierce 3, double damage to epics
@@ -94,6 +94,7 @@ const ARCANE_BOUNCES := 2        # Arcane Bolts: bounce on to 2 more enemies...
 const ARCANE_SPEED := 0.75       # ...flying a little slower, homing
 const ARCANE_TURN := 9.0
 const ARCANE_BOUNCE_RANGE := 10.0
+const ARCANE_EPIC := 3.0          # ...and deal triple damage to epics (elites) and bosses
 const TRUNK_REACH := 3.0         # Tree Trunk: 120 deg cleave
 const TRUNK_ARC := 120.0
 const TRUNK_KNOCK := 6.0
@@ -1166,6 +1167,8 @@ func _update_projectiles(dt: float) -> void:
 				var dmg := p_dmg[i]
 				if kind == "silver" and (enemies.epic[e] or enemies.is_boss(e)):
 					dmg *= SILVER_EPIC
+				elif kind == "arcane" and (enemies.epic[e] or enemies.is_boss(e)):
+					dmg *= ARCANE_EPIC
 				elif kind == "ice" and enemies.freeze_t[e] > 0.0:
 					dmg *= SHARD_FROZEN / (1.0 + enemies.freeze_bonus)   # x2 in total, not x2 on top of +50%
 				enemies.damage(e, dmg, p_vel[i].normalized() * 2.5)

@@ -598,5 +598,21 @@
   "1 fehlenden Splitter kaufen: %s",
   "购买缺少的 1 个碎片：%s",
   "不足の欠片 1 個を購入：%s"
+ ],
+ "Homing bolts that bounce to 2 more enemies; triple damage to epics and bosses": [
+  "Rayos teledirigidos que rebotan a 2 enemigos más; triple daño a épicos y jefes",
+  "Projectiles à tête chercheuse qui rebondissent sur 2 ennemis de plus ; triple dégâts aux épiques et aux boss",
+  "صواعق موجّهة ترتد إلى عدوين إضافيين؛ ضرر ثلاثي ضد الأعداء الملحميين والزعماء",
+  "Zielsuchende Geschosse, die auf 2 weitere Gegner abprallen; dreifacher Schaden gegen Epische und Bosse",
+  "追踪飞弹，弹射至另外 2 个敌人；对史诗敌人和首领造成三倍伤害",
+  "追尾してさらに2体へ跳ねる弾。エピックとボスに3倍ダメージ"
+ ],
+ "Homing, strong vs epics": [
+  "Teledirigido, fuerte contra épicos",
+  "Tête chercheuse, fort contre les épiques",
+  "موجّه، قوي ضد الملحميين",
+  "Zielsuchend, stark gegen Epische",
+  "追踪，克制史诗敌人",
+  "追尾、エピックに強い"
  ]
 }

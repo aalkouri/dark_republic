@@ -95,7 +95,7 @@ These run on the same `RosterHero` model player (clip segments per character in 
 
 | Character | Weapon | Effect |
 |---|---|---|
-| Merlin | Arcane Bolts | Homing bolts that bounce on to 2 more enemies |
+| Merlin | Arcane Bolts | Homing bolts that bounce on to 2 more enemies; triple damage to elites (epics) and bosses |
 | Ogre | Tree Trunk | 120° cleave, 3 m, heavy knockback (360° in Swamp Rage) |
 | Ghast | Wail | 8 m cone that hits everything in it and slows 25% |
 | Vampire Hunter | Silver Bolts | Fast bolts that pierce 3 enemies, double damage to epics and bosses |

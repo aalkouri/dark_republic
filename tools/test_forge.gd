@@ -248,6 +248,16 @@ func _test_specials() -> void:
 	t = _fresh(em, p, [Vector3(5, 0, 0)])[0]
 	_hit(ws, em, t, "dagger")
 	_check("forged Twin Daggers: bleeds deal double", is_equal_approx(em.pct_f[t], WeaponSystem.BLEED_FRAC * 2.0), "%.3f" % em.pct_f[t])
+	# Arcane Bolts (Merlin): triple damage to epics (elites) and bosses
+	var ab: Array = _fresh(em, p, [Vector3(5, 0, 0), Vector3(-30, 0, 0)])
+	em.epic[ab[1]] = 1
+	var hn: float = em.hp[ab[0]]
+	var he: float = em.hp[ab[1]]
+	_hit(ws, em, ab[0], "arcane")
+	_hit(ws, em, ab[1], "arcane")
+	var dn: float = hn - em.hp[ab[0]]
+	var de: float = he - em.hp[ab[1]]
+	_check("Arcane Bolts deal triple damage to epics", dn > 0.0 and is_equal_approx(de / dn, WeaponSystem.ARCANE_EPIC), "normal -%.2f, epic -%.2f" % [dn, de])
 	# Chain Lightning: chains to 2 more enemies
 	var line := []
 	for k in 12:
