@@ -8,6 +8,7 @@ var fails := 0
 
 
 func _ready() -> void:
+	var saved_intro := Settings.play_intro   # put the real saved setting back at the end
 	var splash: Control = load("res://scripts/splash.gd").new()
 	Settings.play_intro = true
 	_check("splash goes to the intro", splash.next_scene() == "res://scenes/intro.tscn", splash.next_scene())
@@ -16,10 +17,17 @@ func _ready() -> void:
 	Settings.play_intro = true
 	splash.free()
 
+	Settings.play_intro = true
 	var intro: Node = load("res://scenes/intro.tscn").instantiate()
 	add_child(intro)
 	for f in 5:
 		await get_tree().process_frame
+	_check("first showing turns the intro off for next launch", not Settings.play_intro, "")
+	var cf := ConfigFile.new()
+	cf.load(Settings.PATH)
+	_check("...and saves it", cf.get_value("gameplay", "play_intro", true) == false, "")
+	Settings.play_intro = saved_intro
+	Settings.save_settings()
 	_check("about 30 seconds long", intro.LENGTH >= 28.0 and intro.LENGTH <= 33.0, str(intro.LENGTH))
 	_check("the anime video is loaded", intro._player != null and intro._player.stream != null, "")
 	_check("its sound plays on the SFX bus", intro._player.bus == Settings.SFX_BUS, intro._player.bus)

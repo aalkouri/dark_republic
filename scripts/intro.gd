@@ -2,8 +2,9 @@ extends Control
 ## Intro: the 30-second anime short (video/intro_anime.ogv, made with Higgsfield from the game's
 ## character models). Five fire-wizard-led heroes asleep in the castle barracks wake to a
 ## stampede, rush to the wall, see Thog and the goblin horde, and the wizard ends it as the Meteor.
-## Plays after the studio logo (unless Settings > Gameplay turns it off), with its sound effects on
-## the SFX bus. Any key, click or gamepad button skips to the title.
+## Plays after the studio logo on the first launch only (then its setting turns itself off; Settings >
+## Gameplay > Play intro on startup turns it back on), with its sound effects on the SFX bus.
+## Any key, click or gamepad button skips to the title.
 
 const VIDEO := "res://video/intro_anime.ogv"
 const NEXT_SCENE := "res://scenes/title.tscn"
@@ -40,6 +41,16 @@ func _ready() -> void:
 		_go.call_deferred()
 		return
 	_player.play()
+	_mark_seen()
+
+
+## The intro plays once: after the first showing it turns its own setting off and saves, so later
+## launches go straight from the logo to the title. Settings > Gameplay > Play intro on startup
+## turns it back on.
+func _mark_seen() -> void:
+	if Settings.play_intro:
+		Settings.play_intro = false
+		Settings.save_settings()
 
 
 func _input(event: InputEvent) -> void:
