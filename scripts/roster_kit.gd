@@ -173,6 +173,7 @@ func _ready() -> void:
 	enemies.shatter_frac = SHATTER_FRAC
 	enemies.shatter_radius = 2.0 * YARD
 	enemies.shattered.connect(_on_shattered)
+	player.air_jumped.connect(_on_air_jump)
 	for k in ["freeze", "glacial", "blizzard", "shatter", "overcharge", "zap", "thunderclap", "storm",
 			"siphon", "raise_dead", "eclipse"]:
 		_sounds[k] = _sfx(SOUND_DIR + k + ".wav")
@@ -586,6 +587,13 @@ func _tick_charge(dt: float) -> void:
 		stats.apply("move_speed", "mult", 1.0 / CHARGE_SPEED)
 		if is_instance_valid(_charge_sparks):
 			_charge_sparks.queue_free()
+
+
+## Overcharge: extra mid-air jumps (Feather, skill-tree air jumps) shock too, not just take-off
+## and landing (which the floor check in _tick_charge catches).
+func _on_air_jump() -> void:
+	if _charge_t > 0.0:
+		_shock(player.global_position)
 
 
 func _shock(at: Vector3) -> void:

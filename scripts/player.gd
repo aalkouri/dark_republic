@@ -10,6 +10,7 @@ extends CharacterBody3D
 ##  - Coyote time and jump buffering for forgiving input.
 
 signal died
+signal air_jumped   # a mid-air jump (Feather, Spring Step / Updraft extra jumps)
 
 const GRAVITY := 30.0
 const JUMP_VELOCITY := 10.5
@@ -267,6 +268,7 @@ func _physics_process(dt: float) -> void:
 		elif _air_jumps > 0:
 			_air_jumps -= 1
 			jumped = true
+			air_jumped.emit()
 			if wish_len > 0.1:  # air jumps let you redirect without losing speed
 				hv = wishdir * maxf(hspeed, move_speed * 0.8)
 	if jumped:

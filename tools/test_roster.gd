@@ -211,7 +211,25 @@ func _test_thunder_wizard() -> void:
 	await _secs(1.5)
 	var roster: RosterKit = main.abilities.roster
 	_check("every jump and landing releases a shock", hurt0 == 8 and _total_damage(ring) >= 40.0 * 3 * 8 * 0.9, "%.0f total" % _total_damage(ring))
-	await _secs(7.0)
+	# Extra mid-air jumps (Feather / skill tree) shock as well: take-off + air jump + landing = 3
+	main.stats.apply("extra_jumps", "flat", 1.0)
+	main.weapons.orb_t = 999.0   # keep Chain Lightning out of the count
+	var ring2 := await _ring(8, 4.0, 100000.0)
+	var air := [0]
+	main.player.air_jumped.connect(func(): air[0] += 1)
+	main.player.bot_jump = true
+	await _frames(2)
+	main.player.bot_jump = false
+	await _secs(0.3)
+	main.player.bot_jump = true
+	await _frames(2)
+	main.player.bot_jump = false
+	await _secs(1.5)
+	var dmg2 := _total_damage(ring2)
+	_check("an air jump during Overcharge shocks too", air[0] == 1 and dmg2 >= 40.0 * 3 * 8 * 0.9, "%d air jumps, %.0f total" % [air[0], dmg2])
+	main.stats.apply("extra_jumps", "flat", -1.0)
+	main.weapons.orb_t = 0.0
+	await _secs(5.0)
 	_check("speed returns to normal after 8 s", is_equal_approx(main.stats.value("move_speed"), base), "")
 
 	# Thunderclap: the 12 goblins with the most HP are struck and stunned; weaker ones aren't
