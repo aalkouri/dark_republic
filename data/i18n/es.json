@@ -169,6 +169,8 @@
 "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size": "Quema a los enemigos que te tocan con 30 de daño por segundo (2,5 m); crece con las muertes, hasta +50% de tamaño",
 "Burns on touch, grows": "Quema al contacto, crece",
 "Bursts, leaves acid": "Revienta, deja ácido",
+"Buy %d missing shards: %s": "Comprar %d fragmentos que faltan: %s",
+"Buy 1 missing shard: %s": "Comprar 1 fragmento que falta: %s",
 "CHOOSE YOUR BATTLEGROUND": "ELIGE TU CAMPO DE BATALLA",
 "CHOOSE YOUR CHAMPION": "ELIGE A TU CAMPEÓN",
 "Caller of the Storm": "Invocador de la tormenta",

@@ -318,7 +318,7 @@
   "skill_tree.gd:32"
  ],
  "After forging": [
-  "forge_menu.gd:103"
+  "forge_menu.gd:105"
  ],
  "After {5 s} each takes {400} damage": [
   "abilities.json"
@@ -510,6 +510,12 @@
  "Bursts, leaves acid": [
   "abilities.json"
  ],
+ "Buy %d missing shards: %s": [
+  "forge_menu.gd:202"
+ ],
+ "Buy 1 missing shard: %s": [
+  "forge_menu.gd:202"
+ ],
  "CHOOSE YOUR BATTLEGROUND": [
   "map_picker.gd:53"
  ],
@@ -566,7 +572,7 @@
   "character_select.gd:634"
  ],
  "Close": [
-  "forge_menu.gd:122"
+  "forge_menu.gd:143"
  ],
  "Cocoon": [
   "abilities.json"
@@ -1036,11 +1042,11 @@
   "character_select.gd:439"
  ],
  "Forge Weapon": [
-  "forge_menu.gd:115",
-  "forge_menu.gd:176"
+  "forge_menu.gd:136",
+  "forge_menu.gd:204"
  ],
  "Forge level %d / %d": [
-  "forge_menu.gd:158"
+  "forge_menu.gd:179"
  ],
  "Forged +%d": [
   "character_select.gd:439",
@@ -1554,8 +1560,8 @@
  ],
  "Max level": [
   "abilities.gd:360",
-  "forge_menu.gd:160",
-  "forge_menu.gd:176"
+  "forge_menu.gd:181",
+  "forge_menu.gd:204"
  ],
  "Melee kick that poisons for 2% of max HP per second; each stack slows 10% (max 5)": [
   "abilities.json"
@@ -1657,10 +1663,10 @@
  ],
  "Not forged yet": [
   "forge.gd:130",
-  "forge_menu.gd:158"
+  "forge_menu.gd:179"
  ],
  "Now": [
-  "forge_menu.gd:88"
+  "forge_menu.gd:90"
  ],
  "Now for sale in Characters: %s coins": [
   "hud.gd:1026"
@@ -2232,7 +2238,7 @@
   "arachnid_boss.gd:445"
  ],
  "THE FORGE": [
-  "forge_menu.gd:60"
+  "forge_menu.gd:62"
  ],
  "THE FUNGUS COURT RISES!": [
   "toadstool_boss.gd:193"

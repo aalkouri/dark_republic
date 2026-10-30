@@ -169,6 +169,8 @@
 "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size": "触れた敵を毎秒30ダメージで焼く（2.5 m）；撃破で成長、最大+50%の大きさ",
 "Burns on touch, grows": "触れると焼く、成長する",
 "Bursts, leaves acid": "破裂し酸を残す",
+"Buy %d missing shards: %s": "不足の欠片 %d 個を購入：%s",
+"Buy 1 missing shard: %s": "不足の欠片 1 個を購入：%s",
 "CHOOSE YOUR BATTLEGROUND": "戦場を選べ",
 "CHOOSE YOUR CHAMPION": "チャンピオンを選べ",
 "Caller of the Storm": "嵐を呼ぶ者",

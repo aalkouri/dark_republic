@@ -169,6 +169,8 @@
 "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size": "Verbrennt Gegner, die dich berühren, mit 30 Schaden pro Sekunde (2,5 m); wächst mit Kills, bis zu +50 % Größe",
 "Burns on touch, grows": "Brennt bei Berührung, wächst",
 "Bursts, leaves acid": "Platzt, hinterlässt Säure",
+"Buy %d missing shards: %s": "%d fehlende Splitter kaufen: %s",
+"Buy 1 missing shard: %s": "1 fehlenden Splitter kaufen: %s",
 "CHOOSE YOUR BATTLEGROUND": "WÄHLE DEIN SCHLACHTFELD",
 "CHOOSE YOUR CHAMPION": "WÄHLE DEINEN CHAMPION",
 "Caller of the Storm": "Rufer des Sturms",

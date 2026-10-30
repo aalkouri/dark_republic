@@ -119,6 +119,17 @@ func _test_select() -> void:
 	_check("the forge shows what it will do", fm._next.text.contains("Damage +25%") and fm._next.text.contains("Attack rate +8%"), fm._next.text)
 	_check("forging works", fm.do_forge() and Forge.level_of("static") == 1 and Wallet.shards["dark"] == 0 and Wallet.shards["lightning"] == 0, str(Wallet.shards))
 	_check("...and the button greys out for level 2", fm._btn.disabled, "")
+	# Short on shards: buy the missing ones with coins
+	Wallet.coins = 0
+	fm._refresh()
+	_check("short on shards: a Buy button offers them for coins (greyed out when you can't afford it)", fm._buy.visible and fm._buy.disabled, fm._buy_label.text)
+	Wallet.coins = 5000
+	fm._refresh()
+	_check("...10 missing shards for 1,500 coins", fm._buy_label.text.contains("10") and fm._buy_label.text.contains("1,500") and not fm._buy.disabled, fm._buy_label.text)
+	_check("...buying them makes the next forge possible", fm.buy_missing() and Wallet.coins == 3500 and Forge.can_afford("static") and not fm._btn.disabled and not fm._buy.visible, "%d coins" % Wallet.coins)
+	Wallet.coins = 0
+	_reset_shards()
+	fm._refresh()
 	fm.closed.emit()
 	await get_tree().process_frame
 	_check("back on the character select: Forged +1, the level-2 cost (4 dark crystals, lightning x6)", cs._forge_label.text == "Forged +1"

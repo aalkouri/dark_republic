@@ -18,6 +18,8 @@ var _cost_row: HBoxContainer
 var _now: Label
 var _next: Label
 var _btn: Button
+var _buy: Button                     # buy the shards you're missing with coins
+var _buy_label: Label
 var _sparks: Array = []              # [pos, vel, life]
 var _flash := 0.0
 var _sfx: AudioStreamPlayer
@@ -111,6 +113,25 @@ func _ready() -> void:
 	_next.size = Vector2(230, 200)
 	_next.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	panel.add_child(_next)
+	# Short on shards? Buy the missing ones with coins
+	_buy = Button.new()
+	_buy.text = ""
+	_buy.position = Vector2(30, 386)
+	_buy.size = Vector2(250, 50)
+	_buy.pressed.connect(buy_missing)
+	panel.add_child(_buy)
+	var buy_row := HBoxContainer.new()
+	buy_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	buy_row.add_theme_constant_override("separation", 6)
+	buy_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	buy_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_buy.add_child(buy_row)
+	_buy_label = _lbl("", 17, Color(1.0, 0.88, 0.5))
+	buy_row.add_child(_buy_label)
+	var coin := CoinIcon.new()
+	coin.custom_minimum_size = Vector2(22, 22)
+	coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	buy_row.add_child(coin)
 	_btn = Button.new()
 	_btn.text = tr("Forge Weapon")
 	_btn.add_theme_font_size_override("font_size", 26)
@@ -173,7 +194,40 @@ func _refresh() -> void:
 			var l := _lbl("%d/%d" % [have, need], 17, ShardIcon.COLORS[kind][2] if have >= need else Color(0.6, 0.55, 0.55))
 			_cost_row.add_child(l)
 	_btn.disabled = maxed or not Forge.can_afford(style)
+	var short := missing()
+	var n := 0
+	for kind in short:
+		n += int(short[kind])
+	_buy.visible = n > 0
+	_buy_label.text = tr("Buy %d missing shards: %s") % [n, Wallet.fmt(n * Wallet.SHARD_PRICE)] if n != 1 else tr("Buy 1 missing shard: %s") % Wallet.fmt(Wallet.SHARD_PRICE)
+	_buy.disabled = Wallet.coins < n * Wallet.SHARD_PRICE
 	_btn.text = tr("Max level") if maxed else tr("Forge Weapon")
+
+
+## The shards the next level still needs that you don't have: {kind: count}.
+func missing() -> Dictionary:
+	var out := {}
+	var cost := Forge.next_cost(style)
+	for kind in cost:
+		var short := int(cost[kind]) - int(Wallet.shards.get(kind, 0))
+		if short > 0:
+			out[kind] = short
+	return out
+
+
+## Buy every missing shard for the next level with coins (Wallet.SHARD_PRICE each).
+func buy_missing() -> bool:
+	var short := missing()
+	var n := 0
+	for kind in short:
+		n += int(short[kind])
+	if n <= 0 or Wallet.coins < n * Wallet.SHARD_PRICE:
+		return false
+	for kind in short:
+		Wallet.buy_shards(kind, int(short[kind]))
+	_refresh()
+	forged.emit(style, Forge.level_of(style))   # the character select refreshes its shard row
+	return true
 
 
 ## Spend the shards and raise the weapon a level.

@@ -582,5 +582,21 @@
   "Drücke %s",
   "按 %s",
   "%sを押す"
+ ],
+ "Buy %d missing shards: %s": [
+  "Comprar %d fragmentos que faltan: %s",
+  "Acheter %d éclats manquants : %s",
+  "اشترِ %d شظايا ناقصة: %s",
+  "%d fehlende Splitter kaufen: %s",
+  "购买缺少的 %d 个碎片：%s",
+  "不足の欠片 %d 個を購入：%s"
+ ],
+ "Buy 1 missing shard: %s": [
+  "Comprar 1 fragmento que falta: %s",
+  "Acheter 1 éclat manquant : %s",
+  "اشترِ شظية ناقصة واحدة: %s",
+  "1 fehlenden Splitter kaufen: %s",
+  "购买缺少的 1 个碎片：%s",
+  "不足の欠片 1 個を購入：%s"
  ]
 }

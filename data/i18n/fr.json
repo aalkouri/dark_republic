@@ -169,6 +169,8 @@
 "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size": "Brûle les ennemis à votre contact pour 30 dégâts par seconde (2,5 m) ; grossit avec les éliminations, jusqu'à +50 % de taille",
 "Burns on touch, grows": "Brûle au contact, grossit",
 "Bursts, leaves acid": "Éclate, laisse de l'acide",
+"Buy %d missing shards: %s": "Acheter %d éclats manquants : %s",
+"Buy 1 missing shard: %s": "Acheter 1 éclat manquant : %s",
 "CHOOSE YOUR BATTLEGROUND": "CHOISISSEZ VOTRE CHAMP DE BATAILLE",
 "CHOOSE YOUR CHAMPION": "CHOISISSEZ VOTRE CHAMPION",
 "Caller of the Storm": "Celui qui appelle l'orage",

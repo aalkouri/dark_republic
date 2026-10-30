@@ -277,6 +277,17 @@ func set_shown(v: bool) -> void:
 const SHARDS := ["fire", "ice", "lightning", "dark"]
 const SHARD_NAMES := {"fire": "Fire Shard", "ice": "Ice Shard", "lightning": "Lightning Shard", "dark": "Dark Shard"}
 const BOSS_SHARDS := Vector2i(1, 5)
+const SHARD_PRICE := 150   # coins per shard, bought in the Forge (any kind)
+
+
+## Buy `n` shards of `kind` with coins. Returns false if you can't afford them.
+func buy_shards(kind: String, n: int) -> bool:
+	if n <= 0 or not spend(n * SHARD_PRICE):
+		return false
+	shards[kind] = int(shards.get(kind, 0)) + n
+	_save()
+	_refresh_shards()
+	return true
 
 
 ## Roll a boss's shard drop: 1-5 shards, each of a random kind. {kind: count} (only kinds won).

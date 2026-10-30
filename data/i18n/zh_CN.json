@@ -169,6 +169,8 @@
 "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size": "灼烧接触你的敌人，每秒 30 伤害（2.5 米）；随击杀变大，最多 +50% 体型",
 "Burns on touch, grows": "接触灼烧，会成长",
 "Bursts, leaves acid": "爆裂，留下酸液",
+"Buy %d missing shards: %s": "购买缺少的 %d 个碎片：%s",
+"Buy 1 missing shard: %s": "购买缺少的 1 个碎片：%s",
 "CHOOSE YOUR BATTLEGROUND": "选择你的战场",
 "CHOOSE YOUR CHAMPION": "选择你的勇士",
 "Caller of the Storm": "风暴召唤者",

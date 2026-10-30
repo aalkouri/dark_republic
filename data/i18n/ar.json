@@ -169,6 +169,8 @@
 "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size": "يحرق الأعداء الذين يلمسونك بضرر 30 في الثانية (2.5 م)؛ يكبر مع القتل حتى +50% حجمًا",
 "Burns on touch, grows": "يحرق باللمس، ويكبر",
 "Bursts, leaves acid": "ينفجر، ويترك حمضًا",
+"Buy %d missing shards: %s": "اشترِ %d شظايا ناقصة: %s",
+"Buy 1 missing shard: %s": "اشترِ شظية ناقصة واحدة: %s",
 "CHOOSE YOUR BATTLEGROUND": "اختر ساحة معركتك",
 "CHOOSE YOUR CHAMPION": "اختر بطلك",
 "Caller of the Storm": "مستدعي العاصفة",
