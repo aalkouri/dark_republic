@@ -39,6 +39,7 @@ var _wander := 0.0
 var _log_t := 0.0
 var _picks: Array = []           # upgrade titles taken this run, in order
 var _potions := {}               # potion name -> count picked up
+var _keys := [0, 0, 0]           # keys picked up this run: bronze, silver, gold
 var _powerups := {}              # power-up name -> count picked up
 var _chests := 0                 # chests opened (slot machine pulls)
 
@@ -82,9 +83,11 @@ func _next() -> void:
 	_wander = randf() * TAU
 	_picks = []
 	_potions = {}
+	_keys = [0, 0, 0]
 	_powerups = {}
 	_chests = 0
 	main.potions.collected.connect(func(k: int): _bump(_potions, PotionManager.NAMES[k].get_slice(":", 0)))
+	main.keys.collected.connect(func(tier: int): _keys[tier] += 1)
 	main.powerups.collected.connect(func(k: int): _bump(_powerups, PowerupManager.NAMES[k]))
 
 
@@ -138,6 +141,8 @@ func _record(st: String) -> void:
 	detail["chests"] = _chests
 	detail["ability_levels"] = Array(main.abilities.ab_level)
 	detail["keys_left"] = Array(main.keys.keys)
+	detail["keys"] = {"Bronze": _keys[0], "Silver": _keys[1], "Gold": _keys[2]}
+	detail["shards"] = main.shards_won.duplicate()
 	var jf := FileAccess.open(out_path + ".jsonl", FileAccess.READ_WRITE if FileAccess.file_exists(out_path + ".jsonl") else FileAccess.WRITE)
 	if jf:
 		jf.seek_end()

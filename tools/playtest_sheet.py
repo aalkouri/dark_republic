@@ -42,8 +42,9 @@ def header(ws,h,widths):
     ws.freeze_panes="C2"
 wb=Workbook(); ws=wb.active; ws.title="Runs"
 POT=["Red Potion","Blue Potion","Purple Potion"]; PU=["Magnet","Fear Idol","5x Damage","Movement Enhancer"]
-h=["Mage","Run #","Result","Time","Level","Kills","Upgrades picked (in order of first pick, × times picked)","Thog HP left"]+[p.replace(" Potion"," potions") for p in POT]+["Potions total"]+PU+["Power-ups total"]
-header(ws,h,[15,6,8,7,6,8,60,9,8,8,8,9,8,8,9,10,10])
+KEY=["Bronze","Silver","Gold"]; SH=["fire","ice","lightning","dark"]
+h=["Mage","Run #","Result","Time","Level","Kills","Upgrades picked (in order of first pick, × times picked)","Thog HP left"]+[p.replace(" Potion"," potions") for p in POT]+["Potions total"]+PU+["Power-ups total"]+[k+" keys" for k in KEY]+["Keys total"]+[x.capitalize()+" shards" for x in SH]+["Shards total"]
+header(ws,h,[15,6,8,7,6,8,60,9,8,8,8,9,8,8,9,10,10,8,8,8,8,8,8,9,8,8])
 ws.row_dimensions[1].height=32
 for r in runs:
     t=r["time_s"]; up=Counter(); first=[]
@@ -55,8 +56,9 @@ for r in runs:
          "\n".join(f"{n} ×{up[n]}" for n in first) or "-",
          (r["boss_hp"] if r["boss_hp"]>=0 else "-")]
     row+= [r["potions"].get(p,0) for p in POT]+[None]+[r["powerups"].get(p,0) for p in PU]+[None]
+    row+= [r.get("keys",{}).get(k,0) for k in KEY]+[None]+[r.get("shards",{}).get(x,0) for x in SH]+[None]
     ws.append(row); i=ws.max_row
-    ws.cell(i,12).value=f"=SUM(I{i}:K{i})"; ws.cell(i,17).value=f"=SUM(M{i}:P{i})"
+    ws.cell(i,12).value=f"=SUM(I{i}:K{i})"; ws.cell(i,17).value=f"=SUM(M{i}:P{i})"; ws.cell(i,21).value=f"=SUM(R{i}:T{i})"; ws.cell(i,26).value=f"=SUM(V{i}:Y{i})"
     ws.row_dimensions[i].height=max(15,15*len(first))
     for c in ws[i]: c.font=base; c.border=Border(bottom=thin); c.alignment=ctr
     ws.cell(i,1).alignment=Alignment(vertical="top"); ws.cell(i,7).alignment=Alignment(wrap_text=True,vertical="top")
@@ -64,7 +66,7 @@ for r in runs:
     if r["result"]=="WON":
         for c in ws[i]: c.fill=PatternFill("solid",fgColor="DFF2D8")
 last=ws.max_row
-ws.cell(last+2,1,"Map: Swamp (map 1). A win means killing Thog, who arrives at 8:00. Played by an automated bot that kites the horde and only grabs potions and power-ups it passes on the way, so pickup counts run lower than a human player's.").font=Font(name=F,italic=True,color="666666")
+ws.cell(last+2,1,"Map: Swamp (map 1). A win means killing Thog, who arrives at 8:00. Played by an automated bot that kites the horde and only grabs potions and power-ups it passes on the way, so pickup counts run lower than a human player's. Keys are those picked up during the run; shards are the elemental shards won from bosses.").font=Font(name=F,italic=True,color="666666")
 # Upgrade counts matrix
 um=wb.create_sheet("Upgrades picked")
 allu=[]
@@ -95,7 +97,7 @@ for r in runs:
         for j in (2,3): uo.cell(uo.max_row,j).alignment=ctr
 # Summary
 s=wb.create_sheet("Summary")
-header(s,["Mage","Runs","Wins","Win rate","Earliest death","Latest death","Average death","Avg level","Avg kills","Avg potions","Avg power-ups"],[15,7,7,9,10,10,10,9,10,10,10])
+header(s,["Mage","Runs","Wins","Win rate","Earliest death","Latest death","Average death","Avg level","Avg kills","Avg potions","Avg power-ups","Avg keys","Avg shards"],[15,7,7,9,10,10,10,9,10,10,10,9,9])
 s.row_dimensions[1].height=32
 R=f"Runs!$A$2:$A${last}"; C=f"Runs!$C$2:$C${last}"; col=lambda x:f"Runs!${x}$2:${x}${last}"
 for i,m in enumerate(MAGE.values(),2):
@@ -105,12 +107,13 @@ for i,m in enumerate(MAGE.values(),2):
       f'=IF({d}=0,"-",_xlfn.MAXIFS({col("D")},{R},A{i},{C},"Died"))',
       f'=IF({d}=0,"-",AVERAGEIFS({col("D")},{R},A{i},{C},"Died"))',
       f'=IF(B{i}=0,"-",AVERAGEIF({R},A{i},{col("E")}))',f'=IF(B{i}=0,"-",AVERAGEIF({R},A{i},{col("F")}))',
-      f'=IF(B{i}=0,"-",AVERAGEIF({R},A{i},{col("L")}))',f'=IF(B{i}=0,"-",AVERAGEIF({R},A{i},{col("Q")}))'])
+      f'=IF(B{i}=0,"-",AVERAGEIF({R},A{i},{col("L")}))',f'=IF(B{i}=0,"-",AVERAGEIF({R},A{i},{col("Q")}))',
+      f'=IF(B{i}=0,"-",AVERAGEIF({R},A{i},{col("U")}))',f'=IF(B{i}=0,"-",AVERAGEIF({R},A{i},{col("Z")}))'])
     for c in s[i]: c.font=base; c.border=Border(bottom=thin); c.alignment=Alignment(horizontal="center")
     s.cell(i,1).alignment=Alignment(); s.cell(i,4).number_format="0%"
     for j in (5,6,7): s.cell(i,j).number_format="[m]:ss"
     s.cell(i,8).number_format="0.0"; s.cell(i,9).number_format="#,##0"
-    for j in (10,11): s.cell(i,j).number_format="0.0"
+    for j in (10,11,12,13): s.cell(i,j).number_format="0.0"
 t=7; s.append(["Total","=SUM(B2:B6)","=SUM(C2:C6)",'=IF(B7=0,"-",C7/B7)'])
 for c in s[t]: c.font=Font(name=F,bold=True); c.alignment=Alignment(horizontal="center")
 s.cell(t,1).alignment=Alignment(); s.cell(t,4).number_format="0%"
