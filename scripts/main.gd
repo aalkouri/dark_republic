@@ -1170,6 +1170,7 @@ func _shot_tick() -> void:
 			shot_casts.erase(t)
 	if _shot_boss_win >= 0.0 and run_time >= _shot_boss_win:
 		_shot_boss_win = -1.0
+		_award_shards()
 		boss_won = true
 		first_boss_kill = true
 		_end_run(true)

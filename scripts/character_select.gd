@@ -450,7 +450,7 @@ func _refresh_forge() -> void:
 func _shard_pip(kind: String, lit: bool) -> ShardIcon:
 	var ic := ShardIcon.new()
 	ic.kind = kind
-	ic.custom_minimum_size = Vector2(16, 22)
+	ic.custom_minimum_size = Vector2(22, 30)
 	ic.modulate = Color.WHITE if lit else Color(0.3, 0.3, 0.32, 0.75)
 	return ic
 
