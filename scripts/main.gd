@@ -12,6 +12,7 @@ const BOSS_TIME := 300.0
 const THOG_TIME := RUN_LENGTH - 120.0   # the Swamp's boss arrives with 2 minutes left
 const MAX_WEAPONS := 3
 const SWAMP_MUSIC := "res://audio/music/tension_drop.mp3"   # loops for the whole swamp run
+const MAP_MUSIC := {"forest": "res://audio/music/bosna_grit.mp3"}   # per-map tracks (others use SWAMP_MUSIC)
 const MUSIC_VOLUME_DB := -6.0
 const EPIC_BASE_CHANCE := 0.05
 const EPIC_CHANCE_PER_LUCK := 0.1      # per point of the Luck stat (a Tome of Luck level = 0.1 luck = +1%)
@@ -813,7 +814,8 @@ func _on_player_died() -> void:
 	_end_run(false)
 
 
-## Swamp music: starts with the level and repeats until the map ends.
+## Level music (the map's own track, else the swamp theme): starts with the level and repeats
+## until the map ends.
 ## Keeps playing through pause and level-up menus.
 func _start_music() -> void:
 	MenuMusic.fade_out(0.3)   # in case the menu theme is still going
@@ -822,9 +824,10 @@ func _start_music() -> void:
 	music.process_mode = Node.PROCESS_MODE_ALWAYS
 	music.volume_db = MUSIC_VOLUME_DB
 	add_child(music)
-	if not ResourceLoader.exists(SWAMP_MUSIC):
+	var track: String = MAP_MUSIC.get(Settings.selected_map, SWAMP_MUSIC)
+	if not ResourceLoader.exists(track):
 		return
-	var stream: AudioStream = load(SWAMP_MUSIC)
+	var stream: AudioStream = load(track)
 	if stream is AudioStreamMP3:
 		(stream as AudioStreamMP3).loop = true
 	elif stream is AudioStreamOggVorbis:
