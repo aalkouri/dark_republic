@@ -12,7 +12,7 @@ const BOSS_TIME := 300.0
 const THOG_TIME := RUN_LENGTH - 120.0   # the Swamp's boss arrives with 2 minutes left
 const MAX_WEAPONS := 3
 const SWAMP_MUSIC := "res://audio/music/tension_drop.mp3"   # loops for the whole swamp run
-const MAP_MUSIC := {"forest": "res://audio/music/bosna_grit.mp3"}   # per-map tracks (others use SWAMP_MUSIC)
+const MAP_MUSIC := {"forest": "res://audio/music/bosna_grit.mp3", "castle": "res://audio/music/castle_map.mp3"}   # per-map tracks (others use SWAMP_MUSIC)
 const MUSIC_VOLUME_DB := -6.0
 const EPIC_BASE_CHANCE := 0.05
 const EPIC_CHANCE_PER_LUCK := 0.1      # per point of the Luck stat (a Tome of Luck level = 0.1 luck = +1%)
