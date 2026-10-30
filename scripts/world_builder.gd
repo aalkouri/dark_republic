@@ -420,7 +420,7 @@ static func _reeds(parent: Node3D, rng: RandomNumberGenerator, water: SwampWater
 	var xforms: Array[Transform3D] = []
 	for p in water.pools:
 		var c: Vector2 = p["center"]
-		for k in rng.randi_range(18, 30):
+		for k in int(TAU * float(p["r"]) * rng.randf_range(1.2, 1.8)):   # reeds all round the shore
 			var th := rng.randf() * TAU
 			var r := water.outline_radius(p, th) * rng.randf_range(0.85, 1.15)
 			var pos := Vector3(c.x + cos(th) * r, 0, c.y + sin(th) * r)

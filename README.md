@@ -289,7 +289,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **Ground:** random patches of wet mud and swamp grass, with swaying grass tufts.
 - **180 swamp trees** in 4 variants: bald cypress (flared trunk, knees, hanging moss), dead snag, swamp willow (drooping curtains) and mangrove (stilt roots). All collide with the player.
 - **72 fallen trees:** mossy logs with root plates, slightly tilted, which you can climb and jump off.
-- **14 pools of swamp water:** irregular shapes up to 10 yd across, recessed into the ground with uneven beds, never deeper than the character. Reeds and cattails grow around the edges. **In water, move speed and jump height are halved** (goblins wade at half speed too).
+- **14 big pools of swamp water:** irregular ponds 18-36 m across, at least 66 m apart, recessed into the ground with uneven beds, never deeper than the character. Reeds and cattails grow around the edges. **In water, move speed and jump height are halved** (goblins wade at half speed too).
 - **24 mossy stone ruins** as landmarks.
 - **Camera zoom:** the mouse wheel zooms the camera in and out (up to 16 m away). All the way in is first person: the camera sits at the wizard's eyes and he's hidden from view, though his shadow stays. The chosen distance is kept between runs (`Player.zoom`).
 - **Entrance:** each run opens with the wizard arriving as his own Meteor. For the 3 s it takes to fall, the clock, the spawns and the goblins all hold still and nobody can act. It falls silently and lands with the full impact (explosion sound, no scorched ground), and the run starts (`Abilities.entrance_meteor`, `main.intro`). Screenshot and smoke runs skip it unless you pass `--shot-intro`.

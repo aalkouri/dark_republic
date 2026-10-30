@@ -156,7 +156,10 @@ func _test_bushes(b: BushField) -> void:
 		await get_tree().physics_frame
 	_check("moving through a bush rustles it, at most ~3 times a second", b.rustles >= 3 and b.rustles <= 7, str(b.rustles))
 	_check("...and shakes it", b.shake[0] > 0.5, "%.2f" % b.shake[0])
-	_check("leaves fly out now and then", b.leaf_bursts >= 1 and b.leaf_bursts <= 8, str(b.leaf_bursts))
+	for f in 240:   # 4 s more: leaf bursts are random (about one a second), so give them time
+		p.global_position = at + Vector3(sin(f * 0.1) * 0.5, 0, 0)
+		await get_tree().physics_frame
+	_check("leaves fly out now and then", b.leaf_bursts >= 1 and b.leaf_bursts <= 16, str(b.leaf_bursts))
 	p.global_position = at + Vector3(30, 0, 30)
 	for f in 60:
 		await get_tree().physics_frame

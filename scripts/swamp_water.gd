@@ -5,7 +5,7 @@ extends RefCounted
 ##    pads where pools, shrines and the start point sit, and rising into a berm at the arena
 ##    edge. Baked into a 1 m height grid that everything samples (ground_height).
 ##  - Outline: r(θ) = R * (1 + Σ a_k sin(kθ + φ_k)), k = 2..5, so every pool has a natural,
-##    lumpy shape. Max diameter is capped at 10 yd (9.14 m).
+##    lumpy shape. Diameters run from MIN_DIAMETER to MAX_DIAMETER (about 18-36 m): big ponds.
 ##  - Bed: a bowl whose depth varies across the pool and per pool, always shallower than the
 ##    character (MAX_DEPTH). The water surface sits just below the surrounding ground.
 ##  - Gameplay: anything standing in the water moves at 50% speed.
@@ -13,7 +13,9 @@ extends RefCounted
 ## the ground shader (which cuts holes for the pools) and the in-water checks, so they agree.
 
 const YARD := 0.9144
-const MAX_DIAMETER := 10.0 * YARD
+const MAX_DIAMETER := 36.0
+const MIN_DIAMETER := 18.0
+const POOL_SPACING := 66.0         # metres between pool centres
 const MAX_DEPTH := 1.65            # character capsule is 1.8 m tall
 const MIN_DEPTH := 0.7
 const SPEED_MULT := 0.5
@@ -110,15 +112,15 @@ static func generate(rng: RandomNumberGenerator, count: int, half: float, keep_o
 			amps.append(a)
 			phases.append(rng.randf() * TAU)
 			amp_sum += a
-		# Largest possible radius is R * (1 + amp_sum); keep diameter <= 10 yd.
+		# Largest possible radius is R * (1 + amp_sum); keep diameter <= MAX_DIAMETER.
 		var r_cap := (MAX_DIAMETER * 0.5 - 0.05) / (1.0 + amp_sum)
-		var base_r := rng.randf_range(2.0, r_cap)
+		var base_r := rng.randf_range(MIN_DIAMETER * 0.5, r_cap)
 		var c := Vector2(rng.randf_range(-half + EDGE_BAND + 6.0, half - EDGE_BAND - 6.0), rng.randf_range(-half + EDGE_BAND + 6.0, half - EDGE_BAND - 6.0))
-		if c.length() < keep_out:
+		if c.length() < keep_out + MAX_DIAMETER * 0.5:   # keep_out is from the pool's shore
 			continue
 		var ok := true
 		for p in sw.pools:
-			if c.distance_to(p["center"]) < 42.0:
+			if c.distance_to(p["center"]) < POOL_SPACING:
 				ok = false
 		if not ok:
 			continue
@@ -200,19 +202,27 @@ func build_terrain(rng: RandomNumberGenerator, half: float, shrine_count: int, s
 		pads.append([c, max_radius(p) + 2.5, p["base"]])
 	shrine_sites.clear()
 	var tries := 0
-	while shrine_sites.size() < shrine_count and tries < 2000:
+	while shrine_sites.size() < shrine_count and tries < 6000:
 		tries += 1
 		var c := Vector2(rng.randf_range(-half + EDGE_BAND + 8.0, half - EDGE_BAND - 8.0), rng.randf_range(-half + EDGE_BAND + 8.0, half - EDGE_BAND - 8.0))
-		if c.length() < 40.0 or near_pool(c.x, c.y, shrine_radius + 14.0):
+		if c.length() < 40.0 or near_pool(c.x, c.y, shrine_radius + 16.0):
 			continue
 		var ok := true
 		for q in shrine_sites:
-			if c.distance_to(Vector2(q.x, q.z)) < 55.0:
+			if c.distance_to(Vector2(q.x, q.z)) < 46.0:
 				ok = false
 				break
 		if not ok:
 			continue
 		var h := base_terrain(c.x, c.y)
+		var gentle := true   # room for a gentle ramp to every other level pad (pools, start, shrines)
+		for pad in pads:
+			var gap := c.distance_to(pad[0]) - float(pad[1]) - (shrine_radius + 1.5)
+			if gap < absf(h - float(pad[2])) * 2.4 + 4.0:
+				gentle = false
+				break
+		if not gentle:
+			continue
 		pads.append([c, shrine_radius + 1.5, h])
 		shrine_sites.append(Vector3(c.x, h, c.y))
 
@@ -237,7 +247,7 @@ func build_terrain(rng: RandomNumberGenerator, half: float, shrine_count: int, s
 			var ex := c.x + cos(a) * (r + PAD_BLEND)
 			var ez := c.y + sin(a) * (r + PAD_BLEND)
 			diff = maxf(diff, absf(hgrid[clampi(int(ez - horigin), 0, hsize - 1) * hsize + clampi(int(ex - horigin), 0, hsize - 1)] - ph))
-		var reach := r + clampf(diff * 3.6, PAD_BLEND, 34.0)
+		var reach := r + clampf(diff * 3.6, PAD_BLEND, 50.0)
 		for other in pads:   # never ramp into another pad's level core
 			if other != pad:
 				reach = minf(reach, maxf(r + 4.0, c.distance_to(other[0]) - float(other[1]) - 1.0))

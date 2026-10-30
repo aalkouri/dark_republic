@@ -44,7 +44,7 @@ func _check_pools(water: SwampWater, seed: int) -> void:
 		for ri in 40:
 			for k in 90:
 				deepest = maxf(deepest, -water.bed_height(p, ri / 40.0, TAU * k / 90.0))
-	_check("seed %d: diameter <= 10 yd (9.14 m)" % seed, widest <= 9.144, "widest %.2f m" % widest)
+	_check("seed %d: big ponds, 18-36 m across" % seed, widest <= SwampWater.MAX_DIAMETER + 0.01 and widest >= SwampWater.MIN_DIAMETER, "widest %.2f m" % widest)
 	_check("seed %d: depth < character height (1.8 m)" % seed, deepest < 1.8, "deepest %.2f m" % deepest)
 	_check("seed %d: shapes are irregular" % seed, lumpiness > 1.05, "max/min radius %.2f" % lumpiness)
 
@@ -181,6 +181,9 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 			standing = t
 			break
 	var hit_at := standing.global_position + Vector3(3, 0, 0)
+	for t in trees:   # anything already alight from earlier in the run doesn't count
+		if TreeFire.state_of(t as Node3D) != "":
+			trees.erase(t)
 	var lit := ab._ignite_trees(hit_at)
 	var far_unlit := 0
 	for t in trees:
