@@ -12,6 +12,7 @@ extends Node3D
 signal exploded(pos: Vector3, radius: float)
 signal epic_killed(pos: Vector3)
 signal shattered(pos: Vector3, radius: float)   # a frozen goblin died and burst into ice
+signal burst(pos: Vector3, radius: float)       # a goblin died in a burst zone (Toxic Spill)
 
 const MAX := 1500
 const CELL := 2.0
@@ -71,6 +72,20 @@ var slow_f := PackedFloat32Array()
 var freeze_t := PackedFloat32Array()
 var stun_t := PackedFloat32Array()
 var curse_t := PackedFloat32Array()
+# Roster kit statuses
+var fear_t := PackedFloat32Array()      # flees from the player (Bellow, Banshee Scream)
+var frog_t := PackedFloat32Array()      # polymorphed: harmless, slow, double damage taken, 2x XP; drawn by RosterKit
+var ally_t := PackedFloat32Array()      # possessed (Haunt): walks to ally_goal, ignored by weapons and harmless
+var ally_goal := PackedVector3Array()
+var pct_t := PackedFloat32Array()       # bleed / acid: pct_f of max HP per second for pct_t s
+var pct_f := PackedFloat32Array()
+var frog_count := 0                     # live frogs (last tick)
+var kill_xp_mult := 1.0                 # set while Events.enemy_killed fires: XP multiplier of that kill
+var burst_center := Vector3.INF         # goblins dying within burst_radius of here burst for burst_frac of max HP
+var burst_radius := 0.0
+var burst_frac := 0.3
+var burst_blast := 3.0
+var _bursts := PackedVector3Array()
 var freeze_bonus := 0.5
 var curse_bonus := 0.25
 var shatter_frac := 0.4         # frozen goblins that die burst for this much of their max HP
@@ -186,7 +201,8 @@ func _ready() -> void:
 	sz.resize(MAX)
 	sep_x.resize(MAX)
 	sep_z.resize(MAX)
-	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim]:
+	ally_goal.resize(MAX)
+	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim, fear_t, frog_t, ally_t, pct_t, pct_f]:
 		a.resize(MAX)
 	cell_of.resize(MAX)
 	sorted.resize(MAX)
@@ -313,6 +329,11 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	freeze_t[i] = 0.0
 	stun_t[i] = 0.0
 	curse_t[i] = 0.0
+	fear_t[i] = 0.0
+	frog_t[i] = 0.0
+	ally_t[i] = 0.0
+	pct_t[i] = 0.0
+	pct_f[i] = 0.0
 	throw_t[i] = rng.randf_range(1.0, 3.0) if rng != null else 2.0
 	throw_anim[i] = 0.0
 	if t == TROLL:
@@ -345,6 +366,8 @@ func taken_mult(i: int) -> float:
 		m *= 1.0 + freeze_bonus
 	if curse_t[i] > 0.0:
 		m *= 1.0 + curse_bonus
+	if frog_t[i] > 0.0:
+		m *= 2.0
 	return m
 
 
@@ -382,6 +405,43 @@ func is_held(i: int) -> bool:
 	return freeze_t[i] > 0.0 or stun_t[i] > 0.0
 
 
+## Can't hurt the player right now: held, a frog, possessed or fleeing in terror.
+func is_harmless(i: int) -> bool:
+	return freeze_t[i] > 0.0 or stun_t[i] > 0.0 or frog_t[i] > 0.0 or ally_t[i] > 0.0 or fear_t[i] > 0.0
+
+
+func is_boss(i: int) -> bool:
+	return typ[i] == BOSS or typ[i] == TROLL
+
+
+## Flee from the player for `secs` (the boss doesn't scare).
+func scare(i: int, secs: float) -> void:
+	if not dead[i] and typ[i] != TROLL:
+		fear_t[i] = maxf(fear_t[i], secs * (0.4 if typ[i] == BOSS else 1.0))
+
+
+## Polymorph into a frog for `secs` (not the bosses).
+func frog(i: int, secs: float) -> void:
+	if not dead[i] and not is_boss(i):
+		frog_t[i] = maxf(frog_t[i], secs)
+
+
+## Bleed / acid: `frac` of max HP per second for `secs` (the stronger one wins; refreshes).
+func afflict(i: int, frac: float, secs: float) -> void:
+	if dead[i]:
+		return
+	pct_f[i] = maxf(pct_f[i], frac) if pct_t[i] > 0.0 else frac
+	pct_t[i] = maxf(pct_t[i], secs)
+
+
+## Index of the live enemy with this uid, or -1.
+func index_of(u: int) -> int:
+	for i in count:
+		if uid[i] == u and not dead[i]:
+			return i
+	return -1
+
+
 func frozen_count() -> int:
 	var n := 0
 	for i in count:
@@ -410,7 +470,11 @@ func _kill(i: int) -> void:
 		_explosions.append(Vector3(pos[i].x, pos[i].z, hp_max[i] * burn_explode_frac))
 	if freeze_t[i] > 0.0 and shatter_frac > 0.0:
 		_shatters.append(Vector3(pos[i].x, pos[i].z, hp_max[i] * shatter_frac))
+	if burst_radius > 0.0 and Vector2(pos[i].x - burst_center.x, pos[i].z - burst_center.z).length() <= burst_radius:
+		_bursts.append(Vector3(pos[i].x, pos[i].z, hp_max[i] * burst_frac * pct_scale(i)))
+	kill_xp_mult = 2.0 if frog_t[i] > 0.0 else 1.0
 	Events.enemy_killed.emit(pos[i], typ[i])
+	kill_xp_mult = 1.0
 
 
 ## Multiplier for damage worked out as a % of this enemy's max HP: tiny for Thog, so burns and
@@ -506,7 +570,7 @@ func query_radius(c: Vector3, r: float, vertical := true) -> PackedInt32Array:
 			var s := cell_start[cell]
 			for k in range(s, s + cell_count[cell]):
 				var i := sorted[k]
-				if dead[i]:
+				if dead[i] or ally_t[i] > 0.0:
 					continue
 				var p := pos[i]
 				var t := typ[i]
@@ -552,6 +616,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 	_build_grid(player_pos)
 	_resolve_explosions()
 	_resolve_shatters()
+	_resolve_bursts()
 
 	var n := count
 	var parity := _frame & 1
@@ -579,14 +644,18 @@ func tick(dt: float, player_pos: Vector3) -> void:
 	var hs := water.hsize if hg_on else 0
 	var ho := water.horigin if hg_on else 0.0
 	var hmax := float(hs) - 1.001
+	var frogs := 0
 	for i in n:
 		var p := pos[i]
 		var t := typ[i]
 		var tx := player_pos.x - p.x
 		var tz := player_pos.z - p.z
+		if ally_t[i] > 0.0:   # possessed: heads for its own target instead
+			tx = ally_goal[i].x - p.x
+			tz = ally_goal[i].z - p.z
 		var d2 := tx * tx + tz * tz
 
-		if d2 > reloc2 and t != BOSS and t != TROLL and not fear:
+		if d2 > reloc2 and t != BOSS and t != TROLL and not fear and fear_t[i] <= 0.0 and ally_t[i] <= 0.0:
 			if nav_on:   # indoors: only somewhere the player can be reached from
 				var q := nav.reachable_point(player_pos, 28.0, 36.0, rng)
 				if q != Vector3.INF:
@@ -615,6 +684,18 @@ func tick(dt: float, player_pos: Vector3) -> void:
 				burn_num_t[i] = BURN_NUMBER_INTERVAL
 			if hp[i] <= 0.0:
 				_kill(i)
+
+		# Roster kit statuses (tick even while knocked back or frozen)
+		if fear_t[i] > 0.0:
+			fear_t[i] -= dt
+		if frog_t[i] > 0.0:
+			frog_t[i] -= dt
+			frogs += 1
+		if ally_t[i] > 0.0:
+			ally_t[i] -= dt
+		if pct_t[i] > 0.0 and not dead[i]:
+			pct_t[i] -= dt
+			dot_damage(i, hp_max[i] * pct_f[i] * dt * (PCT_BOSS if t == TROLL else 1.0))
 
 		# Knockback: fixed displacement, no steering or separation
 		if kb_t[i] > 0.0:
@@ -729,11 +810,13 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			var sp := t_speed[t] * (WATER_SPEED_MULT if p.y < -0.15 else 1.0)
 			if slow_t[i] > 0.0:
 				sp *= slow_f[i]
+			if frog_t[i] > 0.0:
+				sp *= 0.55
 			if throw_anim[i] > 0.0 or (t == TROLL and troll_busy):
 				sp = 0.0   # a skeleton winding up a throw / Thog mid-attack stands still
-			if fear:
+			if fear or fear_t[i] > 0.0:
 				sp = -sp   # run away from the player
-			elif lost and t != BOSS and t != TROLL:
+			elif lost and t != BOSS and t != TROLL and ally_t[i] <= 0.0:
 				# Lost in the dark: amble along a slowly turning heading of their own
 				var wa := float(uid[i]) * 2.399 + _time * 0.35
 				fx = cos(wa)
@@ -796,7 +879,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		var reach := t_radius[t] * sz[i] + ATTACK_REACH
 		var ph := aph[i]
 		var clip := _clip_run
-		if d2 < reach * reach and not fear and not (lost and t != BOSS):
+		if d2 < reach * reach and not fear and fear_t[i] <= 0.0 and frog_t[i] <= 0.0 and not (lost and t != BOSS):
 			clip = _clip_attack
 			ph += dt * _attack_rate
 		else:
@@ -833,15 +916,19 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			fxc += FX_CHILL
 		if curse_t[i] > 0.0:
 			fxc += FX_SHADOW
+		if ally_t[i] > 0.0:   # possessed: a pale ghostly glow
+			col = Color(0.75, 0.97, 1.0)
+			fxc += FX_CHILL + 2.0
 		buf[b + 16] = col.r
 		buf[b + 17] = col.g
 		buf[b + 18] = col.b
 		buf[b + 19] = fxc
 
 	buf = skeletons.sync(dt, buf, player)
-	if _trolls > 0:   # Thog is drawn by ThogBoss, not as a goblin
+	frog_count = frogs
+	if _trolls > 0 or frogs > 0:   # Thog is drawn by ThogBoss and frogs by RosterKit, not as goblins
 		for i in n:
-			if typ[i] == TROLL:
+			if typ[i] == TROLL or frog_t[i] > 0.0:
 				for k in 12:
 					buf[i * STRIDE + k] = 0.0
 	mm.buffer = buf
@@ -945,6 +1032,19 @@ func _resolve_shatters() -> void:
 		shattered.emit(Vector3(e.x, SwampWater.height_at(e.x, e.y) + 0.6, e.y), shatter_radius)
 
 
+## Toxic Spill: goblins that died in the zone burst, queued and chained like shatters.
+func _resolve_bursts() -> void:
+	if _bursts.is_empty():
+		return
+	var n := mini(_bursts.size(), MAX_EXPLOSIONS_PER_TICK)
+	var now := _bursts.slice(0, n)
+	_bursts = _bursts.slice(n)
+	for e in now:
+		for j in query_radius(Vector3(e.x, 0.8, e.y), burst_blast, false):
+			damage(j, e.z)
+		burst.emit(Vector3(e.x, SwampWater.height_at(e.x, e.y) + 0.5, e.y), burst_blast)
+
+
 func burning_count() -> int:
 	var n := 0
 	for i in count:
@@ -1012,6 +1112,12 @@ func _compact() -> void:
 			curse_t[i] = curse_t[last]
 			throw_t[i] = throw_t[last]
 			throw_anim[i] = throw_anim[last]
+			fear_t[i] = fear_t[last]
+			frog_t[i] = frog_t[last]
+			ally_t[i] = ally_t[last]
+			ally_goal[i] = ally_goal[last]
+			pct_t[i] = pct_t[last]
+			pct_f[i] = pct_f[last]
 			count -= 1
 		else:
 			i += 1

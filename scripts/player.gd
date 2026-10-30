@@ -58,6 +58,17 @@ var burn_left := 0.0
 var slow_t := 0.0             # boss hazards (webs, spores): move at slow_f speed for slow_t s
 var slow_f := 1.0
 var root_t := 0.0             # cocooned: can't move or jump for root_t s
+# Roster kits (RosterKit sets these)
+var dmg_taken := 1.0          # damage taken multiplier (Bellow armour, Mutagen side effect)
+var thorns := 0.0             # enemies that hit you take this many times their contact damage (Shield Wall)
+var no_knockback := false     # Swamp Rage
+var glide := false            # Wings of Valhalla: falls slowly
+var scripted := false         # a kit moves you (leaps, dashes, blinks): no input or physics, camera follows
+var phase := false            # Ghast's Phase: untouchable, passes through walls and trees
+var _phase_safe := Vector3.INF
+var size_mult := 1.0          # Swamp Rage: the model grows
+var _launch := false
+var dim_mult := 1.0           # Smoke Bomb / Phase: the model fades
 var _collider: CollisionShape3D
 const SPRING_NORMAL := 6.5
 const SPRING_METEOR := 14.0
@@ -187,6 +198,10 @@ func _physics_process(dt: float) -> void:
 	if meteor_form:
 		_follow_camera(dt)
 		return
+	if scripted:   # velocity is only used to face the model the way the kit moves you
+		invuln -= dt
+		_update_visuals(dt)
+		return
 	_tick_burn(dt)
 	var input: Vector2
 	var jump_pressed: bool
@@ -236,6 +251,10 @@ func _physics_process(dt: float) -> void:
 	else:
 		_coyote -= dt
 	_prev_floor = on_floor
+	if _launch:   # a kit threw you into the air this frame
+		_launch = false
+		on_floor = false
+		_coyote = 0.0
 
 	var hv := Vector3(velocity.x, 0.0, velocity.z)
 	var hspeed := hv.length()
@@ -289,6 +308,8 @@ func _physics_process(dt: float) -> void:
 				hv = _accelerate(hv, wishdir, move_speed, AIR_CONTROL, dt)
 			hv = _accelerate(hv, wishdir, AIR_CAP, AIR_ACCEL, dt)
 		velocity.y -= GRAVITY * dt
+		if glide:
+			velocity.y = maxf(velocity.y, -1.8)
 
 	# Water: bleed off any speed above the (halved) move speed
 	if in_water and hv.length() > move_speed:
@@ -297,7 +318,10 @@ func _physics_process(dt: float) -> void:
 		hv = hv.normalized() * MAX_HSPEED
 	velocity.x = hv.x
 	velocity.z = hv.z
-	move_and_slide()
+	if phase:
+		_phase_move(dt)
+	else:
+		move_and_slide()
 
 	if global_position.y < -25.0:
 		global_position = Vector3(0, 3, 0)
@@ -306,6 +330,37 @@ func _physics_process(dt: float) -> void:
 	hp = minf(hp + stats.value("regen") * dt, max_hp)
 	invuln -= dt
 	_update_visuals(dt)
+
+
+## Phased: slide straight through walls and trees, feet kept on whatever floor is below.
+func _phase_move(dt: float) -> void:
+	var p := global_position + Vector3(velocity.x, 0.0, velocity.z) * dt
+	var q := PhysicsRayQueryParameters3D.create(p + Vector3(0, 2.5, 0), p + Vector3(0, -6.0, 0))
+	q.exclude = [get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(q)
+	p.y = hit["position"].y if not hit.is_empty() else SwampWater.height_at(p.x, p.z)
+	global_position = p
+	velocity.y = 0.0
+	if _clear_here():
+		_phase_safe = p
+
+
+## No wall or tree overlapping the capsule here.
+func _clear_here() -> bool:
+	var sq := PhysicsShapeQueryParameters3D.new()
+	sq.shape = _collider.shape
+	sq.transform = Transform3D(Basis.IDENTITY, global_position + Vector3(0, 0.95, 0))
+	sq.exclude = [get_rid()]
+	sq.collision_mask = collision_mask
+	return get_world_3d().direct_space_state.intersect_shape(sq, 1).is_empty()
+
+
+func set_phase(on: bool) -> void:
+	phase = on
+	if on:
+		_phase_safe = global_position
+	elif not _clear_here() and _phase_safe != Vector3.INF:
+		global_position = _phase_safe   # don't end up stuck inside a wall
 
 
 func _accelerate(hv: Vector3, wishdir: Vector3, wishspeed: float, accel: float, dt: float) -> Vector3:
@@ -333,10 +388,10 @@ func _update_visuals(dt: float) -> void:
 	elif hv.length() > 0.5:
 		target_yaw = atan2(-hv.x, -hv.z)
 	model.rotation.y = lerp_angle(model.rotation.y, target_yaw, 1.0 - exp(-15.0 * dt))
-	var squash := Vector3(1.05, 0.82, 1.05) if sliding else Vector3.ONE
+	var squash := (Vector3(1.05, 0.82, 1.05) if sliding else Vector3.ONE) * size_mult
 	model.scale = model.scale.lerp(squash, 1.0 - exp(-20.0 * dt))
 
-	model.set_dim(IMMUNE_DIM if invuln > 0.0 else 1.0)
+	model.set_dim((IMMUNE_DIM if invuln > 0.0 else 1.0) * dim_mult)
 	model.set_motion(hv.length(), not is_on_floor())
 	_update_ash(dt)
 
@@ -444,7 +499,7 @@ func hurt(amount: float) -> bool:
 	if god_mode:
 		return true
 	var armor := stats.value("armor")
-	amount *= 20.0 / (20.0 + armor)
+	amount *= 20.0 / (20.0 + armor) * dmg_taken
 	var absorbed := minf(shield, amount)
 	shield -= absorbed
 	amount -= absorbed
@@ -459,6 +514,8 @@ func hurt(amount: float) -> bool:
 
 ## Shove the player along `dir` (horizontal) with a small hop.
 func knockback(dir: Vector3) -> void:
+	if no_knockback or scripted:
+		return
 	dir.y = 0.0
 	if dir.length_squared() < 0.0001:
 		return
@@ -479,6 +536,13 @@ func apply_slow(factor: float, secs: float) -> void:
 ## Root the player in place (no moving or jumping) for `secs`.
 func root(secs: float) -> void:
 	root_t = maxf(root_t, secs)
+
+
+## Throw the player upward at `vy` m/s (leaves the ground even if standing on it).
+func launch(vy: float) -> void:
+	velocity.y = vy
+	_launch = true
+	sliding = false
 
 
 func add_shield(amount: float) -> void:

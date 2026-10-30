@@ -255,7 +255,8 @@ func try_cast(i: int) -> bool:
 				_cast_shockwave()
 			METEOR:
 				_cast_meteor()
-	cooldown[i] = defs()[i]["cooldown"] * (stats.value("ability_cdr") if stats.has_stat("ability_cdr") else 1.0)
+	var cd: float = defs()[i]["cooldown"] * (stats.value("ability_cdr") if stats.has_stat("ability_cdr") else 1.0)
+	cooldown[i] = roster.adjust_cooldown(i, cd) if roster else cd
 	cast.emit(i)
 	return true
 
@@ -408,6 +409,17 @@ func _face(n: Node3D, target: Vector3) -> void:
 	var d := target - n.global_position
 	if d.length_squared() > 0.01:
 		n.basis = Basis.looking_at(d.normalized(), Vector3.UP if absf(d.normalized().y) < 0.99 else Vector3.FORWARD)
+
+
+## Where the camera is pointing on the ground, at most `max_range` m away.
+func aim_point(max_range := METEOR_RANGE) -> Vector3:
+	var p := _aim_point()
+	var off := p - player.global_position
+	off.y = 0.0
+	if off.length() > max_range:
+		p = player.global_position + off.normalized() * max_range
+		p = _floor_below(Vector3(p.x, maxf(SwampWater.height_at(p.x, p.z), player.global_position.y) + 2.0, p.z))
+	return p
 
 
 func _aim_point() -> Vector3:

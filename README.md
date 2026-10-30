@@ -46,7 +46,7 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 
 ## Character select
 
-**Play** on the title opens a roster of 25 champions plus 5 mystery slots (shown only as "?"): a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. **The Fire Wizard** plays from the start; the **Ice, Thunder and Dark Wizards** are playable once bought. Characters with a model preview as it in 3D, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. **Unlocking with coins:** each locked tile shows its price: 2,000 for the Ice, Thunder and Dark Wizards, 7,000 for Merlin and 10,000 for everyone else. Selecting a locked character shows its unlock requirements as chips with a tick or a cross under "LOCKED · to unlock:" (coins for everyone; **Thog the Troll** also needs beating him in the Swamp, and the **Ghast** needs 15:00 in the Swamp on Unrelenting), and turns Play into **Unlock**, which works once every requirement is met and spends the coins. Bought characters get their skill tree and level straight away. Only characters with a model and abilities can be played, which so far is just the Fire Wizard, so others show "playable soon" until they're built.
+**Play** on the title opens a roster of 25 champions plus 5 mystery slots (shown only as "?"): a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. **The Fire Wizard** plays from the start; the **Ice, Thunder and Dark Wizards** are playable once bought. Characters with a model preview as it in 3D, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. **Unlocking with coins:** each locked tile shows its price: 2,000 for the Ice, Thunder and Dark Wizards, 7,000 for Merlin and 10,000 for everyone else. Selecting a locked character shows its unlock requirements as chips with a tick or a cross under "LOCKED · to unlock:" (coins for everyone; **Thog the Troll** also needs beating him in the Swamp, and the **Ghast** needs 15:00 in the Swamp on Unrelenting), and turns Play into **Unlock**, which works once every requirement is met and spends the coins. Bought characters get their skill tree and level straight away. Only characters with a model and abilities can be played: the four wizards, Merlin, Ogre, Ghast, Vampire Hunter, Vicki, the Rogue, Gaiden and Dr. Croc. The rest show "playable soon" until they're built.
 
 The preview panel shows the character's level (**LVL N**) in its top-left corner with the EXP towards the next level and a thin bar under it, and the signature weapon's icon and name in the top-right corner; hover the weapon for its damage, attack rate and what it does. Ability names live in the hover tooltips. Each character has a saved level (`lvl`, kept with the coins in `user://progress.cfg`). Tiles show **lvl N** in the bottom-left corner when it's 1 or more, and nothing at 0. Mouse, keyboard and gamepad all work; Esc goes back.
 
@@ -56,7 +56,7 @@ Every character has a designed kit in `data/abilities.json`: a starting weapon p
 
 **On the select screen**, every character shows its weapon and its three ability squares. Hover one for the full description with cooldown and numbers (`KitDB.describe_lines`; `{braces}` in the JSON mark highlighted numbers). Icons are drawn in code by `scripts/ability_glyphs.gd` from each ability's `"icon": {"glyph", "color"}` (36 glyphs). To preview them all: `godot --path . --script res://tools/render_ability_icons.gd -- /out.png`.
 
-**In runs**, the Fire Wizard, Ice Wizard, Thunder Wizard and Dark Wizard are playable; the others are designs until each character is built (they show "playable soon" once bought).
+**In runs**, every character with a 3D model is playable: the four wizards, Merlin, Ogre, Ghast, Vampire Hunter, Vicki, the Rogue, Gaiden and Dr. Croc. The others are designs until each character is built (they show "playable soon" once bought).
 
 ## The Ice, Thunder and Dark Wizards
 
@@ -79,6 +79,40 @@ Each plays as its own rigged Higgsfield model (`models/<id>/`, Lean clip set: id
 | **Dark** | **Siphon** (30 s): goblins within 12 m lose 6% max HP/s for 4 s; you heal 1 HP per goblin per second (max 5% of max HP/s) | **Raise Dead** (50 s): 15 dead goblins (fresh corpses first, the rest claw out of the bog) fight for you for 15 s (25 per hit), then explode for 60 in 3 m | **Eclipse** (2 min): the world goes dark for 8 s; goblins lose track of you and wander, you deal +100% damage, and every kill sends a shadow wisp at a goblin for 60 |
 
 **Goblin statuses** (`enemy_manager.gd`): slow, freeze, stun, curse, the Eclipse wander, and shatter explosions, shown in the goblin shader as icy, frosted or shadowed. Frozen and stunned goblins stand still and deal no contact damage. Raise Dead's allies (`ally_crowd.gd`) reuse the goblin's baked mesh and animations, shadow-tinted. Lightning everywhere is `lightning_fx.gd` (one additive MultiMesh of jagged segments).
+
+## Merlin, Ogre, Ghast, Vampire Hunter, Vicki, Rogue, Gaiden and Dr. Croc
+
+These run on the same `RosterHero` model player (clip segments per character in `RosterHero.CFG`). The Ghast's model has no skeleton, so it hovers and sways, lunges when it attacks and swells when it casts.
+
+**Weapons** (`weapon_system.gd`). Damage and fire rate are the orb stats scaled by the weapon's own `damage` / `every` in `data/abilities.json`, so every weapon levels up through the same card. On melee weapons, extra count widens the reach.
+
+| Character | Weapon | Effect |
+|---|---|---|
+| Merlin | Arcane Bolts | Homing bolts that bounce on to 2 more enemies |
+| Ogre | Tree Trunk | 120° cleave, 3 m, heavy knockback (360° in Swamp Rage) |
+| Ghast | Wail | 8 m cone that hits everything in it and slows 25% |
+| Vampire Hunter | Silver Bolts | Fast bolts that pierce 3 enemies, double damage to epics and bosses |
+| Vicki | Valkyrie Spear | 6 m piercing thrust; every 4th throw is a javelin flying 25 m |
+| Rogue | Twin Daggers | Short-range throws in pairs; hits bleed 3% of max HP/s for 3 s |
+| Gaiden | Katana | 3-hit combo in a 3 m arc; the 3rd cut sends a 10 m wind slash |
+| Dr. Croc | Volatile Flasks | Lobbed flasks: 3 m burst, then an acid puddle (4% of max HP/s) |
+
+Once bought, every character's weapon can also turn up for the others as a rare Legendary level-up reward. The odds are shared out, so the rewards stay rare however many characters you own.
+
+**Abilities**: one `KitPart` per character in `scripts/kits/`, run by `RosterKit`. They follow the numbers in `data/abilities.json`:
+
+| | 1 (start) | 2 (level 5) | 3 Ultimate (level 10) |
+|---|---|---|---|
+| **Merlin** | **Time Warp**: a 20 m bubble of slow time (70% slower) for 5 s, +50% attack speed | **Polymorph**: 40 enemies become hopping frogs for 8 s (harmless, double damage, 2x XP) | **Rewind**: HP/shield back to 8 s ago, other cooldowns reset, everything within 25 m flung 10 yd and stunned |
+| **Ogre** | **Bellow**: enemies within 14 m flee for 4 s; you take less damage for 6 s | **Belly Flop**: leap up to 20 m where you aim; 160 + 2 s stun within 7 m | **Swamp Rage**: 12 s bigger, +60% damage, no knockback, 360° cleave, kills heal 2% |
+| **Ghast** | **Phase**: 4 s intangible, drifting through walls, trees and enemies (30 dmg + slow to each) | **Haunt**: possess the biggest non-boss enemy for 10 s; it fights for you (3x), then bursts | **Banshee Scream**: 15% max HP to all within 30 m, they flee 6 s, those under 20% die |
+| **Vampire Hunter** | **Holy Water**: thrown pool, 8 m across for 6 s, 25/s and 40% slow | **Stake Volley**: 16 stakes all round, 90 each, pin for 2 s | **Hunter's Night**: 10 s of red night; enemies at half speed, bolts lock on to the 3 biggest for 3x, kills heal 1% |
+| **Vicki** | **Shield Wall**: 15% max HP shield for 6 s; attackers take 2x their contact damage | **Wings of Valhalla**: leap and glide up to 4 s, then dive for 140 within 6 m | **Ride of the Valkyries**: a spectral winged horse charges through 3 times for 180 per pass; kills heal 1% |
+| **Rogue** | **Smoke Bomb**: invisible 4 s (enemies wander), next attack 3x | **Pickpocket**: dash 12 m through up to 10 enemies, 70 each + an extra XP gem each | **Death by a Thousand Cuts**: blink to the 20 nearest over 3 s, 120 + bleed each, invulnerable, then back home |
+| **Gaiden** | **Shadow Step** (2 charges): teleport behind the biggest enemy, 250, 1.5 s invulnerable | **Shuriken Storm**: 3 spiralling rings of 12 piercing shuriken, 50 each | **Reed Clones**: 4 shadow clones for 12 s copying your attacks at 60% |
+| **Dr. Croc** | **Mutagen**: +50% attack speed, +30% speed, +10% damage taken for 8 s | **Death Roll**: roll 15 m, carrying enemies (50 every 0.25 s), then fling them | **Toxic Spill**: 20 m acid flood for 10 s (4% max HP/s); deaths in it burst for 30% max HP |
+
+New goblin statuses for these: flee, frog, possessed and bleed/acid (`EnemyManager.scare / frog / afflict`, `ally_t`). Frogs, possessed and fleeing goblins can't hurt you. Sounds come from `tools/gen_kit_sounds.py`. **Test:** `godot --headless --path . res://tools/test_kits.tscn [-- --only=<id>]` plays each of the eight and checks its model, weapon and all three abilities.
 
 **Sounds** are synthesised by `tools/gen_roster_sounds.py` into `audio/abilities/`. **Tests:** `godot --headless --path . res://tools/test_roster.tscn` plays a run as each character and checks the model, entrance, weapon and all nine abilities. Screenshot runs take `--char=<id>` to play as someone else, and `--shot-slow=T` to slow to a crawl at T seconds so short effects like bolts are caught.
 
@@ -383,7 +417,8 @@ scripts/
   kit_db.gd          loads data/abilities.json: every character's weapon + 3 abilities, tooltips
   hero_base.gd       what a playable character's model provides (HeroModel and RosterHero)
   roster_hero.gd     rigged roster character in runs: clips, staff, twist, colours
-  roster_kit.gd      the Ice / Thunder / Dark Wizards' abilities and their effects
+  roster_kit.gd      the Ice / Thunder / Dark Wizards' abilities; hands everyone else's to scripts/kits/
+  kits/              KitPart and one kit per character (Merlin ... Dr. Croc)
   ally_crowd.gd      Raise Dead's risen goblins
   lightning_fx.gd    pooled jagged lightning bolts
   vat_crowd.gd       baked vertex-animation playback for the goblin crowd (clip/phase per instance, tint, burn, epic, hit flash)

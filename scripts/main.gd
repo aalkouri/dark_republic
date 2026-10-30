@@ -332,7 +332,11 @@ func _ready() -> void:
 	enemies.epic_killed.connect(func(p: Vector3): powerups.on_elite_killed(p))
 
 	enemies.exploded.connect(func(p: Vector3, r: float): fx.burst(p, r * 1.4, Color(1.0, 0.4, 0.08), 0.35))
+	enemies.burst.connect(func(p: Vector3, r: float): fx.burst(p, r * 1.3, Color(0.55, 1.0, 0.25), 0.35))
 	if abilities.roster:
+		weapons.kit = abilities.roster
+		abilities.roster.weapons = weapons
+		abilities.roster.drop_xp.connect(func(p: Vector3, amount: float): gems.spawn(p + Vector3(0, 0.5, 0), amount * xp_drop_mult()))
 		abilities.roster.healed.connect(func(amount: float):
 			hud.show_heal(amount)
 			numbers.add(player.global_position + Vector3(0, 2.6, 0), amount, DamageNumbers.HEAL))
@@ -501,8 +505,8 @@ func _track_perf(e: float, w: float, g: float) -> void:
 ## knocks the player and the enemies apart. While immune, any enemy that runs into the player
 ## is knocked back opposite to the direction it was heading.
 func _contact_damage() -> void:
-	if player.meteor_form:
-		return   # untouchable while falling as the meteor
+	if player.meteor_form or player.phase:
+		return   # untouchable while falling as the meteor / phased (Ghast)
 	var me := player.global_position
 	var hits := enemies.query_radius(me + Vector3(0, 0.9, 0), 0.45)
 	if hits.is_empty():
@@ -511,8 +515,8 @@ func _contact_damage() -> void:
 		var dmg := 0.0
 		var push := Vector3.ZERO
 		for i in hits:
-			if enemies.is_held(i):
-				continue   # frozen or stunned goblins can't hit
+			if enemies.is_harmless(i):
+				continue   # frozen, stunned, frogs, possessed or fleeing goblins can't hit
 			if enemies.typ[i] == EnemyManager.TROLL and not enemies.boss_contact:
 				continue
 			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult())
@@ -523,6 +527,10 @@ func _contact_damage() -> void:
 			return
 		player.hurt(dmg)
 		_smoke_contacts += 1
+		if player.thorns > 0.0:   # Shield Wall: hitting her hurts
+			for i in hits:
+				if not enemies.is_harmless(i):
+					enemies.damage(i, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * player.thorns)
 		if push.length_squared() < 0.0001:
 			push = -player.velocity
 		player.knockback(push)
@@ -680,7 +688,7 @@ func _on_boss_defeated() -> void:
 
 func _on_enemy_killed(p: Vector3, type_id: int) -> void:
 	kills += 1
-	gems.spawn(p + Vector3(0, 0.5, 0), enemies.t_xp[type_id] * xp_drop_mult())
+	gems.spawn(p + Vector3(0, 0.5, 0), enemies.t_xp[type_id] * xp_drop_mult() * enemies.kill_xp_mult)
 	if type_id == EnemyManager.BOSS:
 		gems.magnetise_all()
 		hud.flash_message("GOBLIN WARLORD SLAIN!", 4.0)

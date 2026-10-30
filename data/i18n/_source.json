@@ -48,31 +48,34 @@
   "hud.gd:693"
  ],
  "%s APPROACHES": [
-  "main.gd:649"
+  "main.gd:657"
  ],
  "%s Chest": [
   "chest.gd:52"
  ],
  "%s Cooldown": [
-  "weapon_system.gd:166"
+  "weapon_system.gd:266"
  ],
  "%s DEFEATED!": [
   "hud.gd:683",
   "main.gd:69"
  ],
  "%s Damage": [
-  "weapon_system.gd:165",
-  "weapon_system.gd:187"
+  "weapon_system.gd:265",
+  "weapon_system.gd:302"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:665"
+  "main.gd:673"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:394"
  ],
  "%s Pierce": [
-  "weapon_system.gd:168",
-  "weapon_system.gd:189"
+  "weapon_system.gd:268",
+  "weapon_system.gd:304"
+ ],
+ "%s Reach": [
+  "weapon_system.gd:267"
  ],
  "%s Shrine": [
   "shrine.gd:492"
@@ -179,7 +182,7 @@
   "skill_tree.gd:105"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:484"
+  "main.gd:488"
  ],
  "2 yd": [
   "abilities.gd:208"
@@ -209,7 +212,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:592"
+  "main.gd:600"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -494,7 +497,7 @@
   "characters.json"
  ],
  "Chain Lightning": [
-  "weapon_system.gd:58",
+  "weapon_system.gd:123",
   "abilities.json"
  ],
  "Chain Shrine": [
@@ -561,7 +564,7 @@
   "settings_menu.gd:233"
  ],
  "Cooldowns reset": [
-  "main.gd:878"
+  "main.gd:886"
  ],
  "Cowboy": [
   "characters.json"
@@ -929,7 +932,7 @@
   "taglines.json"
  ],
  "Fireballs": [
-  "weapon_system.gd:54",
+  "weapon_system.gd:119",
   "abilities.json",
   "upgrades.json",
   "upgrades.json"
@@ -996,7 +999,7 @@
   "abilities.json"
  ],
  "Frost Shards": [
-  "weapon_system.gd:56",
+  "weapon_system.gd:121",
   "abilities.json"
  ],
  "Frozen enemies that die shatter for {40%} of their max HP to enemies within {2 yd}; shatters chain": [
@@ -1018,7 +1021,7 @@
   "intro.gd:446"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:686"
+  "main.gd:694"
  ],
  "Gaiden": [
   "characters.json"
@@ -1057,16 +1060,16 @@
   "abilities.json"
  ],
  "Goblin": [
-  "enemy_manager.gd:204"
+  "enemy_manager.gd:220"
  ],
  "Goblin Brute": [
-  "enemy_manager.gd:206"
+  "enemy_manager.gd:222"
  ],
  "Goblin Scamp": [
-  "enemy_manager.gd:205"
+  "enemy_manager.gd:221"
  ],
  "Goblin Warlord": [
-  "enemy_manager.gd:207"
+  "enemy_manager.gd:223"
  ],
  "Gold": [
   "chest.gd:8",
@@ -1175,11 +1178,11 @@
   "abilities.json"
  ],
  "Hurls fireballs from your staff at the nearest enemies.": [
-  "weapon_system.gd:54",
+  "weapon_system.gd:119",
   "upgrades.json"
  ],
  "Hurls icicles from your staff that slow the enemies they hit.": [
-  "weapon_system.gd:56"
+  "weapon_system.gd:121"
  ],
  "I cast Magic Missile at the darkness!": [
   "taglines.json"
@@ -1266,7 +1269,7 @@
   "characters.json"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:192"
+  "weapon_system.gd:307"
  ],
  "LEVEL UP!": [
   "hud.gd:253"
@@ -1356,7 +1359,7 @@
   "characters.json"
  ],
  "Lightning arcs from your staff and jumps between enemies.": [
-  "weapon_system.gd:58"
+  "weapon_system.gd:123"
  ],
  "Lightning finds the toughest enemies.": [
   "abilities.json"
@@ -1498,7 +1501,7 @@
   "upgrade_db.gd:138"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:707"
+  "main.gd:715"
  ],
  "NEW CHAMPION": [
   "hud.gd:735"
@@ -1809,10 +1812,10 @@
   "skill_screen.gd:108"
  ],
  "SURVIVE 10 MINUTES": [
-  "main.gd:411"
+  "main.gd:415"
  ],
  "SWARM!": [
-  "main.gd:581"
+  "main.gd:589"
  ],
  "Sage": [
   "skill_tree.gd:65"
@@ -1850,7 +1853,7 @@
   "abilities.json"
  ],
  "Shadow Bolts": [
-  "weapon_system.gd:60",
+  "weapon_system.gd:125",
   "abilities.json"
  ],
  "Shadow Step": [
@@ -1894,7 +1897,7 @@
   "abilities.json"
  ],
  "Skeleton": [
-  "enemy_manager.gd:209"
+  "enemy_manager.gd:225"
  ],
  "Skills": [
   "character_select.gd:649"
@@ -1924,7 +1927,7 @@
   "settings.gd:24"
  ],
  "Slow bolts of shadow that pierce and curse the enemies they hit.": [
-  "weapon_system.gd:60"
+  "weapon_system.gd:125"
  ],
  "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)": [
   "abilities.json"
@@ -2093,19 +2096,19 @@
  ],
  "THOG": [
   "main.gd:69",
-  "main.gd:654"
+  "main.gd:662"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:367"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:663"
+  "main.gd:671"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:394"
  ],
  "THOG THE TROLL": [
-  "main.gd:634",
+  "main.gd:642",
   "thog_boss.gd:469"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2115,7 +2118,7 @@
   "thog_boss.gd:504"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:635"
+  "main.gd:643"
  ],
  "Take less damage.": [
   "upgrades.json"
@@ -2239,7 +2242,7 @@
   "taglines.json"
  ],
  "Thog the Troll": [
-  "enemy_manager.gd:213",
+  "enemy_manager.gd:229",
   "characters.json"
  ],
  "Thog the Troll in the Swamp": [
@@ -2383,7 +2386,7 @@
  "UNRELENTING": [
   "character_select.gd:222",
   "character_select.gd:223",
-  "main.gd:411"
+  "main.gd:415"
  ],
  "Ultimate": [
   "settings.gd:26"

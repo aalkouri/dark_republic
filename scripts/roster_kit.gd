@@ -21,8 +21,23 @@ extends Node3D
 ##                            for 60 within 3 m
 ##   3  Eclipse        120 s  8 s of darkness: goblins lose track of you and wander, you deal +100%
 ##                            damage, every kill sends a shadow wisp at a goblin for 60
+## Everyone else: one KitPart each (scripts/kits/), which this node hands casts and ticks to:
+## KitMerlin, KitOgre, KitGhast, KitHunter, KitVicki, KitRogue, KitGaiden, KitCroc.
 
 signal healed(amount: float)
+signal drop_xp(at: Vector3, amount: float)   # an extra XP gem (Pickpocket)
+
+## Numbers the weapons need from the kits
+const CLONE_DAMAGE := 0.6            # Reed Clones copy your attacks at 60%
+const HUNT_TARGETS := 3              # Hunter's Night: bolts lock on to the 3 biggest enemies...
+const HUNT_DAMAGE := 3.0             # ...for 3x damage
+const STAKE_PIN := 2.0               # Stake Volley pins for 2 s
+const PARTS := {
+	"merlin": "res://scripts/kits/kit_merlin.gd", "ogre": "res://scripts/kits/kit_ogre.gd",
+	"ghast": "res://scripts/kits/kit_ghast.gd", "vampire_hunter": "res://scripts/kits/kit_hunter.gd",
+	"vicki": "res://scripts/kits/kit_vicki.gd", "rogue": "res://scripts/kits/kit_rogue.gd",
+	"gaiden": "res://scripts/kits/kit_gaiden.gd", "dr_croc": "res://scripts/kits/kit_croc.gd",
+}
 
 const YARD := 0.9144
 const SOUND_DIR := "res://audio/abilities/"
@@ -91,6 +106,8 @@ var fx: FxManager
 var corpses: CorpseManager
 var lightning: LightningFx
 var allies: AllyCrowd
+var part: KitPart                    # the abilities of everyone but the wizards
+var weapons: WeaponSystem            # set by main (Stake Volley and Shuriken Storm fire projectiles)
 
 var _main: Color
 var _deep: Color
@@ -144,6 +161,9 @@ func setup(p_hub: Abilities, p_kit: String) -> void:
 	_main = RosterHero.color(kit, "main")
 	_deep = RosterHero.color(kit, "deep")
 	_light = RosterHero.color(kit, "light")
+	if PARTS.has(kit):
+		part = load(PARTS[kit]).new()
+		part.k = self
 
 
 func _ready() -> void:
@@ -184,7 +204,9 @@ func _ready() -> void:
 		allies = AllyCrowd.new()
 		allies.enemies = enemies
 		add_child(allies)
-		Events.enemy_killed.connect(_on_kill)
+	Events.enemy_killed.connect(_on_kill)
+	if part:
+		add_child(part)
 
 
 func _exit_tree() -> void:
@@ -219,6 +241,9 @@ func _after(secs: float, f: Callable) -> void:
 
 
 func cast(i: int) -> void:
+	if part:
+		part.cast(i)
+		return
 	match kit:
 		"ice_wizard":
 			[_cast_freeze, _cast_glacial, _cast_zero][i].call()
@@ -228,8 +253,47 @@ func cast(i: int) -> void:
 			[_cast_siphon, _cast_raise, _cast_eclipse][i].call()
 
 
+# ------------------------------------------------------------------ weapon hooks
+
+## Damage multiplier for the next weapon attack (Smoke Bomb's ambush).
+func weapon_mult() -> float:
+	return part.weapon_mult() if part else 1.0
+
+
+func weapon_fired() -> void:
+	if part:
+		part.weapon_fired()
+
+
+## [model, feet position] of every shadow clone that copies your attacks.
+func clone_list() -> Array:
+	return part.clone_list() if part else []
+
+
+func rage_active() -> bool:
+	return part != null and part.active("rage")
+
+
+func hunt_active() -> bool:
+	return part != null and part.active("hunt")
+
+
+## Cooldown to start after casting slot i (Shadow Step's charges, Rewind's resets).
+func adjust_cooldown(i: int, cd: float) -> float:
+	return part.adjust_cooldown(i, cd) if part else cd
+
+
+func heal_pct(frac: float) -> void:
+	var h := minf(player.max_hp * frac, player.max_hp - player.hp)
+	if h > 0.0:
+		player.heal(h)
+		healed.emit(h)
+
+
 ## True while an ability's effect is still running (tests, HUD).
 func active(name: String) -> bool:
+	if part:
+		return part.active(name)
 	match name:
 		"glacial": return _path_t > 0.0
 		"zero": return _zero_t > 0.0
@@ -248,6 +312,8 @@ func tick(dt: float) -> void:
 			var f: Callable = _waits[k][1]
 			_waits.remove_at(k)
 			f.call()
+	if part:
+		part.tick(dt)
 	_tick_glacial(dt)
 	_tick_zero(dt)
 	_tick_charge(dt)
@@ -768,7 +834,9 @@ func _tick_eclipse(dt: float) -> void:
 			_eclipse_light.queue_free()
 
 
-func _on_kill(at: Vector3, _type_id: int) -> void:
+func _on_kill(at: Vector3, type_id: int) -> void:
+	if part:
+		part.on_kill(at, type_id)
 	if _eclipse_t > 0.0 and _wisps.size() < WISP_MAX:
 		_wisps.append({"pos": at + Vector3(0, 0.8, 0), "life": 4.0, "tpos": Vector3.INF, "retarget": 0.0})
 
@@ -802,8 +870,8 @@ func _tick_wisps(dt: float) -> void:
 		_mote(p, Vector3.ZERO, 0.25, _main.lerp(_deep, randf() * 0.5), 0.22, false, 0.0)
 
 
-## Darken the sun and the ambient light (and restore them).
-func _dim_world(on: bool) -> void:
+## Darken the sun and the ambient light to `level` of normal (and restore them).
+func _dim_world(on: bool, level := 0.12) -> void:
 	if on:
 		_dimmed.clear()
 		for n in get_tree().root.find_children("*", "DirectionalLight3D", true, false):
@@ -815,7 +883,7 @@ func _dim_world(on: bool) -> void:
 				_dimmed.append([env, "background_energy_multiplier", env.background_energy_multiplier])
 		for d in _dimmed:
 			var tw := create_tween()
-			tw.tween_property(d[0], d[1], float(d[2]) * 0.12, 0.6)
+			tw.tween_property(d[0], d[1], float(d[2]) * level, 0.6)
 	else:
 		_restore_light(0.8)
 

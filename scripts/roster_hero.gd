@@ -1,6 +1,6 @@
 class_name RosterHero
 extends HeroBase
-## A playable roster character (Ice, Thunder and Dark Wizards so far): the rigged Higgsfield/Meshy
+## A playable roster character (everyone but the Fire Wizard): the rigged Higgsfield/Meshy
 ## model from models/<id>/ with its Lean clip set (idle, run, hit, attack, ability) driven by an
 ## AnimationTree, holding its weapon from RosterWeapons. Faces -Z, origin at the feet, 1.8 m.
 ##
@@ -10,6 +10,7 @@ extends HeroBase
 ##   hit         upper-body flinch
 ##   fire        upper-body one-shot: the staff thrust from the attack clip, every weapon shot
 ## Upper-body layers leave the legs running. A spine twist turns the torso toward each target.
+## The Ghast has no skeleton: it hovers and sways, lunging and swelling instead of animating.
 
 const DIR := "res://models/%s"
 const SKEL := "Armature/Skeleton3D"
@@ -37,6 +38,51 @@ const CFG := {
 		"cast": [[0.0, 1.3], [0.0, 1.3], [0.0, 1.3]], "cast_speed": [1.4, 1.4, 1.1],
 		"main": Color(0.7, 0.32, 1.0), "deep": Color(0.2, 0.05, 0.32), "light": Color(0.9, 0.72, 1.0),
 	},
+	"merlin": {
+		"fire": [0.6, 2.2], "fire_speed": 1.7,
+		"cast": [[1.6, 3.2], [1.6, 3.2], [0.0, 1.6]], "cast_speed": [1.3, 1.3, 1.0],
+		"main": Color(0.5, 0.68, 1.0), "deep": Color(0.25, 0.2, 0.75), "light": Color(0.88, 0.94, 1.0),
+	},
+	"ogre": {
+		"fire": [0.75, 1.87], "fire_speed": 1.4,
+		"cast": [[0.4, 1.5], [1.5, 2.7], [0.4, 1.5]], "cast_speed": [1.2, 1.4, 1.0],
+		"main": Color(0.62, 0.85, 0.3), "deep": Color(0.35, 0.25, 0.1), "light": Color(0.9, 1.0, 0.6),
+		"motes": false,
+	},
+	"ghast": {
+		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"main": Color(0.72, 0.95, 1.0), "deep": Color(0.15, 0.3, 0.38), "light": Color(0.95, 1.0, 1.0),
+	},
+	"vampire_hunter": {
+		"fire": [0.9, 2.6], "fire_speed": 2.0,
+		"cast": [[1.2, 2.6], [1.2, 2.6], [1.2, 2.6]], "cast_speed": [1.4, 1.4, 1.2],
+		"main": Color(0.92, 0.94, 1.0), "deep": Color(0.55, 0.08, 0.12), "light": Color(1.0, 1.0, 0.92),
+		"motes": false,
+	},
+	"vicki": {
+		"fire": [1.1, 2.3], "fire_speed": 1.8,
+		"cast": [[0.4, 1.4], [0.6, 2.4], [1.6, 2.8]], "cast_speed": [1.2, 1.4, 1.1],
+		"main": Color(1.0, 0.85, 0.45), "deep": Color(0.25, 0.45, 0.8), "light": Color(1.0, 0.98, 0.85),
+		"motes": false,
+	},
+	"rogue": {
+		"fire": [1.1, 2.1], "fire_speed": 2.0,
+		"cast": [[0.3, 1.8], [0.3, 1.8], [0.3, 2.2]], "cast_speed": [1.5, 1.8, 1.5],
+		"main": Color(0.75, 0.95, 0.55), "deep": Color(0.1, 0.16, 0.1), "light": Color(0.95, 1.0, 0.85),
+		"motes": false,
+	},
+	"gaiden": {
+		"fire": [0.75, 2.1], "fire_speed": 2.6,
+		"cast": [[0.2, 1.4], [0.2, 1.4], [0.2, 1.4]], "cast_speed": [1.6, 1.4, 1.2],
+		"main": Color(1.0, 0.25, 0.3), "deep": Color(0.12, 0.08, 0.14), "light": Color(1.0, 0.85, 0.85),
+		"motes": false,
+	},
+	"dr_croc": {
+		"fire": [1.2, 3.2], "fire_speed": 2.2,
+		"cast": [[0.0, 1.6], [5.2, 6.8], [0.0, 1.6]], "cast_speed": [1.3, 1.3, 1.1],
+		"main": Color(0.55, 1.0, 0.3), "deep": Color(0.12, 0.35, 0.1), "light": Color(0.88, 1.0, 0.7),
+		"motes": false,
+	},
 }
 
 var char_id := ""
@@ -54,6 +100,10 @@ var _time := 0.0
 var _speed := 0.0
 var _twist_hold := 0.0
 var _requested := {}
+var _floaty := false        # no skeleton (the Ghast)
+var _lunge := 0.0           # floaty attack / cast pulses
+var _swell := 0.0
+var _flinch := 0.0
 
 
 static func is_playable(id: String) -> bool:
@@ -76,15 +126,17 @@ func _ready() -> void:
 	_rig = (load(dir.path_join(char_id + ".glb")) as PackedScene).instantiate()
 	_rig.rotation.y = PI            # the GLB faces +Z; the game faces -Z
 	add_child(_rig)
-	skeleton = _rig.get_node(SKEL)
+	skeleton = _rig.get_node_or_null(SKEL)
+	_floaty = skeleton == null
 	var old_player := _rig.get_node_or_null("AnimationPlayer")
 	if old_player:
 		old_player.free()
 	_prepare_materials()
-	_build_tree()
-	weapon = RosterWeapons.attach(char_id, skeleton)
-	twist = SpineTwist.new()
-	skeleton.add_child(twist)
+	if not _floaty:
+		_build_tree()
+		weapon = RosterWeapons.attach(char_id, skeleton)
+		twist = SpineTwist.new()
+		skeleton.add_child(twist)
 
 	var cfg: Dictionary = CFG[char_id]
 	var fill := OmniLight3D.new()
@@ -94,7 +146,8 @@ func _ready() -> void:
 	fill.position = Vector3(0.0, 1.5, -0.9)
 	fill.shadow_enabled = false
 	add_child(fill)
-	_add_motes(cfg)
+	if cfg.get("motes", true):
+		_add_motes(cfg)
 
 
 func _prepare_materials() -> void:
@@ -140,6 +193,16 @@ func _add_motes(cfg: Dictionary) -> void:
 		"dark_wizard":
 			p.gravity = Vector3(0, 0.6, 0)
 			p.scale_amount_max = 1.6
+		"merlin":   # twinkling stars
+			p.gravity = Vector3(0, 0.25, 0)
+			p.initial_velocity_min = 0.05
+			p.initial_velocity_max = 0.3
+			p.lifetime = 1.6
+		"ghast":   # trailing mist
+			p.gravity = Vector3(0, 0.4, 0)
+			p.scale_amount_max = 2.4
+			p.emission_ring_radius = 0.45
+			p.position.y = 0.2
 	add_child(p)
 	_particles.append(p)
 
@@ -211,6 +274,9 @@ func _build_tree() -> void:
 # ------------------------------------------------------------------ interface
 
 func attack(target: Vector3) -> Vector3:
+	if _floaty:
+		_lunge = 1.0
+		return staff_tip()
 	_fire("fire")
 	var to := target - global_position
 	var local := global_transform.basis.orthonormalized().inverse() * to
@@ -220,6 +286,8 @@ func attack(target: Vector3) -> Vector3:
 
 
 func staff_tip() -> Vector3:
+	if _floaty:   # the Ghast's mouth
+		return global_transform * Vector3(0, 1.45, -0.35)
 	if weapon == null or not weapon.is_inside_tree():
 		return global_position + Vector3(0, 1.5, 0)
 	return weapon.global_transform * STAFF_HEAD
@@ -230,18 +298,28 @@ func set_motion(speed: float, _airborne: bool) -> void:
 
 
 func play_hit() -> void:
+	if _floaty:
+		_flinch = 1.0
+		return
 	_fire("hit")
 
 
 func play_ability(i: int) -> void:
+	if _floaty:
+		_swell = 1.0
+		return
 	_fire("cast%d" % clampi(i, 0, 2))
 
 
 func is_playing(layer: String) -> bool:
+	if _floaty:
+		return false
 	return bool(tree.get("parameters/%s/active" % layer)) or _time - float(_requested.get(layer, -10.0)) < 0.1
 
 
 func _fire(layer: String) -> void:
+	if tree == null:
+		return
 	tree.set("parameters/%s/request" % layer, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 	_requested[layer] = _time
 
@@ -267,6 +345,16 @@ func set_hurt(amount: float) -> void:
 
 func _process(dt: float) -> void:
 	_time += dt
+	if _floaty:   # hover, sway, lunge at targets, swell when casting, jerk back when hit
+		_lunge = maxf(0.0, _lunge - dt * 4.0)
+		_swell = maxf(0.0, _swell - dt * 1.8)
+		_flinch = maxf(0.0, _flinch - dt * 5.0)
+		var lean := clampf(_speed / RUN_SPEED, 0.0, 1.0)
+		var l := sin(_lunge * PI)
+		_rig.position = Vector3(0.0, 0.35 + 0.08 * sin(_time * 1.8) + 0.25 * sin(_swell * PI), -0.35 * l + 0.25 * _flinch)
+		_rig.rotation = Vector3(-0.35 * lean - 0.4 * l + 0.3 * _flinch, PI + 0.08 * sin(_time * 0.7), 0.05 * sin(_time * 1.1))
+		_rig.scale = Vector3.ONE * (1.0 + 0.25 * sin(_swell * PI) + 0.08 * l)
+		return
 	tree.set("parameters/loco/blend_position", minf(_speed, RUN_SPEED))
 	tree.set("parameters/loco_speed/scale", clampf(_speed / RUN_SPEED, 1.0, 2.2) if _speed > RUN_SPEED else 1.0)
 	_twist_hold -= dt
