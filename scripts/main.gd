@@ -651,7 +651,7 @@ func _spawn_director(dt: float) -> void:
 		hud.flash_message("A GOBLIN WARLORD APPROACHES", 4.0)
 
 
-const LIVE_CAP := 350   # the steady trickle pauses while this many goblins are alive (swarm rings still come)
+const LIVE_CAP := 250   # the steady trickle pauses while this many goblins are alive (swarm rings still come)
 const SKELETON_SHARE := 0.35  # castle: this share of spawns are skeletons (same overall rate)
 
 
