@@ -1,0 +1,122 @@
+{
+ "Every 5th hit freezes the enemy for 1.5 s": [
+  "Cada 5.º impacto congela al enemigo durante 1,5 s",
+  "Un coup sur 5 gèle l'ennemi pendant 1,5 s",
+  "كل ضربة خامسة تجمّد العدو لمدة 1.5 ث",
+  "Jeder 5. Treffer friert den Gegner 1,5 s lang ein",
+  "每第5次命中会冰冻敌人1.5秒",
+  "5回に1回の命中で敵を1.5秒凍らせる"
+ ],
+ "Lightning chains to 2 more enemies": [
+  "El rayo salta a 2 enemigos más",
+  "La foudre rebondit sur 2 ennemis de plus",
+  "يقفز البرق إلى عدوّين إضافيين",
+  "Der Blitz springt auf 2 weitere Gegner über",
+  "闪电额外连锁2个敌人",
+  "稲妻がさらに2体の敵に連鎖する"
+ ],
+ "Every hit curses": [
+  "Cada impacto maldice",
+  "Chaque coup maudit",
+  "كل ضربة تلعن العدو",
+  "Jeder Treffer verflucht",
+  "每次命中都会诅咒",
+  "命中するたびに呪う"
+ ],
+ "Bolts bounce to 2 more enemies": [
+  "Los proyectiles rebotan a 2 enemigos más",
+  "Les projectiles rebondissent sur 2 ennemis de plus",
+  "ترتدّ القذائف إلى عدوّين إضافيين",
+  "Geschosse prallen zu 2 weiteren Gegnern ab",
+  "弹体额外弹跳2个敌人",
+  "弾がさらに2体の敵に跳ね返る"
+ ],
+ "Every 4th swing is a full 360° sweep": [
+  "Cada 4.º golpe es un barrido completo de 360°",
+  "Un coup sur 4 balaie à 360°",
+  "كل ضربة رابعة تكون اكتساحًا كاملًا بزاوية 360°",
+  "Jeder 4. Schwung ist ein voller 360°-Rundumschlag",
+  "每第4次挥击是一次360°横扫",
+  "4回に1回のスイングは360°の大振り"
+ ],
+ "Enemies hit flee in fear for 1.5 s": [
+  "Los enemigos alcanzados huyen aterrados durante 1,5 s",
+  "Les ennemis touchés fuient de peur pendant 1,5 s",
+  "يفرّ الأعداء المصابون خوفًا لمدة 1.5 ث",
+  "Getroffene Gegner fliehen 1,5 s lang voller Angst",
+  "被击中的敌人会恐惧逃跑1.5秒",
+  "命中した敵は1.5秒間恐怖で逃げ出す"
+ ],
+ "Bolts pierce 2 more enemies": [
+  "Los proyectiles atraviesan 2 enemigos más",
+  "Les projectiles transpercent 2 ennemis de plus",
+  "تخترق القذائف عدوّين إضافيين",
+  "Geschosse durchbohren 2 weitere Gegner",
+  "弹体额外穿透2个敌人",
+  "弾がさらに2体の敵を貫通する"
+ ],
+ "Every 3rd throw is a javelin": [
+  "Cada 3.er lanzamiento es una jabalina",
+  "Un lancer sur 3 est un javelot",
+  "كل رمية ثالثة تكون رمحًا",
+  "Jeder 3. Wurf ist ein Speerwurf",
+  "每第3次投掷是一次标枪",
+  "3回に1回の投擲はジャベリンになる"
+ ],
+ "Bleeds deal double damage": [
+  "Los sangrados causan el doble de daño",
+  "Les saignements infligent le double de dégâts",
+  "يسبّب النزيف ضعف الضرر",
+  "Blutungen verursachen doppelten Schaden",
+  "流血造成双倍伤害",
+  "出血ダメージが2倍になる"
+ ],
+ "Every 3rd cut deals double damage": [
+  "Cada 3.er corte causa el doble de daño",
+  "Une coupe sur 3 inflige le double de dégâts",
+  "كل ضربة ثالثة تسبّب ضعف الضرر",
+  "Jeder 3. Schnitt verursacht doppelten Schaden",
+  "每第3次斩击造成双倍伤害",
+  "3回に1回の斬撃は2倍のダメージ"
+ ],
+ "Bursts and acid puddles are 50% bigger": [
+  "Los estallidos y los charcos de ácido son un 50 % más grandes",
+  "Les éclats et les flaques d'acide sont 50 % plus grands",
+  "الانفجارات وبرك الحمض أكبر بنسبة 50%",
+  "Explosionen und Säurepfützen sind 50 % größer",
+  "爆裂和酸液水坑扩大50%",
+  "破裂と酸の水たまりが50%大きくなる"
+ ],
+ "Smashes stun everything hit for 0.6 s": [
+  "Los golpes aturden a todo lo alcanzado durante 0,6 s",
+  "Les coups étourdissent tout ce qu'ils touchent pendant 0,6 s",
+  "تصعق الضربات كل ما تصيبه لمدة 0.6 ث",
+  "Schläge betäuben alles Getroffene 0,6 s lang",
+  "重击会眩晕所有被击中的敌人0.6秒",
+  "叩きつけが命中した全員を0.6秒スタンさせる"
+ ],
+ "Zaps hit 2 more enemies": [
+  "Las descargas alcanzan a 2 enemigos más",
+  "Les décharges touchent 2 ennemis de plus",
+  "تصيب الصعقات عدوّين إضافيين",
+  "Stromstöße treffen 2 weitere Gegner",
+  "电击额外命中2个敌人",
+  "電撃がさらに2体の敵に当たる"
+ ],
+ "Pulses knock enemies back": [
+  "Los pulsos hacen retroceder a los enemigos",
+  "Les ondes repoussent les ennemis",
+  "تدفع النبضات الأعداء إلى الخلف",
+  "Impulse stoßen Gegner zurück",
+  "音波会击退敌人",
+  "パルスが敵をノックバックする"
+ ],
+ "Enemies it kills burst for 25% of their max HP": [
+  "Los enemigos que mata estallan por el 25 % de su vida máxima",
+  "Les ennemis qu'il tue explosent pour 25 % de leurs PV max",
+  "الأعداء الذين يقتلهم ينفجرون بنسبة 25% من صحتهم القصوى",
+  "Von ihm getötete Gegner platzen für 25 % ihrer max. LP",
+  "被其杀死的敌人会爆裂，造成其最大生命值25%的伤害",
+  "倒した敵が最大HPの25%で破裂する"
+ ]
+}

@@ -8,8 +8,9 @@ extends RefCounted
 ## another character pulls in a run.
 ##
 ## Every level: +25% damage and +8% attack rate (BIG buffs, they stack); levels 4 and 8 add +1
-## projectile (or hit / reach on melee weapons). Some weapons also gain a special at level 1:
-## the Fire Wizard's Fireballs make every 5th hit explode like a level 1 Blast Bomb.
+## projectile (or hit / reach on melee weapons). Every weapon also gains its own special at
+## level 1 (SPECIALS; worked out in WeaponSystem, by style, so the Legendary card gets it too):
+## e.g. the Fire Wizard's Fireballs make every 5th hit explode like a level 1 Blast Bomb.
 
 const MAX_LEVEL := 10
 const DAMAGE_PER_LEVEL := 0.25
@@ -19,6 +20,22 @@ const TOTALS := [5, 10, 15, 20, 30, 40, 50, 60, 75, 100]   # shards for level 1 
 const FIRE_BLAST_EVERY := 5              # Fireballs: every 5th hit explodes...
 const FIRE_BLAST_DAMAGE := 25.0 * 1.15   # ...for what a level 1 Blast Bomb does (base 25, +15%)
 const FIRE_BLAST_RADIUS := 3.0
+const ICE_FREEZE_EVERY := 5              # Frost Shards: every 5th hit freezes...
+const ICE_FREEZE_TIME := 1.5             # ...for 1.5 s
+const THUNDER_JUMPS := 2                 # Chain Lightning: chains to 2 more enemies
+const ARCANE_BOUNCES := 2                # Arcane Bolts: +2 bounces
+const TRUNK_SWEEP_EVERY := 4             # Tree Trunk: every 4th swing is a full 360 deg sweep
+const WAIL_FEAR_TIME := 1.5              # Wail: enemies hit flee in fear
+const SILVER_PIERCE := 2                 # Silver Bolts: +2 pierce
+const SPEAR_JAVELIN_EVERY := 3           # Valkyrie Spear: every 3rd throw is a javelin (not 4th)
+const DAGGER_BLEED := 2.0                # Twin Daggers: bleeds deal double
+const KATANA_THIRD := 2.0                # Katana: the 3rd cut deals 2x (not 1.25x)
+const FLASK_SIZE := 1.5                  # Volatile Flasks: bursts and puddles 50% bigger
+const CLUB_STUN := 0.6                   # Big Club: stuns everything it hits
+const STATIC_TARGETS := 2                # Static Cling: zaps 2 more enemies
+const MARACA_KNOCK := 3.5                # Maraca Blasters: pulses knock enemies back (m)
+const ACID_BURST_FRAC := 0.25            # Acid Body: its kills burst for 25% of their max HP...
+const ACID_BURST_RADIUS := 3.0           # ...within 3 m
 
 ## Shard parts per weapon style (always 5 in all).
 const RECIPES := {
@@ -42,6 +59,21 @@ const RECIPES := {
 ## Weapon specials, unlocked at forge level 1.
 const SPECIALS := {
 	"fire": "Every 5th hit explodes like a Blast Bomb",
+	"ice": "Every 5th hit freezes the enemy for 1.5 s",
+	"thunder": "Lightning chains to 2 more enemies",
+	"dark": "Every hit curses",
+	"arcane": "Bolts bounce to 2 more enemies",
+	"trunk": "Every 4th swing is a full 360° sweep",
+	"wail": "Enemies hit flee in fear for 1.5 s",
+	"silver": "Bolts pierce 2 more enemies",
+	"spear": "Every 3rd throw is a javelin",
+	"daggers": "Bleeds deal double damage",
+	"katana": "Every 3rd cut deals double damage",
+	"flask": "Bursts and acid puddles are 50% bigger",
+	"club": "Smashes stun everything hit for 0.6 s",
+	"static": "Zaps hit 2 more enemies",
+	"maracas": "Pulses knock enemies back",
+	"acid": "Enemies it kills burst for 25% of their max HP",
 }
 
 
@@ -51,6 +83,11 @@ static func has_recipe(style: String) -> bool:
 
 static func level_of(style: String) -> int:
 	return int(Wallet.forge.get(style, 0))
+
+
+## True once `style` is forged far enough for its special (level 1).
+static func has_special(style: String) -> bool:
+	return SPECIALS.has(style) and level_of(style) >= 1
 
 
 ## Shards needed to forge `style` up to `to_level` (1..10): {kind: count}, in Wallet.SHARDS order.

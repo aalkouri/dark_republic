@@ -24,6 +24,8 @@ extends Node3D
 ##   maracas  Maraca Blasters  (Loco Robotico) alternating sonic pulses in a 6 m cone; faster while you keep moving
 ##   acid     Acid Body        (The Blob) burns every enemy touching you (2.5 m), 30/s; grows with kills up to +50%
 ## On melee weapons "count" widens the reach (+20% each) instead of adding projectiles.
+## Forged to level 1 (Forge), each weapon gains its special (Forge.SPECIALS, `special`): checked
+## by style, so it works for the starting weapon and the Legendary card alike.
 ##
 ## Signature weapons: once a character is unlocked, their weapon can turn up for everyone
 ## else as a rare Legendary level-up reward ("sig_<style>", stats sig_<style>_*). It runs
@@ -156,6 +158,9 @@ var style := "fire"              # set by main from the selected character, befo
 var items: ItemEffects           # set by main (forged Fireballs' explosions)
 var fire_hits := 0               # Fireball hits so far (forged: every 5th explodes)
 var _fire_forge := 0             # the Fireballs' forge level (read once per run)
+var special := {}                # style -> true once forged to level 1: its forge special is on (read once per run)
+var ice_hits := 0                # Frost Shard hits so far (forged: every 5th freezes)
+var acid_bursts := 0             # forged Acid Body: kills that burst (tests)
 var lightning: LightningFx
 var orb_t := 0.3
 var sig_t := {}                  # signature weapon id -> seconds to next shot
@@ -208,6 +213,9 @@ func setup(p_stats: Stats, p_db: UpgradeDB, p_enemies: EnemyManager, p_player: P
 
 func _ready() -> void:
 	_fire_forge = Forge.level_of("fire")
+	for s in STYLES:
+		if Forge.has_special(s):
+			special[s] = true
 	p_pos.resize(P_MAX)
 	p_vel.resize(P_MAX)
 	p_life.resize(P_MAX)
@@ -596,11 +604,11 @@ func _fire_orbs(origin: Vector3, dmg_mult: float, sty := "fire", pre := "orb", m
 			life /= DARK_SPEED
 		"arcane":
 			speed *= ARCANE_SPEED
-			pierce += ARCANE_BOUNCES
+			pierce += ARCANE_BOUNCES + (Forge.ARCANE_BOUNCES if special.has("arcane") else 0)
 			life = 3.0
 		"silver":
 			speed *= SILVER_SPEED
-			pierce += SILVER_PIERCE
+			pierce += SILVER_PIERCE + (Forge.SILVER_PIERCE if special.has("silver") else 0)
 			life = 1.2
 			if hunting:
 				dmg *= RosterKit.HUNT_DAMAGE
@@ -643,7 +651,7 @@ func _fire_static(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBas
 	var own := model == null or model == player.model
 	if model == null:
 		model = player.model
-	var n := STATIC_TARGETS + maxi(0, _count(pre) - 1)
+	var n := STATIC_TARGETS + maxi(0, _count(pre) - 1) + (Forge.STATIC_TARGETS if special.has("static") else 0)
 	var targets := enemies.nearest_k(origin, STATIC_REACH, n)
 	if targets.is_empty():
 		return false
@@ -685,12 +693,22 @@ func _fire_acid(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase) ->
 	var r := acid_radius(pre, own)
 	var d := _dmg(pre, "acid", dmg_mult) * (ACID_EVERY if pre == "orb" else 1.0)
 	var hit := false
+	var pops := []   # forged: [where, damage] of the enemies it killed, burst once the pulse is done
 	for e in enemies.query_radius(feet + Vector3(0, 0.8, 0), r, false):
 		hit = true
 		acid_burns += 1
 		if enemies.damage(e, d):
 			acid_kills += 1
 			acid_growth = minf(ACID_GROW_MAX, acid_growth + ACID_GROW)
+			if special.has("acid"):
+				pops.append([enemies.pos[e], enemies.hp_max[e] * Forge.ACID_BURST_FRAC * enemies.pct_scale(e)])
+	var br := Forge.ACID_BURST_RADIUS * stats.value("area")
+	for pop in pops:
+		var at: Vector3 = pop[0]
+		for e in enemies.query_radius(at + Vector3(0, 0.8, 0), br, false):
+			enemies.damage(e, pop[1])
+		enemies.burst.emit(at + Vector3(0, 0.5, 0), br)   # a green splash (main's burst FX)
+		acid_bursts += 1
 	if hit:
 		if own:
 			_acid_pulse = 1.0
@@ -752,6 +770,8 @@ func _fire_maracas(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase)
 		if l > enemies.t_radius[enemies.typ[e]] * enemies.sz[e] + 0.6 and d.dot(dir) / maxf(l, 0.001) < cos_half:
 			continue
 		enemies.damage(e, dmg, d.normalized() * 2.0 if l > 0.05 else dir * 2.0)
+		if special.has("maracas"):   # forged: the pulse shoves them back
+			enemies.knock(e, d if l > 0.05 else dir, Forge.MARACA_KNOCK, 0.25)
 	pulses += 1
 	swings += 1
 	# Rings of sound rolling out from the maraca, pink and teal by turns
@@ -783,7 +803,7 @@ func _fire_chain(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBase
 	if model != null:
 		origin = model.attack(enemies.center_of(targets[0]))
 	var dmg := _dmg(pre, "thunder", dmg_mult)
-	var jumps := CHAIN_JUMPS + int(stats.value(pre + "_pierce"))
+	var jumps := CHAIN_JUMPS + int(stats.value(pre + "_pierce")) + (Forge.THUNDER_JUMPS if special.has("thunder") else 0)
 	var col := RosterHero.color("thunder_wizard", "main")
 	var hit := {}
 	for t in targets:
@@ -833,6 +853,8 @@ func _swing(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase, reach:
 	var dmg := _dmg(pre, sty, dmg_mult)
 	var step: int = combo.get(sty + pre, 0)
 	combo[sty + pre] = step + 1
+	if sty == "trunk" and special.has("trunk") and step % Forge.TRUNK_SWEEP_EVERY == Forge.TRUNK_SWEEP_EVERY - 1:
+		arc = 360.0   # forged: a full sweep all the way round
 	var cos_half := cos(deg_to_rad(arc * 0.5))
 	var col := Color(0.85, 0.7, 0.45, 0.55)
 	match sty:
@@ -841,7 +863,7 @@ func _swing(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase, reach:
 		"katana":
 			col = Color(1.0, 0.95, 0.95, 0.7)
 			if step % 3 == 2:
-				dmg *= 1.25
+				dmg *= Forge.KATANA_THIRD if special.has("katana") else 1.25
 	for e in enemies.query_radius(chest, reach, false):
 		var d := enemies.pos[e] - feet
 		d.y = 0.0
@@ -855,9 +877,13 @@ func _swing(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase, reach:
 			"club":
 				enemies.damage(e, dmg)
 				enemies.knock(e, d if l > 0.05 else dir, CLUB_KNOCK, 0.35)
+				if special.has("club"):
+					enemies.stun(e, Forge.CLUB_STUN)
 			"wail":
 				enemies.damage(e, dmg)
 				enemies.slow(e, WAIL_SLOW, WAIL_SLOW_TIME)
+				if special.has("wail"):
+					enemies.scare(e, Forge.WAIL_FEAR_TIME)
 			_:
 				enemies.damage(e, dmg, d.normalized() * 3.0)
 	swings += 1
@@ -891,7 +917,8 @@ func _thrust(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase) -> bo
 	var reach := SPEAR_REACH * stats.value("area") * (1.0 + 0.2 * extra)
 	var chest := feet + Vector3(0, 0.9, 0)
 	var step: int = combo.get("spear" + pre, 0)
-	var javelin := step % JAVELIN_EVERY == JAVELIN_EVERY - 1
+	var every := Forge.SPEAR_JAVELIN_EVERY if special.has("spear") else JAVELIN_EVERY
+	var javelin := step % every == every - 1
 	var near := enemies.nearest_k(chest, JAVELIN_RANGE if javelin else reach * MELEE_SEEK, 1)
 	if near.is_empty():
 		return false
@@ -971,18 +998,18 @@ func _update_flasks(dt: float) -> void:
 		pd["tick"] -= dt
 		if pd["tick"] <= 0.0:
 			pd["tick"] = 0.25
-			for e in enemies.query_radius((pd["pos"] as Vector3) + Vector3(0, 0.6, 0), FLASK_RADIUS * stats.value("area"), false):
+			for e in enemies.query_radius((pd["pos"] as Vector3) + Vector3(0, 0.6, 0), float(pd["r"]), false):
 				enemies.afflict(e, ACID_FRAC, 1.0)
 
 
 func _flask_burst(at: Vector3, dmg: float) -> void:
-	var r := FLASK_RADIUS * stats.value("area")
+	var r := FLASK_RADIUS * stats.value("area") * (Forge.FLASK_SIZE if special.has("flask") else 1.0)
 	for e in enemies.query_radius(at + Vector3(0, 0.6, 0), r, false):
 		enemies.damage(e, dmg)
 		enemies.afflict(e, ACID_FRAC, ACID_TIME)
 	var disc := AcidPuddle.create(r, at, self)
 	_shatter()
-	_puddles.append({"pos": at, "t": ACID_TIME, "disc": disc, "tick": 0.25})
+	_puddles.append({"pos": at, "t": ACID_TIME, "disc": disc, "tick": 0.25, "r": r})
 	_spawn_ring(at, r)
 	var light := OmniLight3D.new()
 	light.light_color = Color(0.5, 1.0, 0.3)
@@ -1150,11 +1177,15 @@ func _update_projectiles(dt: float) -> void:
 								items.blast(enemies.pos[e], Forge.FIRE_BLAST_DAMAGE * stats.value("damage"), Forge.FIRE_BLAST_RADIUS * stats.value("area"))
 					"ice":
 						enemies.slow(e, SHARD_SLOW, SHARD_SLOW_TIME)
+						if special.has("ice"):   # forged Frost Shards: every 5th hit freezes
+							ice_hits += 1
+							if ice_hits % Forge.ICE_FREEZE_EVERY == 0:
+								enemies.freeze(e, Forge.ICE_FREEZE_TIME)
 					"dark":
-						if randf() < CURSE_CHANCE:
+						if special.has("dark") or randf() < CURSE_CHANCE:   # forged: every hit curses
 							enemies.curse(e, CURSE_TIME)
 					"dagger":
-						enemies.afflict(e, BLEED_FRAC, BLEED_TIME)
+						enemies.afflict(e, BLEED_FRAC * (Forge.DAGGER_BLEED if special.has("daggers") else 1.0), BLEED_TIME)
 					"stake":
 						enemies.stun(e, RosterKit.STAKE_PIN)
 				p_pierce[i] -= 1

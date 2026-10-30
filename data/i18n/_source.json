@@ -63,15 +63,15 @@
   "slot_machine.gd:143"
  ],
  "%s Cooldown": [
-  "weapon_system.gd:343"
+  "weapon_system.gd:351"
  ],
  "%s DEFEATED!": [
   "hud.gd:958",
   "main.gd:76"
  ],
  "%s Damage": [
-  "weapon_system.gd:342",
-  "weapon_system.gd:380"
+  "weapon_system.gd:350",
+  "weapon_system.gd:388"
  ],
  "%s IS DEFEATED!": [
   "main.gd:739"
@@ -80,11 +80,11 @@
   "map_boss.gd:394"
  ],
  "%s Pierce": [
-  "weapon_system.gd:345",
-  "weapon_system.gd:382"
+  "weapon_system.gd:353",
+  "weapon_system.gd:390"
  ],
  "%s Reach": [
-  "weapon_system.gd:344"
+  "weapon_system.gd:352"
  ],
  "%s can't fight here: it's home turf": [
   "map_picker.gd:90"
@@ -93,7 +93,7 @@
   "character_select.gd:132"
  ],
  "+%d projectile / hit": [
-  "forge.gd:136"
+  "forge.gd:173"
  ],
  "+%d shield": [
   "hud.gd:1321"
@@ -366,7 +366,7 @@
   "upgrades.json"
  ],
  "Attack rate +%d%%": [
-  "forge.gd:133"
+  "forge.gd:170"
  ],
  "Aura Damage": [
   "upgrades.json"
@@ -450,6 +450,9 @@
  "Blast Bomb": [
   "upgrades.json"
  ],
+ "Bleeds deal double damage": [
+  "forge.gd:70"
+ ],
  "Blink from enemy to enemy faster than they can blink.": [
   "abilities.json"
  ],
@@ -461,6 +464,12 @@
  ],
  "Bog Witch": [
   "characters.json"
+ ],
+ "Bolts bounce to 2 more enemies": [
+  "forge.gd:65"
+ ],
+ "Bolts pierce 2 more enemies": [
+  "forge.gd:68"
  ],
  "Borderless fullscreen": [
   "settings_menu.gd:182"
@@ -507,6 +516,9 @@
  "Burns on touch, grows": [
   "abilities.json"
  ],
+ "Bursts and acid puddles are 50% bigger": [
+  "forge.gd:72"
+ ],
  "Bursts, leaves acid": [
   "abilities.json"
  ],
@@ -529,7 +541,7 @@
   "characters.json"
  ],
  "Chain Lightning": [
-  "weapon_system.gd:149",
+  "weapon_system.gd:151",
   "abilities.json"
  ],
  "Chain spin, knockback": [
@@ -623,7 +635,7 @@
   "upgrades.json"
  ],
  "Damage +%d%%": [
-  "forge.gd:132"
+  "forge.gd:169"
  ],
  "Damage stat: %+d%% to flat damage": [
   "abilities.gd:214"
@@ -811,6 +823,9 @@
  "Enemies hit are stunned for {1.5 s}": [
   "abilities.json"
  ],
+ "Enemies hit flee in fear for 1.5 s": [
+  "forge.gd:67"
+ ],
  "Enemies hit take {120} damage and are thrown {8 yd}": [
   "abilities.json"
  ],
@@ -819,6 +834,9 @@
  ],
  "Enemies in it take {25} damage per second and are slowed {40%}": [
   "abilities.json"
+ ],
+ "Enemies it kills burst for 25% of their max HP": [
+  "forge.gd:76"
  ],
  "Enemies that cross it take {50} damage and wander confused for {3 s}": [
   "abilities.json"
@@ -874,8 +892,20 @@
  "Escapee of the Menagerie": [
   "characters.json"
  ],
+ "Every 3rd cut deals double damage": [
+  "forge.gd:71"
+ ],
+ "Every 3rd throw is a javelin": [
+  "forge.gd:69"
+ ],
+ "Every 4th swing is a full 360° sweep": [
+  "forge.gd:66"
+ ],
  "Every 5th hit explodes like a Blast Bomb": [
-  "forge.gd:44"
+  "forge.gd:61"
+ ],
+ "Every 5th hit freezes the enemy for 1.5 s": [
+  "forge.gd:62"
  ],
  "Every ability is at max level!  Fully healed": [
   "main.gd:903"
@@ -900,6 +930,9 @@
  ],
  "Every fire on the ground erupts: {100} damage within {3 m} of each": [
   "abilities.json"
+ ],
+ "Every hit curses": [
+  "forge.gd:64"
  ],
  "Every jump and every landing releases a shock: {40} damage within {6 m}": [
   "abilities.json"
@@ -993,7 +1026,7 @@
   "taglines.json"
  ],
  "Fireballs": [
-  "weapon_system.gd:145",
+  "weapon_system.gd:147",
   "abilities.json",
   "upgrades.json",
   "upgrades.json"
@@ -1074,7 +1107,7 @@
   "abilities.json"
  ],
  "Frost Shards": [
-  "weapon_system.gd:147",
+  "weapon_system.gd:149",
   "abilities.json"
  ],
  "Frozen enemies that die shatter for {40%} of their max HP to enemies within {2 yd}; shatters chain": [
@@ -1255,11 +1288,11 @@
   "abilities.json"
  ],
  "Hurls fireballs from your staff at the nearest enemies.": [
-  "weapon_system.gd:145",
+  "weapon_system.gd:147",
   "upgrades.json"
  ],
  "Hurls icicles from your staff that slow the enemies they hit.": [
-  "weapon_system.gd:147"
+  "weapon_system.gd:149"
  ],
  "I cast Magic Missile at the darkness!": [
   "taglines.json"
@@ -1366,7 +1399,7 @@
   "hud.gd:863"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:385"
+  "weapon_system.gd:393"
  ],
  "LEVEL UP!": [
   "hud.gd:279"
@@ -1465,7 +1498,10 @@
   "wallet.gd:278"
  ],
  "Lightning arcs from your staff and jumps between enemies.": [
-  "weapon_system.gd:149"
+  "weapon_system.gd:151"
+ ],
+ "Lightning chains to 2 more enemies": [
+  "forge.gd:63"
  ],
  "Lightning finds the toughest enemies.": [
   "abilities.json"
@@ -1662,7 +1698,7 @@
   "abilities.json"
  ],
  "Not forged yet": [
-  "forge.gd:130",
+  "forge.gd:167",
   "forge_menu.gd:179"
  ],
  "Now": [
@@ -1799,6 +1835,9 @@
  ],
  "Pull the handle!": [
   "slot_machine.gd:147"
+ ],
+ "Pulses knock enemies back": [
+  "forge.gd:75"
  ],
  "Purple Potion: cooldowns -30%": [
   "potion_manager.gd:18"
@@ -1988,7 +2027,7 @@
   "abilities.json"
  ],
  "Shadow Bolts": [
-  "weapon_system.gd:151",
+  "weapon_system.gd:153",
   "abilities.json"
  ],
  "Shadow Step": [
@@ -2070,7 +2109,7 @@
   "settings.gd:24"
  ],
  "Slow bolts of shadow that pierce and curse the enemies they hit.": [
-  "weapon_system.gd:151"
+  "weapon_system.gd:153"
  ],
  "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)": [
   "abilities.json"
@@ -2086,6 +2125,9 @@
  ],
  "Small. Brave. Slightly poisonous. Do not lick.": [
   "characters.json"
+ ],
+ "Smashes stun everything hit for 0.6 s": [
+  "forge.gd:73"
  ],
  "Smoke Bomb": [
   "abilities.json"
@@ -2753,6 +2795,9 @@
  ],
  "Zaps 3, builds charge": [
   "abilities.json"
+ ],
+ "Zaps hit 2 more enemies": [
+  "forge.gd:74"
  ],
  "Zaps the 3 nearest enemies for 18 damage; builds up to 2x damage while you keep moving": [
   "abilities.json"

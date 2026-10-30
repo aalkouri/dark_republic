@@ -217,7 +217,26 @@ Shards forge a character's signature weapon, up to **level 10** (`scripts/forge.
 - **On the character select,** the next level's shards sit under the weapon icon. For small costs that's one crystal per shard, lit as you collect them; for bigger ones, one crystal per kind with the count, lit when you have that many. When you have them all, the weapon **pulses** while **green plus signs** pop in and out around it. Click it to open the Forge.
 - **The Forge** shows the weapon, the shards the next level costs, the weapon's stats now and after forging, and a **Forge Weapon** button (an anvil clang and sparks).
 - **Short on shards?** The Forge offers to **buy the missing ones with coins: 150 coins a shard** (any kind; `Wallet.SHARD_PRICE`). Level 1 costs 750 coins if bought outright (about one good run), level 10 alone 15,000, and a weapon from nothing to level 10 about 60,750. Bosses still drop them for free.
-- **Every level:** **+25% damage** and **+8% attack rate**, stacking; levels 4 and 8 add **+1 projectile** (or hit / reach on melee weapons). **Fireballs** also gain a special at level 1: **every 5th hit explodes** like a level 1 Blast Bomb.
+- **Every level:** **+25% damage** and **+8% attack rate**, stacking; levels 4 and 8 add **+1 projectile** (or hit / reach on melee weapons). **Every weapon also gains its own special at level 1** (`Forge.SPECIALS`, listed in the Forge and the weapon tooltip; worked out by style in `weapon_system.gd`, so a forged Legendary card has it too):
+
+  | Weapon | Level 1 special |
+  |---|---|
+  | Fireballs | Every 5th hit explodes like a level 1 Blast Bomb |
+  | Frost Shards | Every 5th hit freezes the enemy for 1.5 s |
+  | Chain Lightning | Chains to 2 more enemies |
+  | Shadow Bolts | Every hit curses (instead of a 20% chance) |
+  | Arcane Bolts | +2 bounces |
+  | Tree Trunk | Every 4th swing is a full 360° sweep |
+  | Wail | Enemies hit flee in fear for 1.5 s |
+  | Silver Bolts | +2 pierce |
+  | Valkyrie Spear | Every 3rd throw is a javelin (instead of every 4th) |
+  | Twin Daggers | Bleeds deal double damage |
+  | Katana | Every 3rd cut deals 2x (instead of 1.25x) |
+  | Volatile Flasks | Bursts and acid puddles 50% bigger |
+  | Big Club | Smashes stun everything hit for 0.6 s |
+  | Static Cling | Zaps hit 2 more enemies |
+  | Maraca Blasters | Pulses knock enemies back |
+  | Acid Body | Enemies it kills burst for 25% of their max HP within 3 m |
 - **Everywhere:** forging applies to the weapon wherever it's used. That means your own starting weapon, and also its **Legendary card** when another character pulls it in a run. Forge levels are saved (`Wallet.forge`).
 - **Tests:** `godot --headless --path . res://tools/test_forge.tscn`. Screenshots: `res://scenes/character_select.tscn -- --shot-char=argyle_sock --shot-shards=fire,ice,lightning,dark [--shot-forge]`.
 
