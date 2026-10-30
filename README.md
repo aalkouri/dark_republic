@@ -42,7 +42,7 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 
 **Weapon names on cards:** the Ice, Thunder and Dark Wizards' starting weapon shows its own name everywhere, including its stat lines on level-up cards (e.g. "+20% Frost Shards Damage"; `WeaponSystem.retheme_card`). "Fireballs" only appears for the Fire Wizard, or as his signature weapon when it turns up as a legendary reward. The key bindings say Ability 1 / Ability 2 / Ultimate, since every character's abilities differ.
 
-**Run clock:** in Classic it counts **down** from 10:00. During the entrance it spins up from 00:00 to 10:00 with digital blips that rise in pitch (`audio/ui/timer_tick.wav`), then locks in with two beeps (`timer_set.wav`) and starts counting down when you land.
+**Run clock:** in Classic it counts **down** from 10:00. During the entrance it spins up from 00:00 to 10:00 with digital blips that rise in pitch (`audio/ui/timer_tick.wav`), then locks in with two beeps (`timer_set.wav`), and a **SURVIVE** banner appears and starts counting down when you land.
 
 ## Character select
 
@@ -189,6 +189,26 @@ Quitting a run from the pause menu forfeits its coins.
 ## Elemental shards
 
 A second, persistent currency for upgrading your main weapon (the upgrade menu comes later). There are four kinds, **Fire, Ice, Lightning and Dark**, each drawn as a faceted crystal in code (`scripts/shard_icon.gd`). Their counters sit just left of the coins at the top of the screen, starting at 0. **Every boss you defeat drops 1-5 shards** of random kinds (Thog, the Toadstool Knight, the Arachnid and the Goblin Warlord). They're banked at once (`Wallet.shards`, saved in `user://progress.cfg`), flashed on screen, and listed under **Shards won** on the end screen.
+
+## The Forge (weapon upgrades)
+
+Shards forge a character's signature weapon, up to **level 10** (`scripts/forge.gd`, menu in `forge_menu.gd`). Each weapon has its own recipe of **5 shards**; level 1 costs exactly those, and each later level scales the recipe up: **5, 10, 15, 20, 30, 40, 50, 60, 75, 100** shards.
+
+| Weapon | Recipe (x1 at level 1) | Weapon | Recipe |
+|---|---|---|---|
+| Fireballs (Fire Wizard) | 5 fire | Twin Daggers (Rogue) | 2 lightning, 3 dark |
+| Frost Shards (Ice Wizard) | 5 ice | Katana (Gaiden) | 1 fire, 2 lightning, 2 dark |
+| Chain Lightning (Thunder Wizard) | 5 lightning | Volatile Flasks (Dr. Croc) | 2 fire, 1 ice, 2 dark |
+| Shadow Bolts (Dark Wizard) | 5 dark | Big Club (Thog) | 2 fire, 2 ice, 1 dark |
+| Arcane Bolts (Merlin) | 1 fire, 2 ice, 2 lightning | Static Cling (An Argyle Sock) | 3 lightning, 2 dark |
+| Tree Trunk (Ogre) | 3 fire, 2 dark | Silver Bolts (Vampire Hunter) | 2 ice, 3 lightning |
+| Wail (Ghast) | 1 ice, 4 dark | Valkyrie Spear (Vicki) | 2 ice, 3 lightning |
+
+- **On the character select,** the next level's shards sit under the weapon icon. For small costs that's one crystal per shard, lit as you collect them; for bigger ones, one crystal per kind with the count, lit when you have that many. When you have them all, the weapon **pulses** while **green plus signs** pop in and out around it. Click it to open the Forge.
+- **The Forge** shows the weapon, the shards the next level costs, the weapon's stats now and after forging, and a **Forge Weapon** button (an anvil clang and sparks).
+- **Every level:** **+25% damage** and **+8% attack rate**, stacking; levels 4 and 8 add **+1 projectile** (or hit / reach on melee weapons). **Fireballs** also gain a special at level 1: **every 5th hit explodes** like a level 1 Blast Bomb.
+- **Everywhere:** forging applies to the weapon wherever it's used. That means your own starting weapon, and also its **Legendary card** when another character pulls it in a run. Forge levels are saved (`Wallet.forge`).
+- **Tests:** `godot --headless --path . res://tools/test_forge.tscn`. Screenshots: `res://scenes/character_select.tscn -- --shot-char=argyle_sock --shot-shards=fire,ice,lightning,dark [--shot-forge]`.
 
 ## Pause menu and settings
 
