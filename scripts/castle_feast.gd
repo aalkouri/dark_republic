@@ -13,6 +13,12 @@ const KICK_RADIUS := 1.2          # metres around your feet that you kick (gener
 const KICK_COOLDOWN := 0.25
 const SPACING := 1.0              # metres between place settings along each side
 const BENCH_GAP := 1.15           # benches this far out from the table's edges
+# Loitering on the table brings a chandelier down on you
+const STAND_TIME := 2.0           # seconds on the table top before one drops
+const DROP_WARN := 1.0            # its marker shows this long before it hits
+const DROP_RADIUS := 2.4
+const DROP_DAMAGE := 0.15         # of the player's max HP
+const DROP_LINGER := 5.0          # the wreck lies on the table this long
 
 var rect := []                    # table top x0, z0, x1, z1
 var top_y := 0.95
@@ -23,11 +29,21 @@ var kicks := 0                    # counters for tests
 var blasts := 0
 var player: Node3D
 var _meshes := {}
+var stand_t := 0.0                # seconds the player has been standing on the table
+var drops := 0                    # counters for tests
+var drop_hits := 0
+var _falling: Array = []          # {at, t, node, marker}
+var _rng := RandomNumberGenerator.new()
+var _snap_sfx: AudioStreamPlayer3D
+var _crash_sfx: AudioStreamPlayer3D
 
 
 func build(rng: RandomNumberGenerator, table_rect: Array, height: float) -> void:
 	add_to_group("castle_feast")
 	rect = table_rect
+	_rng.seed = rng.randi()
+	_snap_sfx = _sfx("res://audio/castle/chandelier_snap.wav")
+	_crash_sfx = _sfx("res://audio/castle/chandelier_crash.wav")
 	top_y = height
 	_furniture()
 	var x0: float = rect[0]
@@ -262,6 +278,7 @@ func _physics_process(dt: float) -> void:
 		if player == null:
 			return
 	var p := player.global_position
+	_tick_chandeliers(dt, p)
 	if p.x < float(rect[0]) - 1.5 or p.x > float(rect[2]) + 1.5 or p.z < float(rect[1]) - 1.5 or p.z > float(rect[3]) + 1.5:
 		return
 	if p.y < top_y - 0.6:
@@ -285,6 +302,102 @@ func _physics_process(dt: float) -> void:
 		it.apply_central_impulse((dir * push + Vector3(0, randf_range(2.5, 4.5), 0)) * it.mass)
 		it.apply_torque_impulse(Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * it.mass * 0.15)
 		kicks += 1
+
+
+# ------------------------------------------------------------------ falling chandeliers
+
+## Standing on the table top for STAND_TIME s drops a chandelier where you were: a marker on
+## the table fills for DROP_WARN s, then it crashes down for DROP_DAMAGE of your max HP if
+## you're still under it. Keep standing there and another follows every STAND_TIME s.
+func _tick_chandeliers(dt: float, p: Vector3) -> void:
+	var on_table := p.x >= float(rect[0]) and p.x <= float(rect[2]) and p.z >= float(rect[1]) and p.z <= float(rect[3]) \
+		and p.y > top_y - 0.25 and p.y < top_y + 0.4
+	stand_t = stand_t + dt if on_table else 0.0
+	if stand_t >= STAND_TIME:
+		stand_t = 0.0
+		_drop(Vector3(p.x, top_y, p.z))
+	for k in range(_falling.size() - 1, -1, -1):
+		var f: Dictionary = _falling[k]
+		f["t"] += dt
+		var t: float = f["t"]
+		var at: Vector3 = f["at"]
+		var node: Node3D = f["node"]
+		if t < DROP_WARN:
+			var marker: GroundDisc = f["marker"]
+			marker.set_fill(t / DROP_WARN)
+			marker.alpha = 0.45 + 0.2 * sin(t * 30.0)
+			var fall := clampf((t - DROP_WARN * 0.35) / (DROP_WARN * 0.65), 0.0, 1.0)   # it gives, then plummets
+			var shake := 0.08 * (1.0 - fall) * sin(t * 60.0)
+			node.position = Vector3(at.x + shake, lerpf(float(f["top"]), at.y, fall * fall), at.z)
+			continue
+		if not f.get("landed", false):
+			f["landed"] = true
+			_crash(at, f)
+		if t >= DROP_WARN + DROP_LINGER:
+			node.queue_free()
+			_falling.remove_at(k)
+
+
+func _drop(at: Vector3) -> void:
+	drops += 1
+	var node := Node3D.new()
+	var mi := MeshInstance3D.new()
+	mi.mesh = CastleProps.chandelier(_rng)["mesh"]
+	node.add_child(mi)
+	var light := OmniLight3D.new()
+	light.light_color = Color(1.0, 0.72, 0.42)
+	light.light_energy = 2.0
+	light.omni_range = 8.0
+	light.position.y = 0.5
+	node.add_child(light)
+	add_child(node)
+	var top := CastleBuilder.CEILING - 7.0
+	node.position = Vector3(at.x, top, at.z)
+	var marker := GroundDisc.create(DROP_RADIUS, Color(1.0, 0.25, 0.1, 0.5))
+	marker.set_fill(0.0)
+	marker.set_lift(0.04)
+	add_child(marker)
+	marker.global_position = at
+	_falling.append({"at": at, "t": 0.0, "node": node, "marker": marker, "top": top})
+	_play(_snap_sfx, at)
+
+
+func _crash(at: Vector3, f: Dictionary) -> void:
+	(f["marker"] as GroundDisc).queue_free()
+	var node: Node3D = f["node"]
+	node.position = at
+	node.rotation = Vector3(_rng.randf_range(-0.25, 0.25), _rng.randf() * TAU, _rng.randf_range(-0.25, 0.25))   # lands askew
+	var light := node.get_child(1) as OmniLight3D
+	node.create_tween().tween_property(light, "light_energy", 0.0, 1.2)   # candles snuffed
+	blast(at + Vector3(0, 0.3, 0), DROP_RADIUS)
+	_play(_crash_sfx, at)
+	if player != null and is_instance_valid(player):
+		var pp := player.global_position
+		if Vector2(pp.x - at.x, pp.z - at.z).length() <= DROP_RADIUS and pp.y < at.y + 2.5:
+			if player.has_method("hurt") and player.hurt(float(player.get("max_hp")) * DROP_DAMAGE):
+				drop_hits += 1
+		if player.has_method("add_shake"):
+			player.add_shake(0.5 if Vector2(pp.x - at.x, pp.z - at.z).length() < 12.0 else 0.2)
+	for fx in get_tree().root.find_children("*", "FxManager", true, false):
+		(fx as FxManager).burst(at + Vector3(0, 0.6, 0), DROP_RADIUS, Color(1.0, 0.75, 0.4), 0.3)
+		break
+
+
+func _sfx(path: String) -> AudioStreamPlayer3D:
+	var p := AudioStreamPlayer3D.new()
+	p.bus = Settings.SFX_BUS
+	p.unit_size = 14.0
+	p.max_polyphony = 3
+	if ResourceLoader.exists(path):
+		p.stream = load(path)
+	add_child(p)
+	return p
+
+
+func _play(p: AudioStreamPlayer3D, at: Vector3) -> void:
+	if p and p.stream:
+		p.global_position = at
+		p.play()
 
 
 func _hook_bursts() -> void:

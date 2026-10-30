@@ -4,6 +4,10 @@ audio/castle/door_slam.wav    - two huge oak doors slamming: a low thump with a 
                                 reverb tail, iron bands rattling, and the latch clank.
 audio/castle/bone_clatter.wav - a skeleton collapsing: a few dozen dry, woody bone knocks
                                 bouncing on flagstones, quickly thinning out.
+audio/castle/chandelier_snap.wav  - a chain giving way overhead: groaning creak, a sharp snap
+                                and a jingle of links as it starts to fall.
+audio/castle/chandelier_crash.wav - an iron chandelier hitting the table: a heavy wooden thump,
+                                clanging iron rings, smashing crockery and candle clatter.
 
     python3 tools/gen_castle_sounds.py
 """
@@ -96,7 +100,58 @@ def bone_clatter():
     write("bone_clatter.wav", chans)
 
 
+def chandelier_snap():
+    dur = 1.1
+    chans = []
+    for c in range(2):
+        rng = np.random.default_rng(51 + c)
+        t = np.arange(int(SR * dur)) / SR
+        # creak: a slow, wobbling, nasal rub
+        f = 140 + 60 * np.sin(2 * np.pi * 3.5 * t) + 40 * t
+        rub = np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * (t < 0.4) * np.clip(t / 0.05, 0, 1)
+        creak = bp(rub, 300, 1800) * 0.35
+        # snap at 0.4 s
+        tt = np.clip(t - 0.4, 0, None)
+        snap = rng.normal(0, 1, t.size) * np.exp(-tt / 0.008) * (t >= 0.4) * 1.4
+        # chain links jingling as it drops
+        links = np.zeros_like(t)
+        for _ in range(22):
+            t0 = rng.uniform(0.42, 0.95)
+            u = np.clip(t - t0, 0, None)
+            fr = rng.uniform(2500, 5200)
+            links += np.sin(2 * np.pi * fr * u) * np.exp(-u / 0.02) * (t >= t0) * rng.uniform(0.1, 0.3)
+        chans.append(hall_reverb(creak + snap + links, rng, 1.6, 0.35))
+    write("chandelier_snap.wav", chans)
+
+
+def chandelier_crash():
+    dur = 1.6
+    chans = []
+    for c in range(2):
+        rng = np.random.default_rng(61 + c)
+        t = np.arange(int(SR * dur)) / SR
+        f = 70 * np.exp(-t * 4.0) + 40
+        boom = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.18) * 1.4
+        thud = lp(rng.normal(0, 1, t.size), 500) * np.exp(-t / 0.05) * 1.5
+        # iron rings clanging (inharmonic partials)
+        clang = np.zeros_like(t)
+        for base in [310, 470]:
+            for r in [1.0, 2.76, 5.4]:
+                clang += np.sin(2 * np.pi * base * r * t) * np.exp(-t * (2.5 + r)) / r
+        # crockery smashing: bright bursts scattered over the first half-second
+        smash = np.zeros_like(t)
+        for _ in range(40):
+            t0 = (rng.uniform(0, 1) ** 1.5) * 0.6
+            u = np.clip(t - t0, 0, None)
+            smash += bp(rng.normal(0, 1, t.size), 2500, 9000) * np.exp(-u / 0.012) * (t >= t0) * rng.uniform(0.2, 0.7)
+        x = boom + thud + clang * 0.5 + smash * 0.6
+        chans.append(hall_reverb(x, rng, 2.4, 0.4))
+    write("chandelier_crash.wav", chans)
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     door_slam()
     bone_clatter()
+    chandelier_snap()
+    chandelier_crash()

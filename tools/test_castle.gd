@@ -184,6 +184,44 @@ func _run_checks() -> void:
 	await get_tree().physics_frame
 	_check("Fire Nova sweeps the table", feast.blasts > nova_b, "")
 
+	# Loitering on the table: a chandelier comes down where you stood
+	player.god_mode = false
+	player.hp = player.max_hp
+	player.invuln = 0.0
+	player.global_position = Vector3(0, feast.top_y + 0.05, -20)
+	player.velocity = Vector3.ZERO
+	feast.stand_t = 0.0
+	var ch_d0 := feast.drops
+	for f in int(60 * 1.8):
+		await get_tree().physics_frame
+	_check("standing on the table under 2 s: nothing falls", feast.drops == ch_d0, "")
+	for f in int(60 * 0.3):
+		await get_tree().physics_frame
+	_check("after 2 s a chandelier drops at your spot, marked on the table", feast.drops == ch_d0 + 1
+		and (feast._falling[-1]["at"] as Vector3).distance_to(Vector3(0, feast.top_y, -20)) < 0.5, "")
+	var ch_h0 := player.hp
+	var ch_hits0 := feast.drop_hits
+	for f in int(60 * 0.7):
+		await get_tree().physics_frame
+	_check("...and doesn't hit before its 1 s warning is up", feast.drop_hits == ch_hits0 and player.hp == ch_h0, "")
+	player.invuln = 0.0
+	for f in int(60 * 0.4):
+		await get_tree().physics_frame
+	_check("...staying put costs 15% of max HP", feast.drop_hits == ch_hits0 + 1 and absf((ch_h0 - player.hp) - player.max_hp * 0.15) < 1.0, "%.1f lost" % (ch_h0 - player.hp))
+	# Dodge: step off the marked spot in time
+	player.hp = player.max_hp
+	player.invuln = 0.0
+	player.global_position = Vector3(0, feast.top_y + 0.05, -30)
+	feast.stand_t = 0.0
+	for f in int(60 * 2.1):
+		await get_tree().physics_frame
+	player.global_position = Vector3(-8, 0.1, -30)   # off the table, out of reach
+	ch_hits0 = feast.drop_hits
+	for f in int(60 * 1.2):
+		await get_tree().physics_frame
+	_check("stepping out of the marker dodges it", feast.drop_hits == ch_hits0, "")
+	player.god_mode = true
+
 	# Skeletons
 	_check("skeletons are part of the castle's spawns", main._pick_type(0.0) == EnemyManager.SKELETON or _some_skeleton(main), "")
 	player.global_position = Vector3(-40, 0.5, 150)   # open floor in the great hall
