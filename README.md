@@ -19,7 +19,8 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 | Pick level-up card | Mouse click | |
 | Pause | Esc | Start |
 | Restart (end screen) | R | Back |
-| Inspect abilities (pauses; hover a slot for details) | Hold Alt | |
+| Inspect (pauses; hover an ability or one of your upgrades for details) | Hold Alt | |
+| Activate: open a chest (with its key), take a power-up | E ("Press E" shows over them) | D-pad up |
 | Debug overlay / spawn 200 enemies / reset cooldowns | F1 / F2 / F3 | |
 
 **Movement tech:** jump on the frame you land to keep momentum (bhop), and strafe and turn in the air to gain speed. Slide while running for a burst; sliding down ramps accelerates you, and slide-jumping keeps the speed.
