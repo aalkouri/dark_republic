@@ -100,6 +100,7 @@ const WAIL_SLOW_TIME := 1.5
 const SILVER_PIERCE := 3         # Silver Bolts
 const SILVER_SPEED := 1.7
 const SILVER_EPIC := 2.0
+const SHARD_FROZEN := 2.0         # Frost Shards deal double damage to frozen goblins (in place of the usual frozen bonus)
 const SPEAR_REACH := 6.0         # Valkyrie Spear: thrust line
 const SPEAR_WIDTH := 0.9
 const JAVELIN_EVERY := 4
@@ -931,6 +932,8 @@ func _update_projectiles(dt: float) -> void:
 				var dmg := p_dmg[i]
 				if kind == "silver" and (enemies.epic[e] or enemies.is_boss(e)):
 					dmg *= SILVER_EPIC
+				elif kind == "ice" and enemies.freeze_t[e] > 0.0:
+					dmg *= SHARD_FROZEN / (1.0 + enemies.freeze_bonus)   # x2 in total, not x2 on top of +50%
 				enemies.damage(e, dmg, p_vel[i].normalized() * 2.5)
 				match kind:
 					"ice":

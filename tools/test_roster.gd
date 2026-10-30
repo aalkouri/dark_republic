@@ -96,6 +96,24 @@ func _test_ice_wizard() -> void:
 			slowed += 1
 	_check("Frost Shards slow what they hit", slowed > 0, "%d slowed" % slowed)
 
+	# Frost Shards deal double damage to frozen goblins (x2 in total)
+	w.orb_t = 999.0
+	var sh_pair := await _ring(2, 6.0)
+	var sh_e0 := _idx(sh_pair[0])
+	var sh_e1 := _idx(sh_pair[1])
+	main.enemies.freeze(sh_e1, 5.0)
+	var sh_hp0: float = main.enemies.hp[sh_e0]
+	var sh_hp1: float = main.enemies.hp[sh_e1]
+	var ice_kind := WeaponSystem.P_KINDS.find("ice")
+	for e in [sh_e0, sh_e1]:
+		var from: Vector3 = main.enemies.center_of(e) + Vector3(0, 0, 1.5)
+		w.spawn_projectile(from, Vector3(0, 0, -12.0), 1.0, 30.0, 0, ice_kind)
+	await _secs(0.5)
+	var sh_d0: float = sh_hp0 - main.enemies.hp[sh_e0]
+	var sh_d1: float = sh_hp1 - main.enemies.hp[sh_e1]
+	_check("Frost Shards hit frozen goblins for double damage", sh_d0 > 0.0 and is_equal_approx(sh_d1 / sh_d0, 2.0), "%.1f vs %.1f" % [sh_d0, sh_d1])
+	w.orb_t = 0.3
+
 	ring = await _ring(10, 8.0)
 	var far: Array = await _extra(4, 20.0)
 	_cast(0)
@@ -283,6 +301,27 @@ func _total_damage(ring: Array) -> float:
 func _test_dark_wizard() -> void:
 	var w: WeaponSystem = main.weapons
 	_check("weapon: Shadow Bolts", w.style == "dark" and main.db.defs["weapon_orb"]["name"] == "Shadow Bolts", w.style)
+	# Legendary Frost Shards (another character's signature weapon) also hit frozen goblins x2
+	if not main.db.defs.has("sig_ice"):   # the Ice Wizard unlocked: his weapon joins the pool
+		Wallet.unlock_char("ice_wizard")
+		WeaponSystem.add_signature_weapons(main.db, main.stats, "dark")
+	_check("Frost Shards are a Legendary pull here", main.db.defs.has("sig_ice"), "")
+	if main.db.defs.has("sig_ice"):
+		w.orb_t = 999.0
+		var one := await _ring(1, 6.0)
+		var ei := _idx(one[0])
+		var h0: float = main.enemies.hp[ei]
+		w.fire("ice", "sig_ice", 1.0)
+		await _secs(1.0)
+		var plain: float = h0 - main.enemies.hp[ei]
+		main.enemies.freeze(ei, 5.0)
+		h0 = main.enemies.hp[ei]
+		w.fire("ice", "sig_ice", 1.0)
+		await _secs(1.0)
+		var on_ice: float = h0 - main.enemies.hp[ei]
+		_check("Legendary Frost Shards: double damage to frozen goblins", plain > 0.0 and is_equal_approx(on_ice / plain, 2.0), "%.1f vs %.1f" % [plain, on_ice])
+		main.enemies.freeze_t[ei] = 0.0
+		w.orb_t = 0.3
 	var e: EnemyManager = main.enemies
 	var ring := await _ring(30, 7.0, 100000.0)
 	await _secs(6.0)
