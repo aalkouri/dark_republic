@@ -80,6 +80,8 @@ var frog_t := PackedFloat32Array()      # polymorphed: harmless, slow, double da
 var ally_t := PackedFloat32Array()      # possessed (Haunt): walks to ally_goal, ignored by weapons and harmless
 var ally_goal := PackedVector3Array()
 var pct_t := PackedFloat32Array()       # bleed / acid: pct_f of max HP per second for pct_t s
+var shrink_t := PackedFloat32Array()    # Laundry Day: shrunk in the wash (smaller, half damage, x2 damage taken)
+const SHRINK_SIZE := 0.6
 var pct_f := PackedFloat32Array()
 var frog_count := 0                     # live frogs (last tick)
 var kill_xp_mult := 1.0                 # set while Events.enemy_killed fires: XP multiplier of that kill
@@ -204,7 +206,7 @@ func _ready() -> void:
 	sep_x.resize(MAX)
 	sep_z.resize(MAX)
 	ally_goal.resize(MAX)
-	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim, fear_t, frog_t, ally_t, pct_t, pct_f]:
+	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim, fear_t, frog_t, ally_t, pct_t, pct_f, shrink_t]:
 		a.resize(MAX)
 	cell_of.resize(MAX)
 	sorted.resize(MAX)
@@ -336,6 +338,7 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	ally_t[i] = 0.0
 	pct_t[i] = 0.0
 	pct_f[i] = 0.0
+	shrink_t[i] = 0.0
 	throw_t[i] = rng.randf_range(1.0, 3.0) if rng != null else 2.0
 	throw_anim[i] = 0.0
 	if t == TROLL:
@@ -370,7 +373,23 @@ func taken_mult(i: int) -> float:
 		m *= 1.0 + curse_bonus
 	if frog_t[i] > 0.0:
 		m *= 2.0
+	if shrink_t[i] > 0.0:
+		m *= 2.0
 	return m
+
+
+## Shrunk in the wash for `secs` (not bosses): smaller, hits for half, takes double damage.
+func shrink(i: int, secs: float) -> void:
+	if dead[i] or is_boss(i):
+		return
+	if shrink_t[i] <= 0.0:
+		sz[i] *= SHRINK_SIZE
+	shrink_t[i] = maxf(shrink_t[i], secs)
+
+
+## How hard this enemy hits right now (shrunk ones hit for half).
+func hit_mult(i: int) -> float:
+	return 0.5 if shrink_t[i] > 0.0 else 1.0
 
 
 ## Slow to `factor` of normal speed for `secs` (the stronger / longer effect wins).
@@ -695,6 +714,10 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			frogs += 1
 		if ally_t[i] > 0.0:
 			ally_t[i] -= dt
+		if shrink_t[i] > 0.0:
+			shrink_t[i] -= dt
+			if shrink_t[i] <= 0.0:
+				sz[i] /= SHRINK_SIZE
 		if pct_t[i] > 0.0 and not dead[i]:
 			pct_t[i] -= dt
 			dot_damage(i, hp_max[i] * pct_f[i] * dt * (PCT_BOSS if t == TROLL else 1.0))
@@ -1138,6 +1161,7 @@ func _compact() -> void:
 			ally_goal[i] = ally_goal[last]
 			pct_t[i] = pct_t[last]
 			pct_f[i] = pct_f[last]
+			shrink_t[i] = shrink_t[last]
 			count -= 1
 		else:
 			i += 1

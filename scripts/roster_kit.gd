@@ -37,7 +37,7 @@ const PARTS := {
 	"ghast": "res://scripts/kits/kit_ghast.gd", "vampire_hunter": "res://scripts/kits/kit_hunter.gd",
 	"vicki": "res://scripts/kits/kit_vicki.gd", "rogue": "res://scripts/kits/kit_rogue.gd",
 	"gaiden": "res://scripts/kits/kit_gaiden.gd", "dr_croc": "res://scripts/kits/kit_croc.gd",
-	"thog": "res://scripts/kits/kit_thog.gd",
+	"thog": "res://scripts/kits/kit_thog.gd", "argyle_sock": "res://scripts/kits/kit_sock.gd",
 }
 
 const YARD := 0.9144
@@ -269,6 +269,11 @@ func weapon_fired() -> void:
 ## [model, feet position] of every shadow clone that copies your attacks.
 func clone_list() -> Array:
 	return part.clone_list() if part else []
+
+
+## Damage of a clone's copy of your attack (Reed Clones 60%; the Lost Pair sock 100%).
+func clone_damage() -> float:
+	return part.clone_damage() if part else CLONE_DAMAGE
 
 
 func rage_active() -> bool:

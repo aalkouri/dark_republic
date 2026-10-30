@@ -1,11 +1,11 @@
 extends Node
 ## The roster characters built on 3D models - Merlin, Ogre, Ghast, Vampire Hunter, Vicki, Rogue,
-## Gaiden, Dr. Croc, and Thog (on the Ogre's rig for now): each is playable (character select lets you pick them), runs
+## Gaiden, Dr. Croc, Thog (on the Ogre's rig for now) and An Argyle Sock (built in code): each is playable (character select lets you pick them), runs
 ## with its own model, its own weapon hits enemies the way its card says, and all three of its
 ## abilities do what they say.
 ##   godot --headless --path . res://tools/test_kits.tscn [-- --only=<id>]
 
-const CHARS := ["merlin", "ogre", "ghast", "vampire_hunter", "vicki", "rogue", "gaiden", "dr_croc", "thog"]
+const CHARS := ["merlin", "ogre", "ghast", "vampire_hunter", "vicki", "rogue", "gaiden", "dr_croc", "thog", "argyle_sock"]
 
 var fails := 0
 var main: Node
@@ -98,6 +98,84 @@ func _merlin() -> void:
 	_check("Rewind: HP back to what it was 8 s ago", player.hp > player.max_hp * 0.95, "%.0f / %.0f" % [player.hp, player.max_hp])
 	_check("...the other two cooldowns reset", ab.cooldown[0] == 0.0 and ab.cooldown[1] == 0.0 and ab.cooldown[2] > 100.0, str(ab.cooldown))
 	_check("...enemies flung back and stunned", _all(func(i): return em.stun_t[i] > 1.0 and em.kb_t[i] > 0.0), "")
+
+
+func _argyle_sock() -> void:
+	var h := player.model as RosterHero
+	_check("the sock is built in code: a knitted tube with googly eyes", h.sock != null and h.sock.mat != null and h.sock._eyes.size() == 2, "")
+	_clear()
+	for k in 5:
+		_spawn(EnemyManager.GRUNT, 6.0 + k, k * 0.7, 50.0)
+	await _secs(0.05)
+	ws.static_charge = 0.0
+	var z0 := ws.zaps
+	var hp0 := _total_hp()
+	ws.fire("static", "orb", 1.0)
+	var calm := hp0 - _total_hp()
+	_check("Static Cling zaps the 3 nearest", ws.zaps - z0 == 3 and _hurt_count(0) == 3, "%d zaps" % (ws.zaps - z0))
+	ws.static_charge = 1.0
+	var hp1 := _total_hp()
+	ws.fire("static", "orb", 1.0)
+	_check("...for up to double when charged up by moving", hp1 - _total_hp() >= calm * 1.95, "%.0f vs %.0f" % [hp1 - _total_hp(), calm])
+	player.velocity = Vector3(8, 0, 0)
+	ws.static_charge = 0.0
+	ws.tick(0.5)
+	_check("...and moving builds the charge", ws.static_charge > 0.2, "%.2f" % ws.static_charge)
+	var kit: KitSock = ab.roster.part
+	_clear()
+	for k in 8:
+		_spawn(EnemyManager.GRUNT, 5.0, TAU * k / 8.0, 50.0)
+	await _secs(0.05)
+	var d0 := 0.0
+	for i in em.count:
+		d0 += player.global_position.distance_to(em.pos[i])
+	_cast(0)
+	await _secs(1.2)
+	var d1 := 0.0
+	for i in em.count:
+		d1 += player.global_position.distance_to(em.pos[i])
+	_check("Spin Cycle pulls enemies in", d1 < d0 * 0.7, "%.1f -> %.1f" % [d0 / 8.0, d1 / 8.0])
+	_check("...and hits them every 0.5 s", kit.spin_hits >= 16 and h.sock.spin_rate > 0.0, "%d" % kit.spin_hits)
+	await _secs(4.0)
+	_check("...for 5 s", not kit.active("spin") and h.sock.spin_rate == 0.0, "")
+	_clear()
+	_cast(1)
+	await _secs(0.2)
+	_check("Lost Pair: the partner sock appears (in blue)", kit.active("pair") and kit.clone_list().size() == 1, "")
+	var a := _spawn(EnemyManager.TANK, 6.0, 0.0, 50.0)
+	await _secs(0.05)
+	ws.static_charge = 0.0
+	var hpa := em.hp[a]
+	ws.fire("static", "orb", 1.0)
+	var both := hpa - em.hp[a]
+	var one: float = calm / 3.0
+	_check("...it copies your zaps: an enemy zapped by both takes 2x more from it", both >= one * 2.9, "%.0f (one zap %.0f)" % [both, one])
+	await _secs(15.0)
+	_check("...for 15 s", not kit.active("pair"), "")
+	_clear()
+	var at := ab.aim_point(KitSock.WASH_RANGE)
+	var ids := []
+	for k in 6:
+		ids.append(em.uid[_spawn_at(EnemyManager.TANK, at + Vector3(cos(k) * 6.0, 0, sin(k) * 6.0), 40.0)])
+	await _secs(0.05)
+	_cast(2)
+	await _secs(1.5)
+	var near_drum := 0
+	for u in ids:
+		var i := em.index_of(u)
+		if i >= 0 and Vector2(em.pos[i].x - at.x, em.pos[i].z - at.z).length() < 2.0:
+			near_drum += 1
+	_check("Laundry Day: the machine lands and sucks them all in", kit.washed == 6 and near_drum == 6, "%d in the drum" % near_drum)
+	var hpw := _total_hp()
+	await _secs(1.0)
+	_check("...washing them for 10% of max HP a second", hpw - _total_hp() > 0.0, "")
+	await _secs(3.0)
+	var small := 0
+	for u in ids:
+		var i := em.index_of(u)
+		if i >= 0 and em.shrink_t[i] > 15.0 and em.sz[i] < 0.7 and em.hit_mult(i) == 0.5 and em.taken_mult(i) >= 2.0:
+			small += 1
+	_check("...survivors come out shrunk: half damage, double damage taken", kit.shrunk == 6 and small == 6, "%d" % small)
 
 
 func _thog() -> void:

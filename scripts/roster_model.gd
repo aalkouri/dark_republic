@@ -16,6 +16,8 @@ var _floaty := false
 
 
 static func has_model(id: String) -> bool:
+	if RosterHero.CFG.get(id, {}).has("procedural"):
+		return true
 	var m := RosterHero.model_of(id)
 	return ResourceLoader.exists((DIR % m).path_join(m + ".glb"))
 
@@ -26,7 +28,15 @@ static func create(id: String) -> RosterModel:
 	return m
 
 
+var _sock: SockBody
+
+
 func _ready() -> void:
+	if RosterHero.CFG.get(char_id, {}).get("procedural", "") == "sock":   # built in code
+		_sock = SockBody.create()
+		_rig = _sock
+		add_child(_sock)
+		return
 	# Thog borrows the Ogre's model (re-skinned, a size up) until he has his own
 	var cfg: Dictionary = RosterHero.CFG.get(char_id, {})
 	var mid := RosterHero.model_of(char_id)
@@ -72,6 +82,9 @@ func play(clip: String) -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
+	if _sock:   # idles: sways, now and then a little hop
+		_sock.animate(dt, 0.0, false, 0.0, 0.3 if fmod(_t, 4.0) < 0.3 else 0.0)
+		return
 	if _floaty:   # no skeleton: hover and sway
 		_rig.position.y = 0.35 + 0.08 * sin(_t * 1.8)
 		_rig.rotation.z = 0.05 * sin(_t * 1.1)

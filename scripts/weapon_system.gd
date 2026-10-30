@@ -20,6 +20,7 @@ extends Node3D
 ##   katana   Katana           (Gaiden) 3-hit combo in a 3 m arc; the 3rd sends a 10 m wind slash
 ##   flask    Volatile Flasks  (Dr. Croc) lobbed: burst 3 m, then an acid puddle (4% max HP/s)
 ##   club     Big Club         (Thog) slow overhead smash in a 4 m cone, heavy knockback
+##   static   Static Cling     (An Argyle Sock) zaps the 3 nearest enemies; up to 2x while you keep moving
 ## On melee weapons "count" widens the reach (+20% each) instead of adding projectiles.
 ##
 ## Signature weapons: once a character is unlocked, their weapon can turn up for everyone
@@ -35,8 +36,9 @@ const STYLE_CHAR := {
 	"fire": "fire_wizard", "ice": "ice_wizard", "thunder": "thunder_wizard", "dark": "dark_wizard",
 	"arcane": "merlin", "trunk": "ogre", "wail": "ghast", "silver": "vampire_hunter",
 	"spear": "vicki", "daggers": "rogue", "katana": "gaiden", "flask": "dr_croc", "club": "thog",
+	"static": "argyle_sock",
 }
-const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club"]
+const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static"]
 const MELEE := ["trunk", "wail", "spear", "katana", "club"]
 const SIG_WEIGHT := 0.45        # vs 3-10 for normal rewards: a rare find...
 const SIG_WEIGHT_TOTAL := 1.35  # ...and all of them together stay rare
@@ -117,6 +119,11 @@ const ACID_TIME := 3.0
 const CLUB_REACH := 4.0          # Big Club: overhead smash in a cone
 const CLUB_ARC := 90.0
 const CLUB_KNOCK := 8.0
+const STATIC_TARGETS := 3       # Static Cling: zaps this many nearest enemies (+1 per extra count)
+const STATIC_REACH := 14.0
+const STATIC_BUILD := 0.5        # charge per second while moving (0..1: up to 2x damage)...
+const STATIC_DRAIN := 0.8        # ...lost per second standing still
+const STATIC_PAIR := 2.0         # Lost Pair: an enemy zapped by both socks in one volley takes 2x
 const MELEE_SEEK := 1.6          # melee weapons swing once an enemy is within reach x this
 
 ## Level-up card for the starting weapon, per style (the rest come from data/abilities.json).
@@ -139,6 +146,9 @@ var combo := {}                  # style -> attack counter (katana combo, javeli
 var aura_t := 0.0
 var slam_t := 1.5
 var swings := 0                  # melee swings made (tests)
+var static_charge := 0.0         # Static Cling: 0..1, built up by moving
+var _volley := {}                # Static Cling: uids the sock zapped in its last volley (Lost Pair doubles them)
+var zaps := 0                    # Static Cling zaps (tests)
 
 var mm: MultiMesh
 var tail_mm: MultiMesh
@@ -364,6 +374,13 @@ func tick(dt: float) -> void:
 	var feet := player.global_position
 	var chest := feet + Vector3(0.0, 0.9, 0.0)
 
+	# --- Static Cling builds up while the sock keeps moving
+	if style == "static":
+		var moving := Vector2(player.velocity.x, player.velocity.z).length() > 1.5
+		static_charge = clampf(static_charge + (STATIC_BUILD if moving else -STATIC_DRAIN) * dt, 0.0, 1.0)
+		var body = player.model.get("sock") if player.model != null else null
+		if body != null:
+			(body as SockBody).set_charge(static_charge)
 	# --- The starting weapon
 	if db == null or db.level_of("weapon_orb") > 0:
 		orb_t -= dt
@@ -424,7 +441,7 @@ func fire(sty: String, pre: String, dmg_mult: float) -> bool:
 	if ok and pre == "orb" and kit != null:
 		kit.weapon_fired()
 		for c in kit.clone_list():   # [model, position]
-			_fire_from(sty, pre, c[1], mult * RosterKit.CLONE_DAMAGE, c[0])
+			_fire_from(sty, pre, c[1], mult * kit.clone_damage(), c[0])
 	return ok
 
 
@@ -443,6 +460,8 @@ func _fire_from(sty: String, pre: String, feet: Vector3, mult: float, model: Her
 			return _swing(feet, mult, pre, model, KATANA_REACH, KATANA_ARC, sty)
 		"club":
 			return _swing(feet, mult, pre, model, CLUB_REACH, CLUB_ARC, sty)
+		"static":
+			return _fire_static(chest, mult, pre, model)
 		"spear":
 			return _thrust(feet, mult, pre, model)
 		"flask":
@@ -523,6 +542,39 @@ func _top_hp(c: Vector3, r: float, k: int) -> PackedInt32Array:
 
 
 ## Chain Lightning: an instant arc from the staff to each target, jumping on to nearby goblins.
+## Static Cling: a crackle of static from the top of the sock to each of the nearest enemies.
+## Moving builds the charge (up to 2x); the Lost Pair's zaps hit twice as hard on enemies the
+## sock itself just zapped.
+func _fire_static(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBase = null) -> bool:
+	var own := model == null or model == player.model
+	if model == null:
+		model = player.model
+	var n := STATIC_TARGETS + maxi(0, _count(pre) - 1)
+	var targets := enemies.nearest_k(origin, STATIC_REACH, n)
+	if targets.is_empty():
+		return false
+	var from: Vector3 = model.attack(enemies.center_of(targets[0])) if model != null else origin + Vector3(0, 0.6, 0)
+	var dmg := _dmg(pre, "static", dmg_mult)
+	if pre == "orb":
+		dmg *= 1.0 + static_charge
+	var col := Color(1.0, 0.95, 0.5)
+	if own and pre == "orb":
+		_volley.clear()
+	for t in targets:
+		var d := dmg
+		var u := enemies.uid[t]
+		if not own and _volley.has(u):
+			d *= STATIC_PAIR
+		elif own and pre == "orb":
+			_volley[u] = true
+		var at := enemies.center_of(t)
+		lightning.bolt(from, at, col, 0.035, 0.12, 0.25)
+		lightning.bolt(from, at, Color(0.75, 0.6, 1.0), 0.02, 0.1, 0.3, false)
+		enemies.damage(t, d)
+		zaps += 1
+	return true
+
+
 func _fire_chain(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBase = null) -> bool:
 	if model == null:
 		model = player.model

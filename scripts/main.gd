@@ -527,7 +527,7 @@ func _contact_damage() -> void:
 				continue   # frozen, stunned, frogs, possessed or fleeing goblins can't hit
 			if enemies.typ[i] == EnemyManager.TROLL and not enemies.boss_contact:
 				continue
-			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult())
+			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * enemies.hit_mult(i))
 			var away := enemies.pos[i] - me
 			away.y = 0.0
 			push -= away.normalized() if away.length_squared() > 0.0001 else Vector3.ZERO

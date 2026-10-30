@@ -37,6 +37,10 @@ func clone_list() -> Array:
 	return []
 
 
+func clone_damage() -> float:
+	return RosterKit.CLONE_DAMAGE
+
+
 func adjust_cooldown(_i: int, cd: float) -> float:
 	return cd
 

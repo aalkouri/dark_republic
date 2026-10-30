@@ -86,6 +86,13 @@ const CFG := {
 	# Thog plays on the Ogre's rig, re-skinned troll blue and a size up, until he has his own model
 	# (the same stand-in the Swamp boss uses). "model" = whose model folder; "skin" replaces the
 	# albedo texture; "scale" sizes the rig; "weapon_scale" sizes the club.
+	# An Argyle Sock has no model: SockBody builds it in code ("procedural")
+	"argyle_sock": {
+		"procedural": "sock",
+		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"main": Color(1.0, 0.92, 0.45), "deep": Color(0.48, 0.24, 0.62), "light": Color(1.0, 1.0, 0.85),
+		"motes": false,
+	},
 	"thog": {
 		"model": "ogre", "skin": "res://models/ogre/thog_skin.jpg", "scale": 1.2, "weapon_scale": 1.35,
 		"fire": [0.8, 1.8667], "fire_speed": 1.3,
@@ -114,11 +121,14 @@ var _floaty := false        # no skeleton (the Ghast)
 var _lunge := 0.0           # floaty attack / cast pulses
 var _swell := 0.0
 var _flinch := 0.0
+var _airborne := false
 
 
 static func is_playable(id: String) -> bool:
 	if not CFG.has(id):
 		return false
+	if CFG[id].has("procedural"):
+		return true
 	var m := model_of(id)
 	return ResourceLoader.exists((DIR % m).path_join(m + ".glb"))
 
@@ -139,8 +149,18 @@ static func color(id: String, key: String) -> Color:
 	return CFG.get(id, CFG["ice_wizard"])[key]
 
 
+var sock: SockBody          # An Argyle Sock: built in code, no rig
+var sock_colors := {}       # ...in other colours (the Lost Pair), set before it's added
+
+
 func _ready() -> void:
 	var cfg0: Dictionary = CFG[char_id]
+	if cfg0.get("procedural", "") == "sock":
+		sock = SockBody.create(sock_colors)
+		_rig = sock
+		add_child(sock)
+		_floaty = true
+		return
 	var mid := model_of(char_id)
 	var dir := DIR % mid
 	_rig = (load(dir.path_join(mid + ".glb")) as PackedScene).instantiate()
@@ -313,6 +333,8 @@ func attack(target: Vector3) -> Vector3:
 
 
 func staff_tip() -> Vector3:
+	if sock:
+		return sock.tip()
 	if _floaty:   # the Ghast's mouth
 		return global_transform * Vector3(0, 1.45, -0.35)
 	if weapon == null or not weapon.is_inside_tree():
@@ -320,8 +342,9 @@ func staff_tip() -> Vector3:
 	return weapon.global_transform * STAFF_HEAD
 
 
-func set_motion(speed: float, _airborne: bool) -> void:
+func set_motion(speed: float, airborne: bool) -> void:
 	_speed = speed
+	_airborne = airborne
 
 
 func play_hit() -> void:
@@ -355,6 +378,8 @@ func set_dim(f: float) -> void:
 	if is_equal_approx(f, _dim):
 		return
 	_dim = f
+	if sock:
+		sock.set_dim(f)
 	for k in _mats.size():
 		var c := _base_albedo[k]
 		_mats[k].albedo_color = Color(c.r * f, c.g * f, c.b * f, c.a)
@@ -366,12 +391,20 @@ func set_hurt(amount: float) -> void:
 	if is_equal_approx(amount, _hurt):
 		return
 	_hurt = amount
+	if sock:
+		sock.set_hurt(clampf(amount, 0.0, 1.0))
 	for m in _mats:
 		m.emission = Color(1.0, 0.85, 0.75) * clampf(amount, 0.0, 1.0)
 
 
 func _process(dt: float) -> void:
 	_time += dt
+	if sock:   # hops along, leans into its zaps, puffs up when it casts
+		_lunge = maxf(0.0, _lunge - dt * 5.0)
+		_swell = maxf(0.0, _swell - dt * 1.8)
+		_flinch = maxf(0.0, _flinch - dt * 5.0)
+		sock.animate(dt, _speed, _airborne, _lunge, _swell, _flinch)
+		return
 	if _floaty:   # hover, sway, lunge at targets, swell when casting, jerk back when hit
 		_lunge = maxf(0.0, _lunge - dt * 4.0)
 		_swell = maxf(0.0, _swell - dt * 1.8)
