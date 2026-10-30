@@ -130,6 +130,16 @@ func _test_placement(map: String) -> void:
 		tiers[c.tier] += 1
 	_check("%s: bronze most common" % map, tiers[0] >= tiers[2], str(tiers))
 	_check("%s: no shrines left" % map, get_tree().get_nodes_in_group("shrines").is_empty() and main.get("shrines") == null, "")
+	if map != "castle":   # the outdoor maps' edge: a castle wall on one side, woods on the others
+		var walls: Array = main.find_children("CastleWall", "", true, false)
+		var woods := 0
+		for mm in get_tree().get_nodes_in_group("edge_woods"):
+			woods += int(mm.get_meta("trees", 0))
+		var dc := main.find_child("DistantCastle", true, false) as DistantCastle
+		var edge_hits := get_tree().get_nodes_in_group("arena_edge").size()
+		_check("%s: one side is a castle wall, the castle beyond it" % map, walls.size() == 1 and dc != null, "%d walls" % walls.size())
+		_check("%s: the other three sides are thick woods" % map, woods > 900, "%d trees" % woods)
+		_check("%s: invisible walls still keep you in" % map, edge_hits == 4, "%d" % edge_hits)
 	var r := RandomNumberGenerator.new()
 	r.seed = 99
 	cm.rng = r

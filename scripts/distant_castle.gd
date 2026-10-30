@@ -40,9 +40,9 @@ var _windows: StandardMaterial3D
 
 ## Add the castle under `parent`, in a random direction from `rng`. `haze` is the colour of
 ## the distant air (the fog colour), `night` lights its windows.
-static func add(parent: Node3D, rng: RandomNumberGenerator, haze: Color, night: bool) -> DistantCastle:
+static func add(parent: Node3D, rng: RandomNumberGenerator, haze: Color, night: bool, p_bearing := INF) -> DistantCastle:
 	var c := DistantCastle.new()
-	c.bearing = rng.randf() * TAU
+	c.bearing = rng.randf() * TAU if p_bearing == INF else p_bearing
 	c.name = "DistantCastle"
 	parent.add_child(c)
 	c.build(haze, night, rng)

@@ -54,7 +54,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	_grass(parent, rng, half, water)
 	_flowers_and_ferns(parent, rng, half, water)
 	_reeds(parent, rng, water)
-	WorldBuilder._walls(parent, half, Color(0.45, 0.42, 0.36))
+	ArenaEdge.build(parent, half, "forest", WorldBuilder.edge_haze, WorldBuilder.edge_night)   # castle wall + woods
 
 	var placed: Array[Vector3] = []
 	for i in TREES:

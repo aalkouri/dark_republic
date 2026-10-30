@@ -177,7 +177,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float, map :
 	water.build_meshes(parent)
 	_grass(parent, rng, half, water, patches)
 	_reeds(parent, rng, water)
-	_walls(parent, half)
+	ArenaEdge.build(parent, half, "swamp", edge_haze, edge_night)   # castle wall + woods
 
 	var placed: Array[Vector3] = []   # trunk positions, to keep trees apart
 	for i in TREES:
@@ -265,12 +265,15 @@ static func _prop(parent: Node3D, data: Dictionary, xf: Transform3D, burnable :=
 
 # ------------------------------------------------------------------ sky, light, fog
 
-## The castle on the horizon (Swamp and Forest): a fresh direction every load, from its own
-## random numbers so the map's seeded layout doesn't change.
-static func _add_distant_castle(parent: Node3D, haze: Color, night: bool) -> void:
-	var r := RandomNumberGenerator.new()
-	r.randomize()
-	DistantCastle.add(parent, r, haze, night)
+## The air colour and time of day of the map being built, for the arena edge and the castle
+## on the horizon (ArenaEdge).
+static var edge_haze := Color(0.32, 0.36, 0.3)
+static var edge_night := false
+
+
+static func _add_distant_castle(_parent: Node3D, haze: Color, night: bool) -> void:
+	edge_haze = haze
+	edge_night = night
 
 
 static func _environment(parent: Node3D, rng: RandomNumberGenerator, night: bool) -> void:
