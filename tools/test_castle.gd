@@ -41,10 +41,11 @@ func _static_checks() -> void:
 			var nav := CastleNav.current
 			_check("castle: a walkable grid over the whole 440 m", nav != null and nav.n * CastleNav.CELL >= 440.0, "")
 			var feast := root.find_children("*", "CastleFeast", true, false)
-			_check("castle: one feast table", feast.size() == 1, "")
-			if feast.size() == 1:
+			_check("castle: two feast tables, at opposite ends of the keep", feast.size() == 2
+				and absf(float(feast[0].rect[1]) - float(feast[1].rect[1])) > 200.0, "")
+			if feast.size() == 2:
 				var f: CastleFeast = feast[0]
-				_check("castle: the table is laid end to end (plates, goblets, dishes)", f.items.size() >= 150, str(f.items.size()))
+				_check("castle: the tables are laid end to end (plates, goblets, dishes)", f.items.size() + feast[1].items.size() >= 200, str(f.items.size() + feast[1].items.size()))
 				var kinds := {}
 				for it in f.items:
 					kinds[it.get_meta("kind", "")] = true
@@ -108,12 +109,12 @@ func _check_nav(nav: CastleNav) -> void:
 					any = true
 		_check("castle: the %s is reachable" % r[0], any, "")
 	_check("castle: outer walls are solid", nav.is_blocked(0, -219.5) and nav.is_blocked(219.5, 0) and nav.is_blocked(-219.5, 50), "")
-	_check("castle: the table is solid to goblins", nav.is_blocked(0, -20) and nav.is_blocked(0.5, -10), "")
-	_check("castle: open floor beside the table", not nav.is_blocked(-12, -20) and not nav.is_blocked(12, -20), "")
+	_check("castle: the table is solid to goblins", nav.is_blocked(18, 121) and nav.is_blocked(18.5, 115) and nav.is_blocked(-18, -163), "")
+	_check("castle: open floor beside the table", not nav.is_blocked(8, 121) and not nav.is_blocked(28, 121), "")
 	var t0 := Time.get_ticks_usec()
-	nav.update(1.0, Vector3(0, 1.0, -20))   # standing on the table
+	nav.update(1.0, Vector3(18, 1.0, 121))   # standing on the table
 	var ms := (Time.get_ticks_usec() - t0) / 1000.0
-	_check("castle: on the table, goblins can still path to both sides", nav.steps_to_player(-12, -20) > 0 and nav.steps_to_player(12, -20) > 0, "")
+	_check("castle: on the table, goblins can still path to both sides", nav.steps_to_player(8, 121) > 0 and nav.steps_to_player(28, 121) > 0, "")
 	_check("castle: flow-field rebuild is cheap", ms < 40.0, "%.1f ms" % ms)
 	_check("castle: line of sight is blocked by walls", not nav.line_clear(Vector3(0, 0, 150), Vector3(0, 0, -150)) and nav.line_clear(Vector3(-20, 0, 150), Vector3(20, 0, 150)), "")
 
@@ -161,11 +162,15 @@ func _run_checks() -> void:
 
 	# The feast: walk along the table top
 	var feast: CastleFeast = get_tree().get_first_node_in_group("castle_feast")
+	var tcx: float = (float(feast.rect[0]) + float(feast.rect[2])) * 0.5
+	var tz0: float = feast.rect[1]
+	var tz1: float = feast.rect[3]
+	var tmid: float = (tz0 + tz1) * 0.5
 	var top := 0
 	for it in feast.items:
 		if it.global_position.y > feast.top_y - 0.1:
 			top += 1
-	player.global_position = Vector3(0, feast.top_y + 0.6, -9)
+	player.global_position = Vector3(tcx, feast.top_y + 0.6, tz1 - 1.0)
 	player.velocity = Vector3.ZERO
 	player.bot_move = Vector2(0, -1)   # walk north along the table
 	for f in 60 * 2:
@@ -184,11 +189,11 @@ func _run_checks() -> void:
 			floor += 1
 	_check("kicked food falls off onto the floor (normal gravity)", floor > 0 and after < top, "%d on the floor" % floor)
 	var b0 := feast.blasts
-	main.fx.burst(Vector3(0, feast.top_y + 0.5, -38), 4.0)
+	main.fx.burst(Vector3(tcx, feast.top_y + 0.5, tz0 + 2.0), 4.0)
 	await get_tree().physics_frame
 	_check("explosions near the table blast the food", feast.blasts > b0 and feast.awake_count() > 0, "")
 	var nova_b := feast.blasts
-	player.global_position = Vector3(0, feast.top_y + 0.6, -25)
+	player.global_position = Vector3(tcx, feast.top_y + 0.6, tmid)
 	main.abilities._erupt_shockwave()
 	await get_tree().physics_frame
 	_check("Fire Nova sweeps the table", feast.blasts > nova_b, "")
@@ -204,7 +209,7 @@ func _run_checks() -> void:
 		goblets += 1 if kd.begins_with("goblet_") else 0
 	_check("a goblet at every place setting", plates > 0 and goblets == plates, "%d plates, %d goblets" % [plates, goblets])
 	for kd in ["whole_chicken", "roast_boar", "turkey_legs", "fruit_platter", "wine_bottle"]:
-		_check("the feast has " + kd, kinds.has(kd), "")
+		_check("the feast has " + kd, kinds.has(kd) or (kd == "wine_bottle" and feast.bottles_broken > 0), "")
 	_check("three table sets", kinds.has("plate_silver") and kinds.has("plate_gold") and kinds.has("plate_pewter"), "")
 	# A goblet knocked over spills its wine: a pool where it lands
 	var gob: RigidBody3D = null
@@ -212,6 +217,10 @@ func _run_checks() -> void:
 		if str(it.get_meta("kind", "")).begins_with("goblet_") and not it.get_meta("spilled", false):
 			gob = it
 			break
+	if gob == null:   # every goblet already went over: set a fresh one on the table
+		feast._add("goblet_silver", Vector3(tcx, 0, tmid + 1.0), RandomNumberGenerator.new())
+		gob = feast.items[-1]
+		await get_tree().physics_frame
 	var s0 := feast.spills
 	var pools0 := get_tree().get_nodes_in_group("wine_pool").size()
 	gob.sleeping = false
@@ -227,16 +236,19 @@ func _run_checks() -> void:
 		if it.get_meta("kind", "") == "wine_bottle":
 			bottle = it
 			break
+	if bottle == null:   # every bottle already went flying: set another on the table
+		feast._add("wine_bottle", Vector3(tcx, 0, tmid), RandomNumberGenerator.new())
+		bottle = feast.items[-1]
 	var bb0 := feast.bottles_broken
 	bottle.sleeping = false
-	bottle.global_position = Vector3(6.0, 1.5, -20.0)
+	bottle.global_position = Vector3(tcx + 6.0, 1.5, tmid)
 	bottle.linear_velocity = Vector3.ZERO
 	for f in 60 * 2:
 		await get_tree().physics_frame
 	_check("a bottle that hits the floor shatters", feast.bottles_broken >= bb0 + 1 and not is_instance_valid(bottle), "%d broken, %s" % [feast.bottles_broken - bb0, str(bottle.global_position) + " sleeping " + str(bottle.sleeping) if is_instance_valid(bottle) else "freed"])
 	var pooled := false
 	for pl in get_tree().get_nodes_in_group("wine_pool"):
-		if Vector2((pl as Node3D).global_position.x - 6.0, (pl as Node3D).global_position.z + 20.0).length() < 0.5 and (pl as Node3D).global_position.y < 0.1:
+		if Vector2((pl as Node3D).global_position.x - tcx - 6.0, (pl as Node3D).global_position.z - tmid).length() < 0.5 and (pl as Node3D).global_position.y < 0.1:
 			pooled = true
 	_check("...leaving a pool of wine on the floor where it broke", pooled, "")
 
@@ -244,7 +256,7 @@ func _run_checks() -> void:
 	player.god_mode = false
 	player.hp = player.max_hp
 	player.invuln = 0.0
-	player.global_position = Vector3(0, feast.top_y + 0.05, -20)
+	player.global_position = Vector3(tcx, feast.top_y + 0.05, tmid - 2.0)
 	player.velocity = Vector3.ZERO
 	feast.stand_t = 0.0
 	var ch_d0 := feast.drops
@@ -254,7 +266,7 @@ func _run_checks() -> void:
 	for f in int(60 * 0.3):
 		await get_tree().physics_frame
 	_check("after 2 s a chandelier drops at your spot, marked on the table", feast.drops == ch_d0 + 1
-		and (feast._falling[-1]["at"] as Vector3).distance_to(Vector3(0, feast.top_y, -20)) < 0.5, "")
+		and (feast._falling[-1]["at"] as Vector3).distance_to(Vector3(tcx, feast.top_y, tmid - 2.0)) < 0.5, "")
 	var ch_h0 := player.hp
 	var ch_hits0 := feast.drop_hits
 	for f in int(60 * 0.7):

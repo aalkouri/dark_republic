@@ -52,7 +52,7 @@ var bottles_broken := 0
 var _wine_mesh: Mesh
 var _wine_mat: StandardMaterial3D
 const SETS := ["silver", "gold", "pewter"]   # table sets, changing every SET_RUN metres
-const SET_RUN := 9.0
+const SET_RUN := 6.0
 const MAX_POOLS := 60
 const SILVER := Color(0.78, 0.79, 0.82, 0)
 const ROAST := Color(0.6, 0.32, 0.1, 0)
@@ -100,6 +100,8 @@ func build(rng: RandomNumberGenerator, table_rect: Array, height: float) -> void
 			if roll < 0:
 				mid = c[0]
 				break
+		if k < 15 and k % 3 == 1:   # every table gets its centrepieces: boar, chicken, wine, turkey, fruit
+			mid = ["roast_boar", "whole_chicken", "wine_bottle", "turkey_legs", "fruit_platter"][k / 3]
 		_add(mid, Vector3(rng.randf_range(-0.2, 0.2), 0, z), rng)
 		if mid != "roast_boar" and rng.randf() < 0.85:   # a second dish beside it
 			var extra: String = ["fruit_platter", "wine_bottle", "apple", "bread", "whole_chicken", "turkey_legs"][rng.randi() % 6]

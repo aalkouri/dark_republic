@@ -4,10 +4,10 @@ extends RefCounted
 ## Mostly vast open halls joined by wide archways, with just two short, narrow corridors.
 ##
 ##   z = +220 (south)  great front doors (you walk in; they slam shut behind you)
-##   Great Hall        x -100..100, z 60..220   two rows of columns, braziers, a long runner
-##   Dining Hall       x -60..60,  z -110..60   a long table laid with a feast (CastleFeast)
+##   Great Hall        x -100..100, z 60..220   two rows of columns, braziers, a long runner, a feast table
+##   Dining Hall       x -60..60,  z -110..60   chandeliers
 ##   Galleries         x +-(60..100), z -110..60 flanking the dining hall
-##   Throne Room       x -100..100, z -220..-110 the throne on a dais
+##   Throne Room       x -100..100, z -220..-110 the throne on a dais, the other feast table
 ##   West wing         Barracks (z 20..220) and Armory (z -220..20)
 ##   East wing         Library (z 20..220) and Chapel (z -220..20)
 ##   Corridors         two 8 m wide, 30 m long passages: Armory <-> Throne Room <-> Chapel
@@ -58,7 +58,10 @@ const ROOMS := [
 	["library", 100.0, 20.0, 220.0, 220.0],
 	["chapel", 100.0, -220.0, 220.0, 20.0],
 ]
-const TABLE := [-1.8, -42.75, 1.8, -7.25]   # the dining table top (x0, z0, x1, z1): 35.5 m, mid-hall
+## The two feast tables (x0, z0, x1, z1), 17.75 m each, at opposite ends of the keep: one in the
+## great hall (south, by the entrance), one in the throne room (north), each beside the runner.
+const TABLES := [[16.2, 112.0, 19.8, 129.75], [-19.8, -172.0, -16.2, -154.25]]
+const TABLE := [16.2, 112.0, 19.8, 129.75]   # the first of them (tests, older code)
 const TABLE_H := 0.95
 
 const STONE := Color(0.36, 0.33, 0.31, 0.0)
@@ -414,11 +417,12 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	_porch(parent, half, mats)
 	_rugs(parent)
 
-	# The dining table and its feast
-	var feast := CastleFeast.new()
-	feast.build(rng, TABLE, TABLE_H)
-	parent.add_child(feast)
-	nav.block_rect(TABLE[0] - 1.6, TABLE[1] - 0.4, TABLE[2] + 1.6, TABLE[3] + 0.4)   # table + benches
+	# The two feast tables
+	for t in TABLES:
+		var feast := CastleFeast.new()
+		feast.build(rng, t, TABLE_H)
+		parent.add_child(feast)
+		nav.block_rect(t[0] - 1.6, t[1] - 0.4, t[2] + 1.6, t[3] + 0.4)   # table + benches
 
 	var placed: Array[Vector3] = []
 	_structured(parent, rng, nav, placed)
@@ -654,18 +658,25 @@ static func _structured(parent: Node3D, rng: RandomNumberGenerator, nav: CastleN
 			_place(parent, CastleProps.column(rng), Vector3(x, 0, z), 0.0, nav, placed, 1.6)
 	# The throne on its dais, at the head of the throne room
 	_place(parent, CastleProps.throne(rng), Vector3(0, 0, -206), 0.0, nav, placed, 6.0, true)
-	# Chandeliers over the table
-	for z in range(-86, 41, 21):
+	# Chandeliers over the feast tables and down the dining hall
+	var spots: Array[Vector2] = []
+	for t in TABLES:
+		for f in [0.27, 0.73]:
+			spots.append(Vector2((float(t[0]) + float(t[2])) * 0.5, lerpf(float(t[1]), float(t[3]), f)))
+	for z in range(-86, 41, 42):
+		spots.append(Vector2(0, z))
+	for sp in spots:
+		var z: float = sp.y
 		var ch := CastleProps.chandelier(rng)
 		var mi := MeshInstance3D.new()
 		mi.mesh = ch["mesh"]
-		mi.position = Vector3(0, CEILING - 7.0, z)
+		mi.position = Vector3(sp.x, CEILING - 7.0, z)
 		parent.add_child(mi)
 		var l := OmniLight3D.new()
 		l.light_color = Color(1.0, 0.72, 0.42)
 		l.light_energy = 3.0
 		l.omni_range = 20.0
-		l.position = Vector3(0, CEILING - 8.5, z)
+		l.position = Vector3(sp.x, CEILING - 8.5, z)
 		parent.add_child(l)
 
 
