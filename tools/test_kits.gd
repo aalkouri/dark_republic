@@ -1,11 +1,11 @@
 extends Node
 ## The roster characters built on 3D models - Merlin, Ogre, Ghast, Vampire Hunter, Vicki, Rogue,
-## Gaiden, Dr. Croc, Thog (on the Ogre's rig for now) and An Argyle Sock, Loco Robotico and the Blob (built in code): each is playable (character select lets you pick them), runs
+## Gaiden, Dr. Croc, Thog (on the Ogre's rig for now) and An Argyle Sock, Loco Robotico, the Blob and the Arachnid (built in code): each is playable (character select lets you pick them), runs
 ## with its own model, its own weapon hits enemies the way its card says, and all three of its
 ## abilities do what they say.
 ##   godot --headless --path . res://tools/test_kits.tscn [-- --only=<id>]
 
-const CHARS := ["merlin", "ogre", "ghast", "vampire_hunter", "vicki", "rogue", "gaiden", "dr_croc", "thog", "argyle_sock", "loco_robotico", "blob"]
+const CHARS := ["merlin", "ogre", "ghast", "vampire_hunter", "vicki", "rogue", "gaiden", "dr_croc", "thog", "argyle_sock", "loco_robotico", "blob", "toadstool_knight", "arachnid"]
 
 var fails := 0
 var main: Node
@@ -458,6 +458,335 @@ func _blob() -> void:
 	for u in wet:
 		d1 += em.pos[em.index_of(u)].distance_to(at)
 	_check("...flinging the survivors out 6 yd", kit.flung == 6 and (d1 - d0) / 6.0 > 4.0, "%.1f m further" % ((d1 - d0) / 6.0))
+
+
+func _toadstool_knight() -> void:
+	var h := player.model as RosterHero
+	var body := h.knight
+	_check("the Toadstool Knight is the boss's body at player size: silver plate, toadstool cap, a sword", body != null and body.model != null
+		and body.model._cap_mats.size() == 3 and is_instance_valid(body.model.blade) and body.model.blade.is_visible_in_tree()
+		and ToadstoolBody.SCALE < 1.0 and body.tree != null and body.tree.active, "")
+	var rm := RosterModel.create("toadstool_knight")
+	add_child(rm)
+	_check("...and character select shows him too", rm._knight != null and rm._knight.model != null, "")
+	rm.queue_free()
+	var dmg: float = main.stats.value("damage")
+
+	# Spore Blade: a 3 m arc slash, then a spore cloud
+	_clear()
+	var front := []
+	for k in 3:
+		front.append(_spawn(EnemyManager.TANK, 1.8 + 0.4 * k, (k - 1) * 0.35, 50.0))
+	var behind := _spawn(EnemyManager.TANK, 2.0, PI, 50.0)
+	var far := _spawn(EnemyManager.TANK, 6.5, 0.0, 50.0)
+	await _secs(0.05)
+	for i in em.count:
+		em.stun(i, 20.0)
+	var s0 := body.slashes
+	ws.fire("spore", "orb", 1.0)
+	var all_front := true
+	for i in front:
+		all_front = all_front and em.hp[i] < em.hp_max[i]
+	_check("Spore Blade: a sword slash hits everything in the 3 m arc", all_front and body.slashes == s0 + 1, "%d slashes" % (body.slashes - s0))
+	_check("...but not behind him or out of reach", em.hp[behind] == em.hp_max[behind] and em.hp[far] == em.hp_max[far], "")
+	var sc := WeaponSystem.scale_of("spore")
+	_check("...30 damage every 0.8 s (scaled like every weapon)", is_equal_approx(sc.x, 30.0 / WeaponSystem.BASE_DAMAGE) and is_equal_approx(sc.y, 0.8 / WeaponSystem.BASE_EVERY), str(sc))
+	_check("...and leaves a spore cloud where it cut", ws.spore_clouds >= 1, "%d" % ws.spore_clouds)
+	await _secs(0.4)
+	var poisoned := 0
+	for i in front:
+		if em.pct_t[i] > 0.0 and is_equal_approx(em.pct_f[i], WeaponSystem.SPORE_FRAC):
+			poisoned += 1
+	_check("...that poisons enemies in it for 2% of max HP per second", poisoned >= 2 and em.pct_t[behind] <= 0.0, "%d of 3" % poisoned)
+	await _secs(WeaponSystem.SPORE_TIME)
+	_check("...for 3 s", ws.spore_clouds == 0, "%d" % ws.spore_clouds)
+
+	var kit: KitToadstool = ab.roster.part
+	# Fungal Shield: 20% of max HP; when it breaks it bursts into spores
+	_clear()
+	var close := []
+	for k in 5:
+		close.append(_spawn(EnemyManager.TANK, 5.0, TAU * k / 5.0, 50.0))
+	var out := _spawn(EnemyManager.TANK, 12.0, 0.4, 50.0)
+	await _secs(0.05)
+	for i in em.count:
+		em.stun(i, 20.0)
+	player.shield = 0.0
+	var c0 := body.casts
+	_cast(0)
+	await _secs(0.05)
+	_check("Fungal Shield: a shield worth 20% of max HP", is_equal_approx(player.shield, player.max_hp * KitToadstool.SHIELD_FRAC * kit.pw(0)) and kit.active("shield"), "%.1f" % player.shield)
+	_check("...and he raises his blade to cast", body.casts > c0, "")
+	player.invuln = 0.0
+	player.hurt_true(0.01)   # (god mode: the hit only wipes the shield out)
+	await _secs(0.1)
+	var burst := 0
+	for i in close:
+		if em.hp_max[i] - em.hp[i] >= KitToadstool.BURST_DAMAGE * dmg * kit.pw(0) * 0.99 and em.pct_t[i] > 0.0:
+			burst += 1
+	_check("...when it breaks it bursts into spores: 60 within 8 m, plus poison", kit.shield_bursts == 1 and burst == 5 and not kit.active("shield"), "%d bursts, %d of 5" % [kit.shield_bursts, burst])
+	_check("...not past 8 m", em.hp[out] == em.hp_max[out], "")
+	player.shield = 0.0
+	_cast(0)
+	await _secs(KitToadstool.SHIELD_TIME + 0.2)
+	_check("...and when it runs out after 8 s, too", kit.shield_bursts == 2 and player.shield < 0.01, "%d bursts, shield %.1f" % [kit.shield_bursts, player.shield])
+
+	# Fairy Ring: enemies that cross the 10 m ring take 50 and wander confused
+	_clear()
+	var walkers := []
+	for k in 6:
+		walkers.append(em.uid[_spawn(EnemyManager.GRUNT, 12.5, TAU * k / 6.0, 50.0)])
+	var inside := _spawn(EnemyManager.TANK, 4.0, 0.5, 50.0)
+	em.stun(inside, 20.0)
+	var boss := _spawn(EnemyManager.BOSS, 13.0, 0.25, 50.0)
+	await _secs(0.05)
+	_cast(1)
+	await _secs(0.1)
+	_check("Fairy Ring: a ring of mushrooms springs up 10 m around him", kit.active("ring") and kit._ring_nodes.size() == KitToadstool.RING_SHROOMS + 1, "%d" % kit._ring_nodes.size())
+	await _secs(3.0)
+	var crossed := 0
+	var confused := 0
+	for u in walkers:
+		var i := em.index_of(u)
+		if i < 0:
+			continue
+		if em.hp_max[i] - em.hp[i] >= KitToadstool.RING_DAMAGE * dmg * kit.pw(1) * 0.99:
+			crossed += 1
+		if em.confuse_t[i] > 0.0 and em.is_harmless(i):
+			confused += 1
+	_check("...enemies that cross it take 50 damage", crossed == 6 and kit.ring_hits >= 6, "%d of 6, %d hits" % [crossed, kit.ring_hits])
+	_check("...and wander confused for 3 s (harmless)", confused >= 4, "%d of 6" % confused)
+	_check("...the ring is the line: enemies well inside it are untouched", em.hp[inside] == em.hp_max[inside], "")
+	var bi := em.index_of(em.uid[boss])
+	_check("...bosses take the damage but aren't confused", bi < 0 or em.confuse_t[bi] <= 0.0, "")
+	await _secs(KitToadstool.RING_TIME - 3.0)
+	_check("...for 10 s", not kit.active("ring") and kit._ring_nodes.is_empty(), "")
+
+	# The Fungus Court: 6 guardians in a 12 m ring draw enemies in and slam them
+	_clear()
+	await _secs(0.05)
+	_cast(2)
+	await _secs(0.1)
+	var ring_ok: bool = kit._guards.size() == KitToadstool.COURT_COUNT
+	for g in kit._guards:
+		var d: Vector3 = (g["pos"] as Vector3) - player.global_position
+		ring_ok = ring_ok and absf(Vector2(d.x, d.z).length() - KitToadstool.COURT_RADIUS) < 0.5
+	_check("The Fungus Court: 6 giant toadstool guardians rise in a 12 m ring", ring_ok and kit.active("court"), "%d" % kit._guards.size())
+	var gp: Vector3 = kit._guards[0]["pos"]
+	var outward := Vector3(gp.x - player.global_position.x, 0, gp.z - player.global_position.z).normalized()
+	var drawn_ids := []
+	for k in 4:
+		var side := outward.cross(Vector3.UP) * (k - 1.5) * 1.5
+		var i := _spawn_at(EnemyManager.TANK, gp + outward * 6.0 + side, 50.0)
+		drawn_ids.append(em.uid[i])
+	await _secs(2.5)
+	var huddled := 0
+	for u in drawn_ids:
+		var i := em.index_of(u)
+		if i >= 0 and Vector2(em.pos[i].x - gp.x, em.pos[i].z - gp.z).length() < KitToadstool.COURT_SLAM_RADIUS:
+			huddled += 1
+	_check("...each draws enemies to it", huddled == 4 and kit.drawn >= 4, "%d of 4 round it" % huddled)
+	await _secs(2.0)
+	var slammed := 0
+	for u in drawn_ids:
+		var i := em.index_of(u)
+		if i >= 0 and em.hp_max[i] - em.hp[i] >= KitToadstool.COURT_DAMAGE * dmg * kit.pw(2) * 0.99:
+			slammed += 1
+	_check("...and slams every 1.5 s: 80 within 4 m", slammed == 4 and kit.court_slams >= KitToadstool.COURT_COUNT * 2, "%d slammed, %d slams" % [slammed, kit.court_slams])
+	await _secs(KitToadstool.COURT_TIME - 4.4)
+	_check("...for 15 s", not kit.active("court") and kit._guards.is_empty(), "")
+
+	# Death: he staggers and topples over
+	var dummy := RosterHero.create("toadstool_knight")
+	add_child(dummy)
+	await _secs(0.1)
+	dummy.play_death()
+	await _secs(1.6)
+	_check("...and when he falls he plays a death (topples over backwards)", dummy.knight.dead and dummy.knight.model.rotation.x > 1.0, "%.2f" % dummy.knight.model.rotation.x)
+	dummy.queue_free()
+
+
+func _arachnid() -> void:
+	var h := player.model as RosterHero
+	var sp := h.spider
+	_check("the Arachnid is built in code: the boss's spider, eight legs, at player size", sp != null and sp is SpiderModel and sp._legs.size() == 8
+		and sp.step_scaled and h.sock == null and h.blob == null, "")
+	var box := AABB()
+	var first := true
+	for mi in sp.find_children("*", "MeshInstance3D", true, false):
+		var a: AABB = (mi as MeshInstance3D).global_transform * (mi as MeshInstance3D).get_aabb()
+		box = a if first else box.merge(a)
+		first = false
+	_check("...about as tall as the other heroes, a bit wider", box.size.y > 1.2 and box.size.y < 2.1 and box.size.x > 2.0 and box.size.x < 3.8,
+		"%.2f x %.2f m" % [box.size.x, box.size.y])
+	# Walking: feet stay planted, then step to keep up
+	var ideal_ok := func() -> bool:
+		for l in sp._legs:
+			if (l["foot"] as Vector3).distance_to(sp._ideal(l)) > SpiderModel.STEP_DIST * sp._sc * 1.05:
+				return false
+		return true
+	player.global_position += Vector3(1.2, 0, 0)
+	await get_tree().process_frame
+	var lag := 0.0
+	for l in sp._legs:
+		lag = maxf(lag, (l["foot"] as Vector3).distance_to(sp._ideal(l)))
+	await _secs(0.8)
+	_check("...its legs walk: the feet stay planted, then step after the body", lag > 0.3 and ideal_ok.call(), "lag %.2f m" % lag)
+	# Attack, cast, hit and death poses
+	var s0 := sp.spits
+	h.attack(player.global_position + Vector3(0, 0, -5))
+	await _secs(0.1)
+	_check("...it jabs its head forward with each spit", sp.spits == s0 + 1 and sp.pitch > 0.15, "pitch %.2f" % sp.pitch)
+	h.play_ability(0)
+	await _secs(0.3)
+	_check("...rears up, front legs clawing the air, when it casts", sp.rear > 0.5, "rear %.2f" % sp.rear)
+	await _secs(0.6)
+	h.play_hit()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check("...recoils when hit", sp.pitch < -0.1 and sp.nudge.z > 0.1, "pitch %.2f" % sp.pitch)
+	h.play_death()
+	await _secs(1.0)
+	_check("...and curls its legs up when it dies (even with the game paused)", sp.dead and sp.curl > 0.9 and h.process_mode == Node.PROCESS_MODE_ALWAYS, "curl %.2f" % sp.curl)
+	sp.dead = false
+	sp.curl = 0.0
+	sp.crouch = 0.0
+	h.process_mode = Node.PROCESS_MODE_INHERIT
+	# Venom Spit
+	_clear()
+	var t := _spawn(EnemyManager.TANK, 6.0, 0.0, 50.0)
+	var tu := em.uid[t]
+	em.slow(t, 0.001, 30.0)
+	await _secs(0.05)
+	var h0 := em.hp[t]
+	var v0 := ws.venom_hits
+	ws.fire("venom", "orb", 1.0)
+	var kinds := 0
+	for i in ws.pc:
+		kinds += 1 if WeaponSystem.P_KINDS[ws.p_style[i]] == "venom" else 0
+	_check("Venom Spit: spits fast globs of venom", kinds >= 1, "%d globs" % kinds)
+	await _secs(0.4)
+	t = em.index_of(tu)
+	var hit: float = h0 - em.hp[t] - em.hp_max[t] * WeaponSystem.VENOM_FRAC * (WeaponSystem.VENOM_TIME - em.poison_t[t])   # less the poison so far
+	_check("...that hit for about 12 and poison", ws.venom_hits == v0 + 1 and em.poison_n[t] == 1 and hit > 10.0 and hit < 20.0, "-%.1f, %d stacks" % [hit, em.poison_n[t]])
+	for n in 4:
+		ws.fire("venom", "orb", 1.0)
+		await _secs(0.3)
+	t = em.index_of(tu)
+	_check("...stacking 3 times", em.poison_n[t] == 3, "%d" % em.poison_n[t])
+	var hp1 := em.hp[t]
+	await _secs(1.0)
+	t = em.index_of(tu)
+	var frac := (hp1 - em.hp[t]) / em.hp_max[t]
+	_check("...3% of max HP a second per stack", absf(frac - 0.09) < 0.015, "%.3f / s" % frac)
+	await _secs(3.2)
+	t = em.index_of(tu)
+	_check("...for 4 s", em.poison_n[t] == 0 and em.poison_t[t] <= 0.0, "%.2f s left" % em.poison_t[t])
+	# Web Trap
+	var kit: KitArachnid = ab.roster.part
+	_clear()
+	_cast(0)
+	await _secs(0.5)
+	_check("Web Trap: a web lands where you aim", kit.active("web") and is_instance_valid(kit._web) and kit._web_t > 3.0, "")
+	var wat := kit._web_at
+	var inside := []
+	for n in 5:
+		var a := TAU * n / 5.0
+		inside.append(em.uid[_spawn_at(EnemyManager.TANK, wat + Vector3(cos(a), 0, sin(a)) * (2.0 + n * 1.4), 50.0)])
+	var out_u := em.uid[_spawn_at(EnemyManager.TANK, wat + Vector3(15.0, 0, 0), 50.0)]
+	em.slow(em.index_of(out_u), 0.001, 30.0)
+	await _secs(0.25)
+	var stuck_ok := true
+	for u in inside:
+		var i := em.index_of(u)
+		stuck_ok = stuck_ok and em.web_t[i] > 0.0 and em.slow_t[i] > 0.0 and em.slow_f[i] == 0.0
+	var oi := em.index_of(out_u)
+	_check("...everything in the 10 m web is stuck fast", stuck_ok and kit.stuck >= 5, "%d stuck" % kit.stuck)
+	_check("...nothing outside it", em.web_t[oi] <= 0.0, "")
+	var wi := em.index_of(inside[0])
+	em.poison(wi, WeaponSystem.VENOM_FRAC, 2.0, 3)
+	em.poison(oi, WeaponSystem.VENOM_FRAC, 2.0, 3)
+	var hw := em.hp[wi]
+	var ho := em.hp[oi]
+	await _secs(0.5)
+	wi = em.index_of(inside[0])
+	oi = em.index_of(out_u)
+	var ratio := (hw - em.hp[wi]) / maxf(0.001, ho - em.hp[oi])
+	_check("...and takes +30% damage from poison", absf(ratio - (1.0 + KitArachnid.WEB_BONUS * kit.pw(0))) < 0.05, "x%.2f" % ratio)
+	await _secs(3.4)
+	wi = em.index_of(inside[0])
+	_check("...for 4 s", not kit.active("web") and em.web_t[wi] <= 0.0, "")
+	# Brood
+	_clear()
+	_cast(1)
+	await _secs(0.7)
+	_check("Brood: an egg sac hatches 12 spiderlings", kit.hatched == 12 and kit.lings().size() == 12 and kit.active("brood"), "%d" % kit.hatched)
+	var prey := []
+	for n in 6:
+		var u := em.uid[_spawn(EnemyManager.TANK, 6.0, n * 0.5 - 1.2, 50.0)]
+		em.slow(em.index_of(u), 0.001, 30.0)
+		prey.append(u)
+	await _secs(1.5)
+	var clinging := 0
+	var on := {}
+	for l in kit.lings():
+		if l[2] == "cling":
+			clinging += 1
+			on[l[3]] = true
+	_check("...that leap onto the enemies", clinging == 12 and on.size() == 6, "%d clinging, on %d enemies" % [clinging, on.size()])
+	var d0 := kit.ling_damage
+	await _secs(1.0)
+	var per := (kit.ling_damage - d0) / 12.0
+	var want: float = KitArachnid.BROOD_DPS * kit.pw(1) * main.stats.value("damage")
+	_check("...each dealing 20 damage a second", absf(per - want) < want * 0.15, "%.1f / s (want %.1f)" % [per, want])
+	var poisoned := 0
+	for u in prey:
+		var i := em.index_of(u)
+		poisoned += 1 if i >= 0 and em.poison_n[i] >= 1 else 0
+	_check("...and poisoning them", poisoned == 6, "%d / 6" % poisoned)
+	_clear()
+	var boss := em.uid[_spawn(EnemyManager.BOSS, 5.0, 0.4, 50.0)]
+	em.slow(em.index_of(boss), 0.001, 30.0)
+	for n in 3:
+		em.slow(_spawn(EnemyManager.TANK, 3.0, n * 0.8 - 0.8, 50.0), 0.001, 30.0)
+	await _secs(1.2)
+	var on_boss := 0
+	for l in kit.lings():
+		on_boss += 1 if l[3] == boss and l[2] == "cling" else 0
+	_check("...a boss in range first", on_boss >= 10, "%d on the boss" % on_boss)
+	await _secs(11.6)
+	_check("...for 15 s", not kit.active("brood") and kit.lings().is_empty(), "")
+	# Cocoon
+	_clear()
+	var wrap := []
+	for n in 10:
+		wrap.append(em.uid[_spawn(EnemyManager.TANK, 4.0 + n * 1.8, n * 0.7, 50.0)])
+	var far_u := em.uid[_spawn(EnemyManager.TANK, 30.0, 0.0, 50.0)]
+	var cboss := em.uid[_spawn(EnemyManager.BOSS, 8.0, 2.5, 50.0)]
+	await _secs(0.05)
+	player.hp = player.max_hp * 0.5
+	var hc := {}
+	for u in wrap:
+		hc[u] = em.hp[em.index_of(u)]
+	_cast(2)
+	await _secs(0.3)
+	var held := 0
+	for u in wrap:
+		var i := em.index_of(u)
+		held += 1 if em.stun_t[i] > 3.0 and em.is_harmless(i) else 0
+	_check("Cocoon: every enemy within 25 m is wrapped in silk", kit.wrapped == 10 and held == 10 and kit._cocoons.multimesh.visible_instance_count == 10, "%d wrapped" % kit.wrapped)
+	var bi := em.index_of(cboss)
+	_check("...the boss only slowed", em.stun_t[bi] <= 0.0 and em.slow_t[bi] > 3.0 and is_equal_approx(em.slow_f[bi], KitArachnid.COCOON_BOSS_SLOW), "")
+	_check("...nothing past 25 m", em.stun_t[em.index_of(far_u)] <= 0.0, "")
+	_check("...and you heal 1% of max HP per cocoon", player.hp >= player.max_hp * 0.595, "%.0f / %.0f" % [player.hp, player.max_hp])
+	await _secs(5.0)
+	var lost_frac := 0.0
+	for u in wrap:
+		var i := em.index_of(u)
+		lost_frac += (hc[u] - em.hp[i]) / em.hp_max[i] / 10.0
+	var wantc := minf(1.0, KitArachnid.COCOON_FRAC * kit.pw(2))
+	_check("...cocooned enemies take 25% of their max HP", absf(lost_frac - wantc) < 0.03, "%.3f (want %.3f)" % [lost_frac, wantc])
+	_check("...for 5 s", not kit.active("cocoon") and not kit._cocoons.visible and _all(func(i): return em.stun_t[i] <= 0.0), "")
 
 
 func _thog() -> void:

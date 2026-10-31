@@ -336,6 +336,33 @@ func _test_specials() -> void:
 	ws._fire_acid(p, 1.0, "orb", null)
 	_check("forged Acid Body: its kills burst, hurting enemies nearby", ws.acid_bursts == b0 + 1 and h1 - em.hp[ts[1]] > 50.0,
 		"%d bursts, bystander -%.0f" % [ws.acid_bursts - b0, h1 - em.hp[ts[1]]])
+	# Spore Blade: spore clouds twice as big (an enemy 3.5 m from the cut is only poisoned then)
+	var caught := []
+	for on in [false, true]:
+		if on:
+			ws.special["spore"] = true
+		else:
+			ws.special.erase("spore")
+		ts = _fresh(em, p, [Vector3(1.5, 0, 0), Vector3(1.8 + 3.5, 0, 0)])
+		ws._swing(p, 1.0, "orb", null, WeaponSystem.SPORE_REACH, WeaponSystem.SPORE_ARC, "spore")
+		ws._update_clouds(0.01)
+		caught.append(em.pct_t[ts[1]] > 0.0)
+		var r_now: float = ws.spore_radius()
+		caught.append(r_now)
+	_check("forged Spore Blade: spore clouds are twice as big", caught[0] == false and caught[2] == true
+		and is_equal_approx(float(caught[3]), float(caught[1]) * Forge.SPORE_SIZE), str(caught))
+	# Venom Spit: poison stacks 5 times instead of 3
+	var stacks := []
+	for on in [false, true]:
+		if on:
+			ws.special["venom"] = true
+		else:
+			ws.special.erase("venom")
+		t = _fresh(em, p, [Vector3(5, 0, 0)])[0]
+		for k in 7:
+			_hit(ws, em, t, "venom")
+		stacks.append(em.poison_n[t])
+	_check("forged Venom Spit: poison stacks 5 times instead of 3", stacks[0] == WeaponSystem.VENOM_STACKS and stacks[1] == Forge.VENOM_STACKS, "%d -> %d" % stacks)
 
 
 ## Clear the field and spawn sturdy goblins at these offsets from `p` (indexed at once).

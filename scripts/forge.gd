@@ -36,6 +36,8 @@ const STATIC_TARGETS := 2                # Static Cling: zaps 2 more enemies
 const MARACA_KNOCK := 3.5                # Maraca Blasters: pulses knock enemies back (m)
 const ACID_BURST_FRAC := 0.25            # Acid Body: its kills burst for 25% of their max HP...
 const ACID_BURST_RADIUS := 3.0           # ...within 3 m
+const VENOM_STACKS := 5                  # Venom Spit: poison stacks 5 times (not 3)
+const SPORE_SIZE := 2.0                  # Spore Blade: spore clouds twice as big
 
 ## Shard parts per weapon style (always 5 in all).
 const RECIPES := {
@@ -55,6 +57,8 @@ const RECIPES := {
 	"static": {"lightning": 3, "dark": 2},                # An Argyle Sock
 	"maracas": {"fire": 2, "lightning": 3},               # Loco Robotico
 	"acid": {"fire": 2, "dark": 3},                       # The Blob
+	"venom": {"ice": 1, "lightning": 1, "dark": 3},       # The Arachnid
+	"spore": {"fire": 1, "ice": 1, "dark": 3},            # The Toadstool Knight
 }
 ## Weapon specials, unlocked at forge level 1.
 const SPECIALS := {
@@ -74,6 +78,8 @@ const SPECIALS := {
 	"static": "Zaps hit 2 more enemies",
 	"maracas": "Pulses knock enemies back",
 	"acid": "Enemies it kills burst for 25% of their max HP",
+	"venom": "Poison stacks 5 times instead of 3",
+	"spore": "Spore clouds are twice as big",
 }
 
 

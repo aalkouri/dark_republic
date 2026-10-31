@@ -1,0 +1,26 @@
+{
+ "Spore clouds are twice as big": [
+  "Las nubes de esporas son el doble de grandes",
+  "Les nuages de spores sont deux fois plus grands",
+  "سحب الأبواغ أكبر بمرتين",
+  "Sporenwolken sind doppelt so groß",
+  "孢子云扩大一倍",
+  "胞子の雲が2倍の大きさになる"
+ ],
+ "burst damage": [
+  "daño de estallido",
+  "dégâts d'éclatement",
+  "ضرر الانفجار",
+  "Explosionsschaden",
+  "爆裂伤害",
+  "破裂ダメージ"
+ ],
+ "slam damage": [
+  "daño de golpe",
+  "dégâts d'écrasement",
+  "ضرر الضربة",
+  "Stampfschaden",
+  "重击伤害",
+  "叩きつけダメージ"
+ ]
+}

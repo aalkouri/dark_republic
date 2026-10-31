@@ -7,6 +7,8 @@ extends Node3D
 ##
 ## Plays segments of Gaiden's clips: walk (run, slowed), idle, slash (the overhead cut from the
 ## attack clip), cast (the forward thrust from the ability clip), hit and a death.
+## The playable knight (ToadstoolBody) sets `animated = false` before adding it and drives the
+## rig with its own AnimationTree instead (legs keep running while he slashes).
 
 const DIR := "res://models/gaiden"
 const MODEL_HEIGHT := 1.8
@@ -37,6 +39,12 @@ var _loop := false
 var _enrage := 0.0
 var _flash := 0.0
 var _blade_mats: Array[StandardMaterial3D] = []
+var _cap_mats: Array[StandardMaterial3D] = []
+var animated := true     # false: no AnimationPlayer (ToadstoolBody drives the rig)
+var blade: Node3D        # the sword (its tip is BLADE_TIP up its local +Y)
+var hurt := 0.0          # 0..1: flashes white-hot when hit (the playable knight)
+var dim := 1.0           # brightness (the playable knight while immune)
+const BLADE_TIP := 0.85
 
 
 func _ready() -> void:
@@ -64,7 +72,7 @@ func _ready() -> void:
 	var sk := _skeleton()
 	if sk:
 		_add_cap(sk)
-		var blade := RosterWeapons.attach("gaiden", sk)
+		blade = RosterWeapons.attach("gaiden", sk)
 		if blade:
 			blade.scale *= 1.25
 			for mi in blade.find_children("*", "MeshInstance3D", true, false):
@@ -78,6 +86,8 @@ func _ready() -> void:
 					g.emission_energy_multiplier = 1.6
 					(bm as BoxMesh).material = g
 					_blade_mats.append(g)
+	if not animated:
+		return
 	player = AnimationPlayer.new()
 	_rig.add_child(player)
 	player.root_node = NodePath("..")
@@ -102,6 +112,7 @@ func _add_cap(sk: Skeleton3D) -> void:
 	red.roughness = 0.28
 	red.clearcoat_enabled = true
 	red.clearcoat = 0.6
+	_cap_mats.append(red)
 	var dome := SphereMesh.new()
 	dome.radius = CAP_R
 	dome.height = CAP_R   # a hemisphere needs height == radius
@@ -115,6 +126,7 @@ func _add_cap(sk: Skeleton3D) -> void:
 	var gill_mat := StandardMaterial3D.new()
 	gill_mat.albedo_color = GILL
 	gill_mat.roughness = 0.9
+	_cap_mats.append(gill_mat)
 	var gills := CylinderMesh.new()
 	gills.top_radius = CAP_R * 0.98
 	gills.bottom_radius = CAP_R * 0.3
@@ -127,6 +139,7 @@ func _add_cap(sk: Skeleton3D) -> void:
 	var white := StandardMaterial3D.new()
 	white.albedo_color = SPOT
 	white.roughness = 0.6
+	_cap_mats.append(white)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	for k in 13:
@@ -181,8 +194,19 @@ func flash() -> void:
 	_flash = 0.1
 
 
+## Brightness of the whole knight (1 = normal; the playable knight dims while immune).
+func set_dim(f: float) -> void:
+	dim = f
+	for m in _mats:
+		m.albedo_color = Color(2.0 * f, 2.05 * f, 2.2 * f)
+	var bases: Array[Color] = [CAP_RED, GILL, SPOT]
+	for k in mini(_cap_mats.size(), 3):
+		var c: Color = bases[k]
+		_cap_mats[k].albedo_color = Color(c.r * f, c.g * f, c.b * f)
+
+
 func _process(dt: float) -> void:
-	if player.current_animation != "" and player.current_animation_position >= _end - 0.001:
+	if player != null and player.current_animation != "" and player.current_animation_position >= _end - 0.001:
 		var s: Array = SEG[_seg]
 		if _loop:
 			player.seek(float(s[1]), true)
@@ -190,7 +214,7 @@ func _process(dt: float) -> void:
 			player.pause()
 	_flash = maxf(_flash - dt, 0.0)
 	var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.01)
-	var glow := Color(0.55, 0.15, 0.9) * (_enrage * (0.12 + 0.08 * pulse)) + Color(1, 1, 1) * (_flash * 4.0)
+	var glow := Color(0.55, 0.15, 0.9) * (_enrage * (0.12 + 0.08 * pulse)) + Color(1, 1, 1) * (_flash * 4.0) + Color(1.0, 0.85, 0.75) * hurt
 	for m in _mats:
 		m.emission = glow
 	for g in _blade_mats:

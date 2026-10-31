@@ -30,10 +30,17 @@ static func create(id: String) -> RosterModel:
 
 var _sock: SockBody
 var _loco: LocoBody
+var _knight: ToadstoolBody
 var _blob: BlobBody
+var _spider: ArachnidBody
 
 
 func _ready() -> void:
+	if RosterHero.CFG.get(char_id, {}).get("procedural", "") == "arachnid":   # built in code
+		_spider = ArachnidBody.create()
+		_rig = _spider
+		add_child(_spider)
+		return
 	if RosterHero.CFG.get(char_id, {}).get("procedural", "") == "blob":   # built in code
 		_blob = BlobBody.create()
 		_rig = _blob
@@ -43,6 +50,11 @@ func _ready() -> void:
 		_sock = SockBody.create()
 		_rig = _sock
 		add_child(_sock)
+		return
+	if RosterHero.CFG.get(char_id, {}).get("procedural", "") == "toadstool":   # the boss's body, player size
+		_knight = ToadstoolBody.create()
+		_rig = _knight
+		add_child(_knight)
 		return
 	if RosterHero.CFG.get(char_id, {}).get("procedural", "") == "loco":   # built in code
 		_loco = LocoBody.create()
@@ -94,11 +106,22 @@ func play(clip: String) -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
+	if _spider:   # idles: breathes and sways, now and then rears up and spits
+		var c := fmod(_t, 5.0)
+		if c < dt * 1.01 and _t > 1.0:
+			_spider.spit()
+		_spider.animate(dt, 0.0, false, clampf((c - 2.5) / 1.2, 0.0, 1.0) if c > 2.5 and c < 3.7 else 0.0)
+		return
 	if _blob:   # idles: jiggles, now and then a little bounce (stretch, then splat)
 		_blob.animate(dt, 0.0, fmod(_t, 3.0) < 0.22, 0.0, 0.0, 0.0)
 		return
 	if _sock:   # idles: sways, now and then a little hop
 		_sock.animate(dt, 0.0, false, 0.0, 0.3 if fmod(_t, 4.0) < 0.3 else 0.0)
+		return
+	if _knight:   # stands guard, now and then a practice cut with his sword
+		if fmod(_t, 4.0) < dt * 1.01 and _t > 1.0:
+			_knight.slash()
+		_knight.animate(dt, 0.0)
 		return
 	if _loco:   # dances on the spot, shaking a maraca now and then
 		if fmod(_t, 0.9) < dt:

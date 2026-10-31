@@ -82,8 +82,15 @@ var ally_t := PackedFloat32Array()      # possessed (Haunt): walks to ally_goal,
 var ally_goal := PackedVector3Array()
 var pct_t := PackedFloat32Array()       # bleed / acid: pct_f of max HP per second for pct_t s
 var shrink_t := PackedFloat32Array()    # Laundry Day: shrunk in the wash (smaller, half damage, x2 damage taken)
+var confuse_t := PackedFloat32Array()   # Fairy Ring: wanders about confused, harmless (not the bosses)
 const SHRINK_SIZE := 0.6
 var pct_f := PackedFloat32Array()
+var poison_n := PackedInt32Array()      # Venom Spit / spiderlings: stacks of poison, each poison_f of max HP per second...
+var poison_t := PackedFloat32Array()    # ...for poison_t s more (each new stack refreshes it)
+var poison_f := PackedFloat32Array()
+var web_t := PackedFloat32Array()       # Web Trap: stuck in a web; poison hurts it web_poison_bonus more
+var web_poison_bonus := 0.3
+const POISON_TINT := Color(0.55, 1.0, 0.2)
 var frog_count := 0                     # live frogs (last tick)
 var kill_xp_mult := 1.0                 # set while Events.enemy_killed fires: XP multiplier of that kill
 var burst_center := Vector3.INF         # goblins dying within burst_radius of here burst for burst_frac of max HP
@@ -207,7 +214,10 @@ func _ready() -> void:
 	sep_x.resize(MAX)
 	sep_z.resize(MAX)
 	ally_goal.resize(MAX)
-	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim, fear_t, frog_t, ally_t, pct_t, pct_f, shrink_t]:
+	for a in [poison_t, poison_f, web_t]:
+		a.resize(MAX)
+	poison_n.resize(MAX)
+	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim, fear_t, frog_t, ally_t, pct_t, pct_f, shrink_t, confuse_t]:
 		a.resize(MAX)
 	cell_of.resize(MAX)
 	sorted.resize(MAX)
@@ -339,7 +349,12 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	ally_t[i] = 0.0
 	pct_t[i] = 0.0
 	pct_f[i] = 0.0
+	poison_n[i] = 0
+	poison_t[i] = 0.0
+	poison_f[i] = 0.0
+	web_t[i] = 0.0
 	shrink_t[i] = 0.0
+	confuse_t[i] = 0.0
 	throw_t[i] = rng.randf_range(1.0, 3.0) if rng != null else 2.0
 	throw_anim[i] = 0.0
 	if t == TROLL:
@@ -388,6 +403,13 @@ func shrink(i: int, secs: float) -> void:
 	shrink_t[i] = maxf(shrink_t[i], secs)
 
 
+## Wander about confused for `secs`: ambles off on a heading of its own and can't hurt you
+## (not the bosses).
+func confuse(i: int, secs: float) -> void:
+	if not dead[i] and not is_boss(i):
+		confuse_t[i] = maxf(confuse_t[i], secs)
+
+
 ## How hard this enemy hits right now (shrunk ones hit for half).
 func hit_mult(i: int) -> float:
 	return 0.5 if shrink_t[i] > 0.0 else 1.0
@@ -429,7 +451,7 @@ func is_held(i: int) -> bool:
 
 ## Can't hurt the player right now: held, a frog, possessed or fleeing in terror.
 func is_harmless(i: int) -> bool:
-	return freeze_t[i] > 0.0 or stun_t[i] > 0.0 or frog_t[i] > 0.0 or ally_t[i] > 0.0 or fear_t[i] > 0.0
+	return freeze_t[i] > 0.0 or stun_t[i] > 0.0 or frog_t[i] > 0.0 or ally_t[i] > 0.0 or fear_t[i] > 0.0 or confuse_t[i] > 0.0
 
 
 func is_boss(i: int) -> bool:
@@ -454,6 +476,27 @@ func afflict(i: int, frac: float, secs: float) -> void:
 		return
 	pct_f[i] = maxf(pct_f[i], frac) if pct_t[i] > 0.0 else frac
 	pct_t[i] = maxf(pct_t[i], secs)
+
+
+## Poison (Venom Spit, spiderlings): adds a stack (up to `max_stacks`), each `frac` of max HP
+## per second, and refreshes the timer to `secs`. Stacks fall off together when it runs out.
+func poison(i: int, frac: float, secs: float, max_stacks: int) -> void:
+	if dead[i]:
+		return
+	if poison_t[i] <= 0.0:
+		poison_n[i] = 0
+	poison_n[i] = mini(poison_n[i] + 1, max_stacks)
+	poison_f[i] = frac
+	poison_t[i] = maxf(poison_t[i], secs)
+
+
+## Stuck in a web (Web Trap) for `secs`: held in place (the bosses only slowed by half), and
+## poison hurts it web_poison_bonus more.
+func web(i: int, secs: float) -> void:
+	if dead[i]:
+		return
+	slow(i, 0.5 if is_boss(i) else 0.0, secs)
+	web_t[i] = maxf(web_t[i], secs)
 
 
 ## Index of the live enemy with this uid, or -1.
@@ -719,6 +762,8 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			frogs += 1
 		if ally_t[i] > 0.0:
 			ally_t[i] -= dt
+		if confuse_t[i] > 0.0:
+			confuse_t[i] -= dt
 		if shrink_t[i] > 0.0:
 			shrink_t[i] -= dt
 			if shrink_t[i] <= 0.0:
@@ -726,6 +771,14 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		if pct_t[i] > 0.0 and not dead[i]:
 			pct_t[i] -= dt
 			dot_damage(i, hp_max[i] * pct_f[i] * dt * (PCT_BOSS if t == TROLL else 1.0))
+		if web_t[i] > 0.0:
+			web_t[i] -= dt
+		if poison_t[i] > 0.0 and not dead[i]:
+			poison_t[i] -= dt
+			var pz := hp_max[i] * poison_f[i] * poison_n[i] * dt * (PCT_BOSS if t == TROLL else 1.0)
+			dot_damage(i, pz * (1.0 + web_poison_bonus if web_t[i] > 0.0 else 1.0))
+			if poison_t[i] <= 0.0:
+				poison_n[i] = 0
 
 		# Knockback: fixed displacement, no steering or separation
 		if kb_t[i] > 0.0:
@@ -846,7 +899,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 				sp = 0.0   # a skeleton winding up a throw / Thog mid-attack stands still
 			if fear or fear_t[i] > 0.0:
 				sp = -sp   # run away from the player
-			elif lost and t != BOSS and t != TROLL and ally_t[i] <= 0.0:
+			elif (lost or confuse_t[i] > 0.0) and t != BOSS and t != TROLL and ally_t[i] <= 0.0:
 				# Lost in the dark: amble along a slowly turning heading of their own
 				var wa := float(uid[i]) * 2.399 + _time * 0.35
 				fx = cos(wa)
@@ -964,6 +1017,10 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			fxc += FX_CHILL
 		if curse_t[i] > 0.0:
 			fxc += FX_SHADOW
+		if poison_t[i] > 0.0:   # poisoned: a sickly green
+			col = col.lerp(POISON_TINT, 0.3 + 0.1 * poison_n[i])
+		if confuse_t[i] > 0.0:   # dazed by spores: a violet tinge
+			col = col.lerp(Color(0.8, 0.5, 1.0), 0.45)
 		if ally_t[i] > 0.0:   # possessed: a pale ghostly glow
 			col = Color(0.75, 0.97, 1.0)
 			fxc += FX_CHILL + 2.0
@@ -1166,7 +1223,12 @@ func _compact() -> void:
 			ally_goal[i] = ally_goal[last]
 			pct_t[i] = pct_t[last]
 			pct_f[i] = pct_f[last]
+			poison_n[i] = poison_n[last]
+			poison_t[i] = poison_t[last]
+			poison_f[i] = poison_f[last]
+			web_t[i] = web_t[last]
 			shrink_t[i] = shrink_t[last]
+			confuse_t[i] = confuse_t[last]
 			count -= 1
 		else:
 			i += 1

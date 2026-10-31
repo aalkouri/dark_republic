@@ -171,6 +171,8 @@ func _ready() -> void:
 			Settings.selected_character = a.split("=")[1]
 		elif a.begins_with("--map="):   # play on this map (tests, screenshots)
 			Settings.selected_map = a.split("=")[1]
+		elif a.begins_with("--swamp-time="):   # day / night (screenshots)
+			WorldBuilder.force_time = a.split("=")[1]
 		elif a.begins_with("--forest-time="):   # noon / golden / night (screenshots)
 			ForestBuilder.force_time = a.split("=")[1]
 		elif a.begins_with("--thog-at=") or a.begins_with("--boss-at="):   # bring the map's boss early (tests, screenshots)
@@ -932,6 +934,8 @@ func _resume() -> void:
 
 
 func _on_player_died() -> void:
+	if player.model != null and player.model.has_method("play_death"):
+		player.model.play_death()
 	_end_run(false)
 
 

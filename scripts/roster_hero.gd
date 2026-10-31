@@ -103,11 +103,25 @@ const CFG := {
 		"main": Color(0.55, 1.0, 0.3), "deep": Color(0.12, 0.42, 0.06), "light": Color(0.85, 1.0, 0.6),
 		"motes": false,
 	},
+	# The Arachnid: ArachnidBody, the Castle boss's code-built spider at player size
+	"arachnid": {
+		"procedural": "arachnid",
+		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"main": Color(0.6, 1.0, 0.25), "deep": Color(0.22, 0.1, 0.28), "light": Color(0.88, 1.0, 0.7),
+		"motes": false,
+	},
 	# Loco Robotico has no model either: LocoBody builds the party robot in code
 	"loco_robotico": {
 		"procedural": "loco",
 		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
 		"main": Color(1.0, 0.45, 0.85), "deep": Color(0.12, 0.42, 0.48), "light": Color(0.75, 1.0, 0.85),
+		"motes": false,
+	},
+	# The Toadstool Knight: ToadstoolBody, the Forest boss's body at player size (he's small)
+	"toadstool_knight": {
+		"procedural": "toadstool",
+		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"main": Color(0.78, 0.5, 1.0), "deep": Color(0.62, 0.08, 0.06), "light": Color(0.93, 0.82, 1.0),
 		"motes": false,
 	},
 	"thog": {
@@ -177,6 +191,8 @@ var sock_colors := {}       # ...in other colours (the Lost Pair), set before it
 var loco: LocoBody          # Loco Robotico: built in code, no rig
 var blob: BlobBody          # The Blob: built in code, no rig
 var blob_opts := {}         # ...its size and colours (Split's mini-blobs), set before it's added
+var knight: ToadstoolBody   # The Toadstool Knight: the boss's body at player size, own AnimationTree
+var spider: ArachnidBody    # The Arachnid: built in code, no rig
 
 
 func _ready() -> void:
@@ -191,6 +207,18 @@ func _ready() -> void:
 		loco = LocoBody.create()
 		_rig = loco
 		add_child(loco)
+		_floaty = true
+		return
+	if cfg0.get("procedural", "") == "arachnid":
+		spider = ArachnidBody.create()
+		_rig = spider
+		add_child(spider)
+		_floaty = true
+		return
+	if cfg0.get("procedural", "") == "toadstool":
+		knight = ToadstoolBody.create()
+		_rig = knight
+		add_child(knight)
 		_floaty = true
 		return
 	if cfg0.get("procedural", "") == "blob":
@@ -360,9 +388,15 @@ func _build_tree() -> void:
 # ------------------------------------------------------------------ interface
 
 func attack(target: Vector3) -> Vector3:
+	if spider:   # jabs its head forward and spits
+		spider.spit()
+		return spider.tip()
 	if loco:   # shakes a maraca (alternating hands)
 		loco.shake()
 		return loco.tip()
+	if knight:   # the overhead cut, turning toward the target
+		knight.slash(target)
+		return knight.tip()
 	if _floaty:
 		_lunge = 1.0
 		return staff_tip()
@@ -381,6 +415,10 @@ func staff_tip() -> Vector3:
 		return loco.tip()
 	if blob:
 		return blob.tip()
+	if spider:
+		return spider.tip()
+	if knight:
+		return knight.tip()
 	if _floaty:   # the Ghast's mouth
 		return global_transform * Vector3(0, 1.45, -0.35)
 	if weapon == null or not weapon.is_inside_tree():
@@ -393,7 +431,21 @@ func set_motion(speed: float, airborne: bool) -> void:
 	_airborne = airborne
 
 
+## The run is over: characters with a death pose play it (the Arachnid curls its legs up),
+## carrying on while the game is paused for the end screen.
+func play_death() -> void:
+	if spider:
+		spider.die()
+		process_mode = Node.PROCESS_MODE_ALWAYS
+	if knight:   # he staggers and topples over backwards
+		knight.die()
+		process_mode = Node.PROCESS_MODE_ALWAYS
+
+
 func play_hit() -> void:
+	if knight:
+		knight.hit()
+		return
 	if _floaty:
 		_flinch = 1.0
 		return
@@ -401,6 +453,9 @@ func play_hit() -> void:
 
 
 func play_ability(i: int) -> void:
+	if knight:
+		knight.cast()
+		return
 	if _floaty:
 		_swell = 1.0
 		return
@@ -443,6 +498,10 @@ func set_dim(f: float) -> void:
 		loco.set_dim(f)
 	if blob:
 		blob.set_dim(f)
+	if spider:
+		spider.set_dim(f)
+	if knight:
+		knight.set_dim(f)
 	for k in _mats.size():
 		var c := _base_albedo[k]
 		_mats[k].albedo_color = Color(c.r * f, c.g * f, c.b * f, c.a)
@@ -460,6 +519,10 @@ func set_hurt(amount: float) -> void:
 		loco.set_hurt(clampf(amount, 0.0, 1.0))
 	if blob:
 		blob.set_hurt(clampf(amount, 0.0, 1.0))
+	if spider:
+		spider.set_hurt(clampf(amount, 0.0, 1.0))
+	if knight:
+		knight.set_hurt(clampf(amount, 0.0, 1.0))
 	_apply_emission()
 
 
@@ -514,11 +577,19 @@ func _process(dt: float) -> void:
 		_flinch = maxf(0.0, _flinch - dt * 5.0)
 		loco.animate(dt, _speed, _airborne, _swell, _flinch)
 		return
+	if spider:   # scuttles along, jabs as it spits, rears up when it casts, recoils when hit
+		_swell = maxf(0.0, _swell - dt * 1.6)
+		_flinch = maxf(0.0, _flinch - dt * 4.0)
+		spider.animate(dt, _speed, _airborne, _swell, _flinch)
+		return
 	if blob:   # wobbles, hops along, ripples as it burns, swells when it casts, splats when hit
 		_lunge = maxf(0.0, _lunge - dt * 4.0)
 		_swell = maxf(0.0, _swell - dt * 1.8)
 		_flinch = maxf(0.0, _flinch - dt * 3.0)
 		blob.animate(dt, _speed, _airborne, _lunge, _swell, _flinch)
+		return
+	if knight:   # runs, slashes and casts on his own AnimationTree
+		knight.animate(dt, _speed, _airborne)
 		return
 	if _floaty:   # hover, sway, lunge at targets, swell when casting, jerk back when hit
 		_lunge = maxf(0.0, _lunge - dt * 4.0)

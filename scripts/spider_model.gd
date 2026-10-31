@@ -33,6 +33,10 @@ var surface_root: Node3D        # the node whose local XZ is the surface (this n
 var rear := 0.0                 # 0..1: front legs up, body tipped back (wind-ups)
 var crouch := 0.0               # 0..1: body lowered to the surface (about to pounce)
 var curl := 0.0                 # 0..1: legs curled under (dead)
+var pitch := 0.0                # extra body pitch, radians (+ = nose down: the player's spit)
+var nudge := Vector3.ZERO       # extra body offset (local, unscaled)
+var step_scaled := false        # step distance scales with the model (the player-sized one)
+var _sc := 1.0                  # world scale this frame (the player's model may be scaled by its parent)
 var _body: Node3D
 var _legs: Array[Dictionary] = []   # {hip, rest, foot(world), from, to, t, stepping, group, seg1, seg2}
 var _mats: Array[StandardMaterial3D] = []
@@ -175,10 +179,11 @@ func _ideal(l: Dictionary) -> Vector3:
 
 func _process(dt: float) -> void:
 	_t += dt
+	_sc = global_transform.basis.get_scale().x
 	# Body: breathing bob, rear-up and crouch
 	var lift := HIP_Y * (-0.45 * crouch) + 0.06 * sin(_t * 3.0) - curl * 1.0
-	_body.position = Vector3(0, lift + rear * 0.6, 0)
-	_body.rotation = Vector3(rear * 0.55, 0, 0)
+	_body.position = Vector3(0, lift + rear * 0.6, 0) + nudge
+	_body.rotation = Vector3(rear * 0.55 - pitch, 0, 0)
 	# Feet: step when too far from where they want to be, one group at a time
 	_group_cd -= dt
 	var any_stepping := false
@@ -194,9 +199,10 @@ func _process(dt: float) -> void:
 			if l["group"] != _group:
 				continue
 			var want := _ideal(l)
-			if (l["foot"] as Vector3).distance_to(want) > STEP_DIST * (0.6 if curl > 0.0 else 1.0):
+			var sd := STEP_DIST * (_sc if step_scaled else 1.0)
+			if (l["foot"] as Vector3).distance_to(want) > sd * (0.6 if curl > 0.0 else 1.0):
 				l["from"] = l["foot"]
-				var lead := (want - (l["foot"] as Vector3)).normalized() * STEP_DIST * 0.35
+				var lead := (want - (l["foot"] as Vector3)).normalized() * sd * 0.35
 				l["to"] = want + lead
 				l["t"] = 0.0
 				l["stepping"] = true
@@ -210,14 +216,14 @@ func _process(dt: float) -> void:
 		if l["stepping"]:
 			l["t"] += dt / STEP_TIME
 			var f := minf(l["t"], 1.0)
-			l["foot"] = (l["from"] as Vector3).lerp(l["to"], f) + up * sin(f * PI) * STEP_HEIGHT * scale.x
+			l["foot"] = (l["from"] as Vector3).lerp(l["to"], f) + up * sin(f * PI) * STEP_HEIGHT * _sc
 			if f >= 1.0:
 				l["stepping"] = false
 		var foot: Vector3 = l["foot"]
 		# Front legs lift and claw the air while rearing up
 		if rear > 0.0 and k % 4 == 0:
 			var hip_w: Vector3 = _body.global_transform * (l["hip"] as Vector3)
-			foot = foot.lerp(hip_w + (global_transform.basis * Vector3(0, 2.2, -2.2)) + up * sin(_t * 9.0 + k) * 0.4 * scale.x, rear)
+			foot = foot.lerp(hip_w + (global_transform.basis * Vector3(0, 2.2, -2.2)) + up * sin(_t * 9.0 + k) * 0.4 * _sc, rear)
 		_pose_leg(l, foot)
 	# Colours: sheen, enrage glow, hit flash
 	_flash = maxf(_flash - dt, 0.0)
@@ -229,7 +235,7 @@ func _process(dt: float) -> void:
 
 ## Two-bone IK: hip (on the body) to foot (world), knee bent away from the surface.
 func _pose_leg(l: Dictionary, foot: Vector3) -> void:
-	var s := scale.x
+	var s := _sc
 	var hip: Vector3 = _body.global_transform * (l["hip"] as Vector3)
 	var up := global_transform.basis.y.normalized()
 	var a := L1 * s

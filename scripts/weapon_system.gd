@@ -23,6 +23,8 @@ extends Node3D
 ##   static   Static Cling     (An Argyle Sock) zaps the 3 nearest enemies; up to 2x while you keep moving
 ##   maracas  Maraca Blasters  (Loco Robotico) alternating sonic pulses in a 6 m cone; faster while you keep moving
 ##   acid     Acid Body        (The Blob) burns every enemy touching you (2.5 m), 30/s; grows with kills up to +50%
+##   venom    Venom Spit       (The Arachnid) fast globs; hits poison 3% max HP/s for 4 s, stacking 3 times
+##   spore    Spore Blade      (Toadstool Knight) sword slash in a 3 m arc; leaves a spore cloud (2% max HP/s)
 ## On melee weapons "count" widens the reach (+20% each) instead of adding projectiles.
 ## Forged to level 1 (Forge), each weapon gains its special (Forge.SPECIALS, `special`): checked
 ## by style, so it works for the starting weapon and the Legendary card alike.
@@ -34,16 +36,18 @@ extends Node3D
 const P_MAX := 500
 const P_STRIDE := 16      # 12 transform + 4 colour (per-projectile colour)
 ## Projectile kinds (p_kind indexes this).
-const P_KINDS := ["fire", "ice", "thunder", "dark", "arcane", "silver", "javelin", "dagger", "wind", "stake", "shuriken"]
+const P_KINDS := ["fire", "ice", "thunder", "dark", "arcane", "silver", "javelin", "dagger", "wind", "stake", "shuriken", "venom"]
 ## Weapon style -> character. Order = signature weapon order.
 const STYLE_CHAR := {
 	"fire": "fire_wizard", "ice": "ice_wizard", "thunder": "thunder_wizard", "dark": "dark_wizard",
 	"arcane": "merlin", "trunk": "ogre", "wail": "ghast", "silver": "vampire_hunter",
 	"spear": "vicki", "daggers": "rogue", "katana": "gaiden", "flask": "dr_croc", "club": "thog",
 	"static": "argyle_sock", "maracas": "loco_robotico", "acid": "blob",
+	"spore": "toadstool_knight",
+	"venom": "arachnid",
 }
-const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static", "maracas", "acid"]
-const MELEE := ["trunk", "wail", "spear", "katana", "club", "maracas", "acid"]
+const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static", "maracas", "acid", "spore", "venom"]
+const MELEE := ["trunk", "wail", "spear", "katana", "club", "maracas", "acid", "spore"]
 const SIG_WEIGHT := 0.45        # vs 3-10 for normal rewards: a rare find...
 const SIG_WEIGHT_TOTAL := 1.35  # ...and all of them together stay rare
 const SIG_RARITY := 3           # always Legendary
@@ -54,11 +58,11 @@ const BASE_EVERY := 0.9
 const CORE_COLORS := {"fire": Color(1.0, 0.78, 0.3), "ice": Color(0.85, 0.97, 1.0), "thunder": Color(1.0, 0.95, 0.5),
 	"dark": Color(0.35, 0.08, 0.5), "arcane": Color(0.85, 0.92, 1.0), "silver": Color(0.95, 0.96, 1.0),
 	"javelin": Color(1.0, 0.95, 0.75), "dagger": Color(0.85, 0.88, 0.92), "wind": Color(0.9, 1.0, 1.0),
-	"stake": Color(0.62, 0.42, 0.24), "shuriken": Color(0.8, 0.82, 0.88)}
+	"stake": Color(0.62, 0.42, 0.24), "shuriken": Color(0.8, 0.82, 0.88), "venom": Color(0.75, 1.0, 0.35)}
 const TAIL_COLORS := {"fire": Color(1.0, 0.32, 0.05, 0.75), "ice": Color(0.3, 0.7, 1.0, 0.6), "thunder": Color(1.0, 0.9, 0.3, 0.6),
 	"dark": Color(0.6, 0.15, 1.0, 0.7), "arcane": Color(0.3, 0.45, 1.0, 0.75), "silver": Color(0.7, 0.75, 0.9, 0.35),
 	"javelin": Color(1.0, 0.8, 0.35, 0.55), "dagger": Color(0.5, 0.8, 0.4, 0.3), "wind": Color(0.6, 0.9, 1.0, 0.45),
-	"stake": Color(1.0, 0.9, 0.7, 0.25), "shuriken": Color(0.9, 0.2, 0.25, 0.35)}
+	"stake": Color(1.0, 0.9, 0.7, 0.25), "shuriken": Color(0.9, 0.2, 0.25, 0.35), "venom": Color(0.35, 0.9, 0.1, 0.55)}
 ## Per projectile kind: hit radius, speed multiplier
 const P_RADIUS := {"wind": 1.4, "javelin": 0.6, "silver": 0.45, "shuriken": 0.5, "stake": 0.45}
 
@@ -141,6 +145,16 @@ const ACID_RADIUS := 2.5         # Acid Body: burns everything touching you...
 const ACID_EVERY := 0.5          # ...in pulses this far apart ("every" in its kit: 30/s = 15 a pulse)
 const ACID_GROW := 0.01          # +1% size per kill it makes...
 const ACID_GROW_MAX := 0.5       # ...up to +50%
+const SPORE_REACH := 3.0         # Spore Blade: a sword slash in a 3 m arc...
+const SPORE_ARC := 140.0
+const SPORE_CLOUD_RADIUS := 2.0  # ...leaving a spore cloud where it cut...
+const SPORE_FRAC := 0.02         # ...poisoning for 2% of max HP per second while inside...
+const SPORE_TIME := 3.0          # ...for 3 s
+const SPORE_MAX := 16            # clouds at once (the oldest blows away)
+const VENOM_SPEED := 1.5         # Venom Spit: fast globs...
+const VENOM_FRAC := 0.03         # ...that poison for 3% of max HP per second per stack...
+const VENOM_TIME := 4.0          # ...for 4 s...
+const VENOM_STACKS := 3          # ...stacking 3 times
 const MELEE_SEEK := 1.6          # melee weapons swing once an enemy is within reach x this
 
 ## Level-up card for the starting weapon, per style (the rest come from data/abilities.json).
@@ -161,6 +175,7 @@ var fire_hits := 0               # Fireball hits so far (forged: every 5th explo
 var _fire_forge := 0             # the Fireballs' forge level (read once per run)
 var special := {}                # style -> true once forged to level 1: its forge special is on (read once per run)
 var ice_hits := 0                # Frost Shard hits so far (forged: every 5th freezes)
+var venom_hits := 0              # Venom Spit globs that poisoned something (tests)
 var acid_bursts := 0             # forged Acid Body: kills that burst (tests)
 var lightning: LightningFx
 var orb_t := 0.3
@@ -181,6 +196,10 @@ var _acid_pulse := 0.0
 var acid_disc: GroundDisc        # Acid Body: a green glow on the ground around you
 var acid_ring: GroundDisc
 var _shaker: AudioStreamPlayer
+var _spitter: AudioStreamPlayer  # Venom Spit: a wet ptoo per volley
+var _clouds: Array = []          # Spore Blade: {pos, t, r, tick, disc: GroundDisc, puff: CPUParticles3D}
+var spore_clouds := 0            # Spore Blade clouds left (tests)
+var _slasher: AudioStreamPlayer
 
 var mm: MultiMesh
 var tail_mm: MultiMesh
@@ -475,6 +494,7 @@ func tick(dt: float) -> void:
 	_update_projectiles(dt)
 	_update_flasks(dt)
 	_update_acid(dt)
+	_update_clouds(dt)
 
 	# --- Stink Aura: damage ticks in a radius
 	if db != null and db.level_of("weapon_aura") > 0:
@@ -562,6 +582,8 @@ func _fire_from(sty: String, pre: String, feet: Vector3, mult: float, model: Her
 			return _fire_maracas(feet, mult, pre, model)
 		"acid":
 			return _fire_acid(feet, mult, pre, model)
+		"spore":
+			return _swing(feet, mult, pre, model, SPORE_REACH, SPORE_ARC, sty)
 		"spear":
 			return _thrust(feet, mult, pre, model)
 		"flask":
@@ -617,6 +639,9 @@ func _fire_orbs(origin: Vector3, dmg_mult: float, sty := "fire", pre := "orb", m
 			kind = "dagger"
 			speed *= DAGGER_SPEED
 			life = DAGGER_RANGE / speed
+		"venom":
+			speed *= VENOM_SPEED
+			life = 1.3
 	# The wizard swings his staff at the first target; every orb leaves from the staff tip.
 	if model != null and model.has_method("attack"):
 		origin = model.attack(enemies.center_of(targets[0]))
@@ -633,7 +658,28 @@ func _fire_orbs(origin: Vector3, dmg_mult: float, sty := "fire", pre := "orb", m
 			dir = dir.rotated(Vector3.UP, spread)
 		var homing := enemies.uid[ti] if (sty == "arcane" or hunting) else 0
 		spawn_projectile(origin, dir * speed, life, dmg, pierce, P_KINDS.find(kind), homing)
+	if sty == "venom":
+		_play_spit()
 	return true
+
+
+## How many times Venom Spit's poison stacks (forged: more). Brood's spiderlings use it too.
+func venom_stacks() -> int:
+	return Forge.VENOM_STACKS if special.has("venom") else VENOM_STACKS
+
+
+func _play_spit() -> void:
+	if _spitter == null:
+		_spitter = AudioStreamPlayer.new()
+		_spitter.bus = Settings.SFX_BUS
+		_spitter.max_polyphony = 3
+		_spitter.volume_db = -10.0
+		if ResourceLoader.exists("res://audio/abilities/venom_spit.wav"):
+			_spitter.stream = load("res://audio/abilities/venom_spit.wav")
+		add_child(_spitter)
+	if _spitter.stream != null:
+		_spitter.pitch_scale = randf_range(0.9, 1.15)
+		_spitter.play()
 
 
 ## The `k` enemies with the most HP within `r` (Hunter's Night lock-on).
@@ -904,11 +950,15 @@ func _swing(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase, reach:
 				_fx_mgr.burst(feet + dir * reach * 0.6 + Vector3(0, 0.4, 0), 2.0, Color(0.6, 0.52, 0.4), 0.35)
 			if model == player.model:
 				player.add_shake(0.25)
+		"spore":   # a violet sweep of the blade, and spores puff out where it cut
+			_sector(feet + Vector3(0, 0.8, 0), dir, reach, arc, Color(0.8, 0.55, 1.0, 0.6), 0.25, 0.3 * side)
+			_spore_cloud(feet + dir * reach * 0.6)
+			_play_spore_slash()
 		_:
 			_sector(feet + Vector3(0, 0.6, 0), dir, reach, arc, col, 0.3, 0.25 * side)
 			if model == player.model:
 				player.add_shake(0.12)
-	_play_whoosh(0.8 if sty == "trunk" else (1.4 if sty == "katana" else (0.6 if sty == "club" else 1.0)))
+	_play_whoosh(0.8 if sty == "trunk" else (1.4 if sty == "katana" or sty == "spore" else (0.6 if sty == "club" else 1.0)))
 	return true
 
 
@@ -1022,6 +1072,84 @@ func _flask_burst(at: Vector3, dmg: float) -> void:
 	var tw := light.create_tween()
 	tw.tween_property(light, "light_energy", 0.0, 0.3)
 	tw.tween_callback(light.queue_free)
+
+
+# ------------------------------------------------------------------ Spore Blade
+
+## Spore Blade: radius of its spore clouds (forged: twice as big).
+func spore_radius() -> float:
+	return SPORE_CLOUD_RADIUS * stats.value("area") * (Forge.SPORE_SIZE if special.has("spore") else 1.0)
+
+
+## A cloud of violet spores hanging where the blade cut: everything inside is poisoned
+## (SPORE_FRAC of max HP per second) for SPORE_TIME s.
+func _spore_cloud(at: Vector3) -> void:
+	var r := spore_radius()
+	at.y = SwampWater.height_at(at.x, at.z) if SwampWater.current != null else at.y
+	if _clouds.size() >= SPORE_MAX:
+		_free_cloud(_clouds.pop_front())
+	var disc := GroundDisc.create(r, Color(0.7, 0.4, 1.0, 0.13), true)
+	disc.top_level = true
+	add_child(disc)
+	disc.global_position = at + Vector3(0, 0.07, 0)
+	var puff := Abilities._flame_particles(0.32, 1.4, 18)
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0.85, 0.6, 1.0, 0.55))
+	grad.set_color(1, Color(0.45, 0.2, 0.7, 0.0))
+	puff.color_ramp = grad
+	puff.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	puff.emission_sphere_radius = r * 0.8
+	puff.gravity = Vector3(0, 0.25, 0)
+	puff.initial_velocity_min = 0.05
+	puff.initial_velocity_max = 0.3
+	puff.scale_amount_min = r * 0.6
+	puff.scale_amount_max = r * 1.1
+	puff.top_level = true
+	add_child(puff)
+	puff.global_position = at + Vector3(0, 0.7, 0)
+	_clouds.append({"pos": at, "t": SPORE_TIME, "r": r, "tick": 0.0, "disc": disc, "puff": puff})
+	spore_clouds = _clouds.size()
+
+
+func _play_spore_slash() -> void:
+	if _slasher == null:
+		_slasher = AudioStreamPlayer.new()
+		_slasher.bus = Settings.SFX_BUS
+		_slasher.max_polyphony = 3
+		_slasher.volume_db = -9.0
+		if ResourceLoader.exists("res://audio/abilities/spore_slash.wav"):
+			_slasher.stream = load("res://audio/abilities/spore_slash.wav")
+		add_child(_slasher)
+	if _slasher.stream != null:
+		_slasher.pitch_scale = randf_range(0.9, 1.1)
+		_slasher.play()
+
+
+func _free_cloud(c: Dictionary) -> void:
+	if is_instance_valid(c["disc"]):
+		(c["disc"] as Node).queue_free()
+	if is_instance_valid(c["puff"]):
+		(c["puff"] as Node).queue_free()
+
+
+func _update_clouds(dt: float) -> void:
+	for k in range(_clouds.size() - 1, -1, -1):
+		var c: Dictionary = _clouds[k]
+		c["t"] -= dt
+		var disc: GroundDisc = c["disc"]
+		disc.alpha = 0.13 * clampf(float(c["t"]) / 0.6, 0.0, 1.0)
+		if float(c["t"]) < 0.6:
+			(c["puff"] as CPUParticles3D).emitting = false
+		if c["t"] <= 0.0:
+			_free_cloud(c)
+			_clouds.remove_at(k)
+			continue
+		c["tick"] -= dt
+		if c["tick"] <= 0.0:
+			c["tick"] = 0.25
+			for e in enemies.query_radius((c["pos"] as Vector3) + Vector3(0, 0.6, 0), float(c["r"]), false):
+				enemies.afflict(e, SPORE_FRAC, 1.0)
+	spore_clouds = _clouds.size()
 
 
 # ------------------------------------------------------------------ melee FX
@@ -1191,6 +1319,9 @@ func _update_projectiles(dt: float) -> void:
 						enemies.afflict(e, BLEED_FRAC * (Forge.DAGGER_BLEED if special.has("daggers") else 1.0), BLEED_TIME)
 					"stake":
 						enemies.stun(e, RosterKit.STAKE_PIN)
+					"venom":
+						enemies.poison(e, VENOM_FRAC, VENOM_TIME, venom_stacks())
+						venom_hits += 1
 				p_pierce[i] -= 1
 				if p_pierce[i] < 0:
 					alive = false
@@ -1240,6 +1371,8 @@ func _update_projectiles(dt: float) -> void:
 				tb = Basis(side * 2.4, up * 0.2, fwd * 1.4)
 			"shuriken":
 				tb = Basis(side * 0.35, up * 0.08, fwd * 1.2)
+			"venom":   # a dripping trail
+				tb = Basis(side * 0.22, up * 0.22, fwd * 1.1)
 		var tc := p - fwd * 0.55
 		tail_buf[b] = tb.x.x; tail_buf[b + 1] = tb.y.x; tail_buf[b + 2] = tb.z.x; tail_buf[b + 3] = tc.x
 		tail_buf[b + 4] = tb.x.y; tail_buf[b + 5] = tb.y.y; tail_buf[b + 6] = tb.z.y; tail_buf[b + 7] = tc.y
@@ -1264,6 +1397,9 @@ func _update_projectiles(dt: float) -> void:
 			"shuriken":
 				var spin := Basis(Vector3.UP, p_life[i] * 25.0)
 				cb = spin * Basis.IDENTITY.scaled(Vector3(1.4, 0.15, 1.4))
+			"venom":   # a wobbling glob, stretched along its flight
+				var wob := 0.08 * sin(p_life[i] * 40.0 + float(i))
+				cb = Basis(side * (0.62 + wob), up * (0.62 - wob), fwd * 0.95)
 		buf[b] = cb.x.x; buf[b + 1] = cb.y.x; buf[b + 2] = cb.z.x; buf[b + 3] = p.x
 		buf[b + 4] = cb.x.y; buf[b + 5] = cb.y.y; buf[b + 6] = cb.z.y; buf[b + 7] = p.y
 		buf[b + 8] = cb.x.z; buf[b + 9] = cb.y.z; buf[b + 10] = cb.z.z; buf[b + 11] = p.z
