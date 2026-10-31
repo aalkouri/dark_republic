@@ -10,6 +10,10 @@ import sys, os
 # Usage: python3 tools/playtest_sheet.py <folder with the playtest *.jsonl files> [out.xlsx]
 S=os.path.join(sys.argv[1], "")
 OUT=sys.argv[2] if len(sys.argv) > 2 else "mage_playtest_results.xlsx"
+MAPNOTE={"swamp":"Map: Swamp (map 1). A win means killing Thog, who arrives at 8:00.",
+ "forest":"Map: Magical Forest (map 2). A win means killing the Toadstool Knight."}
+MAP=sys.argv[3] if len(sys.argv) > 3 else "swamp"
+DATA=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 names=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'upgrades.json')))
 def flat(o):
     if isinstance(o,dict):
@@ -23,6 +27,16 @@ WEAP={"fire":"Fireballs","ice":"Frost Shards","thunder":"Chain Lightning","dark"
  "flask":"Volatile Flasks","club":"Big Club","static":"Static Cling"}
 CHAR_W={"fire_wizard":"Fireballs","ice_wizard":"Frost Shards","thunder_wizard":"Chain Lightning","dark_wizard":"Shadow Bolts","merlin":"Arcane Bolts"}
 MAGE={"fire_wizard":"Fire Wizard","ice_wizard":"Ice Wizard","thunder_wizard":"Thunder Wizard","dark_wizard":"Dark Wizard","merlin":"Merlin"}
+_chars=json.load(open(os.path.join(DATA,'characters.json')))
+for c in (_chars.get('characters',_chars) if isinstance(_chars,dict) else _chars):
+    if isinstance(c,dict) and 'id' in c: MAGE.setdefault(c['id'],c.get('name',c['id']))
+_ab=json.load(open(os.path.join(DATA,'abilities.json')))
+def _weap(o):
+    if isinstance(o,dict):
+        for k,v in o.items():
+            if isinstance(v,dict) and isinstance(v.get('weapon'),dict) and 'name' in v['weapon']: yield k,v['weapon']['name']
+            yield from _weap(v)
+for k,n in _weap(_ab): CHAR_W.setdefault(k,n)
 ORDER=list(MAGE)
 def uname(u,ch):
     if u=="weapon_orb": return CHAR_W[ch]+" (main weapon)"
@@ -43,7 +57,7 @@ def header(ws,h,widths):
 wb=Workbook(); ws=wb.active; ws.title="Runs"
 POT=["Red Potion","Blue Potion","Purple Potion"]; PU=["Magnet","Fear Idol","5x Damage","Movement Enhancer"]
 KEY=["Bronze","Silver","Gold"]; SH=["fire","ice","lightning","dark"]
-h=["Mage","Run #","Result","Time","Level","Kills","Upgrades picked (in order of first pick, × times picked)","Thog HP left"]+[p.replace(" Potion"," potions") for p in POT]+["Potions total"]+PU+["Power-ups total"]+[k+" keys" for k in KEY]+["Keys total"]+[x.capitalize()+" shards" for x in SH]+["Shards total"]
+h=["Character","Run #","Result","Time","Level","Kills","Upgrades picked (in order of first pick, × times picked)","Boss HP left"]+[p.replace(" Potion"," potions") for p in POT]+["Potions total"]+PU+["Power-ups total"]+[k+" keys" for k in KEY]+["Keys total"]+[x.capitalize()+" shards" for x in SH]+["Shards total"]
 header(ws,h,[15,6,8,7,6,8,60,9,8,8,8,9,8,8,9,10,10,8,8,8,8,8,8,9,8,8])
 ws.row_dimensions[1].height=32
 for r in runs:
@@ -66,7 +80,7 @@ for r in runs:
     if r["result"]=="WON":
         for c in ws[i]: c.fill=PatternFill("solid",fgColor="DFF2D8")
 last=ws.max_row
-ws.cell(last+2,1,"Map: Swamp (map 1). A win means killing Thog, who arrives at 8:00. Played by an automated bot that kites the horde and only grabs potions and power-ups it passes on the way, so pickup counts run lower than a human player's. Keys are those picked up during the run; shards are the elemental shards won from bosses.").font=Font(name=F,italic=True,color="666666")
+ws.cell(last+2,1,MAPNOTE.get(MAP,"Map: "+MAP)+" Played by an automated bot that kites the horde and only grabs potions and power-ups it passes on the way, so pickup counts run lower than a human player's. Keys are those picked up during the run; shards are the elemental shards won from bosses.").font=Font(name=F,italic=True,color="666666")
 # Upgrade counts matrix
 um=wb.create_sheet("Upgrades picked")
 allu=[]
@@ -75,7 +89,7 @@ for r in runs:
         n=uname(u,r["char"]).replace(CHAR_W[r["char"]]+" (main weapon)","Main weapon")
         if n not in allu: allu.append(n)
 allu.sort(key=lambda n:(n!="Main weapon","Legendary" not in n, n))
-header(um,["Mage","Run #","Result"]+allu+["Total picks"],[15,6,8]+[11]*len(allu)+[9])
+header(um,["Character","Run #","Result"]+allu+["Total picks"],[15,6,8]+[11]*len(allu)+[9])
 um.row_dimensions[1].height=45
 for r in runs:
     c=Counter(uname(u,r["char"]).replace(CHAR_W[r["char"]]+" (main weapon)","Main weapon") for u in r["upgrades"])
@@ -89,7 +103,7 @@ um.freeze_panes="D2"
 um.cell(um.max_row+2,1,"Times each upgrade was picked in each run (blank = never). Main weapon = that mage's starting weapon (Fireballs, Frost Shards, Chain Lightning, Shadow Bolts or Arcane Bolts).").font=Font(name=F,italic=True,color="666666")
 # Upgrade order
 uo=wb.create_sheet("Upgrade order")
-header(uo,["Mage","Run #","Pick #","Upgrade"],[15,7,7,40])
+header(uo,["Character","Run #","Pick #","Upgrade"],[15,7,7,40])
 for r in runs:
     for k,u in enumerate(r["upgrades"],1):
         uo.append([MAGE[r["char"]],r["n"],k,uname(u,r["char"])])
@@ -97,10 +111,11 @@ for r in runs:
         for j in (2,3): uo.cell(uo.max_row,j).alignment=ctr
 # Summary
 s=wb.create_sheet("Summary")
-header(s,["Mage","Runs","Wins","Win rate","Earliest death","Latest death","Average death","Avg level","Avg kills","Avg potions","Avg power-ups","Avg keys","Avg shards"],[15,7,7,9,10,10,10,9,10,10,10,9,9])
+header(s,["Character","Runs","Wins","Win rate","Earliest death","Latest death","Average death","Avg level","Avg kills","Avg potions","Avg power-ups","Avg keys","Avg shards"],[15,7,7,9,10,10,10,9,10,10,10,9,9])
 s.row_dimensions[1].height=32
 R=f"Runs!$A$2:$A${last}"; C=f"Runs!$C$2:$C${last}"; col=lambda x:f"Runs!${x}$2:${x}${last}"
-for i,m in enumerate(MAGE.values(),2):
+PRESENT=[MAGE[c] for c in ORDER if any(r["char"]==c for r in runs)]
+for i,m in enumerate(PRESENT,2):
     d=f'COUNTIFS({R},A{i},{C},"Died")'
     s.append([m,f"=COUNTIF({R},A{i})",f'=COUNTIFS({R},A{i},{C},"Won")',f'=IF(B{i}=0,"-",C{i}/B{i})',
       f'=IF({d}=0,"-",_xlfn.MINIFS({col("D")},{R},A{i},{C},"Died"))',
@@ -114,8 +129,8 @@ for i,m in enumerate(MAGE.values(),2):
     for j in (5,6,7): s.cell(i,j).number_format="[m]:ss"
     s.cell(i,8).number_format="0.0"; s.cell(i,9).number_format="#,##0"
     for j in (10,11,12,13): s.cell(i,j).number_format="0.0"
-t=7; s.append(["Total","=SUM(B2:B6)","=SUM(C2:C6)",'=IF(B7=0,"-",C7/B7)'])
+t=len(PRESENT)+2; e=t-1; s.append(["Total",f"=SUM(B2:B{e})",f"=SUM(C2:C{e})",f'=IF(B{t}=0,"-",C{t}/B{t})'])
 for c in s[t]: c.font=Font(name=F,bold=True); c.alignment=Alignment(horizontal="center")
 s.cell(t,1).alignment=Alignment(); s.cell(t,4).number_format="0%"
-s.cell(9,1,"Calculated from the Runs tab. The Upgrade order tab lists every level-up pick in sequence.").font=Font(name=F,italic=True,color="666666")
+s.cell(t+2,1,"Calculated from the Runs tab. The Upgrade order tab lists every level-up pick in sequence.").font=Font(name=F,italic=True,color="666666")
 wb.save(OUT); print(len(runs),"runs")

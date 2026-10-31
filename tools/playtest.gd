@@ -27,6 +27,7 @@ const MAX_RUN := 1500.0          # give up after 25 minutes of game time
 var chars: PackedStringArray = ["fire_wizard"]
 var runs := 5
 var map := "swamp"
+var lite := false                # --lite: no shadows / screen effects (for recording on software rendering)
 var out_path := "user://playtest.txt"
 var main: Node
 var _queue: Array = []
@@ -53,6 +54,8 @@ func _ready() -> void:
 			chars = a.split("=")[1].split(",")
 		elif a.begins_with("--runs="):
 			runs = int(a.split("=")[1])
+		elif a == "--lite":
+			lite = true
 		elif a.begins_with("--map="):
 			map = a.split("=")[1]
 		elif a.begins_with("--out="):
@@ -79,6 +82,8 @@ func _next() -> void:
 	get_tree().change_scene_to_file.call_deferred("res://scenes/main.tscn")
 	await get_tree().scene_changed
 	main = get_tree().current_scene
+	if lite:
+		_make_lite(main)
 	_stuck_t = 0.0
 	_log_t = 0.0
 	_wander = randf() * TAU
@@ -90,6 +95,20 @@ func _next() -> void:
 	main.potions.collected.connect(func(k: int): _bump(_potions, PotionManager.NAMES[k].get_slice(":", 0)))
 	main.keys.collected.connect(func(tier: int): _keys[tier] += 1)
 	main.powerups.collected.connect(func(k: int): _bump(_powerups, PowerupManager.NAMES[k]))
+
+
+func _make_lite(n: Node) -> void:
+	if n is Light3D:
+		(n as Light3D).shadow_enabled = false
+	elif n is WorldEnvironment and (n as WorldEnvironment).environment != null:
+		var e := (n as WorldEnvironment).environment
+		e.ssao_enabled = false
+		e.ssil_enabled = false
+		e.sdfgi_enabled = false
+		e.glow_enabled = false
+		e.volumetric_fog_enabled = false
+	for c in n.get_children():
+		_make_lite(c)
 
 
 func _bump(d: Dictionary, key: String) -> void:
@@ -150,7 +169,7 @@ func _record(st: String) -> void:
 		jf.store_line(JSON.stringify(detail))
 		jf.close()
 	var line := "%s #%d: %s at %s  (lvl %d, %d kills%s)" % [r["char"], r["n"], "WON" if won else ("DIED" if st == "dead" else "TIMEOUT"),
-		_fmt(r["time"]), r["level"], r["kills"], "" if won or r["boss_hp"] < 0 else ", Thog at %d%% HP" % roundi(r["boss_hp"] * 100)]
+		_fmt(r["time"]), r["level"], r["kills"], "" if won or r["boss_hp"] < 0 else ", boss at %d%% HP" % roundi(r["boss_hp"] * 100)]
 	print("RESULT " + line)
 	var f := FileAccess.open(out_path, FileAccess.READ_WRITE if FileAccess.file_exists(out_path) else FileAccess.WRITE)
 	if f:
