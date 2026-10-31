@@ -31,7 +31,7 @@
   "slot_machine.gd:331"
  ],
  "%s  LEVEL %d": [
-  "main.gd:918"
+  "main.gd:935"
  ],
  "%s  Lv %d": [
   "hud.gd:1336"
@@ -56,7 +56,7 @@
   "hud.gd:969"
  ],
  "%s APPROACHES": [
-  "main.gd:709"
+  "main.gd:726"
  ],
  "%s Chest": [
   "chest.gd:56",
@@ -74,7 +74,7 @@
   "weapon_system.gd:408"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:739"
+  "main.gd:756"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:394"
@@ -191,7 +191,7 @@
   "skill_tree.gd:105"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:533"
+  "main.gd:535"
  ],
  "2 yd": [
   "abilities.gd:248"
@@ -224,7 +224,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:651"
+  "main.gd:666"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -617,7 +617,7 @@
   "hud.gd:348"
  ],
  "Cooldowns reset": [
-  "main.gd:1020"
+  "main.gd:1037"
  ],
  "Cowboy": [
   "characters.json"
@@ -908,7 +908,7 @@
   "forge.gd:66"
  ],
  "Every ability is at max level!  Fully healed": [
-  "main.gd:903"
+  "main.gd:920"
  ],
  "Every chest is a mimic until proven innocent": [
   "taglines.json"
@@ -1126,7 +1126,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:764"
+  "main.gd:781"
  ],
  "Gaiden": [
   "characters.json"
@@ -1165,16 +1165,16 @@
   "abilities.json"
  ],
  "Goblin": [
-  "enemy_manager.gd:235"
+  "enemy_manager.gd:239"
  ],
  "Goblin Brute": [
-  "enemy_manager.gd:237"
+  "enemy_manager.gd:241"
  ],
  "Goblin Scamp": [
-  "enemy_manager.gd:236"
+  "enemy_manager.gd:240"
  ],
  "Goblin Warlord": [
-  "enemy_manager.gd:238"
+  "enemy_manager.gd:242"
  ],
  "Gold": [
   "chest.gd:8"
@@ -1653,7 +1653,7 @@
   "upgrade_db.gd:168"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:785"
+  "main.gd:802"
  ],
  "NEW CHAMPION": [
   "hud.gd:1025"
@@ -1978,7 +1978,7 @@
   "settings_menu.gd:47"
  ],
  "SHARDS: %s": [
-  "main.gd:728"
+  "main.gd:745"
  ],
  "SIGNATURE WEAPON": [
   "character_select.gd:496",
@@ -1989,10 +1989,10 @@
   "skill_screen.gd:108"
  ],
  "SURVIVE": [
-  "main.gd:459"
+  "main.gd:461"
  ],
  "SWARM!": [
-  "main.gd:640"
+  "main.gd:655"
  ],
  "Sage": [
   "skill_tree.gd:65"
@@ -2079,7 +2079,7 @@
   "abilities.json"
  ],
  "Skeleton": [
-  "enemy_manager.gd:240"
+  "enemy_manager.gd:244"
  ],
  "Skills": [
   "character_select.gd:745"
@@ -2285,6 +2285,9 @@
  "THE ARACHNID CLIMBS THE WALLS!": [
   "arachnid_boss.gd:445"
  ],
+ "THE DEAD RISE!": [
+  "main.gd:645"
+ ],
  "THE FORGE": [
   "forge_menu.gd:62"
  ],
@@ -2296,13 +2299,13 @@
  ],
  "THOG": [
   "main.gd:76",
-  "main.gd:714"
+  "main.gd:731"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:382"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:737"
+  "main.gd:754"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:528"
@@ -2311,7 +2314,7 @@
   "thog_boss.gd:400"
  ],
  "THOG THE TROLL": [
-  "main.gd:694",
+  "main.gd:711",
   "thog_boss.gd:605"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2321,7 +2324,7 @@
   "thog_boss.gd:640"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:695"
+  "main.gd:712"
  ],
  "Take less damage.": [
   "upgrades.json"
@@ -2445,7 +2448,7 @@
   "taglines.json"
  ],
  "Thog the Troll": [
-  "enemy_manager.gd:244",
+  "enemy_manager.gd:248",
   "characters.json"
  ],
  "Thog the Troll in the Swamp": [

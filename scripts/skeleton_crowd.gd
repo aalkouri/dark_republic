@@ -28,6 +28,9 @@ const BONE := Color(0.86, 0.83, 0.74, 0.0)
 const BONE_DARK := Color(0.6, 0.57, 0.5, 0.0)
 const STEEL := Color(0.36, 0.37, 0.42, 0.0)
 const RUST := Color(0.4, 0.22, 0.12, 0.0)
+const KEG := Color(0.42, 0.26, 0.12, 0.0)
+const HOOP := Color(0.2, 0.2, 0.22, 0.0)
+const ROPE := Color(0.55, 0.45, 0.28, 0.0)
 
 const SHADER := """
 shader_type spatial;
@@ -107,6 +110,8 @@ void fragment() {
 var em: EnemyManager
 var _mm: MultiMesh                 # plain skeletons
 var _mm_armored: MultiMesh         # armoured (epic) skeletons
+var _mm_bomber: MultiMesh          # bomber skeletons (a barrel of explosives on their backs)
+var _buf_b := PackedFloat32Array()
 var _buf := PackedFloat32Array()
 var _buf_a := PackedFloat32Array()
 # Bones in flight
@@ -142,8 +147,13 @@ func _ready() -> void:
 	mat_a.set_shader_parameter("eye_color", Color(1.0, 0.25, 0.15))
 	_mm = _crowd_mm(build_mesh(false, mat))
 	_mm_armored = _crowd_mm(build_mesh(true, mat_a))
+	var mat_b := ShaderMaterial.new()
+	mat_b.shader = sh
+	mat_b.set_shader_parameter("eye_color", Color(1.0, 0.6, 0.15))   # eyes and fuse burn orange
+	_mm_bomber = _crowd_mm(build_mesh(false, mat_b, true))
 	_buf.resize(EnemyManager.MAX * STRIDE)
 	_buf_a.resize(EnemyManager.MAX * STRIDE)
+	_buf_b.resize(EnemyManager.MAX * STRIDE)
 	for a in [_b_pos, _b_vel]:
 		a.resize(BONES_MAX)
 	for a in [_b_dmg, _b_spin, _b_life]:
@@ -208,7 +218,7 @@ static func _bone_mesh(mat: Material) -> ArrayMesh:
 
 
 ## The skeleton (facing +Z, feet at the origin, HEIGHT tall). Vertex alpha = limb id / 8.
-static func build_mesh(armored: bool, mat: Material) -> ArrayMesh:
+static func build_mesh(armored: bool, mat: Material, bomber := false) -> ArrayMesh:
 	var mb := MeshBuilder.new()
 	var body := 0.0
 	var ll := 1.0 / 8.0
@@ -244,7 +254,23 @@ static func build_mesh(armored: bool, mat: Material) -> ArrayMesh:
 		mb.limb(Vector3(side * 0.25, 1.12, 0.02), Vector3(side * 0.25, 0.86, 0.1), 0.026, 0.022, b.call(BONE, limb), 6)
 		for f in 3:
 			mb.limb(Vector3(side * 0.25, 0.86, 0.1), Vector3(side * (0.23 + f * 0.02), 0.77, 0.14), 0.01, 0.006, b.call(BONE, limb), 4)
-	mb.limb(Vector3(-0.25, 0.86, 0.02), Vector3(-0.25, 0.86, 0.32), 0.022, 0.022, b.call(BONE, ra), 5)   # the bone in hand
+	if not bomber:
+		mb.limb(Vector3(-0.25, 0.86, 0.02), Vector3(-0.25, 0.86, 0.32), 0.022, 0.022, b.call(BONE, ra), 5)   # the bone in hand
+	else:
+		# A keg of black powder strapped to its back: staves, iron hoops, rope straps over the
+		# shoulders, a skull-and-crossbones daub, and a lit fuse (glows like the eyes)
+		var keg := Vector3(0, 1.22, -0.27)
+		mb.add(MeshBuilder.cyl(0.16, 0.16, 0.44, 12), Transform3D(Basis(), keg), b.call(KEG, body))
+		mb.add(MeshBuilder.sphere(0.175, 12, 6), Transform3D(Basis.from_scale(Vector3(1.0, 1.25, 1.0)), keg), b.call(KEG.darkened(0.1), body))
+		for y in [-0.17, 0.0, 0.17]:
+			mb.add(MeshBuilder.cyl(0.185 if y == 0.0 else 0.172, 0.185 if y == 0.0 else 0.172, 0.03, 12), Transform3D(Basis(), keg + Vector3(0, y, 0)), b.call(HOOP, body))
+		mb.add(MeshBuilder.cyl(0.13, 0.13, 0.02, 12), Transform3D(Basis(), keg + Vector3(0, 0.23, 0)), b.call(KEG.darkened(0.25), body))
+		mb.add(MeshBuilder.sphere(0.05, 6, 4), Transform3D(Basis.from_scale(Vector3(1.0, 1.0, 0.3)), keg + Vector3(0, 0.05, -0.17)), b.call(BONE, body))   # skull daub
+		for sd in [-1.0, 1.0]:
+			mb.limb(Vector3(sd * 0.14, 1.43, 0.03), Vector3(sd * 0.12, 1.08, 0.12), 0.015, 0.015, b.call(ROPE, body), 4)   # straps
+			mb.limb(Vector3(sd * 0.14, 1.43, 0.03), keg + Vector3(sd * 0.1, 0.18, 0.1), 0.015, 0.015, b.call(ROPE, body), 4)
+		mb.limb(keg + Vector3(0, 0.24, 0), keg + Vector3(0.04, 0.36, 0.02), 0.01, 0.008, b.call(ROPE.darkened(0.4), body), 4)   # fuse
+		mb.add(MeshBuilder.sphere(0.03, 6, 4), Transform3D(Basis(), keg + Vector3(0.045, 0.375, 0.02)), Color(1.0, 0.7, 0.2, ey))   # spark
 	# Skull, jaw, glowing eyes
 	mb.add(MeshBuilder.sphere(0.12, 10, 7), Transform3D(Basis.from_scale(Vector3(1.0, 1.05, 1.1)), Vector3(0, 1.6, 0.01)), b.call(BONE, hd))
 	mb.add(MeshBuilder.box(Vector3(0.14, 0.05, 0.1)), Transform3D(Basis(), Vector3(0, 1.5, 0.07)), b.call(BONE_DARK, hd))
@@ -275,6 +301,7 @@ static func build_mesh(armored: bool, mat: Material) -> ArrayMesh:
 func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Array:
 	var n := 0
 	var na := 0
+	var nbm := 0
 	var pp := player.global_position if player != null else Vector3.INF
 	var nav := CastleNav.current
 	for i in em.count:
@@ -283,7 +310,11 @@ func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Ar
 		var b := i * STRIDE
 		var anim := ANIM_ATTACK if absf(buf[b + 12] - em._clip_attack) < 0.01 else ANIM_RUN
 		var phase := buf[b + 13]
-		if not em.dead[i]:
+		var bomb := em.bomber[i] != 0
+		if bomb and em.rise_t[i] > 0.0:   # crawling up out of the floor: sunk into it, clawing
+			buf[b + 7] -= HEIGHT * 1.05 * clampf(em.rise_t[i] / BomberSkeletons.RISE_TIME, 0.0, 1.0)
+			anim = ANIM_ATTACK
+		if not em.dead[i] and not bomb:
 			if em.throw_anim[i] > 0.0:
 				var before := em.throw_anim[i]
 				em.throw_anim[i] -= dt
@@ -299,6 +330,15 @@ func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Ar
 					if d >= THROW_MIN and d <= THROW_MAX and not em.fear and not em.lost and (nav == null or nav.line_clear(em.pos[i], pp)):
 						em.throw_anim[i] = THROW_WINDUP
 						em.throw_t[i] = randf_range(THROW_EVERY.x, THROW_EVERY.y)
+		if bomb:
+			var ob := nbm * STRIDE
+			nbm += 1
+			for k in 12:
+				_buf_b[ob + k] = buf[b + k]
+				buf[b + k] = 0.0
+			_buf_b[ob + 12] = 1.0; _buf_b[ob + 13] = 1.0; _buf_b[ob + 14] = 1.0; _buf_b[ob + 15] = 1.0
+			_buf_b[ob + 16] = anim; _buf_b[ob + 17] = phase; _buf_b[ob + 18] = 0.0; _buf_b[ob + 19] = buf[b + 19]
+			continue
 		var dst: PackedFloat32Array
 		var o: int
 		if em.epic[i]:
@@ -325,6 +365,8 @@ func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Ar
 	_mm.visible_instance_count = n
 	_mm_armored.buffer = _buf_a
 	_mm_armored.visible_instance_count = na
+	_mm_bomber.buffer = _buf_b
+	_mm_bomber.visible_instance_count = nbm
 	_tick_bones(dt, player)
 	_tick_debris(dt)
 	return buf

@@ -171,6 +171,8 @@ func _ready() -> void:
 			Settings.selected_character = a.split("=")[1]
 		elif a.begins_with("--map="):   # play on this map (tests, screenshots)
 			Settings.selected_map = a.split("=")[1]
+		elif a.begins_with("--swarm-at="):   # bring the first swarm early (screenshots)
+			_next_swarm = float(a.split("=")[1])
 		elif a.begins_with("--swamp-time="):   # day / night (screenshots)
 			WorldBuilder.force_time = a.split("=")[1]
 		elif a.begins_with("--forest-time="):   # noon / golden / night (screenshots)
@@ -558,12 +560,15 @@ func _contact_damage() -> void:
 	var hits := enemies.query_radius(me + Vector3(0, 0.9, 0), 0.45)
 	if hits.is_empty():
 		return
+	for i in hits:   # bomber skeletons blow up the moment they reach you
+		if enemies.bomber[i] == 1 and not enemies.is_harmless(i):
+			enemies.bombers.detonate(i, player, enemy_damage_mult())
 	if player.invuln <= 0.0:
 		var dmg := 0.0
 		var push := Vector3.ZERO
 		for i in hits:
-			if enemies.is_harmless(i):
-				continue   # frozen, stunned, frogs, possessed or fleeing goblins can't hit
+			if enemies.dead[i] or enemies.is_harmless(i):
+				continue   # frozen, stunned, frogs, possessed or fleeing goblins can't hit (or a bomber that just blew)
 			if enemies.typ[i] == EnemyManager.TROLL and not enemies.boss_contact:
 				continue
 			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * enemies.hit_mult(i) * (EnemyManager.BOSS_DAMAGE_MULT if enemies.is_boss(i) else 1.0))
@@ -629,8 +634,18 @@ func _spawn_director(dt: float) -> void:
 			break
 		_spawn_enemy(_pick_type(m), _spawn_point(26.0, 36.0), hpm)
 
-	# Swarm ring every minute
-	if run_time >= _next_swarm:
+	# Swarm ring every minute (the Castle: bomber skeletons crawl out of the floor instead)
+	if run_time >= _next_swarm and CastleNav.current != null:
+		_next_swarm += 60.0
+		var nb := BOMBERS_BASE + int(m) * BOMBERS_PER_MIN
+		for k in nb:
+			var a := TAU * float(k) / float(nb) + rng.randf_range(-0.15, 0.15)
+			var p := player.global_position + Vector3(cos(a), 0, sin(a)) * rng.randf_range(14.0, 22.0)
+			if CastleNav.current.steps_to_player(p.x, p.z) <= 0:
+				p = _spawn_point(14.0, 24.0)   # that spot is a wall or cut off
+			enemies.bombers.spawn(p, hpm, rng.randf_range(0.0, 1.2))
+		hud.flash_message(tr("THE DEAD RISE!"), 2.5)
+	elif run_time >= _next_swarm:
 		_next_swarm += 60.0
 		var n := 24 + int(m) * 6
 		for k in n:
@@ -655,6 +670,8 @@ func _spawn_director(dt: float) -> void:
 
 const LIVE_CAP := 250   # the steady trickle pauses while this many goblins are alive (swarm rings still come)
 const SKELETON_SHARE := 0.35  # castle: this share of spawns are skeletons (same overall rate)
+const BOMBERS_BASE := 10      # castle: bomber skeletons per wave (in place of the swarm ring)...
+const BOMBERS_PER_MIN := 2    # ...plus this many per minute of the run
 
 
 func _pick_type(m: float) -> int:

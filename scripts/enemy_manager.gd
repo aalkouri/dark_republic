@@ -83,6 +83,9 @@ var ally_goal := PackedVector3Array()
 var pct_t := PackedFloat32Array()       # bleed / acid: pct_f of max HP per second for pct_t s
 var shrink_t := PackedFloat32Array()    # Laundry Day: shrunk in the wash (smaller, half damage, x2 damage taken)
 var confuse_t := PackedFloat32Array()   # Fairy Ring: wanders about confused, harmless (not the bosses)
+var bomber := PackedByteArray()         # castle: a bomber skeleton (1), or one that has already blown up (2)
+var rise_t := PackedFloat32Array()      # bomber skeletons: seconds left crawling out of the ground
+var bombers: BomberSkeletons            # their barrels: dropped on death, blasts, contact detonation
 const SHRINK_SIZE := 0.6
 var pct_f := PackedFloat32Array()
 var poison_n := PackedInt32Array()      # Venom Spit / spiderlings: stacks of poison, each poison_f of max HP per second...
@@ -217,8 +220,9 @@ func _ready() -> void:
 	for a in [poison_t, poison_f, web_t]:
 		a.resize(MAX)
 	poison_n.resize(MAX)
-	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim, fear_t, frog_t, ally_t, pct_t, pct_f, shrink_t, confuse_t]:
+	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim, fear_t, frog_t, ally_t, pct_t, pct_f, shrink_t, confuse_t, rise_t]:
 		a.resize(MAX)
+	bomber.resize(MAX)
 	cell_of.resize(MAX)
 	sorted.resize(MAX)
 	cell_count.resize(GRID_N * GRID_N)
@@ -245,6 +249,9 @@ func _ready() -> void:
 	skeletons = SkeletonCrowd.new()
 	skeletons.em = self
 	add_child(skeletons)
+	bombers = BomberSkeletons.new()
+	bombers.em = self
+	add_child(bombers)
 
 	mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -355,6 +362,8 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	web_t[i] = 0.0
 	shrink_t[i] = 0.0
 	confuse_t[i] = 0.0
+	bomber[i] = 0
+	rise_t[i] = 0.0
 	throw_t[i] = rng.randf_range(1.0, 3.0) if rng != null else 2.0
 	throw_anim[i] = 0.0
 	if t == TROLL:
@@ -451,7 +460,7 @@ func is_held(i: int) -> bool:
 
 ## Can't hurt the player right now: held, a frog, possessed or fleeing in terror.
 func is_harmless(i: int) -> bool:
-	return freeze_t[i] > 0.0 or stun_t[i] > 0.0 or frog_t[i] > 0.0 or ally_t[i] > 0.0 or fear_t[i] > 0.0 or confuse_t[i] > 0.0
+	return freeze_t[i] > 0.0 or stun_t[i] > 0.0 or frog_t[i] > 0.0 or ally_t[i] > 0.0 or fear_t[i] > 0.0 or confuse_t[i] > 0.0 or rise_t[i] > 0.0
 
 
 func is_boss(i: int) -> bool:
@@ -520,6 +529,8 @@ func _kill(i: int) -> void:
 	_dead_count += 1
 	if typ[i] == SKELETON:   # falls apart into bones instead of a corpse
 		skeletons.scatter(pos[i], t_scale[SKELETON] * sz[i], epic[i] == 1)
+		if bomber[i] == 1:   # a bomber drops its barrel as it falls: it goes off a moment later
+			bombers.drop_barrel(pos[i])
 	elif typ[i] == TROLL:   # ThogBoss plays his fall
 		_trolls -= 1
 	elif corpses != null:
@@ -764,6 +775,8 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			ally_t[i] -= dt
 		if confuse_t[i] > 0.0:
 			confuse_t[i] -= dt
+		if rise_t[i] > 0.0:
+			rise_t[i] -= dt
 		if shrink_t[i] > 0.0:
 			shrink_t[i] -= dt
 			if shrink_t[i] <= 0.0:
@@ -895,7 +908,9 @@ func tick(dt: float, player_pos: Vector3) -> void:
 				sp *= slow_f[i]
 			if frog_t[i] > 0.0:
 				sp *= 0.55
-			if throw_anim[i] > 0.0 or (t == TROLL and troll_busy):
+			if bomber[i] != 0:
+				sp *= BomberSkeletons.SPEED_MULT   # bombers sprint
+			if throw_anim[i] > 0.0 or rise_t[i] > 0.0 or (t == TROLL and troll_busy):
 				sp = 0.0   # a skeleton winding up a throw / Thog mid-attack stands still
 			if fear or fear_t[i] > 0.0:
 				sp = -sp   # run away from the player
@@ -1229,6 +1244,8 @@ func _compact() -> void:
 			web_t[i] = web_t[last]
 			shrink_t[i] = shrink_t[last]
 			confuse_t[i] = confuse_t[last]
+			bomber[i] = bomber[last]
+			rise_t[i] = rise_t[last]
 			count -= 1
 		else:
 			i += 1

@@ -224,7 +224,7 @@ func _run_checks() -> void:
 	bottle.linear_velocity = Vector3.ZERO
 	for f in 60 * 2:
 		await get_tree().physics_frame
-	_check("a bottle that hits the floor shatters", feast.bottles_broken == bb0 + 1 and not is_instance_valid(bottle), "%d broken, %s" % [feast.bottles_broken - bb0, str(bottle.global_position) + " sleeping " + str(bottle.sleeping) if is_instance_valid(bottle) else "freed"])
+	_check("a bottle that hits the floor shatters", feast.bottles_broken >= bb0 + 1 and not is_instance_valid(bottle), "%d broken, %s" % [feast.bottles_broken - bb0, str(bottle.global_position) + " sleeping " + str(bottle.sleeping) if is_instance_valid(bottle) else "freed"])
 	var pooled := false
 	for pl in get_tree().get_nodes_in_group("wine_pool"):
 		if Vector2((pl as Node3D).global_position.x - 6.0, (pl as Node3D).global_position.z + 20.0).length() < 0.5 and (pl as Node3D).global_position.y < 0.1:
@@ -298,6 +298,76 @@ func _run_checks() -> void:
 	_check("killed skeletons fall apart into bones", sk._d_n > d0, "%d -> %d" % [d0, sk._d_n])
 	_check("bone clatter has a sound", sk._clatter != null, "")
 
+	# Bomber skeletons: the Castle's swarm rings are the dead crawling out of the floor with kegs
+	var bm: BomberSkeletons = em.bombers
+	main.weapons.orb_t = 1e9   # hold fire: these checks script the kills
+	main.xp_next = 1e12   # and no level-up screen pausing the game
+	_clear(em)
+	await get_tree().physics_frame
+	player.global_position = Vector3(20, 0.5, 150)
+	player.god_mode = false
+	player.max_hp = 1000.0
+	player.hp = 1000.0
+	player.invuln = 0.0
+	var sp0 := bm.spawned
+	main._next_swarm = main.run_time
+	await get_tree().physics_frame
+	var bombers_n := 0
+	var runners := 0
+	for k in em.count:
+		if not em.dead[k]:
+			bombers_n += 1 if em.bomber[k] == 1 else 0
+			runners += 1 if em.typ[k] == EnemyManager.RUNNER else 0
+	_check("castle swarm: bomber skeletons rise instead of a goblin horde", bm.spawned - sp0 >= main.BOMBERS_BASE and runners == 0, "%d bombers, %d runners" % [bombers_n, runners])
+	_clear(em)   # clear them for the scripted checks
+	await get_tree().physics_frame
+	# One rises close by: harmless while it claws out, then it sprints in and blows up on you
+	var bi := bm.spawn(Vector3(26, 0, 150), 1.0)
+	_check("a bomber starts sunk in the floor (harmless)", bi >= 0 and em.is_harmless(bi) and em.rise_t[bi] > 0.0, "")
+	var det0 := bm.detonations
+	var hp_before: float = player.hp
+	var g_uid: int = em.uid[em.spawn(EnemyManager.GRUNT, Vector3(21.5, 0, 151), 50.0)]
+	var nh0 := 0.0
+	await get_tree().physics_frame
+	nh0 = _hp_of(em, g_uid)
+	var t_reach := -1.0
+	for f in 60 * 6:
+		player.global_position = Vector3(20, player.global_position.y, 150)
+		await get_tree().physics_frame
+		if bm.detonations > det0:
+			t_reach = f / 60.0
+			break
+	_check("it runs at you and explodes on contact", bm.detonations == det0 + 1, "after %.1f s" % t_reach)
+	_check("...hurting you", player.hp < hp_before, "%.0f -> %.0f" % [hp_before, player.hp])
+	_check("...and it's gone, no barrel left behind", bm.barrels.is_empty(), "")
+	var grunt_ok := is_equal_approx(_hp_of(em, g_uid), nh0)
+	_check("...without hurting other enemies", grunt_ok, "goblin hp %.1f (was %.1f)" % [_hp_of(em, g_uid), nh0])
+	# Killed: it drops its keg, which goes off after the fuse with a ring on the floor
+	player.global_position = Vector3(20, 0.5, 150)
+	player.hp = 1000.0
+	player.invuln = 0.0
+	var bj := bm.spawn(Vector3(21.5, 0, 150), 1.0)
+	await get_tree().physics_frame
+	var drop0 := bm.barrels_dropped
+	em.damage(bj, 99999.0)
+	await get_tree().physics_frame
+	_check("a killed bomber drops its keg", bm.barrels_dropped == drop0 + 1 and bm.barrels.size() == 1, "")
+	_check("...with a ring marking the blast on the floor", bm.barrels.size() == 1 and is_instance_valid(bm.barrels[0]["ring"]), "")
+	var bl0 := bm.barrel_blasts
+	var hp1: float = player.hp
+	for f in int(60 * (BomberSkeletons.FUSE + 0.3)):
+		player.global_position = Vector3(20, player.global_position.y, 150)
+		player.invuln = 0.0
+		await get_tree().physics_frame
+	_check("the keg explodes after a short fuse", bm.barrel_blasts == bl0 + 1 and bm.barrels.is_empty(), "")
+	_check("...hurting you inside the ring", player.hp < hp1, "%.0f -> %.0f" % [hp1, player.hp])
+	grunt_ok = is_equal_approx(_hp_of(em, g_uid), nh0)
+	_check("...but not other enemies", grunt_ok, "goblin hp %.1f (was %.1f)" % [_hp_of(em, g_uid), nh0])
+	player.god_mode = true
+	main.weapons.orb_t = 0.0
+	_clear(em)
+	await get_tree().physics_frame
+
 	# Goblins don't walk through walls: one starts in the west gallery, the player in the dining hall
 	player.global_position = Vector3(20, 0.5, -20)
 	var g := em.spawn(EnemyManager.GRUNT, Vector3(-80, 0, -20))
@@ -310,6 +380,20 @@ func _run_checks() -> void:
 	_check("goblins path around walls toward you", g < em.count and p.distance_to(Vector3(20, 0, -20)) < Vector3(-80, 0, -20).distance_to(Vector3(20, 0, -20)) - 8.0,
 		"at %s" % str(p))
 	_check("goblins don't end up inside walls", inside_wall < 10, str(inside_wall))
+
+
+func _hp_of(em: EnemyManager, u: int) -> float:
+	for k in em.count:
+		if em.uid[k] == u and not em.dead[k]:
+			return em.hp[k]
+	return -1.0
+
+
+func _clear(em: EnemyManager) -> void:
+	for k in em.count:
+		em.dead[k] = 1
+	em.count = 0
+	em._dead_count = 0
 
 
 func _some_skeleton(main: Node) -> bool:

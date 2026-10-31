@@ -452,7 +452,7 @@ func _add(kind: String, at: Vector3, rng: RandomNumberGenerator) -> void:
 	items.append(body)
 	if kind.begins_with("goblet_"):
 		var wine := MeshInstance3D.new()
-		wine.name = "Wine"
+		wine.name = "Wine"   # no-i18n
 		wine.mesh = _wine_surface()
 		wine.position.y = 0.084
 		body.add_child(wine)
