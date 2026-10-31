@@ -284,7 +284,9 @@ func _tick_guardians(dt: float) -> void:
 	for k in range(_guardians.size() - 1, -1, -1):
 		var g: Dictionary = _guardians[k]
 		g["t"] += dt
-		if g["t"] >= GUARDIAN_LIFE:
+		# The mushroom can be freed early (e.g. the boss dies and clears its props) —
+		# drop the entry before anything reads it as a typed Node3D.
+		if g["t"] >= GUARDIAN_LIFE or not is_instance_valid(g["node"]):
 			_guardians.remove_at(k)
 			continue
 		g["slam_t"] -= dt * speed_k()
