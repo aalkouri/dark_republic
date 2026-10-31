@@ -334,6 +334,171 @@ static func banner(rng: RandomNumberGenerator) -> ArrayMesh:
 	return mb.commit()
 
 
+# ------------------------------------------------------------------ wall memorabilia
+# All face -Z (into the room), hung flat against the wall at the origin.
+
+## Banner colour schemes: [cloth, trim, emblem colour, emblem]
+const BANNERS := [
+	[Color(0.45, 0.07, 0.08), Color(0.8, 0.6, 0.22), Color(0.8, 0.6, 0.22), 0],     # red, gold lozenge
+	[Color(0.08, 0.12, 0.35), Color(0.75, 0.75, 0.78), Color(0.85, 0.8, 0.6), 1],    # blue, silver cross
+	[Color(0.1, 0.26, 0.12), Color(0.8, 0.6, 0.22), Color(0.85, 0.75, 0.3), 2],      # green, gold chevron
+	[Color(0.08, 0.07, 0.07), Color(0.55, 0.1, 0.1), Color(0.7, 0.12, 0.12), 3],     # black, red bars and roundel
+]
+
+
+static func _c(c: Color, a := 0.0) -> Color:
+	return Color(c.r, c.g, c.b, a)
+
+
+## A hanging heraldic banner in scheme `v` (BANNERS); sways toward the bottom.
+static func banner_variant(rng: RandomNumberGenerator, v: int) -> ArrayMesh:
+	var sch: Array = BANNERS[v % BANNERS.size()]
+	var cloth: Color = sch[0]
+	var trim: Color = sch[1]
+	var em: Color = sch[2]
+	var mb := MeshBuilder.new()
+	mb.add(MeshBuilder.cyl(0.06, 0.06, 2.6, 6), Transform3D(Basis(Vector3(0, 0, 1), PI / 2), Vector3(0, 3.0, -0.1)), IRON)
+	for e in [-1.0, 1.0]:
+		mb.add(MeshBuilder.sphere(0.1, 6, 4), Transform3D(Basis(), Vector3(e * 1.32, 3.0, -0.1)), GOLD)
+	for k in 6:
+		var y := 2.6 - k * 1.0
+		var sway := k / 6.0 * 0.8
+		mb.add(MeshBuilder.box(Vector3(2.2, 1.0, 0.04)), Transform3D(Basis(), Vector3(0, y, -0.1)), _c(cloth, sway))
+		for e in [-1.0, 1.0]:   # trim down both edges
+			mb.add(MeshBuilder.box(Vector3(0.12, 1.0, 0.05)), Transform3D(Basis(), Vector3(e * 1.04, y, -0.11)), _c(trim, sway))
+	match int(sch[3]):
+		0:
+			mb.add(MeshBuilder.box(Vector3(0.9, 0.9, 0.05)), Transform3D(Basis(Vector3(0, 0, 1), PI / 4), Vector3(0, 0.8, -0.13)), _c(em, 0.4))
+			mb.add(MeshBuilder.box(Vector3(0.45, 0.45, 0.06)), Transform3D(Basis(Vector3(0, 0, 1), PI / 4), Vector3(0, 0.8, -0.14)), _c(cloth, 0.4))
+		1:
+			mb.add(MeshBuilder.box(Vector3(0.28, 2.4, 0.05)), Transform3D(Basis(), Vector3(0, 0.7, -0.13)), _c(em, 0.4))
+			mb.add(MeshBuilder.box(Vector3(1.6, 0.28, 0.05)), Transform3D(Basis(), Vector3(0, 1.2, -0.13)), _c(em, 0.4))
+		2:
+			for sd in [-1.0, 1.0]:
+				mb.add(MeshBuilder.box(Vector3(1.4, 0.3, 0.05)), Transform3D(Basis(Vector3(0, 0, 1), sd * 0.6), Vector3(sd * 0.5, 0.9, -0.13)), _c(em, 0.4))
+		_:
+			for y in [1.9, 1.5]:
+				mb.add(MeshBuilder.box(Vector3(2.2, 0.16, 0.05)), Transform3D(Basis(), Vector3(0, y, -0.13)), _c(em, 0.3))
+			mb.add(MeshBuilder.cyl(0.4, 0.4, 0.05, 14), Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3(0, 0.3, -0.13)), _c(em, 0.45))
+	mb.add(MeshBuilder.cone(1.1, 1.0, 3), Transform3D(Basis(Vector3(1, 0, 0), PI) * Basis(Vector3.UP, PI / 6), Vector3(0, -3.3, -0.1)), _c(cloth, 0.8))
+	for k in 7:   # tassels on the point
+		mb.limb(Vector3(-0.6 + k * 0.2, -2.6 - absf(k - 3) * -0.0, -0.12), Vector3(-0.6 + k * 0.2, -3.0 - (3 - absf(k - 3)) * 0.18, -0.12), 0.02, 0.015, _c(trim, 0.9), 4)
+	return mb.commit()
+
+
+## A painted kite shield over two crossed swords, on a small wooden board.
+static func shield_and_swords(rng: RandomNumberGenerator, v: int) -> ArrayMesh:
+	var mb := MeshBuilder.new()
+	var fields := [Color(0.5, 0.08, 0.08), Color(0.1, 0.15, 0.4), Color(0.12, 0.3, 0.14), Color(0.75, 0.62, 0.25)]
+	var charges := [Color(0.82, 0.65, 0.25), Color(0.85, 0.85, 0.88), Color(0.82, 0.65, 0.25), Color(0.4, 0.06, 0.06)]
+	var field: Color = fields[v % fields.size()]
+	var charge: Color = charges[v % charges.size()]
+	for sd in [-1.0, 1.0]:   # crossed swords behind
+		var rot := Basis(Vector3(0, 0, 1), sd * PI / 4)
+		mb.add(MeshBuilder.box(Vector3(0.09, 2.2, 0.03)), Transform3D(rot, rot * Vector3(0, 0.3, 0) + Vector3(0, 0, -0.06)), STEEL)
+		mb.add(MeshBuilder.box(Vector3(0.5, 0.07, 0.06)), Transform3D(rot, rot * Vector3(0, -0.85, 0) + Vector3(0, 0, -0.06)), GOLD)
+		mb.add(MeshBuilder.box(Vector3(0.06, 0.32, 0.06)), Transform3D(rot, rot * Vector3(0, -1.05, 0) + Vector3(0, 0, -0.06)), DARK_WOOD)
+		mb.add(MeshBuilder.sphere(0.06, 6, 4), Transform3D(Basis(), rot * Vector3(0, -1.24, 0) + Vector3(0, 0, -0.06)), GOLD)
+	# the shield: a rounded top and a point
+	mb.add(MeshBuilder.box(Vector3(1.0, 0.75, 0.08)), Transform3D(Basis(), Vector3(0, 0.15, -0.14)), _c(field))
+	mb.add(MeshBuilder.cyl(0.5, 0.5, 0.08, 16), Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3(0, 0.5, -0.14)), _c(field))
+	mb.add(MeshBuilder.cone(0.5, 0.75, 4), Transform3D(Basis(Vector3(1, 0, 0), PI) * Basis(Vector3.UP, PI / 4).scaled(Vector3(1.4, 1.0, 0.11)), Vector3(0, -0.55, -0.14)), _c(field))
+	mb.add(MeshBuilder.box(Vector3(1.06, 0.06, 0.1)), Transform3D(Basis(), Vector3(0, 0.98, -0.14)), STEEL)   # rim
+	match v % 4:
+		0:
+			mb.add(MeshBuilder.box(Vector3(0.18, 1.3, 0.1)), Transform3D(Basis(), Vector3(0, 0.05, -0.17)), _c(charge))
+			mb.add(MeshBuilder.box(Vector3(0.9, 0.18, 0.1)), Transform3D(Basis(), Vector3(0, 0.35, -0.17)), _c(charge))
+		1:
+			mb.add(MeshBuilder.box(Vector3(1.0, 0.22, 0.1)), Transform3D(Basis(Vector3(0, 0, 1), -0.7), Vector3(0, 0.15, -0.17)), _c(charge))
+		2:
+			for sd in [-1.0, 1.0]:
+				mb.add(MeshBuilder.box(Vector3(0.75, 0.16, 0.1)), Transform3D(Basis(Vector3(0, 0, 1), sd * 0.6), Vector3(sd * 0.26, 0.15, -0.17)), _c(charge))
+		_:
+			mb.add(MeshBuilder.sphere(0.24, 10, 6), Transform3D(Basis.from_scale(Vector3(1, 1, 0.3)), Vector3(0, 0.25, -0.18)), _c(charge))
+	mb.add(MeshBuilder.sphere(0.07, 6, 4), Transform3D(Basis.from_scale(Vector3(1, 1, 0.5)), Vector3(0, 0.25, -0.2)), STEEL)   # boss
+	return mb.commit()
+
+
+## A big woven tapestry on a rod: border, a sky and hills, a castle and a tree; it sways a little.
+static func tapestry(rng: RandomNumberGenerator, v: int) -> ArrayMesh:
+	var mb := MeshBuilder.new()
+	var w := 4.4
+	var h := 5.6
+	var skies: Array[Color] = [Color(0.18, 0.24, 0.42), Color(0.35, 0.12, 0.12), Color(0.14, 0.28, 0.2)]
+	var sky: Color = skies[v % 3]
+	mb.add(MeshBuilder.cyl(0.06, 0.06, w + 0.6, 6), Transform3D(Basis(Vector3(0, 0, 1), PI / 2), Vector3(0, h * 0.5 + 0.1, -0.1)), IRON)
+	var rows := 7
+	for k in rows:   # the backing in strips so it sways toward the bottom
+		var y := h * 0.5 - (k + 0.5) * h / rows
+		var sway := k / float(rows) * 0.25
+		mb.add(MeshBuilder.box(Vector3(w, h / rows, 0.04)), Transform3D(Basis(), Vector3(0, y, -0.1)), _c(Color(0.55, 0.42, 0.18), sway))
+		mb.add(MeshBuilder.box(Vector3(w - 0.4, h / rows + 0.01, 0.045)), Transform3D(Basis(), Vector3(0, y, -0.105)), _c(sky if y > -0.6 else Color(0.2, 0.32, 0.12), sway))
+	var lo := -h * 0.5 + 0.2
+	# rolling hills, a castle with towers, a tree, a sun or moon, and a knight's banner
+	mb.add(MeshBuilder.sphere(1.6, 10, 5), Transform3D(Basis.from_scale(Vector3(1.2, 0.5, 0.03)), Vector3(-1.0, -0.6, -0.12)), _c(Color(0.25, 0.38, 0.14), 0.15))
+	mb.add(MeshBuilder.box(Vector3(1.4, 1.2, 0.05)), Transform3D(Basis(), Vector3(0.7, -0.1, -0.13)), _c(Color(0.6, 0.58, 0.52), 0.1))
+	for x in [0.1, 1.3]:
+		mb.add(MeshBuilder.box(Vector3(0.35, 1.8, 0.05)), Transform3D(Basis(), Vector3(x, 0.2, -0.13)), _c(Color(0.62, 0.6, 0.54), 0.1))
+		mb.add(MeshBuilder.cone(0.28, 0.5, 4), Transform3D(Basis(Vector3(1, 0, 0), 0.0).scaled(Vector3(1, 1, 0.15)), Vector3(x, 1.35, -0.13)), _c(Color(0.5, 0.1, 0.1), 0.1))
+	mb.add(MeshBuilder.box(Vector3(0.35, 0.55, 0.06)), Transform3D(Basis(), Vector3(0.7, -0.45, -0.14)), _c(Color(0.2, 0.12, 0.06), 0.1))   # gate
+	mb.limb(Vector3(-1.5, lo + 0.6, -0.13), Vector3(-1.5, 0.2, -0.13), 0.08, 0.06, _c(Color(0.3, 0.18, 0.08), 0.15), 5)
+	mb.add(MeshBuilder.sphere(0.6, 8, 5), Transform3D(Basis.from_scale(Vector3(1, 1, 0.08)), Vector3(-1.5, 0.6, -0.14)), _c(Color(0.15, 0.32, 0.1), 0.15))
+	mb.add(MeshBuilder.cyl(0.35, 0.35, 0.05, 14), Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3(-1.2, 1.8, -0.13)), _c(Color(0.85, 0.75, 0.4), 0.05))
+	for k in 12:   # fringe
+		mb.limb(Vector3(-w * 0.5 + 0.2 + k * (w - 0.4) / 11.0, -h * 0.5, -0.1), Vector3(-w * 0.5 + 0.2 + k * (w - 0.4) / 11.0, -h * 0.5 - 0.25, -0.1), 0.025, 0.02, _c(GOLD, 0.3), 4)
+	return mb.commit()
+
+
+## A stag's skull with branching antlers on a carved wooden plaque.
+static func antler_trophy(rng: RandomNumberGenerator) -> ArrayMesh:
+	var mb := MeshBuilder.new()
+	var bone := Color(0.85, 0.8, 0.68, 0.0)
+	mb.add(MeshBuilder.cyl(0.45, 0.45, 0.08, 6), Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3(0, 0, -0.04)), DARK_WOOD)
+	mb.add(MeshBuilder.sphere(0.2, 8, 6), Transform3D(Basis.from_scale(Vector3(0.8, 1.0, 1.2)), Vector3(0, 0.05, -0.22)), bone)
+	mb.limb(Vector3(0, -0.05, -0.3), Vector3(0, -0.3, -0.42), 0.1, 0.06, bone, 6)   # muzzle
+	for sd in [-1.0, 1.0]:
+		var base := Vector3(sd * 0.12, 0.2, -0.25)
+		var mid := base + Vector3(sd * 0.35, 0.45, -0.05)
+		var top := mid + Vector3(sd * 0.15, 0.55, 0.05)
+		mb.limb(base, mid, 0.05, 0.04, bone, 5)
+		mb.limb(mid, top, 0.04, 0.02, bone, 5)
+		for t in 3:   # tines
+			var at := base.lerp(top, 0.3 + t * 0.25) if t > 0 else base.lerp(mid, 0.5)
+			mb.limb(at, at + Vector3(sd * -0.08, 0.28, -0.12), 0.025, 0.01, bone, 4)
+		mb.add(MeshBuilder.sphere(0.035, 5, 3), Transform3D(Basis(), Vector3(sd * 0.09, 0.05, -0.38)), IRON)   # eye sockets
+	return mb.commit()
+
+
+## A boar's head with tusks on a shield-shaped plaque.
+static func boar_trophy(rng: RandomNumberGenerator) -> ArrayMesh:
+	var mb := MeshBuilder.new()
+	var hide := Color(0.3, 0.2, 0.13, 0.0)
+	mb.add(MeshBuilder.box(Vector3(0.9, 0.9, 0.08)), Transform3D(Basis(), Vector3(0, 0.05, -0.04)), DARK_WOOD)
+	mb.add(MeshBuilder.cone(0.45, 0.4, 4), Transform3D(Basis(Vector3(1, 0, 0), PI) * Basis(Vector3.UP, PI / 4).scaled(Vector3(1.4, 1, 0.12)), Vector3(0, -0.6, -0.04)), DARK_WOOD)
+	mb.add(MeshBuilder.sphere(0.32, 10, 6), Transform3D(Basis.from_scale(Vector3(1.0, 0.9, 1.2)), Vector3(0, 0.05, -0.3)), hide)
+	mb.limb(Vector3(0, -0.02, -0.5), Vector3(0, -0.08, -0.78), 0.17, 0.12, hide.darkened(0.1), 8)
+	mb.add(MeshBuilder.cyl(0.11, 0.11, 0.03, 10), Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3(0, -0.08, -0.8)), Color(0.45, 0.3, 0.25, 0))   # snout
+	for sd in [-1.0, 1.0]:
+		mb.limb(Vector3(sd * 0.09, -0.15, -0.68), Vector3(sd * 0.15, 0.02, -0.82), 0.025, 0.008, Color(0.92, 0.88, 0.75, 0), 5)   # tusks
+		mb.add(MeshBuilder.cone(0.09, 0.18, 4), Transform3D(Basis(Vector3(0, 0, 1), sd * -0.5), Vector3(sd * 0.2, 0.33, -0.25)), hide.darkened(0.2))   # ears
+		mb.add(MeshBuilder.sphere(0.03, 5, 3), Transform3D(Basis(), Vector3(sd * 0.13, 0.15, -0.55)), Color(0.05, 0.03, 0.02, 0))
+	return mb.commit()
+
+
+## Two battle-axes crossed over a round wooden plaque.
+static func crossed_axes(rng: RandomNumberGenerator) -> ArrayMesh:
+	var mb := MeshBuilder.new()
+	mb.add(MeshBuilder.cyl(0.5, 0.5, 0.06, 16), Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3(0, 0, -0.03)), DARK_WOOD)
+	mb.add(MeshBuilder.cyl(0.52, 0.52, 0.04, 16), Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3(0, 0, -0.02)), IRON)
+	for sd in [-1.0, 1.0]:
+		var rot := Basis(Vector3(0, 0, 1), sd * PI / 4)
+		mb.add(MeshBuilder.box(Vector3(0.07, 1.8, 0.07)), Transform3D(rot, Vector3(0, 0, -0.12)), WOOD)
+		var head := rot * Vector3(0, 0.75, 0) + Vector3(0, 0, -0.12)
+		mb.add(MeshBuilder.box(Vector3(0.5, 0.38, 0.03)), Transform3D(rot, head + rot * Vector3(sd * 0.22, 0, 0)), STEEL)
+		mb.add(MeshBuilder.cyl(0.2, 0.2, 0.035, 10), Transform3D(rot * Basis(Vector3(1, 0, 0), PI / 2), head + rot * Vector3(sd * 0.4, 0, 0)), STEEL)
+	return mb.commit()
+
+
 ## A tall pointed stained-glass window lit by the moon outside; -Z faces into the room.
 static func stained_window(rng: RandomNumberGenerator) -> ArrayMesh:
 	var mb := MeshBuilder.new()

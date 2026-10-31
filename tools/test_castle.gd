@@ -54,6 +54,15 @@ func _static_checks() -> void:
 			_check("castle: torches and chandeliers light it", root.find_children("*", "OmniLight3D", true, false).size() >= 60,
 				str(root.find_children("*", "OmniLight3D", true, false).size()))
 			_check("castle: a roof", nav != null and CastleBuilder.CEILING > 10.0, "")
+			var carpets := root.find_children("*", "MeshInstance3D", true, false).filter(func(n): return n.is_in_group("castle_carpet"))
+			_check("castle: two woven runners (holes and tears in the shader)", carpets.size() == 2, str(carpets.size()))
+			var deco_n := 0
+			var deco_kinds := 0
+			for n in root.find_children("*", "MultiMeshInstance3D", true, false):
+				if n.is_in_group("castle_wall_deco"):
+					deco_kinds += 1
+					deco_n += (n as MultiMeshInstance3D).multimesh.instance_count
+			_check("castle: walls hung with shields, tapestries and trophies", deco_n >= 20 and deco_kinds >= 5, "%d pieces of %d kinds" % [deco_n, deco_kinds])
 			_check("castle: flat floor (no pools)", water.pools.is_empty() and is_zero_approx(SwampWater.height_at(37.0, -91.0)), "")
 			_check_nav(nav)
 		root.free()

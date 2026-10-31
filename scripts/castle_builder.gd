@@ -171,6 +171,113 @@ void fragment() {
 }
 """
 
+const CARPET_SHADER := """
+shader_type spatial;
+uniform vec2 size = vec2(8.0, 150.0);   // metres (width, length)
+uniform float seed = 3.7;
+varying vec3 wpos;
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+	vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+float fbm(vec2 p) { return noise(p) * 0.5 + noise(p * 2.1) * 0.3 + noise(p * 4.3) * 0.2; }
+void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void fragment() {
+	// Local metres: x across (0 at the middle), y along
+	vec2 q = (UV - 0.5) * size;
+	float ax = abs(q.x);
+	float hw = size.x * 0.5;
+	vec3 crimson = vec3(0.36, 0.05, 0.06);
+	vec3 deep = vec3(0.2, 0.03, 0.05);
+	vec3 navy = vec3(0.07, 0.09, 0.22);
+	vec3 gold = vec3(0.62, 0.46, 0.16);
+	vec3 cream = vec3(0.7, 0.62, 0.46);
+	vec3 col = crimson;
+	float edge_d = hw - ax;   // distance in from the long edge
+	float end_d = size.y * 0.5 - abs(q.y);
+	float bd = min(edge_d, end_d);
+	// Border: gold rim, dark band, a navy band with a running zig-zag, a thin cream line
+	if (bd < 0.12) { col = gold; }
+	else if (bd < 0.3) { col = deep; }
+	else if (bd < 0.95) {
+		col = navy;
+		float run = edge_d < end_d ? q.y : q.x;
+		float zig = abs(fract(run * 0.9) - 0.5) * 0.65 + 0.37;   // a zig-zag vine
+		if (abs(bd - zig) < 0.05) { col = gold; }
+		vec2 dm = vec2(fract(run * 0.9 + 0.5) - 0.5, (bd - 0.62) * 1.6);
+		if (abs(dm.x) + abs(dm.y) < 0.12) { col = crimson * 1.3; }   // little lozenges between
+	}
+	else if (bd < 1.05) { col = cream; }
+	else if (bd < 1.2) { col = deep; }
+	else {
+		// The field: a lattice of small diamonds, with a big medallion every 9 m
+		vec2 lat = vec2(q.x * 1.4, q.y * 1.4);
+		vec2 lf = fract(lat) - 0.5;
+		float dia = abs(lf.x) + abs(lf.y);
+		if (dia < 0.12) { col = gold * 0.85; }
+		else if (abs(dia - 0.42) < 0.035) { col = deep; }
+		float my = mod(q.y + 4.5, 9.0) - 4.5;
+		vec2 m = vec2(q.x / (hw - 1.4), my / 3.4);
+		float md = abs(m.x) + abs(m.y);   // a lozenge medallion
+		if (md < 1.0) {
+			col = navy;
+			float rings = fract(md * 3.0);
+			if (rings < 0.12) { col = gold; }
+			float r = length(vec2(q.x, my));
+			if (r < 0.9) { col = mix(crimson, gold, step(0.55, r)); }
+			if (abs(r - 0.35) < 0.05) { col = cream; }
+			float petal = abs(sin(atan(my, q.x) * 4.0));
+			if (r > 1.1 && r < 1.9 && petal > 0.8) { col = crimson * 1.2; }
+		}
+		if (abs(md - 1.08) < 0.05) { col = gold * 0.9; }
+	}
+	// The weave: fine warp and weft threads, a little uneven
+	float warp = 0.85 + 0.15 * sin(q.x * 160.0 + noise(q * 3.0) * 2.0);
+	float weft = 0.9 + 0.1 * sin(q.y * 140.0);
+	col *= warp * weft;
+	col *= 0.9 + 0.15 * noise(q * 18.0);
+	// Age: faded patches, a threadbare path down the middle, dirt and stains
+	float fade = smoothstep(0.45, 0.8, fbm(q * 0.35 + seed));
+	col = mix(col, vec3(dot(col, vec3(0.33))) * vec3(1.15, 1.0, 0.85), fade * 0.45);
+	float path = (1.0 - smoothstep(0.6, 2.2, ax)) * smoothstep(0.35, 0.65, fbm(vec2(q.x * 0.6, q.y * 0.08) + seed * 2.0));
+	col = mix(col, vec3(0.32, 0.25, 0.2) * (0.8 + 0.4 * sin(q.x * 160.0)), path * 0.45);   // worn to the backing threads
+	float dirt = fbm(q * 0.8 + seed * 3.0);
+	col *= 0.72 + 0.4 * dirt;
+	float stain = smoothstep(0.66, 0.78, fbm(q * 0.25 + seed * 5.0));
+	col = mix(col, col * vec3(0.45, 0.38, 0.32), stain * 0.7);
+	// A few holes and tears (about one every 28 m of runner)
+	vec2 cell = vec2(0.0, floor(q.y / 7.0));
+	float h = hash(cell + seed);
+	float cut = 1e3;
+	float fray = 0.0;
+	if (h > 0.74) {
+		vec2 c = vec2((hash(cell + seed + 1.0) - 0.5) * (size.x - 2.0), (cell.y + 0.2 + hash(cell + seed + 2.0) * 0.6) * 7.0);
+		vec2 d = q - c;
+		if (h > 0.88) {   // a tear: a long ragged slit
+			float a = hash(cell + seed + 3.0) * 3.1416;
+			vec2 dir = vec2(cos(a), sin(a));
+			float along = dot(d, dir);
+			float across = dot(d, vec2(-dir.y, dir.x)) + (noise(vec2(along * 6.0, seed)) - 0.5) * 0.12;
+			float len = 0.5 + hash(cell + seed + 4.0) * 0.6;
+			float w = 0.06 * smoothstep(len, 0.0, abs(along));
+			cut = abs(across) - w;
+			cut = max(cut, abs(along) - len);
+		} else {   // a hole: ragged round, frayed
+			float r = 0.18 + hash(cell + seed + 5.0) * 0.3;
+			cut = length(d * vec2(1.0, 0.8)) - r * (0.75 + 0.5 * noise(normalize(d + 0.0001) * 3.0 + seed));
+		}
+	}
+	if (cut < 0.0) { discard; }
+	fray = 1.0 - smoothstep(0.0, 0.08, cut);
+	col = mix(col, vec3(0.28, 0.2, 0.14), fray * 0.8);   // pale frayed threads round the edge
+	col *= 1.0 - (1.0 - smoothstep(0.08, 0.25, cut)) * 0.25;   // grime gathers round the damage
+	ALBEDO = col;
+	ROUGHNESS = 1.0;
+	SPECULAR = 0.15;
+}
+"""
+
 const WALL_SHADER := """
 shader_type spatial;
 uniform vec3 stone_a : source_color = vec3(0.34, 0.31, 0.29);
@@ -497,17 +604,42 @@ static func _porch(parent: Node3D, half: float, mats: Dictionary) -> void:
 		_brazier(parent, p, 0.8)
 
 
+## The great hall and throne room runners: a woven carpet (CARPET_SHADER) with a border of
+## bands and a running motif, medallions down a patterned field, a gold-fringed end at each end,
+## and a few centuries of wear: dirt, faded patches, stains, a threadbare path down the middle,
+## and here and there a hole or a tear (not too many).
 static func _rugs(parent: Node3D) -> void:
-	var red := StandardMaterial3D.new()
-	red.albedo_color = Color(0.32, 0.05, 0.06)
-	red.roughness = 1.0
-	var trim := StandardMaterial3D.new()
-	trim.albedo_color = Color(0.6, 0.45, 0.15)
+	var sh := Shader.new()
+	sh.code = CARPET_SHADER
+	var k := 0
 	for r in [[0.0, 64.0, 216.0, 8.0], [0.0, -216.0, -114.0, 8.0]]:   # great hall and throne room runners
 		var len: float = r[2] - r[1]
-		_box(parent, Vector3(r[0], 0.015, (r[1] + r[2]) * 0.5), Vector3(r[3], 0.03, len), red, false)
-		for side in [-1.0, 1.0]:
-			_box(parent, Vector3(r[0] + side * (r[3] * 0.5 - 0.3), 0.02, (r[1] + r[2]) * 0.5), Vector3(0.25, 0.04, len), trim, false)
+		var mat := ShaderMaterial.new()
+		mat.shader = sh
+		mat.set_shader_parameter("size", Vector2(r[3], len))
+		mat.set_shader_parameter("seed", 3.7 + k * 11.3)
+		var pm := PlaneMesh.new()
+		pm.size = Vector2(r[3], len)
+		pm.material = mat
+		var mi := MeshInstance3D.new()
+		mi.mesh = pm
+		mi.position = Vector3(r[0], 0.02, (r[1] + r[2]) * 0.5)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.add_to_group("castle_carpet")
+		parent.add_child(mi)
+		# Gold fringe (tassels) at both ends
+		var mb := MeshBuilder.new()
+		for end in [-1.0, 1.0]:
+			var z: float = end * (len * 0.5 + 0.12)
+			var x: float = -float(r[3]) * 0.5 + 0.1
+			while x < r[3] * 0.5 - 0.05:
+				mb.add(MeshBuilder.box(Vector3(0.05, 0.015, 0.26 + 0.06 * sin(x * 7.0))), Transform3D(Basis(), Vector3(x, 0.0, z)), Color(0.66, 0.5, 0.2, 0))
+				x += 0.11
+		var fr := MeshInstance3D.new()
+		fr.mesh = mb.commit()
+		fr.position = mi.position
+		parent.add_child(fr)
+		k += 1
 
 
 # ------------------------------------------------------------------ props
@@ -653,8 +785,10 @@ static func _clear_spot(p: Vector3, nav: CastleNav, placed: Array[Vector3], site
 	return true
 
 
-## Torches in iron sconces along every wall (a real light on every third), banners between,
-## and tall stained-glass windows glowing with moonlight in the outer walls.
+## Torches in iron sconces along every wall (a real light on every third), heraldic banners in
+## four colour schemes high between them, tall stained-glass windows glowing with moonlight in
+## the outer walls, and halfway between torches the memorabilia: painted shields over crossed
+## swords, woven tapestries, a stag's antlers, a boar's head, crossed battle-axes.
 static func _wall_decor(parent: Node3D, rng: RandomNumberGenerator, half: float) -> void:
 	var runs := []   # [start, end, normal into the room, openings, outer wall?] along wall faces
 	for w in WALLS:
@@ -670,10 +804,25 @@ static func _wall_decor(parent: Node3D, rng: RandomNumberGenerator, half: float)
 	runs.append([Vector3(-inner, 0, -half), Vector3(-inner, 0, half), Vector3(1, 0, 0), [], true])
 	runs.append([Vector3(inner, 0, -half), Vector3(inner, 0, half), Vector3(-1, 0, 0), [], true])
 	var sconce := CastleProps.sconce(rng)
-	var banner := CastleProps.banner(rng)
+	var banners: Array[ArrayMesh] = []
+	for v in CastleProps.BANNERS.size():
+		banners.append(CastleProps.banner_variant(rng, v))
 	var window := CastleProps.stained_window(rng)
+	# Memorabilia between the torches: [mesh, height, weight]
+	var deco: Array = []
+	for v in 4:
+		deco.append([CastleProps.shield_and_swords(rng, v), 5.4, 2.0])
+	for v in 3:
+		deco.append([CastleProps.tapestry(rng, v), 6.6, 1.2])
+	deco.append([CastleProps.antler_trophy(rng), 6.0, 1.2])
+	deco.append([CastleProps.boar_trophy(rng), 5.8, 1.0])
+	deco.append([CastleProps.crossed_axes(rng), 5.6, 1.2])
+	var deco_total := 0.0
+	for dd in deco:
+		deco_total += float(dd[2])
+	var deco_xf := {}   # deco index -> transforms
 	var t_xf: Array[Transform3D] = []
-	var b_xf: Array[Transform3D] = []
+	var b_xf := {}      # banner variant -> transforms
 	var w_xf: Array[Transform3D] = []
 	var lit := 0
 	for r in runs:
@@ -709,11 +858,34 @@ static func _wall_decor(parent: Node3D, rng: RandomNumberGenerator, half: float)
 					if outer:
 						w_xf.append(Transform3D(basis, p + nrm * 0.02 + Vector3(0, 11.0, 0)))
 					else:
-						b_xf.append(Transform3D(basis, p + nrm * 0.12 + Vector3(0, 11.0, 0)))
+						var bv := rng.randi() % banners.size()
+						if not b_xf.has(bv):
+							b_xf[bv] = [] as Array[Transform3D]
+						(b_xf[bv] as Array[Transform3D]).append(Transform3D(basis, p + nrm * 0.12 + Vector3(0, 11.0, 0)))
+			# Halfway to the next torch: a shield, tapestry or trophy (most of the time)
+			var mp := a + along * (d + TORCH_STEP * 0.5)
+			var mcoord := mp.x if absf(along.x) > 0.5 else mp.z
+			var m_gap := d + TORCH_STEP * 0.5 > length - 4.0
+			for o in openings:
+				if absf(mcoord - o[0]) < o[1] * 0.5 + 4.0:
+					m_gap = true
+			if not m_gap and _room_at(mp - nrm * 2.0) != "" and rng.randf() < 0.8:
+				var roll := rng.randf() * deco_total
+				var di := 0
+				while di < deco.size() - 1 and roll > float(deco[di][2]):
+					roll -= float(deco[di][2])
+					di += 1
+				if not deco_xf.has(di):
+					deco_xf[di] = [] as Array[Transform3D]
+				(deco_xf[di] as Array[Transform3D]).append(Transform3D(basis, mp + nrm * 0.06 + Vector3(0, float(deco[di][1]), 0)))
 			k += 1
 			d += TORCH_STEP
 	WorldBuilder._multimesh(parent, sconce, t_xf)
-	WorldBuilder._multimesh(parent, banner, b_xf)
+	for bv in b_xf:
+		WorldBuilder._multimesh(parent, banners[bv], b_xf[bv])
+	for di in deco_xf:
+		WorldBuilder._multimesh(parent, deco[di][0], deco_xf[di])
+		(parent.get_child(parent.get_child_count() - 1) as Node).add_to_group("castle_wall_deco")
 	WorldBuilder._multimesh(parent, window, w_xf)
 
 
