@@ -184,6 +184,53 @@ func _run_checks() -> void:
 	await get_tree().physics_frame
 	_check("Fire Nova sweeps the table", feast.blasts > nova_b, "")
 
+	# Every place has a goblet; the table carries roasts, platters and wine bottles
+	var kinds := {}
+	var plates := 0
+	var goblets := 0
+	for it in feast.items:
+		var kd: String = it.get_meta("kind", "")
+		kinds[kd] = true
+		plates += 1 if kd.begins_with("plate_") else 0
+		goblets += 1 if kd.begins_with("goblet_") else 0
+	_check("a goblet at every place setting", plates > 0 and goblets == plates, "%d plates, %d goblets" % [plates, goblets])
+	for kd in ["whole_chicken", "roast_boar", "turkey_legs", "fruit_platter", "wine_bottle"]:
+		_check("the feast has " + kd, kinds.has(kd), "")
+	_check("three table sets", kinds.has("plate_silver") and kinds.has("plate_gold") and kinds.has("plate_pewter"), "")
+	# A goblet knocked over spills its wine: a pool where it lands
+	var gob: RigidBody3D = null
+	for it in feast.items:
+		if str(it.get_meta("kind", "")).begins_with("goblet_") and not it.get_meta("spilled", false):
+			gob = it
+			break
+	var s0 := feast.spills
+	var pools0 := get_tree().get_nodes_in_group("wine_pool").size()
+	gob.sleeping = false
+	gob.apply_torque_impulse(Vector3(0.05, 0, 0.05))
+	gob.apply_central_impulse(Vector3(0.4, 0.4, 0))
+	for f in 60 * 2:
+		await get_tree().physics_frame
+	_check("a toppled goblet spills its wine", feast.spills > s0 and not (gob.get_node("Wine") as Node3D).visible, "%d spills" % (feast.spills - s0))
+	_check("...leaving a pool of wine", get_tree().get_nodes_in_group("wine_pool").size() > pools0, "")
+	# A wine bottle that hits the floor shatters: glass breaks, a pool of wine
+	var bottle: RigidBody3D = null
+	for it in feast.items:
+		if it.get_meta("kind", "") == "wine_bottle":
+			bottle = it
+			break
+	var bb0 := feast.bottles_broken
+	bottle.sleeping = false
+	bottle.global_position = Vector3(6.0, 1.5, -20.0)
+	bottle.linear_velocity = Vector3.ZERO
+	for f in 60 * 2:
+		await get_tree().physics_frame
+	_check("a bottle that hits the floor shatters", feast.bottles_broken == bb0 + 1 and not is_instance_valid(bottle), "%d broken, %s" % [feast.bottles_broken - bb0, str(bottle.global_position) + " sleeping " + str(bottle.sleeping) if is_instance_valid(bottle) else "freed"])
+	var pooled := false
+	for pl in get_tree().get_nodes_in_group("wine_pool"):
+		if Vector2((pl as Node3D).global_position.x - 6.0, (pl as Node3D).global_position.z + 20.0).length() < 0.5 and (pl as Node3D).global_position.y < 0.1:
+			pooled = true
+	_check("...leaving a pool of wine on the floor where it broke", pooled, "")
+
 	# Loitering on the table: a chandelier comes down where you stood
 	player.god_mode = false
 	player.hp = player.max_hp

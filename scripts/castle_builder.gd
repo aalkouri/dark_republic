@@ -83,22 +83,90 @@ float noise(vec2 p) {
 	vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
 	return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
 }
+float fbm(vec2 p) { return noise(p) * 0.5 + noise(p * 2.1) * 0.3 + noise(p * 4.3) * 0.2; }
+// distance to a crack: a wobbly line through `c` at angle `a`, fading out toward its ends
+float crack(vec2 f, vec2 c, float a, float len, float seed) {
+	vec2 d = vec2(cos(a), sin(a));
+	vec2 q = f - c;
+	float along = dot(q, d);
+	float across = dot(q, vec2(-d.y, d.x)) + (noise(vec2(along * 9.0, seed)) - 0.5) * 0.09 + (noise(vec2(along * 30.0, seed + 3.0)) - 0.5) * 0.025;
+	float ends = smoothstep(len, len * 0.6, abs(along));
+	return abs(across) / max(ends, 0.001);
+}
 void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 void fragment() {
-	// Running-bond flagstones (each row offset by half a stone), worn and stained
+	// Running-bond flagstones (rows offset by half a stone), every stone its own: some split
+	// in two, each a different shade and tint, worn smooth in the middle and grimy at the
+	// edges, chipped corners, cracks across many (some forking), the odd broken stone, dark
+	// stains, and moss creeping along the mortar
 	vec2 p = wpos.xz / tile;
-	p.x += 0.5 * mod(floor(p.y), 2.0);
+	float row = floor(p.y);
+	p.x += 0.5 * mod(row, 2.0) + (hash(vec2(row, 7.0)) - 0.5) * 0.3;
 	vec2 id = floor(p);
 	vec2 f = fract(p);
-	float edge = min(min(f.x, 1.0 - f.x), min(f.y, 1.0 - f.y));
-	float line = smoothstep(0.015, 0.045, edge);
 	float h = hash(id);
+	// some stones are two half-stones
+	if (hash(id + 11.0) > 0.62) {
+		float cut = 0.5 + (hash(id + 4.0) - 0.5) * 0.3;
+		id.x += f.x > cut ? 0.5 : 0.0;
+		f.x = f.x > cut ? (f.x - cut) / (1.0 - cut) : f.x / cut;
+		h = hash(id);
+	}
+	// wobbly, hand-cut edges
+	vec2 fw = f + (vec2(noise(wpos.xz * 2.5 + 3.0), noise(wpos.xz * 2.5 - 5.0)) - 0.5) * 0.035;
+	float edge = min(min(fw.x, 1.0 - fw.x), min(fw.y, 1.0 - fw.y));
+	float line = smoothstep(0.012, 0.04, edge);
+	// chipped corners
+	float corner = length(min(fw, 1.0 - fw));
+	line *= smoothstep(0.03, 0.07, corner + (hash(id + 2.0) > 0.6 ? 0.0 : 0.1) - noise(wpos.xz * 8.0) * 0.03);
+	// the stone's own colour: shade, tint (warm, cool or greenish) and grain
 	vec3 col = mix(stone_a, stone_b, h);
-	float n = noise(wpos.xz * 1.3) * 0.6 + noise(wpos.xz * 6.0) * 0.4;
-	col *= 0.78 + 0.35 * n;
-	col = mix(mortar, col, line);
+	float tint = hash(id + 9.0);
+	col *= tint < 0.33 ? vec3(1.08, 1.0, 0.92) : (tint < 0.66 ? vec3(0.94, 0.98, 1.06) : vec3(0.96, 1.03, 0.94));
+	col *= 0.8 + 0.4 * hash(id + 5.0);
+	float grain = fbm(wpos.xz * 3.0 + h * 40.0);
+	col *= 0.78 + 0.4 * grain;
+	col *= 0.9 + 0.12 * noise(wpos.xz * 25.0);   // fine speckle
+	// worn smooth in the middle, grime toward the edges
+	float worn = smoothstep(0.02, 0.25, edge);
+	col *= mix(0.72, 1.06, worn);
+	// cracks
+	float ck = 1e3;
+	if (hash(id + 21.0) > 0.45) {
+		vec2 c = vec2(hash(id + 31.0), hash(id + 41.0)) * 0.6 + 0.2;
+		float a = hash(id + 51.0) * 3.1416;
+		ck = crack(f, c, a, 0.5 + hash(id + 61.0) * 0.5, h * 10.0);
+		if (hash(id + 71.0) > 0.5) {   // a fork
+			ck = min(ck, crack(f, c + vec2(cos(a), sin(a)) * 0.15, a + 0.7, 0.3, h * 20.0));
+		}
+	}
+	if (hash(id + 81.0) > 0.88) {   // a broken stone: shattered into pieces
+		vec2 g = f * 3.0;
+		vec2 gi = floor(g);
+		float d1 = 8.0;
+		float d2 = 8.0;
+		for (int y = -1; y <= 1; y++) {
+			for (int x = -1; x <= 1; x++) {
+				vec2 o = vec2(float(x), float(y));
+				vec2 r = o + vec2(hash(gi + o + id), hash(gi + o + id + 13.0)) - fract(g);
+				float dd = dot(r, r);
+				if (dd < d1) { d2 = d1; d1 = dd; } else if (dd < d2) { d2 = dd; }
+			}
+		}
+		ck = min(ck, (sqrt(d2) - sqrt(d1)) * 0.3);
+	}
+	float crack_line = 1.0 - smoothstep(0.004, 0.012, ck);
+	float crack_halo = 1.0 - smoothstep(0.012, 0.04, ck);
+	col *= 1.0 - crack_halo * 0.25;
+	col = mix(col, mortar * 0.6, crack_line);
+	// stains
+	float stain = smoothstep(0.62, 0.8, fbm(wpos.xz * 0.35 + 17.0));
+	col *= 1.0 - stain * 0.35;
+	// mortar, with moss creeping along it here and there
+	vec3 m = mix(mortar, vec3(0.1, 0.14, 0.06), smoothstep(0.55, 0.75, noise(wpos.xz * 0.8)));
+	col = mix(m, col, line);
 	ALBEDO = col;
-	ROUGHNESS = mix(0.6, 0.95, n);
+	ROUGHNESS = mix(0.95, 0.55, worn * line) + crack_line * 0.05;
 	SPECULAR = 0.35;
 }
 """
