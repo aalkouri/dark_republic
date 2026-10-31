@@ -644,7 +644,6 @@ func _spawn_director(dt: float) -> void:
 			if CastleNav.current.steps_to_player(p.x, p.z) <= 0:
 				p = _spawn_point(14.0, 24.0)   # that spot is a wall or cut off
 			enemies.bombers.spawn(p, hpm, rng.randf_range(0.0, 1.2))
-		hud.flash_message(tr("THE DEAD RISE!"), 2.5)
 	elif run_time >= _next_swarm:
 		_next_swarm += 60.0
 		var n := 24 + int(m) * 6
