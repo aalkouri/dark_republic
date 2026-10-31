@@ -195,6 +195,8 @@ Quitting a run from the pause menu forfeits its coins.
 
 **Testing cheat:** press **F8** on the title screen for +100,000 coins (`title.gd`, `CHEAT_COINS`); remove it before release.
 
+
+**Boss targeting:** whenever a boss is within an attack's range, every weapon and attack goes for it before any other enemy (`EnemyManager.nearest_k` puts bosses in range first; bouncing bolts jump to one first too).
 ## Elemental shards
 
 A second, persistent currency for upgrading your main weapon (the upgrade menu comes later). There are four kinds, **Fire, Ice, Lightning and Dark**, each drawn as a faceted crystal in code (`scripts/shard_icon.gd`). Their counters sit just left of the coins at the top of the screen, starting at 0. **Every boss you defeat drops 1-5 shards** of random kinds (Thog, the Toadstool Knight, the Arachnid and the Goblin Warlord). They're banked at once (`Wallet.shards`, saved in `user://progress.cfg`), flashed on screen, and listed under **Shards won** on the end screen.

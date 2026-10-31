@@ -608,7 +608,8 @@ func query_radius(c: Vector3, r: float, vertical := true) -> PackedInt32Array:
 	return res
 
 
-## Up to k nearest live enemies within r (horizontal distance), nearest first.
+## Up to k nearest live enemies within r (horizontal distance), nearest first, except that any boss in range comes
+## before everyone else (so every weapon and attack goes for the boss when it can).
 func nearest_k(c: Vector3, r: float, k: int) -> PackedInt32Array:
 	var best := PackedInt32Array()
 	var best_d := PackedFloat32Array()
@@ -617,6 +618,8 @@ func nearest_k(c: Vector3, r: float, k: int) -> PackedInt32Array:
 	for i in query_radius(c, r, false):
 		var p := pos[i]
 		var d := (p.x - c.x) * (p.x - c.x) + (p.z - c.z) * (p.z - c.z)
+		if typ[i] == BOSS or typ[i] == TROLL:   # bosses in range always come first
+			d -= 1e9
 		if best.size() == k and d >= best_d[k - 1]:
 			continue
 		var at := best.size()

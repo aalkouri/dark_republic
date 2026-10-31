@@ -258,6 +258,16 @@ func _test_specials() -> void:
 	var dn: float = hn - em.hp[ab[0]]
 	var de: float = he - em.hp[ab[1]]
 	_check("Arcane Bolts deal triple damage to epics", dn > 0.0 and is_equal_approx(de / dn, WeaponSystem.ARCANE_EPIC), "normal -%.2f, epic -%.2f" % [dn, de])
+	# Bosses in range are targeted before any other enemy (and only when in range)
+	var bt: Array = _fresh(em, p, [Vector3(3, 0, 0), Vector3(0, 0, 3)])
+	var boss: int = em.spawn(EnemyManager.BOSS, p + Vector3(16, 0, 0), 1.0)
+	em._build_grid(p)
+	var near1: PackedInt32Array = em.nearest_k(p, 20.0, 2)
+	var near2: PackedInt32Array = em.nearest_k(p, 8.0, 1)
+	_check("targeting: a boss in range comes first", near1.size() == 2 and near1[0] == boss, str(near1))
+	_check("targeting: a boss out of range is ignored", near2.size() == 1 and near2[0] != boss, str(near2))
+	_check("bouncing bolts jump to a boss in range first", ws._next_target(p, PackedInt32Array(), 20.0) == boss, "")
+	em.dead[boss] = 1
 	# Chain Lightning: chains to 2 more enemies
 	var line := []
 	for k in 12:

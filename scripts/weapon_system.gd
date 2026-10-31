@@ -1286,6 +1286,8 @@ func _next_target(at: Vector3, hit: PackedInt32Array, r: float) -> int:
 		if hit.has(enemies.uid[e]):
 			continue
 		var d := at.distance_squared_to(enemies.center_of(e))
+		if enemies.is_boss(e):   # bosses in range take precedence
+			d -= 1e9
 		if d < best_d:
 			best_d = d
 			best = e
