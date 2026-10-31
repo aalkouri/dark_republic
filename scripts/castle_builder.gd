@@ -176,27 +176,120 @@ shader_type spatial;
 uniform vec3 stone_a : source_color = vec3(0.34, 0.31, 0.29);
 uniform vec3 stone_b : source_color = vec3(0.25, 0.23, 0.22);
 uniform vec3 mortar : source_color = vec3(0.1, 0.09, 0.09);
+uniform float ivy_amount = 1.0;
 varying vec3 wpos;
 varying vec3 wnrm;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+	vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+float fbm(vec2 p) { return noise(p) * 0.5 + noise(p * 2.1) * 0.3 + noise(p * 4.3) * 0.2; }
+float crack(vec2 f, vec2 c, float a, float len, float seed) {
+	vec2 d = vec2(cos(a), sin(a));
+	vec2 q = f - c;
+	float along = dot(q, d);
+	float across = dot(q, vec2(-d.y, d.x)) + (noise(vec2(along * 8.0, seed)) - 0.5) * 0.08 + (noise(vec2(along * 26.0, seed + 3.0)) - 0.5) * 0.02;
+	float ends = smoothstep(len, len * 0.6, abs(along));
+	return abs(across) / max(ends, 0.001);
+}
 void vertex() {
 	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	wnrm = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 void fragment() {
-	// Ashlar blocks 2.4 x 1.2 m on vertical faces; plain stone on tops and bottoms
+	// Ashlar blocks about 2.4 x 1.2 m on vertical faces, every block its own: some halved,
+	// varied shades and tints, uneven hand-cut edges, chipped corners, cracks (some running
+	// on into the next block), water stains streaking down, soot and damp near the floor,
+	// and patches of ivy climbing up from the ground. Plain stone on tops and bottoms.
 	vec2 uv = abs(wnrm.x) > abs(wnrm.z) ? wpos.zy : wpos.xy;
-	vec2 p = uv / vec2(2.4, 1.2);
-	p.x += 0.5 * mod(floor(p.y), 2.0);
-	vec2 id = floor(p);
-	vec2 f = fract(p);
-	float edge = min(min(f.x, 1.0 - f.x) * 2.4, min(f.y, 1.0 - f.y) * 1.2);
-	float line = smoothstep(0.03, 0.07, edge);
-	vec3 col = mix(stone_a, stone_b, hash(id));
-	col *= 0.85 + 0.25 * hash(id * 3.7 + 1.3);
-	if (abs(wnrm.y) > 0.5) { line = 1.0; }
-	ALBEDO = mix(mortar, col, line);
-	ROUGHNESS = 0.92;
+	if (abs(wnrm.y) > 0.5) {
+		float n0 = fbm(wpos.xz * 1.5);
+		ALBEDO = mix(stone_a, stone_b, 0.5) * (0.8 + 0.35 * n0);
+		ROUGHNESS = 0.92;
+	} else {
+		vec2 p = uv / vec2(2.4, 1.2);
+		float row = floor(p.y);
+		p.x += 0.5 * mod(row, 2.0) + (hash(vec2(row, 3.0)) - 0.5) * 0.4;
+		vec2 id = floor(p);
+		vec2 f = fract(p);
+		if (hash(id + 11.0) > 0.7) {   // some blocks are two smaller ones
+			float cut = 0.5 + (hash(id + 4.0) - 0.5) * 0.3;
+			id.x += f.x > cut ? 0.5 : 0.0;
+			f.x = f.x > cut ? (f.x - cut) / (1.0 - cut) : f.x / cut;
+		}
+		float h = hash(id);
+		vec2 fw = f + (vec2(noise(uv * 3.0 + 3.0), noise(uv * 3.0 - 5.0)) - 0.5) * vec2(0.025, 0.05);
+		float edge = min(min(fw.x, 1.0 - fw.x) * 2.4, min(fw.y, 1.0 - fw.y) * 1.2);
+		float line = smoothstep(0.025, 0.06, edge);
+		float corner = length(min(fw, 1.0 - fw) * vec2(2.4, 1.2));
+		line *= smoothstep(0.05, 0.1, corner + (hash(id + 2.0) > 0.55 ? 0.0 : 0.12) - noise(uv * 9.0) * 0.04);
+		vec3 col = mix(stone_a, stone_b, h);
+		float tint = hash(id + 9.0);
+		col *= tint < 0.33 ? vec3(1.07, 1.0, 0.92) : (tint < 0.66 ? vec3(0.94, 0.98, 1.05) : vec3(1.0, 1.0, 1.0));
+		col *= 0.8 + 0.35 * hash(id + 5.0);
+		col *= 0.8 + 0.35 * fbm(uv * 3.0 + h * 40.0);
+		col *= 0.9 + 0.12 * noise(uv * 24.0);
+		col *= mix(0.78, 1.04, smoothstep(0.02, 0.2, edge));   // grime toward the joints
+		// cracks: across a block, sometimes forking
+		float ck = 1e3;
+		if (hash(id + 21.0) > 0.55) {
+			vec2 c = vec2(hash(id + 31.0), hash(id + 41.0)) * 0.6 + 0.2;
+			float a = hash(id + 51.0) * 3.1416;
+			vec2 q = vec2(f.x * 2.0, f.y);   // blocks are twice as wide as tall
+			ck = crack(q, c * vec2(2.0, 1.0), a, 0.6 + hash(id + 61.0) * 0.6, h * 10.0);
+			if (hash(id + 71.0) > 0.5) {
+				ck = min(ck, crack(q, c * vec2(2.0, 1.0) + vec2(cos(a), sin(a)) * 0.2, a + 0.8, 0.35, h * 20.0));
+			}
+		}
+		// a long crack running down the wall through several courses
+		float big = (noise(vec2(uv.x * 0.15, 9.0)) > 0.8) ? abs(fract(uv.x * 0.15) - 0.5 + (noise(vec2(uv.y * 1.5, uv.x)) - 0.5) * 0.12) * 8.0 : 1e3;
+		big /= max(smoothstep(0.85, 0.95, noise(vec2(uv.x * 0.15, 9.0))) * smoothstep(9.0, 2.0, uv.y), 0.001);
+		ck = min(ck, big * 0.1);
+		float crack_line = 1.0 - smoothstep(0.006, 0.016, ck);
+		float crack_halo = 1.0 - smoothstep(0.016, 0.05, ck);
+		col *= 1.0 - crack_halo * 0.25;
+		col = mix(col, mortar * 0.5, crack_line);
+		// water stains streaking down from above, soot and damp low on the wall
+		float streak = smoothstep(0.55, 0.85, noise(vec2(uv.x * 2.2, uv.y * 0.12)) * 0.7 + noise(vec2(uv.x * 7.0, uv.y * 0.3)) * 0.3);
+		col *= 1.0 - streak * 0.3;
+		col *= mix(0.75, 1.0, smoothstep(0.0, 1.6, uv.y + (noise(uv * 1.2) - 0.5)));
+		vec3 m = mortar * (0.8 + 0.4 * noise(uv * 6.0));
+		col = mix(m, col, line);
+		// ivy: patches climbing from the floor, thinning upward, made of little leaves
+		float patch = fbm(uv * vec2(0.22, 0.12) + 13.0);
+		float reach = mix(2.0, 9.0, smoothstep(0.45, 0.7, patch));   // how high this patch climbs
+		float climb = smoothstep(reach, reach * 0.4, uv.y + (noise(uv * 0.9) - 0.5) * 1.6);
+		float ivy = smoothstep(0.43, 0.53, patch) * climb * ivy_amount;
+		// tendrils reaching above the patch
+		float tendril = (1.0 - smoothstep(0.0, 0.05, abs(fract(uv.x * 0.9 + noise(vec2(uv.y * 0.8, uv.x)) * 0.6) - 0.5))) * smoothstep(0.38, 0.45, patch) * smoothstep(reach * 1.5, reach, uv.y);
+		ivy = max(ivy, tendril * 0.9 * ivy_amount);
+		vec3 leafcol = vec3(0.0);
+		float leaves = 0.0;
+		if (ivy > 0.001) {
+			vec2 g = uv * 4.5;
+			vec2 gi = floor(g);
+			float best = 8.0;
+			float lh = 0.0;
+			for (int y = -1; y <= 1; y++) {
+				for (int x = -1; x <= 1; x++) {
+					vec2 o = vec2(float(x), float(y));
+					vec2 cpt = o + vec2(hash(gi + o), hash(gi + o + 7.0)) - fract(g);
+					cpt.y *= 1.25;   // leaves a little taller than wide
+					float dd = length(cpt) + abs(cpt.x) * 0.35;   // a pointed, ivy-ish leaf
+					if (dd < best) { best = dd; lh = hash(gi + o + 3.0); }
+				}
+			}
+			leaves = 1.0 - smoothstep(0.5, 0.58, best);
+			float vein = 1.0 - smoothstep(0.0, 0.05, abs(fract(g.x) - 0.5)) * 0.15;
+			leafcol = mix(vec3(0.1, 0.24, 0.06), vec3(0.28, 0.46, 0.12), lh) * (0.75 + 0.45 * smoothstep(0.5, 0.0, best)) * vein;
+			// a thin dark shadow behind the leaves on the stone
+			col *= 1.0 - ivy * 0.4;
+		}
+		col = mix(col, leafcol, ivy * leaves);
+		ALBEDO = col;
+		ROUGHNESS = mix(0.92, 0.6, ivy * leaves);
+	}
 }
 """
 
