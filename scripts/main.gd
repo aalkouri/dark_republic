@@ -653,7 +653,6 @@ func _spawn_director(dt: float) -> void:
 			if CastleNav.current != null and CastleNav.current.steps_to_player(p.x, p.z) <= 0:
 				p = _spawn_point(18.0, 28.0)   # indoors: that spot is a wall or cut off
 			_spawn_enemy(EnemyManager.RUNNER if CastleNav.current == null or rng.randf() > SKELETON_SHARE else EnemyManager.SKELETON, p, hpm)
-		hud.flash_message("SWARM!", 2.0)
 
 	if boss_map:
 		if boss_id == "thog":

@@ -31,7 +31,7 @@
   "slot_machine.gd:331"
  ],
  "%s  LEVEL %d": [
-  "main.gd:936"
+  "main.gd:935"
  ],
  "%s  Lv %d": [
   "hud.gd:1336"
@@ -56,7 +56,7 @@
   "hud.gd:969"
  ],
  "%s APPROACHES": [
-  "main.gd:727"
+  "main.gd:726"
  ],
  "%s Chest": [
   "chest.gd:56",
@@ -74,7 +74,7 @@
   "weapon_system.gd:408"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:757"
+  "main.gd:756"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:394"
@@ -224,7 +224,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:667"
+  "main.gd:666"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -617,7 +617,7 @@
   "hud.gd:348"
  ],
  "Cooldowns reset": [
-  "main.gd:1038"
+  "main.gd:1037"
  ],
  "Cowboy": [
   "characters.json"
@@ -908,7 +908,7 @@
   "forge.gd:66"
  ],
  "Every ability is at max level!  Fully healed": [
-  "main.gd:921"
+  "main.gd:920"
  ],
  "Every chest is a mimic until proven innocent": [
   "taglines.json"
@@ -1126,7 +1126,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:782"
+  "main.gd:781"
  ],
  "Gaiden": [
   "characters.json"
@@ -1653,7 +1653,7 @@
   "upgrade_db.gd:168"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:803"
+  "main.gd:802"
  ],
  "NEW CHAMPION": [
   "hud.gd:1025"
@@ -1978,7 +1978,7 @@
   "settings_menu.gd:47"
  ],
  "SHARDS: %s": [
-  "main.gd:746"
+  "main.gd:745"
  ],
  "SIGNATURE WEAPON": [
   "character_select.gd:496",
@@ -1990,9 +1990,6 @@
  ],
  "SURVIVE": [
   "main.gd:463"
- ],
- "SWARM!": [
-  "main.gd:656"
  ],
  "Sage": [
   "skill_tree.gd:65"
@@ -2296,13 +2293,13 @@
  ],
  "THOG": [
   "main.gd:76",
-  "main.gd:732"
+  "main.gd:731"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:382"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:755"
+  "main.gd:754"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:528"
@@ -2311,7 +2308,7 @@
   "thog_boss.gd:400"
  ],
  "THOG THE TROLL": [
-  "main.gd:712",
+  "main.gd:711",
   "thog_boss.gd:605"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2321,7 +2318,7 @@
   "thog_boss.gd:640"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:713"
+  "main.gd:712"
  ],
  "Take less damage.": [
   "upgrades.json"
