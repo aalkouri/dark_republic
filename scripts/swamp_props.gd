@@ -2,7 +2,8 @@ class_name SwampProps
 extends RefCounted
 ## Procedural swamp props. Each builder returns { "mesh": ArrayMesh, "colliders": [[Shape3D, Transform3D], ...] }.
 ## Origin at the base, on the ground. Vertex alpha = wind sway weight (see MeshBuilder).
-##   0 Bald cypress  flared trunk, cypress knees, layered flat canopy, long hanging moss
+##   0 Bald cypress  tall, with a fluted buttressed base, knees, lumpy foliage clusters on crooked
+##                   branches and long curtains of grey-green Spanish moss
 ##   1 Dead snag     twisted bare trunk, crooked branches, broken top, wisps of moss
 ##   2 Swamp willow  short leaning trunk, dome canopy with drooping curtains
 ##   3 Mangrove      canopy raised on arching stilt roots, hanging aerial roots
@@ -17,6 +18,8 @@ const FOLIAGE := Color(0.17, 0.25, 0.1, 0.3)
 const FOLIAGE_DARK := Color(0.11, 0.18, 0.08, 0.3)
 const WILLOW := Color(0.2, 0.3, 0.12, 1.0)
 const MOSS := Color(0.45, 0.48, 0.34, 1.0)
+const MOSS_GRAY := Color(0.55, 0.57, 0.48, 1.0)    # Spanish moss
+const FOLIAGE_LIGHT := Color(0.32, 0.42, 0.16, 0.3)
 const MOSS_PATCH := Color(0.28, 0.36, 0.14, 0.0)
 const DIRT := Color(0.2, 0.15, 0.1, 0.0)
 const STONE := Color(0.33, 0.34, 0.31, 0.0)
@@ -54,38 +57,86 @@ static func _moss_strands(mb: MeshBuilder, rng: RandomNumberGenerator, center: V
 
 static func _cypress(rng: RandomNumberGenerator) -> Dictionary:
 	var mb := MeshBuilder.new()
-	var h := rng.randf_range(11.0, 15.0)
-	# Flared, buttressed base
-	mb.add(MeshBuilder.cyl(0.4, 1.05, 2.4, 12), Transform3D(Basis(), Vector3(0, 1.2, 0)), DARK_BARK)
-	for k in 6:
-		var a := TAU * k / 6.0 + rng.randf() * 0.4
-		mb.limb(Vector3(0, 1.8, 0), Vector3(cos(a) * 1.25, -0.05, sin(a) * 1.25), 0.22, 0.12, DARK_BARK, 6)
+	var h := rng.randf_range(13.0, 19.0)
+	# A deeply fluted, flared base: a wide bell of bark with ridged buttress roots running
+	# down into the mud all round it, like an old bald cypress standing in the water
+	var flare := rng.randf_range(1.25, 1.6)
+	mb.add(MeshBuilder.cyl(0.5, flare, 3.2, 14, 3), Transform3D(Basis(), Vector3(0, 1.6, 0)), DARK_BARK)
+	var flutes := rng.randi_range(9, 13)
+	for k in flutes:
+		var a := TAU * k / flutes + rng.randf_range(-0.12, 0.12)
+		var dir := Vector3(cos(a), 0, sin(a))
+		var top := dir * 0.42 + Vector3(0, rng.randf_range(3.2, 4.6), 0)
+		var mid := dir * (flare * 0.75) + Vector3(0, rng.randf_range(0.9, 1.4), 0)
+		var foot := dir * (flare + rng.randf_range(0.35, 0.9)) + Vector3(0, -0.1, 0)
+		var col := DARK_BARK if k % 2 else BARK.lerp(DARK_BARK, 0.5)
+		mb.limb(top, mid, 0.12, 0.2, col, 5)
+		mb.limb(mid, foot, 0.2, 0.08, col, 5)
 	# Cypress "knees" poking out of the mud
-	for k in rng.randi_range(4, 8):
+	for k in rng.randi_range(5, 10):
 		var a := rng.randf() * TAU
-		var d := rng.randf_range(1.8, 3.4)
-		var kh := rng.randf_range(0.4, 0.9)
-		mb.add(MeshBuilder.cone(rng.randf_range(0.12, 0.2), kh, 6), Transform3D(Basis(), Vector3(cos(a) * d, kh * 0.5 - 0.05, sin(a) * d)), DARK_BARK)
-	# Trunk with a slight lean
-	var lean := Vector3(rng.randf_range(-0.6, 0.6), 0, rng.randf_range(-0.6, 0.6))
-	var top := Vector3(0, h * 0.82, 0) + lean
-	mb.limb(Vector3(0, 2.3, 0), top, 0.4, 0.17, BARK, 10)
-	# Layered flat canopy pads on branches, moss hanging below each
-	var pads := [[top + Vector3(0, h * 0.12, 0), 2.0]]
-	for k in rng.randi_range(4, 6):
-		var t := rng.randf_range(0.5, 0.95)
-		var from := Vector3(0, 2.3, 0).lerp(top, t)
+		var d := rng.randf_range(2.0, 4.2)
+		var kh := rng.randf_range(0.35, 1.0)
+		mb.add(MeshBuilder.cone(rng.randf_range(0.12, 0.22), kh, 6), Transform3D(Basis(), Vector3(cos(a) * d, kh * 0.5 - 0.05, sin(a) * d)), DARK_BARK)
+	# A tall, slightly crooked trunk in three pieces, with bark ridges up it
+	var lean := Vector3(rng.randf_range(-0.7, 0.7), 0, rng.randf_range(-0.7, 0.7))
+	var top := Vector3(0, h * 0.86, 0) + lean
+	var p1 := Vector3(0, 3.0, 0)
+	var p2 := p1.lerp(top, 0.4) + Vector3(rng.randf_range(-0.25, 0.25), 0, rng.randf_range(-0.25, 0.25))
+	var p3 := p1.lerp(top, 0.75) + Vector3(rng.randf_range(-0.2, 0.2), 0, rng.randf_range(-0.2, 0.2))
+	mb.limb(p1, p2, 0.5, 0.38, BARK, 10)
+	mb.limb(p2, p3, 0.38, 0.27, BARK, 9)
+	mb.limb(p3, top, 0.27, 0.12, BARK, 8)
+	for k in 5:   # darker ridges of bark running up the lower trunk
+		var a := TAU * k / 5.0 + rng.randf() * 0.5
+		var o := Vector3(cos(a), 0, sin(a))
+		mb.limb(p1 + o * 0.46, p2 + o * 0.34, 0.07, 0.04, DARK_BARK, 4)
+	# Crooked branches high up; on each, lumpy clusters of feathery foliage, and Spanish moss
+	# hanging in long grey-green curtains along the branch and under every cluster
+	var clusters: Array = [[top + Vector3(0, 0.6, 0), rng.randf_range(1.6, 2.2)]]
+	for k in rng.randi_range(6, 9):
+		var t := rng.randf_range(0.45, 0.98)
+		var from := p1.lerp(top, t)
 		var a := rng.randf() * TAU
-		var reach := rng.randf_range(2.0, 3.6)
-		var to := from + Vector3(cos(a) * reach, rng.randf_range(0.6, 1.6), sin(a) * reach)
-		mb.limb(from, to, 0.14, 0.05, BARK, 6)
-		pads.append([to + Vector3(0, 0.3, 0), rng.randf_range(1.5, 2.3)])
-	for p in pads:
-		var c: Vector3 = p[0]
-		var r: float = p[1]
-		mb.add(MeshBuilder.sphere(r, 10, 5), Transform3D(Basis.from_scale(Vector3(1.0, 0.38, 1.0)), c), FOLIAGE if rng.randf() < 0.6 else FOLIAGE_DARK)
-		_moss_strands(mb, rng, c - Vector3(0, r * 0.3, 0), r * 0.85, rng.randi_range(6, 10), 1.2, 3.4)
-	return {"mesh": mb.commit(), "colliders": [_trunk_collider(0.95, h)]}
+		var reach := rng.randf_range(2.4, 4.6) * lerpf(1.0, 0.6, t)
+		var elbow := from + Vector3(cos(a) * reach * 0.5, rng.randf_range(0.2, 0.8), sin(a) * reach * 0.5)
+		var to := from + Vector3(cos(a + rng.randf_range(-0.4, 0.4)) * reach, rng.randf_range(0.6, 1.8), sin(a + rng.randf_range(-0.4, 0.4)) * reach)
+		mb.limb(from, elbow, 0.15, 0.1, BARK, 6)
+		mb.limb(elbow, to, 0.1, 0.04, BARK, 5)
+		for m in rng.randi_range(3, 6):   # moss along the branch
+			var at := from.lerp(to, rng.randf_range(0.25, 1.0))
+			_moss_curtain(mb, rng, at, rng.randf_range(1.8, 4.6))
+		clusters.append([to + Vector3(0, 0.25, 0), rng.randf_range(1.2, 2.0)])
+		if rng.randf() < 0.5:
+			clusters.append([elbow + Vector3(0, 0.4, 0), rng.randf_range(0.9, 1.4)])
+	for c in clusters:
+		var at: Vector3 = c[0]
+		var r: float = c[1]
+		var col := FOLIAGE if rng.randf() < 0.55 else FOLIAGE_DARK
+		for b in rng.randi_range(3, 5):   # a lumpy cluster of blobs, not one smooth pad
+			var o := Vector3(rng.randf_range(-0.6, 0.6) * r, rng.randf_range(-0.15, 0.25) * r, rng.randf_range(-0.6, 0.6) * r)
+			var br := r * rng.randf_range(0.5, 0.8)
+			mb.add(MeshBuilder.sphere(br, 8, 5), Transform3D(Basis.from_scale(Vector3(1.0, rng.randf_range(0.4, 0.6), 1.0)), at + o), col.lerp(FOLIAGE_LIGHT, rng.randf() * 0.35))
+		for m in rng.randi_range(4, 8):   # moss curtains under the cluster
+			var a := rng.randf() * TAU
+			var d := sqrt(rng.randf()) * r * 0.9
+			_moss_curtain(mb, rng, at + Vector3(cos(a) * d, -r * 0.25, sin(a) * d), rng.randf_range(1.6, 4.2))
+	return {"mesh": mb.commit(), "colliders": [_trunk_collider(1.1, h)]}
+
+
+## A ragged curtain of Spanish moss hanging from `top`: a few strands of different lengths,
+## kinked as they fall, grey-green and swaying in the wind.
+static func _moss_curtain(mb: MeshBuilder, rng: RandomNumberGenerator, top: Vector3, length: float) -> void:
+	var col := MOSS_GRAY if rng.randf() < 0.7 else MOSS
+	for k in rng.randi_range(2, 4):
+		var start := top + Vector3(rng.randf_range(-0.25, 0.25), rng.randf_range(-0.1, 0.05), rng.randf_range(-0.25, 0.25))
+		var l := length * rng.randf_range(0.55, 1.0)
+		var kink := start + Vector3(rng.randf_range(-0.2, 0.2), -l * 0.5, rng.randf_range(-0.2, 0.2))
+		var end := kink + Vector3(rng.randf_range(-0.2, 0.2), -l * 0.5, rng.randf_range(-0.2, 0.2))
+		var c2 := col
+		c2.a = 0.6
+		mb.limb(start, kink, rng.randf_range(0.09, 0.16), 0.06, c2, 4)
+		mb.limb(kink, end, 0.06, 0.01, col, 4)
 
 
 # ------------------------------------------------------------------ 1: dead snag
@@ -140,9 +191,13 @@ static func _willow(rng: RandomNumberGenerator) -> Dictionary:
 		var a := rng.randf() * TAU
 		mb.limb(fork, crown + Vector3(cos(a) * 1.4, rng.randf_range(-0.4, 0.4), sin(a) * 1.4), 0.32, 0.12, BARK, 6)
 	var radius := rng.randf_range(3.0, 3.8)
-	mb.add(MeshBuilder.sphere(radius, 14, 7), Transform3D(Basis.from_scale(Vector3(1.0, 0.5, 1.0)), crown), FOLIAGE_DARK)
+	mb.add(MeshBuilder.sphere(radius * 0.8, 12, 6), Transform3D(Basis.from_scale(Vector3(1.0, 0.5, 1.0)), crown), FOLIAGE_DARK)
+	for k in 6:   # a lumpy crown, not a smooth dome
+		var a := TAU * k / 6.0 + rng.randf() * 0.5
+		var o := Vector3(cos(a) * radius * 0.55, rng.randf_range(-0.2, 0.6), sin(a) * radius * 0.55)
+		mb.add(MeshBuilder.sphere(radius * rng.randf_range(0.42, 0.58), 8, 5), Transform3D(Basis.from_scale(Vector3(1.0, 0.6, 1.0)), crown + o), FOLIAGE_DARK.lerp(FOLIAGE, rng.randf()))
 	# Drooping curtains: an outer ring and an inner ring of long strands
-	for ring in [[radius * 0.95, 34, 3.2, 4.8], [radius * 0.6, 16, 2.4, 3.6]]:
+	for ring in [[radius * 0.95, 34, 1.8, 5.2], [radius * 0.6, 16, 1.6, 3.8]]:
 		var rr: float = ring[0]
 		var n: int = ring[1]
 		for k in n:
@@ -183,6 +238,9 @@ static func _mangrove(rng: RandomNumberGenerator) -> Dictionary:
 	for c in clumps:
 		var r := rng.randf_range(1.5, 2.2)
 		mb.add(MeshBuilder.sphere(r, 10, 6), Transform3D(Basis.from_scale(Vector3(1.0, 0.6, 1.0)), c), FOLIAGE if rng.randf() < 0.5 else FOLIAGE_DARK)
+		for m in rng.randi_range(1, 3):
+			var a := rng.randf() * TAU
+			_moss_curtain(mb, rng, c + Vector3(cos(a) * r * 0.6, -r * 0.3, sin(a) * r * 0.6), rng.randf_range(1.0, 2.6))
 	var root_cage := CylinderShape3D.new()
 	root_cage.radius = 2.4
 	root_cage.height = hub.y

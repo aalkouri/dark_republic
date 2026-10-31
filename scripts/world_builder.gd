@@ -4,7 +4,8 @@ extends RefCounted
 ##   sky (50% sun behind dense clouds / 50% moon with few clouds), lighting and fog,
 ##   rolling ground (hills, dips, slopes; level pads for the start, pools and chests) with
 ##   random mud and swamp-grass patches, swaying grass tufts and reeds, 14 recessed pools of
-##   swamp water, 180 swamp trees (4 variants), 72 fallen trees, 24 mossy ruins and a berm
+##   swamp water carpeted with lily pads (SwampFoliage: plus spatterdock, ferns and sedge),
+##   180 swamp trees (4 variants), 72 fallen trees, 24 mossy ruins and a berm
 ##   with stone walls round the edge.
 ## Returns the SwampWater so gameplay can query water and ground height.
 
@@ -97,6 +98,8 @@ uniform vec3 base_col : source_color = vec3(0.17, 0.16, 0.1);
 uniform vec3 grass_col : source_color = vec3(0.15, 0.21, 0.08);
 uniform vec3 mud_col : source_color = vec3(0.12, 0.085, 0.055);
 uniform float wet_amount = 1.0;   // how wet and dark the mud patches look (0 = dry meadow)
+uniform float shore_detail = 0.0; // detailed pond banks: wet glossy mud at the waterline, algae, tide
+                                  // lines, drying cracked mud further up and pebbles (the Swamp)
 uniform float quake = 0.0;        // Thog's quake: the whole ground glows red (0 = off, 1 = on)
 uniform float quake_fill = 0.0;   // ...brighter and faster as it's about to land (0..1)
 varying vec3 wpos;
@@ -137,6 +140,47 @@ void fragment() {
 	col = mix(col, mud_col * (0.85 + 0.3 * n), mud);
 	float wet = max(mud * (0.6 + 0.4 * n) * wet_amount, bank * max(wet_amount, 0.35));
 	col *= 1.0 - 0.35 * wet;
+	// Pond banks: a ragged band of mud round every pool, glossy and black-brown at the water's
+	// edge with a fringe of algae, old tide lines a little way up, then paler drying mud split
+	// by cracks, with pebbles pressed into it
+	float shore = (1.0 - smoothstep(0.0, 5.5, edge + (noise(wpos.xz * 0.55) - 0.5) * 2.4)) * shore_detail;
+	if (shore > 0.001) {
+		float dry = smoothstep(0.8, 4.0, edge + (n - 0.5) * 1.2);
+		vec3 wetmud = vec3(0.065, 0.048, 0.033) * (0.75 + 0.5 * n);
+		vec3 drymud = vec3(0.21, 0.16, 0.105) * (0.8 + 0.4 * noise(wpos.xz * 3.1));
+		vec3 sc = mix(wetmud, drymud, dry);
+		// cracks in the drying mud (cell edges)
+		vec2 g = wpos.xz * 1.4;
+		vec2 ip = floor(g);
+		vec2 fp = fract(g);
+		float d1 = 8.0;
+		float d2 = 8.0;
+		for (int y = -1; y <= 1; y++) {
+			for (int x = -1; x <= 1; x++) {
+				vec2 o = vec2(float(x), float(y));
+				vec2 r = o + vec2(hash(ip + o), hash(ip + o + 17.3)) - fp;
+				float dd = dot(r, r);
+				if (dd < d1) { d2 = d1; d1 = dd; } else if (dd < d2) { d2 = dd; }
+			}
+		}
+		float crack = 1.0 - smoothstep(0.0, 0.07, sqrt(d2) - sqrt(d1));
+		crack *= smoothstep(0.3, 0.7, noise(wpos.xz * 0.45 + 7.0));   # patchy, not a tiled floor
+		sc = mix(sc, sc * 0.45, crack * dry * 0.7);
+		// tide lines: wavy darker bands parallel to the shore
+		float tide = smoothstep(0.82, 1.0, sin(edge * 5.5 + noise(wpos.xz * 1.1) * 5.0)) * (1.0 - smoothstep(0.6, 3.2, edge));
+		sc = mix(sc, wetmud * 0.6, tide * 0.7);
+		// a fringe of green algae right at the waterline
+		float algae = (1.0 - smoothstep(0.0, 0.9, edge)) * smoothstep(0.35, 0.7, noise(wpos.xz * 2.3));
+		sc = mix(sc, vec3(0.1, 0.17, 0.05) * (0.8 + 0.4 * n), algae * 0.85);
+		// pebbles
+		vec2 pg = wpos.xz * 2.6;
+		vec2 pi = floor(pg);
+		vec2 pf = fract(pg) - 0.5 - (vec2(hash(pi + 3.1), hash(pi + 9.7)) - 0.5) * 0.5;
+		float peb = (1.0 - smoothstep(0.1, 0.17, length(pf * vec2(1.0, 1.0 + hash(pi + 5.5))))) * step(0.84, hash(pi + 1.7));
+		sc = mix(sc, vec3(0.3, 0.29, 0.25) * (0.6 + 0.7 * hash(pi + 2.2)), peb);
+		col = mix(col, sc, shore);
+		wet = max(wet, (1.0 - dry) * (1.0 - peb) * shore);
+	}
 	if (quake > 0.0) {
 		// Danger everywhere but the pools: pulsing red with stripes crawling toward the water,
 		// and a bright safe rim round every pool's shore
@@ -156,6 +200,8 @@ void fragment() {
 """
 
 
+static var force_time := ""     # screenshots: "day" or "night" for the Swamp (--swamp-time=...)
+
 const MAPS := ["swamp", "forest", "castle"]
 
 
@@ -168,12 +214,15 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float, map :
 	if map == "castle":
 		return CastleBuilder.build(parent, rng, half)
 	var is_night := rng.randf() < 0.5
+	if force_time != "":   # screenshots: --swamp-time=day|night
+		is_night = force_time == "night"
 	_environment(parent, rng, is_night)
 
 	var water := SwampWater.generate(rng, POOLS, half, 35.0)
 	water.build_terrain(rng, half, CHEST_SITES, ChestManager.SITE_RADIUS)
 	var patches := _patch_map(rng, half + 10.0)
 	_ground(parent, half, water, patches)
+	water.ground_mat.set_shader_parameter("shore_detail", 1.0)   # detailed pond banks
 	water.build_meshes(parent)
 	_grass(parent, rng, half, water, patches)
 	_reeds(parent, rng, water)
@@ -186,6 +235,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float, map :
 		p.y = _low_point(water, p, 1.2) - 0.15   # on a slope, sit on the downhill side
 		_prop(parent, t, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p), true)
 		placed.append(p)
+	SwampFoliage.build(parent, rng, half, water, patches, half + 10.0, placed.duplicate())   # lily pads, spatterdock, ferns, sedge
 
 	for i in FALLEN:
 		var fallen := SwampProps.fallen_log(rng)

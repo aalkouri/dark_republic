@@ -115,7 +115,7 @@ func _ready() -> void:
 	r = thog.row()
 	_check("burning takes under 1% of his health a second", (hp0 - em.hp[r]) / em.hp_max[r] < 0.01, "%.2f%%" % ((hp0 - em.hp[r]) / em.hp_max[r] * 100.0))
 
-	# The quake (at 75%, 50%, 10% health): the whole map but the pools glows red; 7 s later it
+	# The quake (at 75%, 50%, 10% health): the whole map but the pools glows red, arrows float over the pools; 10 s later it
 	# lands for 50% of max HP straight through shields, unless you're in a pool
 	await _wait_idle(thog)
 	r = thog.row()
@@ -125,6 +125,9 @@ func _ready() -> void:
 	await _secs(0.2)
 	_check("at 75% health he starts the quake", thog.counts["quake"] == 1 and thog.is_quaking(), "%d %s" % [thog.counts["quake"], thog.attack])
 	_check("the ground lights up (pools excepted, in the shader)", float(mat.get_shader_parameter("quake")) > 0.5, "")
+	var arrows: Node = main.get_node_or_null("QuakeArrows")
+	_check("an arrow floats down over every pool", arrows != null and arrows.get_child_count() == main.water.pools.size(), str(arrows.get_child_count() if arrows else -1))
+	_check("the quake gives 10 s to reach a pool", is_equal_approx(ThogBoss.QUAKE_WARN, 10.0), "")
 	var pool: Dictionary = main.water.pools[0]
 	var pc: Vector2 = pool["center"]
 	var dry := Vector3(pc.x + main.water.max_radius(pool) + 12.0, 0, pc.y)
@@ -136,12 +139,14 @@ func _ready() -> void:
 	var broken := [0]
 	pl.shield_broken.connect(func(): broken[0] += 1)
 	await _secs(ThogBoss.QUAKE_WARN - 0.4)
-	_check("still building after ~6.5 s", thog.is_quaking() and is_equal_approx(pl.hp, 1000.0) or pl.hp > 900.0, "%.0f" % pl.hp)
+	_check("still building just before it lands", thog.is_quaking() and is_equal_approx(pl.hp, 1000.0) or pl.hp > 900.0, "%.0f" % pl.hp)
 	pl.global_position = Vector3(dry.x, SwampWater.height_at(dry.x, dry.z) + 0.2, dry.z)
 	await _secs(0.8)
 	_check("caught on dry ground: 50% of max HP through the shield", pl.hp <= 501.0 and pl.hp > 300.0 and thog.counts["quake_hits"] == 1, "hp %.0f" % pl.hp)
 	_check("...and the shield is wiped out (glass breaks)", pl.shield == 0.0 and broken[0] == 1, "shield %.0f, broke %d" % [pl.shield, broken[0]])
 	_check("the ground goes back to normal", float(mat.get_shader_parameter("quake")) == 0.0, "")
+	await get_tree().process_frame
+	_check("...and the arrows are gone", main.get_node_or_null("QuakeArrows") == null, "")
 	await _wait_idle(thog)
 	r = thog.row()
 	em.hp[r] = em.hp_max[r] * 0.45

@@ -16,7 +16,7 @@ extends Node3D
 ##   BELLOW  a roar that calls a ring of goblins (and a brute) around you.
 ## And at 75%, 50% and 10% health, the QUAKE: he stomps the ground over and over (your camera
 ## shakes the whole time) while the entire map lights up red - everything but the swamp pools.
-## You have QUAKE_WARN seconds to get into a pool; if you're anywhere else when it lands, it
+## You have QUAKE_WARN seconds to get into a pool (a glowing arrow floats down over each one); if you're anywhere else when it lands, it
 ## takes QUAKE_FRAC of your max HP straight through your shield, and wipes the shield out.
 
 signal defeated
@@ -47,7 +47,7 @@ const BELLOW_AT := 0.4
 const BELLOW_COOLDOWN := 14.0
 const BELLOW_GOBLINS := 14
 const QUAKE_AT := [0.75, 0.5, 0.1]  # health fractions that set off a quake
-const QUAKE_WARN := 7.0             # seconds to get into a pool
+const QUAKE_WARN := 10.0            # seconds to get into a pool (arrows float over every pool)
 const QUAKE_FRAC := 0.5             # of max HP, through shields
 const QUAKE_STOMP := 0.6            # seconds between stomps
 const MELEE_RANGE := 12.0           # closer than this he slams or sweeps; further, he walks / roars
@@ -71,6 +71,7 @@ var attack := ""                    # slam | sweep | bellow
 var is_enraged := false
 var alive_time := 0.0
 var counts := {"slam": 0, "sweep": 0, "bellow": 0, "hits": 0, "quake": 0, "quake_hits": 0}   # for tests
+var _arrows: Node3D                 # the quake's arrows over the pools (get in here!)
 var _quakes_done := 0               # QUAKE_AT thresholds already used
 var _stomp_t := 0.0
 var _t := 0.0                       # time into the current attack
@@ -398,6 +399,7 @@ func _start_quake() -> void:
 	_play_sfx("roar")
 	main.hud.flash_message(tr("THOG SHAKES THE SWAMP!  GET IN A PUDDLE!"), QUAKE_WARN - 0.5)
 	_quake_ground(1.0, 0.0)
+	_show_arrows()
 
 
 func _tick_quake(dt: float) -> void:
@@ -423,6 +425,12 @@ func _tick_quake(dt: float) -> void:
 			counts["quake_hits"] += 1
 			counts["hits"] += 1
 		_quake_ground(0.0, 0.0)
+		_hide_arrows()
+	if _arrows != null:   # bob and spin
+		for a in _arrows.get_children():
+			var base: float = a.get_meta("y")
+			(a as Node3D).position.y = base + sin(_t * 4.0 + float(a.get_meta("ph"))) * 0.6
+			(a as Node3D).rotation.y += dt * 2.0
 	if _t >= QUAKE_WARN + 0.8:
 		state = "walk"
 		em.troll_busy = false
@@ -436,6 +444,57 @@ func _quake_ground(on: float, fill: float) -> void:
 		return
 	w.ground_mat.set_shader_parameter("quake", on)
 	w.ground_mat.set_shader_parameter("quake_fill", fill)
+
+
+## A big glowing arrow floating over every pool, pointing down: get in the water!
+func _show_arrows() -> void:
+	_hide_arrows()
+	var w = main.water if main != null else null
+	if w == null or w.pools.is_empty():
+		return
+	_arrows = Node3D.new()
+	_arrows.name = "QuakeArrows"
+	_arrows.top_level = true
+	main.add_child(_arrows)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color(0.35, 1.0, 0.8)
+	mat.emission_enabled = true
+	mat.emission = Color(0.2, 0.9, 0.7)
+	mat.disable_fog = true
+	mat.no_depth_test = false
+	var shaft := BoxMesh.new()
+	shaft.size = Vector3(0.9, 2.4, 0.9)
+	var head := CylinderMesh.new()   # a cone pointing down
+	head.top_radius = 1.7
+	head.bottom_radius = 0.0
+	head.height = 2.0
+	head.radial_segments = 4   # a four-sided arrowhead
+	for p in w.pools:
+		var c: Vector2 = p["center"]
+		var y: float = float(p.get("base", 0.0)) + float(p["water_y"]) + 6.0
+		var a := Node3D.new()
+		a.position = Vector3(c.x, y, c.y)
+		a.set_meta("y", y)
+		a.set_meta("ph", randf() * TAU)
+		var s := MeshInstance3D.new()
+		s.mesh = shaft
+		s.material_override = mat
+		s.position.y = 2.2
+		s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		a.add_child(s)
+		var h := MeshInstance3D.new()
+		h.mesh = head
+		h.material_override = mat
+		h.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		a.add_child(h)
+		_arrows.add_child(a)
+
+
+func _hide_arrows() -> void:
+	if _arrows != null and is_instance_valid(_arrows):
+		_arrows.queue_free()
+	_arrows = null
 
 
 func is_quaking() -> bool:
@@ -479,6 +538,7 @@ func _die() -> void:
 	em.troll_busy = false
 	_clear_tele()
 	_quake_ground(0.0, 0.0)
+	_hide_arrows()
 	for w in _waves:
 		(w["ring"] as Node).queue_free()
 	_waves.clear()
