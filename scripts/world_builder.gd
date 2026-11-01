@@ -164,7 +164,7 @@ void fragment() {
 			}
 		}
 		float crack = 1.0 - smoothstep(0.0, 0.07, sqrt(d2) - sqrt(d1));
-		crack *= smoothstep(0.3, 0.7, noise(wpos.xz * 0.45 + 7.0));   # patchy, not a tiled floor
+		crack *= smoothstep(0.3, 0.7, noise(wpos.xz * 0.45 + 7.0));   // patchy, not a tiled floor
 		sc = mix(sc, sc * 0.45, crack * dry * 0.7);
 		// tide lines: wavy darker bands parallel to the shore
 		float tide = smoothstep(0.82, 1.0, sin(edge * 5.5 + noise(wpos.xz * 1.1) * 5.0)) * (1.0 - smoothstep(0.6, 3.2, edge));
