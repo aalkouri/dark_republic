@@ -91,7 +91,7 @@ func _forest() -> void:
 	await _secs(3.0)
 	_check("...and slam around themselves (marked)", k.counts["warned"] - warned0 >= 9, str(k.counts["warned"] - warned0))
 	# Enraged: faster, but never less than MIN_WARN of warning
-	k.alive_time = MapBoss.ENRAGE_AFTER
+	k.alive_time = k.enrage_after
 	await _secs(0.2)
 	_check("he enrages after 2 minutes", k.is_enraged and "ENRAGED" in k._bar_label.text, k._bar_label.text)
 	_check("enraged warnings are shorter but never under %.1f s" % MapBoss.MIN_WARN, k.warn_time(ToadstoolBoss.SLASH_WARN) < ToadstoolBoss.SLASH_WARN and k.warn_time(0.5) >= MapBoss.MIN_WARN, "%.2f" % k.warn_time(ToadstoolBoss.SLASH_WARN))

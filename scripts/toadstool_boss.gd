@@ -1,7 +1,7 @@
 class_name ToadstoolBoss
 extends MapBoss
 ## The Toadstool Knight, the Magical Forest's boss: a 6 m mushroom-capped knight who arrives at
-## 8:00 and enrages at 10:00. Beating him unlocks the Castle and makes him playable.
+## 8:00 and enrages at 11:00. Beating him unlocks the Castle and makes him playable.
 ##
 ## Attacks (every one marked on the ground first, see MapBoss):
 ##   SPORE SLASH   close: an overhead cut across a 120-degree wedge in front of him; leaves a
@@ -14,6 +14,7 @@ extends MapBoss
 ##                 slamming the ground around itself (marked) every few seconds.
 
 const HP := 2800.0                 # base health (x main.hp_mult() when he arrives: about 17,800 at 8:00)
+const ENRAGE := 180.0              # he enrages 3 minutes after arriving (other bosses: 2)
 const CROWD_CAP := 120             # goblins alive while he's up (the fight is a duel with him, not the horde)
 const SCALE := 3.4                 # x ToadstoolModel's 1.8 m: about 6 m tall
 const TURN_RATE := 3.0
@@ -64,6 +65,7 @@ var _guardians: Array[Dictionary] = []   # {node, at, t, slam_t}
 
 func _init() -> void:
 	crowd_cap = CROWD_CAP
+	enrage_after = ENRAGE
 
 
 func stats() -> Dictionary:

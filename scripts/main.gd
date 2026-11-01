@@ -760,7 +760,7 @@ func spawn_map_boss() -> MapBoss:
 	add_child(map_boss)
 	map_boss.defeated.connect(_on_boss_defeated)
 	if _thog_enraged:
-		map_boss.alive_time = MapBoss.ENRAGE_AFTER
+		map_boss.alive_time = map_boss.enrage_after
 	boss_name = map_boss.display_name()
 	hud.intro_banner.show_text(boss_name)
 	hud.flash_message(tr("%s APPROACHES") % tr(boss_name), 4.0)

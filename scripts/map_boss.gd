@@ -43,6 +43,7 @@ var _bar: ProgressBar
 var _bar_label: Label
 var _last_hp := 0.0
 var _die_t := 0.0
+var enrage_after := ENRAGE_AFTER     # this boss's own enrage timer (seconds after arriving)
 var crowd_cap := -1                 # while he's up, the steady goblin trickle stops at this many alive (-1: main's usual LIVE_CAP)
 
 
@@ -165,7 +166,7 @@ func _physics_process(dt: float) -> void:
 	if main.state != "playing":
 		return
 	alive_time += dt
-	if not is_enraged and alive_time >= ENRAGE_AFTER:
+	if not is_enraged and alive_time >= enrage_after:
 		_enrage()
 	if em.hp[i] < _last_hp - 0.01:
 		_on_hurt()
@@ -460,5 +461,5 @@ func _update_bar() -> void:
 		_bar_label.text = tr("%s  ·  ENRAGED") % n
 		_bar_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.3))
 	else:
-		var left := maxf(0.0, ENRAGE_AFTER - alive_time)
+		var left := maxf(0.0, enrage_after - alive_time)
 		_bar_label.text = tr("%s  ·  enrages in %d:%02d") % [n, int(left) / 60, int(left) % 60]

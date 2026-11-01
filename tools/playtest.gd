@@ -21,6 +21,7 @@ const UPGRADE_PRIORITY := {
 	"tome_velocity": 20, "tome_luck": 15, "item_feather": 10,
 }
 const SAFE_RADIUS := 14.0
+const BOSS_RETURN := 26.0        # further than this from the boss, it heads back toward him
 const LOG_EVERY := 60.0
 const BOSS_LOG_EVERY := 15.0     # log more often while the boss is up
 const MAX_RUN := 1500.0          # give up after 25 minutes of game time
@@ -298,6 +299,8 @@ func _steer(dt: float) -> void:
 		if bd.length() < keep:
 			v += bd.normalized() * (keep - bd.length()) * 0.8
 			threat += 2.0
+		elif bd.length() > BOSS_RETURN:   # too far to hurt him: drift back into the fight, like a player would
+			v -= bd.normalized() * minf(bd.length() - BOSS_RETURN, 10.0) * 0.15
 		var tele = b.get("_tele")
 		if tele != null and is_instance_valid(tele):
 			var tc: Vector3 = (tele as Node3D).global_position
