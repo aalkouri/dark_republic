@@ -632,7 +632,7 @@ func _spawn_director(dt: float) -> void:
 	var hpm := hp_mult()
 	while _spawn_budget >= 1.0:
 		_spawn_budget -= 1.0
-		if enemies.count >= mini(LIVE_CAP, EnemyManager.MAX - 60):
+		if enemies.count >= mini(_live_cap(), EnemyManager.MAX - 60):
 			_spawn_budget = 0.0
 			break
 		_spawn_enemy(_pick_type(m), _spawn_point(26.0, 36.0), hpm)
@@ -681,6 +681,13 @@ func boss_up() -> bool:
 
 
 const LIVE_CAP := 250   # the steady trickle pauses while this many goblins are alive (swarm rings still come)
+
+
+## The steady trickle's cap: LIVE_CAP, or lower while a map boss that asks for it is up.
+func _live_cap() -> int:
+	if map_boss != null and is_instance_valid(map_boss) and map_boss.crowd_cap > 0 and map_boss.state != "dead":
+		return map_boss.crowd_cap
+	return LIVE_CAP
 const SKELETON_SHARE := 0.35  # castle: this share of spawns are skeletons (same overall rate)
 const BOMBERS_BASE := 10      # castle: bomber skeletons per wave (in place of the swarm ring)...
 const BOMBERS_PER_MIN := 2    # ...plus this many per minute of the run

@@ -43,6 +43,7 @@ var _bar: ProgressBar
 var _bar_label: Label
 var _last_hp := 0.0
 var _die_t := 0.0
+var crowd_cap := -1                 # while he's up, the steady goblin trickle stops at this many alive (-1: main's usual LIVE_CAP)
 
 
 # ------------------------------------------------------------------ to override

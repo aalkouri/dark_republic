@@ -13,6 +13,8 @@ extends MapBoss
 ##   FUNGUS COURT  three giant toadstool guardians rise at marked spots around you for 12 s, each
 ##                 slamming the ground around itself (marked) every few seconds.
 
+const HP := 3200.0                 # base health (x main.hp_mult() when he arrives: about 20,000 at 8:00)
+const CROWD_CAP := 120             # goblins alive while he's up (the fight is a duel with him, not the horde)
 const SCALE := 3.4                 # x ToadstoolModel's 1.8 m: about 6 m tall
 const TURN_RATE := 3.0
 const GAP := Vector2(1.2, 2.0)
@@ -60,8 +62,12 @@ var _step_t := 0.0
 var _guardians: Array[Dictionary] = []   # {node, at, t, slam_t}
 
 
+func _init() -> void:
+	crowd_cap = CROWD_CAP
+
+
 func stats() -> Dictionary:
-	return {"name": "Toadstool Knight", "hp": 5000.0, "speed": 3.8, "radius": 1.8, "height": 6.2, "damage": 40.0, "xp": 400.0}
+	return {"name": "Toadstool Knight", "hp": HP, "speed": 3.8, "radius": 1.8, "height": 6.2, "damage": 40.0, "xp": 400.0}
 
 
 func display_name() -> String:
