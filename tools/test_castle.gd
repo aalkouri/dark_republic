@@ -56,6 +56,12 @@ func _static_checks() -> void:
 				str(root.find_children("*", "OmniLight3D", true, false).size()))
 			_check("castle: a roof", nav != null and CastleBuilder.CEILING > 10.0, "")
 			var carpets := root.find_children("*", "MeshInstance3D", true, false).filter(func(n): return n.is_in_group("castle_carpet"))
+			var throne_ok := false
+			for n in root.find_children("*", "StaticBody3D", true, false):
+				var b3 := n as StaticBody3D
+				if b3.is_in_group("obstacle") and absf(b3.position.x) < 0.1 and b3.position.y > 2.0 and b3.position.z < -212.0:
+					throne_ok = true
+			_check("castle: the throne stands on a raised stone platform, centred against the north wall", throne_ok and nav.is_blocked(0, -210) and nav.is_blocked(9, -213), "")
 			_check("castle: two woven runners (holes and tears in the shader)", carpets.size() == 2, str(carpets.size()))
 			var deco_n := 0
 			var deco_kinds := 0

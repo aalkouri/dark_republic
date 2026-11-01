@@ -265,15 +265,18 @@ static func brazier(rng: RandomNumberGenerator, scale := 1.0) -> Dictionary:
 		"fire_at": Vector3(0, 2.0 * s, 0), "fire_size": 0.75 * s})
 
 
-static func throne(rng: RandomNumberGenerator) -> Dictionary:
+## The throne (on its own little three-step dais unless `dais` is false: the castle puts it on
+## the big stone platform built by CastleBuilder instead).
+static func throne(rng: RandomNumberGenerator, dais := true) -> Dictionary:
 	var mb := MeshBuilder.new()
 	var gb := MeshBuilder.new()
-	# Dais: three broad steps
-	for k in 3:
-		mb.add(MeshBuilder.box(Vector3(14.0 - k * 3.0, 0.5, 10.0 - k * 2.4)), Transform3D(Basis(), Vector3(0, 0.25 + k * 0.5, 0)), DARK if k % 2 == 0 else STONE)
-	mb.add(MeshBuilder.box(Vector3(3.2, 0.05, 7.0)), Transform3D(Basis(), Vector3(0, 1.53, 1.5)), RED)
+	var y := 0.0
+	if dais:   # three broad steps
+		for k in 3:
+			mb.add(MeshBuilder.box(Vector3(14.0 - k * 3.0, 0.5, 10.0 - k * 2.4)), Transform3D(Basis(), Vector3(0, 0.25 + k * 0.5, 0)), DARK if k % 2 == 0 else STONE)
+		mb.add(MeshBuilder.box(Vector3(3.2, 0.05, 7.0)), Transform3D(Basis(), Vector3(0, 1.53, 1.5)), RED)
+		y = 1.5
 	# The throne: tall back, arms, gold trim, a red seat
-	var y := 1.5
 	mb.add(MeshBuilder.box(Vector3(2.6, 1.0, 2.0)), Transform3D(Basis(), Vector3(0, y + 0.5, -1.4)), DARK)
 	mb.add(MeshBuilder.box(Vector3(2.2, 0.15, 1.8)), Transform3D(Basis(), Vector3(0, y + 1.05, -1.3)), RED)
 	mb.add(MeshBuilder.box(Vector3(2.8, 5.0, 0.4)), Transform3D(Basis(), Vector3(0, y + 2.5, -2.4)), DARK)
@@ -283,8 +286,11 @@ static func throne(rng: RandomNumberGenerator) -> Dictionary:
 		mb.add(MeshBuilder.cone(0.25, 0.9, 6), Transform3D(Basis(), Vector3(side * 1.2, y + 5.45, -2.4)), GOLD)
 	mb.add(MeshBuilder.cone(0.35, 1.2, 6), Transform3D(Basis(), Vector3(0, y + 5.6, -2.4)), GOLD)
 	gb.add(MeshBuilder.sphere(0.22, 10, 6), Transform3D(Basis(), Vector3(0, y + 4.4, -2.1)), Color(0.9, 0.15, 0.2, 0.0))   # a glowing ruby
-	return _done(mb, gb, [_box_col(Vector3(14.0, 1.5, 10.0), Vector3(0, 0.75, 0)), _box_col(Vector3(2.8, 5.0, 2.4), Vector3(0, y + 2.5, -1.6))],
-		Vector2(7.0, 5.0), {"light": Color(1.0, 0.4, 0.35), "light_at": Vector3(0, 5.0, 2.0), "light_energy": 1.5, "light_range": 14.0})
+	var cols := [_box_col(Vector3(2.8, 5.0, 2.4), Vector3(0, y + 2.5, -1.6))]
+	if dais:
+		cols.append(_box_col(Vector3(14.0, 1.5, 10.0), Vector3(0, 0.75, 0)))
+	return _done(mb, gb, cols,
+		Vector2(7.0, 5.0) if dais else Vector2(1.6, 1.4), {"light": Color(1.0, 0.4, 0.35), "light_at": Vector3(0, 5.0, 2.0), "light_energy": 1.5, "light_range": 14.0})
 
 
 static func chandelier(rng: RandomNumberGenerator) -> Dictionary:

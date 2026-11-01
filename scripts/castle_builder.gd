@@ -416,6 +416,7 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	parent.add_child(doors)
 	_porch(parent, half, mats)
 	_rugs(parent)
+	_throne_dais(parent, nav, mats)
 
 	# The two feast tables
 	for t in TABLES:
@@ -608,6 +609,72 @@ static func _porch(parent: Node3D, half: float, mats: Dictionary) -> void:
 		_brazier(parent, p, 0.8)
 
 
+## The throne room's raised stone platform: a great block of ashlar (the wall stone) built
+## against the middle of the north wall, DAIS_H tall, with a broad carpeted staircase down the
+## front, a gold-trimmed edge, square pillars at the front corners with braziers burning on
+## top, and two tall banners on the wall behind the throne. Goblins go round it.
+const DAIS_W := 20.0
+const DAIS_D := 12.0
+const DAIS_H := 2.4
+const DAIS_BACK := -219.9           # flush with the inside of the north wall
+const DAIS_FRONT := DAIS_BACK + DAIS_D
+const STEP_N := 6
+const STEP_D := 0.6
+static func _throne_dais(parent: Node3D, nav: CastleNav, mats: Dictionary) -> void:
+	var stone: Material = mats["wall"]
+	var cz := DAIS_BACK + DAIS_D * 0.5
+	_box(parent, Vector3(0, DAIS_H * 0.5, cz), Vector3(DAIS_W, DAIS_H, DAIS_D), stone)
+	var gold := StandardMaterial3D.new()
+	gold.albedo_color = Color(0.75, 0.56, 0.2)
+	gold.metallic = 0.7
+	gold.roughness = 0.4
+	var dark := StandardMaterial3D.new()
+	dark.albedo_color = Color(0.16, 0.15, 0.14)
+	dark.roughness = 0.9
+	var red := StandardMaterial3D.new()
+	red.albedo_color = Color(0.34, 0.05, 0.06)
+	red.roughness = 1.0
+	# a cornice round the top edge and a plinth at the foot
+	_box(parent, Vector3(0, DAIS_H + 0.06, cz), Vector3(DAIS_W + 0.3, 0.12, DAIS_D + 0.15), dark, false)
+	_box(parent, Vector3(0, DAIS_H - 0.12, DAIS_FRONT + 0.08), Vector3(DAIS_W + 0.32, 0.1, 0.06), gold, false)
+	_box(parent, Vector3(0, 0.15, cz), Vector3(DAIS_W + 0.4, 0.3, DAIS_D + 0.3), dark, false)
+	for sd in [-1.0, 1.0]:
+		_box(parent, Vector3(sd * (DAIS_W * 0.5 + 0.08), DAIS_H - 0.12, cz), Vector3(0.06, 0.1, DAIS_D), gold, false)
+	# the staircase down the front, with a red carpet up the middle
+	var sw := 8.0
+	for k in STEP_N:
+		var h := DAIS_H * float(STEP_N - k) / float(STEP_N + 1)
+		var z := DAIS_FRONT + STEP_D * (k + 0.5)
+		_box(parent, Vector3(0, h * 0.5, z), Vector3(sw, h, STEP_D), stone)
+		_box(parent, Vector3(0, h + 0.01, z), Vector3(3.6, 0.03, STEP_D + 0.02), red, false)
+		_box(parent, Vector3(0, h - 0.02, z + STEP_D * 0.5), Vector3(sw + 0.04, 0.05, 0.04), dark, false)   # step nosing
+	_box(parent, Vector3(0, DAIS_H + 0.14, DAIS_FRONT - 2.5), Vector3(3.6, 0.03, 5.0), red, false)   # carpet up to the throne
+	for sd in [-1.0, 1.0]:   # stone cheeks either side of the stairs
+		_box(parent, Vector3(sd * (sw * 0.5 + 0.35), DAIS_H * 0.45, DAIS_FRONT + STEP_N * STEP_D * 0.5), Vector3(0.7, DAIS_H * 0.9, STEP_N * STEP_D), stone)
+		# square pillars at the front corners, each topped by a burning brazier
+		var px: float = sd * (DAIS_W * 0.5 - 0.8)
+		var pz := DAIS_FRONT - 0.8
+		_box(parent, Vector3(px, DAIS_H + 1.5, pz), Vector3(1.0, 3.0, 1.0), stone)
+		_box(parent, Vector3(px, DAIS_H + 3.05, pz), Vector3(1.3, 0.15, 1.3), dark, false)
+		_box(parent, Vector3(px, DAIS_H + 3.3, pz), Vector3(0.9, 0.35, 0.9), dark, false)
+		_flames(parent, Vector3(px, DAIS_H + 3.6, pz), 0.5)
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.6, 0.3)
+		l.light_energy = 2.5
+		l.omni_range = 14.0
+		l.position = Vector3(px, DAIS_H + 4.2, pz + 1.0)
+		parent.add_child(l)
+	# two tall banners on the wall behind the throne
+	var banner := CastleProps.banner_variant(RandomNumberGenerator.new(), 0)
+	for sd in [-1.0, 1.0]:
+		var mi := MeshInstance3D.new()
+		mi.mesh = banner
+		mi.position = Vector3(sd * 5.0, DAIS_H + 8.5, DAIS_BACK + 0.05)
+		mi.rotation.y = PI   # face into the room
+		parent.add_child(mi)
+	nav.block_rect(-DAIS_W * 0.5 - 0.5, DAIS_BACK - 0.5, DAIS_W * 0.5 + 0.5, DAIS_FRONT + STEP_N * STEP_D + 0.5)
+
+
 ## The great hall and throne room runners: a woven carpet (CARPET_SHADER) with a border of
 ## bands and a running motif, medallions down a patterned field, a gold-fringed end at each end,
 ## and a few centuries of wear: dirt, faded patches, stains, a threadbare path down the middle,
@@ -616,7 +683,7 @@ static func _rugs(parent: Node3D) -> void:
 	var sh := Shader.new()
 	sh.code = CARPET_SHADER
 	var k := 0
-	for r in [[0.0, 64.0, 216.0, 8.0], [0.0, -216.0, -114.0, 8.0]]:   # great hall and throne room runners
+	for r in [[0.0, 64.0, 216.0, 8.0], [0.0, DAIS_FRONT - STEP_N * STEP_D - 0.3, -114.0, 8.0]]:   # great hall and throne room runners (the latter stops at the dais stairs)
 		var len: float = r[2] - r[1]
 		var mat := ShaderMaterial.new()
 		mat.shader = sh
@@ -656,8 +723,8 @@ static func _structured(parent: Node3D, rng: RandomNumberGenerator, nav: CastleN
 	for z in range(-200, -119, 22):
 		for x in [-30.0, 30.0]:
 			_place(parent, CastleProps.column(rng), Vector3(x, 0, z), 0.0, nav, placed, 1.6)
-	# The throne on its dais, at the head of the throne room
-	_place(parent, CastleProps.throne(rng), Vector3(0, 0, -206), 0.0, nav, placed, 6.0, true)
+	# The throne on top of its stone platform, centred against the throne room's north wall
+	_place(parent, CastleProps.throne(rng, false), Vector3(0, DAIS_H, DAIS_BACK + 4.6), 0.0, nav, placed, 6.0, true)
 	# Chandeliers over the feast tables and down the dining hall
 	var spots: Array[Vector2] = []
 	for t in TABLES:
