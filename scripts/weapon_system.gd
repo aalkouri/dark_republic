@@ -92,6 +92,7 @@ const CHAIN_RANGE := 6.0
 const CHAIN_FALLOFF := 0.85      # damage kept per jump
 const CHAIN_DAMAGE := 1.6        # Chain Lightning hits this much harder than the shared base damage
 const CHAIN_BOSS := 2.0          # ...and this much harder again on bosses and epics (lightning rods)
+const CHAIN_BOSS_REACH := 40.0   # and the first arc finds a boss this far away
 const CHAIN_REACH := 22.0        # first target range
 const DARK_SPEED := 0.6          # Shadow Bolts fly at 60% speed...
 const DARK_PIERCE := 2           # ...pierce 2 more goblins...
@@ -848,6 +849,15 @@ func _fire_chain(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBase
 		model = player.model
 	var n := _count(pre)
 	var targets := enemies.nearest_k(origin, CHAIN_REACH, n)
+	var boss := -1   # a boss beyond the usual reach still draws the first arc
+	for e in enemies.query_radius(origin, CHAIN_BOSS_REACH, false):
+		if enemies.is_boss(e):
+			boss = e
+			break
+	if boss >= 0 and not targets.has(boss):
+		targets.insert(0, boss)
+		if targets.size() > n:
+			targets.resize(n)
 	if targets.is_empty():
 		return false
 	if model != null:

@@ -77,6 +77,7 @@ const CLAP_DAMAGE := 120.0
 const CLAP_STUN := 1.5
 const CLAP_SPACING := 0.05           # seconds between strikes
 const CLAP_BOSS_HITS := 4            # a boss in range can take this many of the bolts
+const CLAP_BOSS_RADIUS := 40.0       # and a boss is in range this far away
 const STORM_TIME := 10.0
 const STORM_RADIUS := 18.0
 const STORM_EVERY := 0.25
@@ -641,8 +642,11 @@ func _tick_clap(dt: float) -> void:
 		_clap_left -= 1
 		var best := -1
 		var best_hp := -1.0
-		for i in enemies.query_radius(player.global_position + Vector3(0, 0.8, 0), CLAP_RADIUS, false):
+		var pp := player.global_position + Vector3(0, 0.8, 0)
+		for i in enemies.query_radius(pp, CLAP_BOSS_RADIUS, false):
 			if int(_clap_hit.get(enemies.uid[i], 0)) >= (CLAP_BOSS_HITS if enemies.is_boss(i) else 1):
+				continue
+			if not enemies.is_boss(i) and pp.distance_to(enemies.pos[i]) > CLAP_RADIUS + enemies.t_radius[enemies.typ[i]] * enemies.sz[i]:
 				continue
 			if enemies.hp[i] > best_hp:
 				best_hp = enemies.hp[i]

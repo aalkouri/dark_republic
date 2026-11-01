@@ -22,19 +22,19 @@ const MELEE_RANGE := 11.0
 const SLASH_WARN := 1.5            # seconds of warning (enraged: / 1.6, never under 1 s)
 const SLASH_RADIUS := 11.0
 const SLASH_HALF := deg_to_rad(60.0)
-const SLASH_DAMAGE := 34.0
+const SLASH_DAMAGE := 26.0
 const CLOUD_RADIUS := 4.0
 const CLOUD_LIFE := 4.0
 const CLOUD_DPS := 6.0
 const RING_WARN := 1.6
 const RING_INNER := 3.5
 const RING_OUTER := 8.0
-const RING_DAMAGE := 30.0
+const RING_DAMAGE := 24.0
 const RING_COOLDOWN := 11.0
 const MORTAR_WARN := 1.5
 const MORTAR_PODS := 5
 const MORTAR_RADIUS := 2.8
-const MORTAR_DAMAGE := 20.0
+const MORTAR_DAMAGE := 14.0
 const MORTAR_COOLDOWN := 6.0
 const COURT_WARN := 1.5
 const COURT_COOLDOWN := 24.0
@@ -67,7 +67,7 @@ func _init() -> void:
 
 
 func stats() -> Dictionary:
-	return {"name": "Toadstool Knight", "hp": HP, "speed": 3.8, "radius": 1.8, "height": 6.2, "damage": 40.0, "xp": 400.0}
+	return {"name": "Toadstool Knight", "hp": HP, "speed": 3.8, "radius": 1.8, "height": 6.2, "damage": 30.0, "xp": 400.0}
 
 
 func display_name() -> String:
