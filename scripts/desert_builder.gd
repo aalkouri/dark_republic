@@ -328,6 +328,16 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 ## ground, with ram-headed sphinxes on plinths along both sides.
 static func _causeway(parent: Node3D, water: SwampWater, rng: RandomNumberGenerator) -> void:
 	var q := DesertProps._Quads.new()
+	# Drifted sand: where the drift field is high (and toward the edges) the stones sink under the
+	# sand, so drifts creep across the paving and swallow parts of stones
+	var drift := FastNoiseLite.new()
+	drift.seed = rng.randi()
+	drift.frequency = 0.09
+	drift.fractal_octaves = 2
+	var h := func(px: float, pz: float, tilt: float) -> float:
+		var d := drift.get_noise_2d(px, pz) * 0.5 + 0.5 + smoothstep(CAUSEWAY_W * 0.55, CAUSEWAY_W, absf(px)) * 0.35
+		var bury := smoothstep(0.58, 0.8, d) * 0.22
+		return water.ground_height(px, pz) + 0.07 + tilt - bury
 	var z := CAUSEWAY_TO
 	var row := 0
 	while z > CAUSEWAY_FROM:
@@ -338,12 +348,19 @@ static func _causeway(parent: Node3D, water: SwampWater, rng: RandomNumberGenera
 			var x0 := -CAUSEWAY_W if first else x
 			var x1 := minf(x + rng.randf_range(1.4, 2.2), CAUSEWAY_W)
 			first = false
-			if rng.randf() < 0.07 and absf(x0) > 2.0:   # a missing stone, sand in its place
+			if rng.randf() < 0.06 and absf(x0) > 2.0:   # a missing stone, sand in its place
 				x = x1
 				continue
-			var c := DesertProps._shade(DesertProps.LIMESTONE.darkened(0.12), rng, 0.08)
-			var h := func(px: float, pz: float) -> float: return water.ground_height(px, pz) + 0.07
-			q.quad(Vector3(x0, h.call(x0, z1), z1), Vector3(x1, h.call(x1, z1), z1), Vector3(x1, h.call(x1, z), z), Vector3(x0, h.call(x0, z), z), Vector3.UP, c, Vector2(x1 - x0, z - z1))
+			# pale, worn limestone, every stone its own shade, a few heaved a little out of true
+			var c := DesertProps._shade(DesertProps.LIMESTONE.lightened(0.03), rng, 0.07)
+			var g := 0.0
+			var tx := rng.randf_range(-0.03, 0.03) if rng.randf() < 0.3 else 0.0
+			var gap := 0.03   # a sandy joint between stones
+			var a0 := x0 + gap
+			var a1 := x1 - gap
+			var b0 := z1 + gap
+			var b1 := z - gap
+			q.quad(Vector3(a0, h.call(a0, b0, g - tx), b0), Vector3(a1, h.call(a1, b0, g + tx), b0), Vector3(a1, h.call(a1, b1, g + tx), b1), Vector3(a0, h.call(a0, b1, g - tx), b1), Vector3.UP, c, Vector2(a1 - a0, b1 - b0))
 			x = x1
 		z = z1
 		row += 1
@@ -357,7 +374,7 @@ static func _causeway(parent: Node3D, water: SwampWater, rng: RandomNumberGenera
 		for sd in [-1.0, 1.0]:
 			var p := Vector3(sd * (CAUSEWAY_W + 1.8), 0, zz)
 			p.y = WorldBuilder._low_point(water, p, 1.2) - 0.05
-			WorldBuilder._prop(parent, ram, Transform3D(Basis(Vector3.UP, -sd * PI * 0.5).scaled(Vector3.ONE * 0.85), p))
+			WorldBuilder._prop(parent, ram, Transform3D(Basis(Vector3.UP, -sd * PI * 0.5).scaled(Vector3.ONE * 1.05), p))
 		zz -= 9.0
 
 

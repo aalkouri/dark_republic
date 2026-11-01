@@ -1,7 +1,7 @@
 extends Node3D
 ## Contact sheets of the Desert's models from a few angles (for checking the look quickly):
 ##   godot --path . res://tools/render_desert.tscn -- what /out.png
-## what: sphinx | pyramid | props | crowd | pharaoh
+## what: sphinx | props | ram | crowd | pharaoh
 
 var _frames: Array[Image] = []
 
@@ -58,6 +58,11 @@ func _ready() -> void:
 				var c: Vector3 = mi.position
 				var big := 1.0 if k < 12 else 2.0
 				views.append([c + Vector3(8, 6, 11) * big, c + Vector3(0, 2.5 * big, 0)])
+		"ram":
+			var mi := MeshInstance3D.new()
+			mi.mesh = DesertProps.ram_statue()["mesh"]
+			add_child(mi)
+			views = [[Vector3(4.5, 3.2, 6.5), Vector3(0, 1.8, 0.3)], [Vector3(-6, 2.6, 1), Vector3(0, 1.7, 0)], [Vector3(0.8, 2.4, 4.2), Vector3(0, 1.9, 1.0)], [Vector3(-3.5, 3.5, -4.5), Vector3(0, 1.6, 0)]]
 		"crowd":
 			var meshes: Array = load("res://scripts/desert_crowd.gd").preview_meshes()
 			for k in meshes.size():

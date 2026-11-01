@@ -905,27 +905,87 @@ static func _ram_avenue(rng: RandomNumberGenerator) -> Dictionary:
 	return _stone(mb, cols)
 
 
-## One ram-headed sphinx on its plinth (the causeway's guardians), facing +Z.
+## One ram-headed sphinx (a criosphinx) on its plinth, the causeway's guardians, facing +Z: a
+## lion lying down with its forelegs stretched out, a ram's head with curled, ridged horns under a
+## striped nemes, and a small pharaoh standing between its paws against its chest.
 static func ram_statue() -> Dictionary:
 	if _cache.has("ram"):
 		return _cache["ram"]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 51
 	var mb := MeshBuilder.new()
-	var at := Vector3.ZERO
-	mb.add(MeshBuilder.box(Vector3(1.8, 1.0, 3.4)), Transform3D(Basis(), at + Vector3(0, 0.5, 0)), _c(SANDSTONE, GLYPH))
-	mb.add(MeshBuilder.box(Vector3(2.0, 0.15, 3.6)), Transform3D(Basis(), at + Vector3(0, 1.05, 0)), _c(SANDSTONE.darkened(0.1)))
-	var s := _c(_shade(SANDSTONE.darkened(0.04), rng, 0.05))
-	mb.add(MeshBuilder.sphere(0.8, 12, 8), Transform3D(Basis.from_scale(Vector3(0.8, 0.7, 1.7)), at + Vector3(0, 1.75, -0.2)), s)
-	mb.add(MeshBuilder.sphere(0.6, 10, 6), Transform3D(Basis(), at + Vector3(0, 1.75, -1.2)), s)
-	for sd in [-0.4, 0.4]:
-		mb.add(MeshBuilder.box(Vector3(0.35, 0.3, 1.4)), Transform3D(Basis(), at + Vector3(sd, 1.3, 1.0)), s)
-	mb.add(MeshBuilder.sphere(0.45, 10, 6), Transform3D(Basis.from_scale(Vector3(0.8, 0.9, 1.3)), at + Vector3(0, 2.65, 1.1)), s)
+	# the plinth (as before): carved sides and a cap
+	mb.add(MeshBuilder.box(Vector3(1.8, 1.0, 3.4)), Transform3D(Basis(), Vector3(0, 0.5, 0)), _c(SANDSTONE, GLYPH))
+	mb.add(MeshBuilder.box(Vector3(2.0, 0.15, 3.6)), Transform3D(Basis(), Vector3(0, 1.05, 0)), _c(SANDSTONE.darkened(0.1)))
+	var y0 := 1.125
+	var st := _c(_shade(SANDSTONE.lightened(0.04), rng, 0.04))
+	var dk := _c(st.darkened(0.12))
+	var sph := func(r: float, sc: Vector3, at: Vector3, c: Color, seg := 16) -> void:
+		mb.add(MeshBuilder.sphere(r, seg, int(seg * 0.6)), Transform3D(Basis.from_scale(sc), at + Vector3(0, y0, 0)), c)
+	var lim := func(a: Vector3, b: Vector3, ra: float, rb: float, c: Color) -> void:
+		mb.limb(a + Vector3(0, y0, 0), b + Vector3(0, y0, 0), ra, rb, c, 12)
+	# the lion's body lying down: torso, haunch, chest, the spine
+	sph.call(1.0, Vector3(0.5, 0.42, 1.05), Vector3(0, 0.46, -0.35), st, 24)
+	sph.call(1.0, Vector3(0.56, 0.5, 0.55), Vector3(0, 0.5, -1.1), st, 20)
+	sph.call(1.0, Vector3(0.46, 0.56, 0.42), Vector3(0, 0.62, 0.55), st, 20)
+	sph.call(1.0, Vector3(0.12, 0.08, 0.95), Vector3(0, 0.9, -0.45), dk, 12)
+	# hind legs folded beside it, paws tucked forward; the tail curled along the right flank
 	for sd in [-1.0, 1.0]:
-		for t in 6:
-			var a := t * 1.05
-			mb.add(MeshBuilder.sphere(0.14 - t * 0.014, 6, 4), Transform3D(Basis(), at + Vector3(sd * (0.36 + sin(a) * 0.16), 2.75 + cos(a) * 0.16, 1.0 - t * 0.04)), _c(SANDSTONE.darkened(0.15)))
-	var d := _stone(mb, [_box_col(Vector3(1.8, 2.6, 3.4), Vector3(0, 1.3, 0))])
+		sph.call(1.0, Vector3(0.17, 0.22, 0.55), Vector3(sd * 0.46, 0.24, -0.95), st, 14)
+		sph.call(1.0, Vector3(0.15, 0.1, 0.24), Vector3(sd * 0.5, 0.1, -0.38), st, 12)
+		for t in 3:
+			sph.call(0.055, Vector3.ONE, Vector3(sd * (0.44 + t * 0.06), 0.06, -0.16), dk, 8)
+	var tail: Array[Vector3] = []
+	for k in 8:
+		var a := k / 7.0
+		tail.append(Vector3(0.2 + sin(a * 2.6) * 0.42, 0.14 + 0.25 * (1.0 - a), -1.55 + a * 1.25))
+	for k in tail.size() - 1:
+		lim.call(tail[k], tail[k + 1], 0.07, 0.06, st)
+	sph.call(0.1, Vector3(1.0, 0.8, 1.4), tail[-1] + Vector3(0, 0, 0.08), dk, 10)
+	# forelegs stretched out in front, big paws with toes
+	for sd in [-1.0, 1.0]:
+		sph.call(1.0, Vector3(0.2, 0.28, 0.28), Vector3(sd * 0.34, 0.36, 0.62), st, 14)   # elbow
+		lim.call(Vector3(sd * 0.34, 0.24, 0.65), Vector3(sd * 0.34, 0.15, 1.42), 0.16, 0.13, st)
+		sph.call(1.0, Vector3(0.17, 0.12, 0.22), Vector3(sd * 0.34, 0.11, 1.52), st, 14)
+		for t in 4:
+			sph.call(0.055, Vector3(1.0, 0.9, 1.2), Vector3(sd * 0.34 + (t - 1.5) * 0.075, 0.07, 1.7), dk, 8)
+	# the neck and the ram's head: a long skull, a heavy muzzle, eyes, nostrils
+	lim.call(Vector3(0, 0.82, 0.5), Vector3(0, 1.2, 0.86), 0.3, 0.24, st)
+	sph.call(1.0, Vector3(0.27, 0.3, 0.36), Vector3(0, 1.42, 0.98), st, 18)
+	sph.call(1.0, Vector3(0.18, 0.2, 0.3), Vector3(0, 1.27, 1.28), st, 16)
+	sph.call(1.0, Vector3(0.14, 0.1, 0.12), Vector3(0, 1.18, 1.48), st, 12)   # the nose
+	for sd in [-1.0, 1.0]:
+		sph.call(0.035, Vector3.ONE, Vector3(sd * 0.06, 1.18, 1.58), _c(Color(0.25, 0.18, 0.12)), 8)   # nostrils
+		sph.call(0.06, Vector3(1.3, 0.8, 0.8), Vector3(sd * 0.18, 1.45, 1.17), dk, 10)                  # brow
+		sph.call(0.04, Vector3(1.2, 0.8, 0.6), Vector3(sd * 0.19, 1.42, 1.2), _c(Color(0.22, 0.16, 0.1)), 8)   # eye
+		sph.call(1.0, Vector3(0.06, 0.12, 0.05), Vector3(sd * 0.27, 1.36, 0.95), st, 10)              # ear
+		# the horn: a ridged spiral curling back, down and forward round the ear
+		var c := Vector3(sd * 0.36, 1.38, 0.9)
+		var n := 22
+		for k in n:
+			var a := TAU * 1.05 * k / (n - 1)
+			var r := 0.3 * (1.0 - 0.5 * a / TAU)
+			var at := c + Vector3(sd * (0.0 + 0.12 * a / TAU), cos(a) * r, -sin(a) * r)
+			sph.call(0.12 - 0.065 * k / n, Vector3.ONE, at, _c(Color(0.78, 0.66, 0.5).darkened(0.18 if k % 2 else 0.0)), 10)
+	# a striped nemes over the skull, lappets falling either side of the neck onto the chest
+	sph.call(1.0, Vector3(0.31, 0.26, 0.34), Vector3(0, 1.52, 0.9), _c(DesertSphinx.STRIPE_A), 16)
+	for k in 5:
+		var y := 1.5 - k * 0.07
+		var c := DesertSphinx.STRIPE_A if k % 2 == 0 else DesertSphinx.STRIPE_B
+		mb.add(MeshBuilder.cyl(0.3 + k * 0.012, 0.31 + k * 0.012, 0.07, 16), Transform3D(Basis.from_scale(Vector3(1.0, 1.0, 0.9)), Vector3(0, y0 + y, 0.82)), _c(c))
+	for sd in [-1.0, 1.0]:
+		for k in 7:
+			var t := k / 6.0
+			var c := DesertSphinx.STRIPE_A if k % 2 == 0 else DesertSphinx.STRIPE_B
+			mb.add(MeshBuilder.box(Vector3(0.2, 0.09, 0.08)), Transform3D(Basis(Vector3(1, 0, 0), -0.25), Vector3(sd * (0.25 + t * 0.03), y0 + 1.25 - t * 0.5, 0.98 + t * 0.06)), _c(c))
+	# a small pharaoh standing between the paws, against the chest, arms crossed
+	var f := Vector3(0, 0, 1.12)
+	mb.add(MeshBuilder.box(Vector3(0.24, 0.4, 0.16)), Transform3D(Basis(), f + Vector3(0, y0 + 0.2, 0)), dk)       # legs and kilt
+	mb.add(MeshBuilder.cyl(0.13, 0.12, 0.34, 10), Transform3D(Basis.from_scale(Vector3(1.0, 1.0, 0.7)), f + Vector3(0, y0 + 0.57, 0)), st)   # torso
+	mb.add(MeshBuilder.box(Vector3(0.26, 0.07, 0.06)), Transform3D(Basis(Vector3(0, 0, 1), 0.35), f + Vector3(0, y0 + 0.6, 0.1)), dk)   # crossed arms
+	mb.add(MeshBuilder.box(Vector3(0.26, 0.07, 0.06)), Transform3D(Basis(Vector3(0, 0, 1), -0.35), f + Vector3(0, y0 + 0.62, 0.11)), dk)
+	DesertSphinx.head(mb, Transform3D(Basis.from_scale(Vector3.ONE * 0.085), f + Vector3(0, y0 + 0.86, 0.02)), st, rng, false, true)
+	var d := _stone(mb, [_box_col(Vector3(1.8, 2.9, 3.4), Vector3(0, 1.45, 0))])
 	_cache["ram"] = d
 	return d
 
