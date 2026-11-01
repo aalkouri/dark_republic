@@ -12,7 +12,7 @@ extends Node3D
 
 const HEIGHT := 1.75
 const THROW_MIN := 3.0
-const THROW_MAX := 8.5   # halved from 17
+const THROW_MAX := 17.0   # elites only throw, so the full range is back
 const THROW_EVERY := Vector2(2.4, 3.6)   # random gap between throws (s)
 const THROW_WINDUP := 0.45               # stands still this long; the bone leaves halfway
 const BONE_DAMAGE := 0.7                 # x the skeleton's contact damage (armoured: x1.4 more)
