@@ -113,6 +113,7 @@ func _forest() -> void:
 func _castle() -> void:
 	await _load("castle")
 	var em: EnemyManager = main.enemies
+	main._next_swarm = 1e9   # no bomber waves knocking you about during these checks
 	main.run_time = main.THOG_TIME + 0.1
 	await _secs(0.3)
 	var boss = main.map_boss
@@ -165,6 +166,54 @@ func _castle() -> void:
 				break
 		_check("she comes back down with a marked drop", saw_drop_mark and a.surface == "floor" and em.boss_contact, a.surface)
 		_check("...and spiderlings scatter from it", _count_type(em, EnemyManager.RUNNER) > runners0, "")
+	# Webs: she always leaves a trail on the floor; stepping in one webs you
+	var webs: SpiderWebs = a.webs
+	await _until_free(a)
+	for f in 60 * 3:
+		await get_tree().physics_frame
+		if not webs.trail.is_empty():
+			break
+	_check("she leaves a trail of webs as she walks", not webs.trail.is_empty(), str(webs.trail.size()))
+	if not webs.trail.is_empty():
+		var tw: Dictionary = webs.trail[-1]
+		var at: Vector3 = tw["at"]
+		_check("...that fade after about 3 s", SpiderWebs.TRAIL_LIFE <= 3.5, "")
+		var pl: Player = main.player
+		pl.web_t = 0.0
+		pl.slow_t = 0.0
+		a._gap = 99.0
+		pl.global_position = Vector3(at.x, SwampWater.height_at(at.x, at.z) + 0.3, at.z)
+		pl.velocity = Vector3.ZERO
+		await _secs(0.2)
+		_check("standing in a web: half speed and no jumping", pl.web_t > 3.5 and pl.slow_t > 3.5 and pl.slow_f <= SpiderWebs.SLOW + 0.001, "web %.1f slow %.1f x%.2f" % [pl.web_t, pl.slow_t, pl.slow_f])
+		var y0 := pl.global_position.y
+		pl.bot_jump = true
+		await _secs(0.3)
+		pl.bot_jump = false
+		_check("...you can't jump out", pl.global_position.y < y0 + 0.4, "rose %.2f" % (pl.global_position.y - y0))
+	# The web swath (her ultimate) at 75% health: one half of the keep
+	await _until_free(a)
+	a._climb_cd = 999.0
+	var sw0 := webs.swath_count
+	em.hp[a.row()] = em.hp_max[a.row()] * 0.74
+	for f in 60 * 4:
+		await get_tree().physics_frame
+		if webs.swath_count > sw0:
+			break
+	_check("at 75% health her web swath covers half the keep", webs.swath_count == sw0 + 1 and not webs.swaths.is_empty(), "")
+	if not webs.swaths.is_empty():
+		var half: String = webs.swaths[-1]["half"]
+		await _secs(SpiderWebs.SPREAD + 0.2)
+		var inside := {"west": Vector3(-60, 0, 0), "east": Vector3(60, 0, 0), "north": Vector3(0, 0, -60), "south": Vector3(0, 0, 60)}
+		var opposite := {"west": "east", "east": "west", "north": "south", "south": "north"}
+		_check("...webbing anywhere on that side", webs.in_web(inside[half] + Vector3(37, 0, 41) * (0.0 if half in ["west", "east"] else 0.0)), half)
+		var far: Vector3 = inside[opposite[half]]
+		var trail_near := false
+		for w in webs.trail:
+			if Vector2((w["at"] as Vector3).x - far.x, (w["at"] as Vector3).z - far.z).length() < 4.0:
+				trail_near = true
+		_check("...but not the other side", trail_near or not webs.in_web(far), "")
+		_check("...for a minute", SpiderWebs.SWATH_LIFE == 60.0, "")
 	# Kill her
 	em.damage(a.row(), 1e9)
 	await _secs(4.8)

@@ -71,6 +71,7 @@ var burn_left := 0.0
 var slow_t := 0.0             # boss hazards (webs, spores): move at slow_f speed for slow_t s
 var slow_f := 1.0
 var root_t := 0.0             # cocooned: can't move or jump for root_t s
+var web_t := 0.0              # webbed (the Arachnid's webs): no jumping for web_t s (the slow is slow_t)
 # Roster kits (RosterKit sets these)
 var dmg_taken := 1.0          # damage taken multiplier (Bellow armour, Mutagen side effect)
 var thorns := 0.0             # enemies that hit you take this many times their contact damage (Shield Wall)
@@ -249,6 +250,10 @@ func _physics_process(dt: float) -> void:
 		wishdir = Vector3.ZERO
 		wish_len = 0.0
 		jump_pressed = false
+	if web_t > 0.0:   # stuck in webs: can't jump
+		web_t -= dt
+		jump_pressed = false
+		_jump_buf = 0.0
 
 	if jump_pressed:
 		_jump_buf = JUMP_BUFFER
@@ -609,6 +614,12 @@ func knockback(dir: Vector3) -> void:
 func apply_slow(factor: float, secs: float) -> void:
 	slow_f = minf(slow_f, factor) if slow_t > 0.0 else factor
 	slow_t = maxf(slow_t, secs)
+
+
+## Webbed: `slow` speed and no jumping for `secs` (refreshed every frame you stand in a web).
+func web(secs: float, slow := 0.5) -> void:
+	apply_slow(slow, secs)
+	web_t = maxf(web_t, secs)
 
 
 ## Root the player in place (no moving or jumping) for `secs`.

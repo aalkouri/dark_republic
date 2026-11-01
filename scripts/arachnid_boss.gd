@@ -18,6 +18,11 @@ extends MapBoss
 ##   DROP          (from the ceiling or a wall) a big circle under her fills, then she lands on it
 ##                 hard, and a brood of spiderlings scatters from the impact.
 ##   BROOD         an egg sac is laid at a marked spot; spiderlings hatch from it.
+##   WEB SWATH     her ultimate, at 75%, 50% and 10% health: she rears up and screeches, and
+##                 webs spread across one half of the keep (west, east, north or south) for a
+##                 minute (SpiderWebs). She also always leaves a trail of webs wherever she
+##                 walks on the floor, fading after about 3 s. Any web: half speed and no
+##                 jumping, lasting 4 s after you leave it.
 
 const SCALE := 1.7                 # x SpiderModel: about 10 m leg span
 const TURN_RATE := 4.0
@@ -56,8 +61,12 @@ const CEILING_SPEED := 10.0
 const CEILING_TIME := 4.5
 const FACE_OFF := 1.2              # her feet this far from the wall's room boundary
 const SPIDERLING := Color(0.25, 0.15, 0.3)
+const SWATH_AT := [0.75, 0.5, 0.1]   # health fractions that set off the web swath
+const SWATH_REAR := 1.4              # seconds she rears and screeches before the webs spread
 
 var model: SpiderModel
+var webs: SpiderWebs
+var _swaths_done := 0
 var surface := "floor"             # floor | wall | ceiling
 var _face := {}                    # the wall she's on: {n (into the room), p (a point on it), t (along), lo, hi}
 var _yaw := 0.0
@@ -124,6 +133,10 @@ func _build_model() -> void:
 	_sync_floor(0.0)
 	model.plant_all()
 	play_sfx("roar")
+	webs = SpiderWebs.new()
+	webs.name = "SpiderWebs"   # no-i18n
+	webs.boss = self
+	main.add_child(webs)
 
 
 func can_climb() -> bool:
@@ -136,8 +149,15 @@ func _physics_process(dt: float) -> void:
 		return
 	if main.state != "playing":
 		return
-	if surface == "floor" and (state == "walk" or attack in ["spit", "brood"]):
+	if surface == "floor" and (state == "walk" or attack in ["spit", "brood", "swath"]):
 		_sync_floor(dt)
+	var i := row()
+	if surface == "floor" and i >= 0 and webs != null:   # a trail of webs wherever she walks
+		webs.trail_at(em.pos[i])
+	if state == "walk" and surface == "floor" and _swaths_done < SWATH_AT.size() and hp_fraction() <= SWATH_AT[_swaths_done]:
+		while _swaths_done < SWATH_AT.size() and hp_fraction() <= SWATH_AT[_swaths_done]:
+			_swaths_done += 1
+		_start("swath")
 
 
 func _on_hurt() -> void:
@@ -201,6 +221,11 @@ func _start(kind: String) -> void:
 			var at := ground(em.pos[i] + _aim * 6.0)
 			_lay_eggs(at)
 			_end_after(0.8)
+		"swath":   # rears up, screeches, then webs one half of the keep
+			model.rear = 1.0
+			play_sfx("roar", 0.85)
+			shake(0.4)
+			_end_after(SWATH_REAR)
 
 
 func _end_after(secs: float) -> void:
@@ -231,6 +256,15 @@ func _tick_attack(dt: float) -> void:
 			if _phase_t <= 0.0:
 				model.rear = 0.0
 				_done(0.0)
+		"swath":
+			_phase_t -= dt
+			if _phase_t <= 0.0:
+				var i := row()
+				if i >= 0 and webs != null:
+					webs.swath(em.pos[i])
+					play_sfx("web", 0.6)
+				model.rear = 0.0
+				_done(0.5)
 		"leap":
 			_tick_leap(dt)
 		"climb":
@@ -603,6 +637,8 @@ func _on_enrage() -> void:
 
 func _on_die() -> void:
 	play_sfx("roar", 0.7)
+	if webs != null:
+		webs.clear()
 	surface = "floor"
 
 

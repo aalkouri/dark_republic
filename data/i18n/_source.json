@@ -2277,10 +2277,10 @@
   "characters.json"
  ],
  "THE ARACHNID": [
-  "arachnid_boss.gd:89"
+  "arachnid_boss.gd:98"
  ],
  "THE ARACHNID CLIMBS THE WALLS!": [
-  "arachnid_boss.gd:445"
+  "arachnid_boss.gd:479"
  ],
  "THE FORGE": [
   "forge_menu.gd:62"
@@ -2339,7 +2339,7 @@
   "abilities.json"
  ],
  "The Arachnid": [
-  "arachnid_boss.gd:85",
+  "arachnid_boss.gd:94",
   "characters.json"
  ],
  "The Castle": [

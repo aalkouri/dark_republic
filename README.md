@@ -435,6 +435,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **Venom Spit:** globs (3, enraged 5) arc onto marked circles and leave poison puddles.
 - **Web Shot** (from the wall): a web lands on a marked circle. Standing in it slows you to 40% for 5 s.
 - **Brood:** an egg sac is laid at a marked spot and hatches spiderlings 2 s later.
+- **Webs** (`spider_webs.gd`): she always leaves a **trail of webs** wherever she walks on the floor; each fades after about 3 s. Her ultimate, the **Web Swath** (at 75%, 50% and 10% health, like Thog's quake), has her rear up and screech, then webs spread out from her across **one half of the keep** (west, east, north or south, at random) over 2.5 s and stay for **a minute**. Standing in any web: **half speed and no jumping**, lasting **4 s after you leave** the last web.
 - **Model:** built entirely in code. A glossy black-violet body with a red hourglass, eight red eyes and fangs, and eight two-jointed legs that walk themselves: each foot stays planted until the body has moved on, then steps, in alternating groups of four. Two-bone IK bends the knees away from whatever she's standing on, so the same legs work on the floor, a wall or the ceiling (`tools/render_spider.tscn` previews it).
 - **Rewards:** beating her makes her buyable (10,000 coins). She can't play the Castle.
 
