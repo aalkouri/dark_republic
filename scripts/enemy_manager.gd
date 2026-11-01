@@ -972,7 +972,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			if frog_t[i] > 0.0:
 				sp *= 0.55
 			if bomber[i] != 0:
-				sp *= BomberSkeletons.SPEED_MULT   # bombers sprint
+				sp *= BomberSkeletons.SPEED_MULT   # bombers shamble slowly
 			if throw_anim[i] > 0.0 or rise_t[i] > 0.0 or (t == TROLL and troll_busy):
 				sp = 0.0   # a skeleton winding up a throw / Thog mid-attack stands still
 			if fear or fear_t[i] > 0.0:

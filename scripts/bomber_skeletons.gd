@@ -2,7 +2,7 @@ class_name BomberSkeletons
 extends Node3D
 ## The Castle's bomber skeletons: in place of the goblin swarm rings on the other maps, the dead
 ## crawl up out of the floor all round you, each with a keg of black powder on its back, and
-## sprint at you.
+## shamble slowly at you.
 ##   - CONTACT: a bomber that reaches you blows up on the spot: CONTACT_DAMAGE (x the run's
 ##     enemy damage multiplier) to you, and it's gone (no XP, no barrel).
 ##   - KILLED: it drops its keg as it falls apart. The keg lies there with its fuse fizzing and a
@@ -12,8 +12,8 @@ extends Node3D
 ## that rise for RISE_TIME (sunk in the floor, harmless) before they run, at SPEED_MULT x.
 
 const RISE_TIME := 1.3
-const SPEED_MULT := 1.9
-const HP_MULT := 0.6            # of a skeleton's health: they go down fast...
+const SPEED_MULT := 0.5        # a slow shamble (was a 1.9x sprint)
+const HP_MULT := 0.3            # of a skeleton's health: they go down very fast (was 0.6)...
 const CONTACT_DAMAGE := 40.0
 const BARREL_DAMAGE := 32.0
 const BLAST_RADIUS := 3.5
