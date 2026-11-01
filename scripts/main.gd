@@ -650,6 +650,8 @@ func _spawn_director(dt: float) -> void:
 	elif run_time >= _next_swarm and enemies.undead != null:   # the Graveyard: the dead climb out of the graves round you
 		_next_swarm += 60.0
 		enemies.undead.grave_swarm(player.global_position, int((24 + int(m) * 6) * k_boss), hpm, rng, epic_chance())
+	elif run_time >= _next_swarm and _live_cap() < LIVE_CAP:   # a boss that keeps the crowd down: no ring either
+		_next_swarm += 60.0
 	elif run_time >= _next_swarm:
 		_next_swarm += 60.0
 		var n := int((24 + int(m) * 6) * k_boss)
