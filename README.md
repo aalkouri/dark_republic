@@ -68,7 +68,7 @@ Each plays as its own rigged Higgsfield model (`models/<id>/`, Lean clip set: id
 | Character | Weapon | Effect |
 |---|---|---|
 | Ice Wizard | Frost Shards | Icicles that slow goblins 30% for 2 s |
-| Thunder Wizard | Chain Lightning | Instant arcs that jump to 4 more goblins (+1 per pierce) within 6 m, losing 20% per jump |
+| Thunder Wizard | Chain Lightning | Instant arcs that jump to 4 more goblins (+1 per pierce) within 6 m, losing 15% per jump. Hits 1.6x the shared base damage, and double on bosses and epics; the first arc reaches a boss up to 40 m away |
 | Dark Wizard | Shadow Bolts | Slow bolts (60% speed) that pierce 2 more goblins; 20% chance to curse (+25% damage taken for 4 s) |
 
 **Abilities** (`scripts/roster_kit.gd`; damage numbers scale with Damage, % of max HP doesn't):
@@ -76,7 +76,7 @@ Each plays as its own rigged Higgsfield model (`models/<id>/`, Lean clip set: id
 | | 1 (start) | 2 (level 5) | 3 Ultimate (level 10) |
 |---|---|---|---|
 | **Ice** | **Flash Freeze** (30 s): goblins within 15 m frozen solid for 3 s; frozen goblins can't hurt you, take +50% damage and shatter on death for 40% of their max HP within 2 yd (chains) | **Glacial Path** (45 s): +60% speed for 6 s; your ice trail lasts 5 s, slows 60% and deals 15/s | **Absolute Zero** (2 min): 25 m blizzard on you for 8 s (80% slow, 4% max HP/s), then everything inside freezes for 2 s and shatters for 200 |
-| **Thunder** | **Overcharge** (30 s): +40% speed for 8 s; every jump and landing shocks 6 m for 40 | **Thunderclap** (45 s): 12 bolts on the goblins with the most HP within 25 m: 120 each, 1.5 s stun | **Storm Lord** (2 min): a thundercloud follows you for 10 s, striking a goblin within 18 m every 0.25 s for 90, chaining to 3 more |
+| **Thunder** | **Overcharge** (30 s): +40% speed for 8 s; every jump and landing shocks 6 m for 40 | **Thunderclap** (30 s): 12 bolts on the goblins with the most HP within 25 m: 120 each, 1.5 s stun; a boss within 40 m can take up to 4 of them | **Storm Lord** (2 min): a thundercloud follows you for 10 s, striking a goblin within 18 m every 0.25 s for 90, chaining to 3 more; every 3rd strike goes to a boss in range |
 | **Dark** | **Siphon** (30 s): goblins within 12 m lose 6% max HP/s for 4 s; you heal 1 HP per goblin per second (max 5% of max HP/s) | **Raise Dead** (50 s): 15 dead goblins (fresh corpses first, the rest claw out of the bog) fight for you for 15 s (25 per hit), then explode for 60 in 3 m | **Eclipse** (2 min): the world goes dark for 8 s; goblins lose track of you and wander, you deal +100% damage, and every kill sends a shadow wisp at a goblin for 60 |
 
 **Goblin statuses** (`enemy_manager.gd`): slow, freeze, stun, curse, the Eclipse wander, and shatter explosions, shown in the goblin shader as icy, frosted or shadowed. Frozen and stunned goblins stand still and deal no contact damage. Raise Dead's allies (`ally_crowd.gd`) reuse the goblin's baked mesh and animations, shadow-tinted. Lightning everywhere is `lightning_fx.gd` (one additive MultiMesh of jagged segments).
@@ -346,6 +346,8 @@ The two outdoor maps share the same 440 m arena, terrain generator (hills, berm,
 - **By day, butterflies** (`scripts/butterflies.gd`): 70 of them in bright colours with dark-bordered, spotted wings flutter around you on meandering paths, bobbing with each wingbeat, and now and then settle on the grass with their wings slowly opening and closing. **At night, fireflies** (`scripts/fireflies.gd`) drift and blink instead. Both follow the camera, so there are always some nearby.
 - **Tests:** `godot --headless --path . res://tools/test_forest.tscn` (more trees than the swamp, daylight, green ground, bright bark, grass and flowers everywhere, bushes react and burn, a run starts on it). To preview the props: `godot --path . res://tools/render_forest_props.tscn -- /out.png [centre-x]`.
 
+- **Balance** (tuned with the playtest bot for the Thunder Wizard demo): **Goblin Brutes** stop growing as a share of spawns at weight 4 (grunts are 10; `Main.TANK_WEIGHT_CAP`), since walls of them were the main cause of death. Each minute's **swarm ring leaves a 90° opening** toward where you're heading (`Main.RING_GAP`), so you can run out through it. Other maps are unchanged.
+
 ### Fire in the woods
 
 Trees, fallen logs and bushes all burn (`TreeFire`, `BushField.ignite`). The Fire Wizard's Meteor lights everything in its blast. **Every other character's ultimate** sets the woods around them ablaze too (`Abilities.ULT_FIRE_RADIUS`: 10-30 m depending on the ultimate's reach). A tree burns for 15 s and a bush for 7 s, charring black. Then the remains crumble into the ground and are **gone**, collision and all. Each leaves a **scorch mark** (`scripts/scorch_mark.gd`) for the rest of the match: a black patch draped over the ground and ringed with ash, glowing embers, a thin column of smoke, and a quiet looping sizzle (`audio/forest/sizzle.wav`) you hear within 16 m. Nothing burns twice.
@@ -443,11 +445,11 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 ## The Toadstool Knight (the Magical Forest boss)
 
-`scripts/toadstool_boss.gd`, body in `scripts/toadstool_model.gd`. At **8:00** a 6 m mushroom-capped knight marches out of the trees. Like Thog, he enrages 2 minutes after arriving and must be killed to win the Forest.
+`scripts/toadstool_boss.gd`, body in `scripts/toadstool_model.gd`. At **8:00** a 6 m mushroom-capped knight marches out of the trees. He enrages **3 minutes** after arriving (other bosses: 2; `MapBoss.enrage_after`) and must be killed to win the Forest. Base health 2,400 (x the run's HP multiplier: about 15,300 at 8:00). While he's up the fight is a duel: the steady goblin trickle stops at **120 alive** (`MapBoss.crowd_cap`, normally 250) and no swarm rings come. Touching him deals 30.
 
-- **Spore Slash** (close): an overhead cut across a 120° wedge in front of him (34 damage). It leaves a violet spore cloud that hurts while you stand in it.
-- **Fairy Ring:** a ring of mushrooms bursts out of the ground around you (30 damage). The red band shows where it will burst, so step into the middle or out past it.
-- **Spore Mortar** (at range): he lobs 5 spore pods (7 when enraged) at and around you. Each flies in an arc onto its own filling circle (20 damage) and leaves a small poison puddle.
+- **Spore Slash** (close): an overhead cut across a 120° wedge in front of him (26 damage). It leaves a violet spore cloud that hurts while you stand in it.
+- **Fairy Ring:** a ring of mushrooms bursts out of the ground around you (24 damage). The red band shows where it will burst, so step into the middle or out past it.
+- **Spore Mortar** (at range): he lobs 5 spore pods (7 when enraged) at and around you. Each flies in an arc onto its own filling circle (14 damage) and leaves a small poison puddle.
 - **Fungus Court** (every 24 s, from 25 s in): three 4.5 m toadstool guardians rise at marked spots around you for 12 s, each slamming the marked ground around itself every 3 s.
 - **Model:** a stand-in until he gets his own. It's Gaiden's rigged swordsman polished up into silver plate, with a huge glossy red toadstool cap with white spots (built in code on the Head bone) and a blade that glows violet. Slash and cast are segments of Gaiden's attack and ability clips (`tools/render_clips.tscn` renders contact sheets).
 - **Rewards:** beating him the first time unlocks **the Castle** and makes him buyable (10,000 coins). He can't play the Forest; it's his home turf.
@@ -633,6 +635,9 @@ tools/               headless micro-benchmarks
 - **Enemy type:** call `_add_type(...)` in `enemy_manager.gd` and weight it in `main.gd::_pick_type`.
 
 ## Testing
+
+**Playtest bot** (`tools/playtest.gd`): plays real runs and reports wins and deaths.
+`godot --headless --fixed-fps 60 --path . res://tools/playtest.tscn -- --chars=thunder_wizard --runs=5 --map=forest --out=results.txt` writes one line per run, plus a JSON line per run to `results.txt.jsonl` (upgrades in order, pickups, and on a death the **last 10 s**: HP, goblins within 8 m and what was touching it). While a boss is up it logs his health and distance every 15 s. It kites the horde, dodges boss markers and steps out of boss clouds, drifts back toward a boss more than 26 m away, hops while Overcharge is up, and picks upgrades from a fixed priority list. It doesn't go after potions, so a person does better. `--boss-at=T` brings the boss early. Two processes in parallel suit a 2-core machine.
 
 ```bash
 # Full headless smoke test: bot plays, 1400-enemy stress phase, death screen, restart

@@ -44,7 +44,7 @@ func _forest() -> void:
 		return
 	var k: ToadstoolBoss = boss
 	_check("he's about 6 m tall with a HUD bar", k.model.scale.x * ToadstoolModel.MODEL_HEIGHT >= 5.5 and k._bar != null and k._bar_label.text.begins_with("THE TOADSTOOL KNIGHT"), k._bar_label.text)
-	_check("he has a boss's health", em.hp_max[k.row()] >= 5000.0 * 5.0, str(em.hp_max[k.row()]))
+	_check("he has a boss's health", em.hp_max[k.row()] >= ToadstoolBoss.HP * 5.0, str(em.hp_max[k.row()]))
 	k._court_cd = 999.0
 	k._ring_cd = 999.0
 	k._mortar_cd = 999.0
@@ -91,9 +91,10 @@ func _forest() -> void:
 	await _secs(3.0)
 	_check("...and slam around themselves (marked)", k.counts["warned"] - warned0 >= 9, str(k.counts["warned"] - warned0))
 	# Enraged: faster, but never less than MIN_WARN of warning
+	_check("he enrages after 3 minutes and keeps the goblins to 120 while he's up", k.enrage_after == 180.0 and not k.is_enraged and main._live_cap() == 120, "%.0f s, cap %d" % [k.enrage_after, main._live_cap()])
 	k.alive_time = k.enrage_after
 	await _secs(0.2)
-	_check("he enrages after 2 minutes", k.is_enraged and "ENRAGED" in k._bar_label.text, k._bar_label.text)
+	_check("...and then he's enraged", k.is_enraged and "ENRAGED" in k._bar_label.text, k._bar_label.text)
 	_check("enraged warnings are shorter but never under %.1f s" % MapBoss.MIN_WARN, k.warn_time(ToadstoolBoss.SLASH_WARN) < ToadstoolBoss.SLASH_WARN and k.warn_time(0.5) >= MapBoss.MIN_WARN, "%.2f" % k.warn_time(ToadstoolBoss.SLASH_WARN))
 	# Kill him
 	em.damage(k.row(), 1e9)

@@ -1,0 +1,26 @@
+{
+ "Arcs to 4 enemies, losing 15% damage per jump; double damage to bosses and epics": [
+  "Salta a 4 enemigos y pierde un 15% de daño por salto; doble daño a jefes y épicos",
+  "Arc vers 4 ennemis, perd 15 % de dégâts par saut ; dégâts doublés contre les boss et les épiques",
+  "يقفز إلى 4 أعداء ويفقد 15% من الضرر في كل قفزة؛ ضرر مضاعف على الزعماء والأعداء الملحميين",
+  "Springt auf 4 Gegner über, verliert 15 % Schaden pro Sprung; doppelter Schaden gegen Bosse und epische Gegner",
+  "弹跳至 4 个敌人，每跳减少 15% 伤害；对首领和史诗敌人造成双倍伤害",
+  "4体の敵へ連鎖、1回ごとにダメージ15%減。ボスとエピックには2倍ダメージ"
+ ],
+ "A boss within {40 m} can take up to {4} of the bolts": [
+  "Un jefe a {40 m} puede recibir hasta {4} de los rayos",
+  "Un boss à {40 m} peut recevoir jusqu'à {4} des éclairs",
+  "يمكن أن يتلقى زعيم ضمن {40 م} حتى {4} من الصواعق",
+  "Ein Boss im Umkreis von {40 m} kann bis zu {4} der Blitze abbekommen",
+  "{40 米} 内的首领最多可承受 {4} 道闪电",
+  "{40 m}以内のボスには最大{4}本の雷が落ちる"
+ ],
+ "Every third bolt strikes a boss in range": [
+  "Uno de cada tres rayos golpea a un jefe al alcance",
+  "Un éclair sur trois frappe un boss à portée",
+  "كل صاعقة ثالثة تضرب زعيمًا في المدى",
+  "Jeder dritte Blitz trifft einen Boss in Reichweite",
+  "每第三道闪电会劈向范围内的首领",
+  "3本に1本は範囲内のボスに落ちる"
+ ]
+}

@@ -31,7 +31,7 @@
   "slot_machine.gd:331"
  ],
  "%s  LEVEL %d": [
-  "main.gd:949"
+  "main.gd:966"
  ],
  "%s  Lv %d": [
   "hud.gd:1336"
@@ -43,48 +43,48 @@
   "skill_screen.gd:311"
  ],
  "%s  ·  ENRAGED": [
-  "map_boss.gd:459"
+  "map_boss.gd:461"
  ],
  "%s  ·  Skills": [
   "skill_screen.gd:100"
  ],
  "%s  ·  enrages in %d:%02d": [
-  "map_boss.gd:463"
+  "map_boss.gd:465"
  ],
  "%s / %s EXP": [
   "character_select.gd:832",
   "hud.gd:969"
  ],
  "%s APPROACHES": [
-  "main.gd:740"
+  "main.gd:757"
  ],
  "%s Chest": [
   "chest.gd:56",
   "slot_machine.gd:143"
  ],
  "%s Cooldown": [
-  "weapon_system.gd:371"
+  "weapon_system.gd:375"
  ],
  "%s DEFEATED!": [
   "hud.gd:958",
   "main.gd:76"
  ],
  "%s Damage": [
-  "weapon_system.gd:370",
-  "weapon_system.gd:408"
+  "weapon_system.gd:374",
+  "weapon_system.gd:412"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:770"
+  "main.gd:787"
  ],
  "%s IS ENRAGED!": [
-  "map_boss.gd:394"
+  "map_boss.gd:396"
  ],
  "%s Pierce": [
-  "weapon_system.gd:373",
-  "weapon_system.gd:410"
+  "weapon_system.gd:377",
+  "weapon_system.gd:414"
  ],
  "%s Reach": [
-  "weapon_system.gd:372"
+  "weapon_system.gd:376"
  ],
  "%s can't fight here: it's home turf": [
   "map_picker.gd:95"
@@ -224,7 +224,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:671"
+  "main.gd:678"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -236,6 +236,9 @@
   "abilities.json"
  ],
  "A bolt of green soul-fire from the staff: 26 damage, and a little of it heals you": [
+  "abilities.json"
+ ],
+ "A boss within {40 m} can take up to {4} of the bolts": [
   "abilities.json"
  ],
  "A carpet of beetles pours out of his sleeves.": [
@@ -356,7 +359,7 @@
  "Arcane Bolts": [
   "abilities.json"
  ],
- "Arcs to 4 enemies, losing 20% damage per jump": [
+ "Arcs to 4 enemies, losing 15% damage per jump; double damage to bosses and epics": [
   "abilities.json"
  ],
  "Area": [
@@ -402,7 +405,7 @@
   "hud.gd:367"
  ],
  "BOSS": [
-  "map_boss.gd:56"
+  "map_boss.gd:58"
  ],
  "BURNING": [
   "hud.gd:1355"
@@ -556,7 +559,7 @@
   "characters.json"
  ],
  "Chain Lightning": [
-  "weapon_system.gd:166",
+  "weapon_system.gd:170",
   "abilities.json"
  ],
  "Chain spin, knockback": [
@@ -632,7 +635,7 @@
   "hud.gd:348"
  ],
  "Cooldowns reset": [
-  "main.gd:1051"
+  "main.gd:1068"
  ],
  "Cowboy": [
   "characters.json"
@@ -941,7 +944,7 @@
   "forge.gd:66"
  ],
  "Every ability is at max level!  Fully healed": [
-  "main.gd:934"
+  "main.gd:951"
  ],
  "Every chest is a mimic until proven innocent": [
   "taglines.json"
@@ -980,6 +983,9 @@
   "upgrades.json"
  ],
  "Every second, hands drag the {3} nearest enemies under (elites and the boss take {25%} of max HP instead)": [
+  "abilities.json"
+ ],
+ "Every third bolt strikes a boss in range": [
   "abilities.json"
  ],
  "Every {3rd} step quakes for {60} damage within {6 m}": [
@@ -1062,7 +1068,7 @@
   "taglines.json"
  ],
  "Fireballs": [
-  "weapon_system.gd:162",
+  "weapon_system.gd:166",
   "abilities.json",
   "upgrades.json",
   "upgrades.json"
@@ -1149,7 +1155,7 @@
   "abilities.json"
  ],
  "Frost Shards": [
-  "weapon_system.gd:164",
+  "weapon_system.gd:168",
   "abilities.json"
  ],
  "Frozen enemies that die shatter for {40%} of their max HP to enemies within {2 yd}; shatters chain": [
@@ -1168,7 +1174,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:795"
+  "main.gd:812"
  ],
  "Gaiden": [
   "characters.json"
@@ -1336,11 +1342,11 @@
   "abilities.json"
  ],
  "Hurls fireballs from your staff at the nearest enemies.": [
-  "weapon_system.gd:162",
+  "weapon_system.gd:166",
   "upgrades.json"
  ],
  "Hurls icicles from your staff that slow the enemies they hit.": [
-  "weapon_system.gd:164"
+  "weapon_system.gd:168"
  ],
  "I cast Magic Missile at the darkness!": [
   "taglines.json"
@@ -1450,7 +1456,7 @@
   "hud.gd:863"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:413"
+  "weapon_system.gd:417"
  ],
  "LEVEL UP!": [
   "hud.gd:279"
@@ -1549,7 +1555,7 @@
   "wallet.gd:278"
  ],
  "Lightning arcs from your staff and jumps between enemies.": [
-  "weapon_system.gd:166"
+  "weapon_system.gd:170"
  ],
  "Lightning chains to 2 more enemies": [
   "forge.gd:67"
@@ -1716,7 +1722,7 @@
   "upgrade_db.gd:168"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:816"
+  "main.gd:833"
  ],
  "NEW CHAMPION": [
   "hud.gd:1025"
@@ -2050,7 +2056,7 @@
   "settings_menu.gd:47"
  ],
  "SHARDS: %s": [
-  "main.gd:759"
+  "main.gd:776"
  ],
  "SIGNATURE WEAPON": [
   "character_select.gd:496",
@@ -2108,7 +2114,7 @@
   "abilities.json"
  ],
  "Shadow Bolts": [
-  "weapon_system.gd:168",
+  "weapon_system.gd:172",
   "abilities.json"
  ],
  "Shadow Step": [
@@ -2202,7 +2208,7 @@
   "settings.gd:24"
  ],
  "Slow bolts of shadow that pierce and curse the enemies they hit.": [
-  "weapon_system.gd:168"
+  "weapon_system.gd:172"
  ],
  "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)": [
   "abilities.json"
@@ -2391,7 +2397,7 @@
   "forge_menu.gd:62"
  ],
  "THE FUNGUS COURT RISES!": [
-  "toadstool_boss.gd:193"
+  "toadstool_boss.gd:201"
  ],
  "THE GRAVES OPEN!  STAND ON CONSECRATED GROUND!": [
   "necromancer_boss.gd:516"
@@ -2409,17 +2415,17 @@
   "pharaoh_boss.gd:175"
  ],
  "THE TOADSTOOL KNIGHT": [
-  "toadstool_boss.gd:68"
+  "toadstool_boss.gd:76"
  ],
  "THOG": [
   "main.gd:76",
-  "main.gd:745"
+  "main.gd:762"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:382"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:768"
+  "main.gd:785"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:528"
@@ -2428,7 +2434,7 @@
   "thog_boss.gd:400"
  ],
  "THOG THE TROLL": [
-  "main.gd:718",
+  "main.gd:735",
   "thog_boss.gd:605"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2438,7 +2444,7 @@
   "thog_boss.gd:640"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:719"
+  "main.gd:736"
  ],
  "Take less damage.": [
   "upgrades.json"
@@ -2657,7 +2663,7 @@
   "abilities.json"
  ],
  "Toadstool Knight": [
-  "toadstool_boss.gd:64",
+  "toadstool_boss.gd:72",
   "characters.json"
  ],
  "Toll Booth": [

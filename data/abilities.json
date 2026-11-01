@@ -52,7 +52,7 @@
 
     "thunder_wizard": {
       "role": "Fast, mobile chain-lightning caster",
-      "weapon": { "name": "Chain Lightning", "icon": { "glyph": "chainbolt", "cover": "#3a2a6e", "tint": "#fff27a" }, "desc": "Arcs to 4 enemies, losing 20% damage per jump", "short": "Jumps between enemies", "damage": "12", "every": 0.9 },
+      "weapon": { "name": "Chain Lightning", "icon": { "glyph": "chainbolt", "cover": "#3a2a6e", "tint": "#fff27a" }, "desc": "Arcs to 4 enemies, losing 15% damage per jump; double damage to bosses and epics", "short": "Jumps between enemies", "damage": "12", "every": 0.9 },
       "abilities": [
         { "name": "Overcharge", "cooldown": 30, "icon": { "glyph": "bolt", "color": "#fff27a" },
           "text": "Never stands still. Now he really can't.",
@@ -61,11 +61,11 @@
         { "name": "Thunderclap", "cooldown": 30, "icon": { "glyph": "burst", "color": "#ffe14a" },
           "text": "Lightning finds the toughest enemies.",
           "lines": ["{12} bolts strike the enemies with the most HP within {25 m}",
-                    "{120} damage each, and they're stunned for {1.5 s}"] },
+                    "{120} damage each, and they're stunned for {1.5 s}", "A boss within {40 m} can take up to {4} of the bolts"] },
         { "name": "Storm Lord", "cooldown": 120, "icon": { "glyph": "cloud", "color": "#b59cff" },
           "text": "A thunderstorm follows you around.",
           "lines": ["For {10 s}, a bolt strikes an enemy within {18 m} every {0.25 s}",
-                    "Each bolt deals {90} damage and chains to {3} more enemies"] }
+                    "Each bolt deals {90} damage and chains to {3} more enemies", "Every third bolt strikes a boss in range"] }
       ]
     },
 
