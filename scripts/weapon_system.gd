@@ -9,7 +9,8 @@ extends Node3D
 ## (data/abilities.json: "damage", "every"; the Fire Wizard's 12 dmg / 0.9 s = 1x):
 ##   fire     Fireballs        auto-aimed fireballs that pierce
 ##   ice      Frost Shards     icicles that slow goblins (SHARD_SLOW for SHARD_SLOW_TIME)
-##   thunder  Chain Lightning  instant arcs that jump CHAIN_JUMPS (+ pierce) times, losing 20% each
+##   thunder  Chain Lightning  instant arcs that jump CHAIN_JUMPS (+ pierce) times, losing 15% each;
+##                             x CHAIN_DAMAGE, and x CHAIN_BOSS on bosses and epics
 ##   dark     Shadow Bolts     slow, extra-piercing bolts; CURSE_CHANCE to curse for CURSE_TIME
 ##   arcane   Arcane Bolts     (Merlin) homing bolts that bounce to ARCANE_BOUNCES more enemies, triple damage to epics and bosses
 ##   trunk    Tree Trunk       (Ogre) 120 deg cleave, 3 m, heavy knockback (360 deg in Swamp Rage)
@@ -88,7 +89,9 @@ const SHARD_SLOW := 0.7          # Frost Shards: goblins move at 70% speed...
 const SHARD_SLOW_TIME := 2.0     # ...for 2 s
 const CHAIN_JUMPS := 4           # Chain Lightning: extra goblins each arc jumps to
 const CHAIN_RANGE := 6.0
-const CHAIN_FALLOFF := 0.8       # damage kept per jump
+const CHAIN_FALLOFF := 0.85      # damage kept per jump
+const CHAIN_DAMAGE := 1.35       # Chain Lightning hits this much harder than the shared base damage
+const CHAIN_BOSS := 2.0          # ...and this much harder again on bosses and epics (lightning rods)
 const CHAIN_REACH := 22.0        # first target range
 const DARK_SPEED := 0.6          # Shadow Bolts fly at 60% speed...
 const DARK_PIERCE := 2           # ...pierce 2 more goblins...
@@ -849,7 +852,7 @@ func _fire_chain(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBase
 		return false
 	if model != null:
 		origin = model.attack(enemies.center_of(targets[0]))
-	var dmg := _dmg(pre, "thunder", dmg_mult)
+	var dmg := _dmg(pre, "thunder", dmg_mult) * CHAIN_DAMAGE
 	var jumps := CHAIN_JUMPS + int(stats.value(pre + "_pierce")) + (Forge.THUNDER_JUMPS if special.has("thunder") else 0)
 	var col := RosterHero.color("thunder_wizard", "main")
 	var hit := {}
@@ -863,7 +866,7 @@ func _fire_chain(origin: Vector3, dmg_mult: float, pre := "orb", model: HeroBase
 			hit[cur] = true
 			var at := enemies.center_of(cur)
 			lightning.bolt(from, at, col, 0.05 if j > 0 else 0.07, 0.14)
-			enemies.damage(cur, d)
+			enemies.damage(cur, d * (CHAIN_BOSS if enemies.is_boss(cur) or enemies.epic[cur] else 1.0))
 			from = at
 			d *= CHAIN_FALLOFF
 			var next := -1

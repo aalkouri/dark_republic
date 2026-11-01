@@ -13,7 +13,9 @@ extends Node3D
 ## Thunder Wizard
 ##   1  Overcharge      30 s  +40% move speed for 8 s; every jump and landing shocks 6 m for 40
 ##   2  Thunderclap     45 s  12 bolts on the goblins with the most HP within 25 m: 120 + 1.5 s stun
+##                            (a boss can take up to 4 of them)
 ##   3  Storm Lord     120 s  10 s storm: a bolt every 0.25 s within 18 m, 90 dmg, chains to 3 more
+##                            (every 3rd strike goes to a boss in range)
 ## Dark Wizard
 ##   1  Siphon          30 s  4 s: goblins within 12 m lose 6% max HP/s; heal 1 HP per goblin per
 ##                            second (max 5% of max HP per second)
@@ -74,12 +76,14 @@ const CLAP_RADIUS := 25.0
 const CLAP_DAMAGE := 120.0
 const CLAP_STUN := 1.5
 const CLAP_SPACING := 0.05           # seconds between strikes
+const CLAP_BOSS_HITS := 4            # a boss in range can take this many of the bolts
 const STORM_TIME := 10.0
 const STORM_RADIUS := 18.0
 const STORM_EVERY := 0.25
 const STORM_DAMAGE := 90.0
 const STORM_CHAINS := 3
 const STORM_HEIGHT := 14.0
+const STORM_BOSS_EVERY := 3          # with a boss in range, every 3rd strike goes to him
 # --- Dark
 const SIPHON_TIME := 4.0
 const SIPHON_RADIUS := 12.0
@@ -139,6 +143,7 @@ var _clap_t := 0.0
 var _clap_hit := {}
 var _storm_t := 0.0
 var _storm_tick := 0.0
+var _storm_n := 0                    # strikes this storm (every STORM_BOSS_EVERY-th seeks the boss)
 var _storm_cloud: Node3D
 var _storm_light: OmniLight3D
 # Dark state
@@ -637,7 +642,7 @@ func _tick_clap(dt: float) -> void:
 		var best := -1
 		var best_hp := -1.0
 		for i in enemies.query_radius(player.global_position + Vector3(0, 0.8, 0), CLAP_RADIUS, false):
-			if _clap_hit.has(enemies.uid[i]):
+			if int(_clap_hit.get(enemies.uid[i], 0)) >= (CLAP_BOSS_HITS if enemies.is_boss(i) else 1):
 				continue
 			if enemies.hp[i] > best_hp:
 				best_hp = enemies.hp[i]
@@ -645,7 +650,7 @@ func _tick_clap(dt: float) -> void:
 		if best < 0:
 			_clap_left = 0
 			return
-		_clap_hit[enemies.uid[best]] = true
+		_clap_hit[enemies.uid[best]] = int(_clap_hit.get(enemies.uid[best], 0)) + 1
 		var at := enemies.center_of(best)
 		_sky_bolt(at, 0.08, 0.35)
 		enemies.stun(best, CLAP_STUN)
@@ -719,6 +724,12 @@ func _tick_storm(dt: float) -> void:
 		var near := enemies.query_radius(player.global_position + Vector3(0, 0.8, 0), STORM_RADIUS, false)
 		if not near.is_empty():
 			var t := near[randi() % near.size()]
+			_storm_n += 1
+			if _storm_n % STORM_BOSS_EVERY == 0:
+				for e in near:
+					if enemies.is_boss(e):
+						t = e
+						break
 			var from := _storm_cloud.global_position + Vector3(randf_range(-5, 5), -1.5, randf_range(-5, 5))
 			_chain_strike(t, from, STORM_DAMAGE * _dmg() * pw(2), STORM_CHAINS)
 			_storm_light.light_energy = 6.0
