@@ -12,7 +12,7 @@ extends Node3D
 ##                            inside freezes for 2 s and shatters for 200 damage
 ## Thunder Wizard
 ##   1  Overcharge      30 s  +40% move speed for 8 s; every jump and landing shocks 6 m for 40
-##   2  Thunderclap     45 s  12 bolts on the goblins with the most HP within 25 m: 120 + 1.5 s stun
+##   2  Thunderclap     30 s  12 bolts on the goblins with the most HP within 25 m: 120 + 1.5 s stun
 ##                            (a boss can take up to 4 of them)
 ##   3  Storm Lord     120 s  10 s storm: a bolt every 0.25 s within 18 m, 90 dmg, chains to 3 more
 ##                            (every 3rd strike goes to a boss in range)

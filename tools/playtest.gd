@@ -376,7 +376,9 @@ func _steer(dt: float) -> void:
 		_stuck_t = 0.0
 		player.bot_jump = true
 	else:
-		player.bot_jump = false
+		# Overcharge shocks on every take-off and landing, so hop while it's up (as a player would)
+		var kit = main.abilities.roster if main.abilities.get("roster") != null else null
+		player.bot_jump = kit != null and kit.has_method("active") and kit.active("overcharge") and player.is_on_floor()
 	if _dodge_t > 0.0:
 		v = v.normalized().rotated(Vector3.UP, PI * 0.5 * _side)
 	v.y = 0.0

@@ -58,7 +58,7 @@
           "text": "Never stands still. Now he really can't.",
           "lines": ["{+40%} move speed for {8 s}",
                     "Every jump and every landing releases a shock: {40} damage within {6 m}"] },
-        { "name": "Thunderclap", "cooldown": 45, "icon": { "glyph": "burst", "color": "#ffe14a" },
+        { "name": "Thunderclap", "cooldown": 30, "icon": { "glyph": "burst", "color": "#ffe14a" },
           "text": "Lightning finds the toughest enemies.",
           "lines": ["{12} bolts strike the enemies with the most HP within {25 m}",
                     "{120} damage each, and they're stunned for {1.5 s}"] },
