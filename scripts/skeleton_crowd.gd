@@ -107,6 +107,9 @@ void fragment() {
 }
 """
 
+## On the Castle only the elites (Armored Skeletons) throw bones; plain skeletons just close in.
+var elite_only_throw := Settings.selected_map == "castle"
+
 var em: EnemyManager
 var _mm: MultiMesh                 # plain skeletons
 var _mm_armored: MultiMesh         # armoured (epic) skeletons
@@ -314,7 +317,7 @@ func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Ar
 		if em.rise_t[i] > 0.0:   # crawling up out of the floor / a grave (bombers, the Graveyard's risen): sunk into it, clawing
 			buf[b + 7] -= HEIGHT * 1.05 * clampf(em.rise_t[i] / BomberSkeletons.RISE_TIME, 0.0, 1.0)
 			anim = ANIM_ATTACK
-		if not em.dead[i] and not bomb:
+		if not em.dead[i] and not bomb and (em.epic[i] or not elite_only_throw):
 			if em.throw_anim[i] > 0.0:
 				var before := em.throw_anim[i]
 				em.throw_anim[i] -= dt
