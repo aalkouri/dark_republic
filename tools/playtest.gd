@@ -309,6 +309,12 @@ func _steer(dt: float) -> void:
 			if out.length() < r:
 				v += (out.normalized() if out.length() > 0.1 else Vector3(1, 0, 0)) * 6.0
 				threat += 10.0
+		for h in b.get("_hazards") if b.get("_hazards") != null else []:   # lingering clouds: step out, as a player would
+			var hc: Vector3 = h["at"]
+			var out3 := Vector3(p.x - hc.x, 0, p.z - hc.z)
+			if out3.length() < float(h["r"]) + 1.5:
+				v += (out3.normalized() if out3.length() > 0.1 else Vector3(1, 0, 0)) * 4.0
+				threat += 5.0
 		for w in b.get("_warns") if b.get("_warns") != null else []:
 			var node = w.get("disc") if w is Dictionary else null
 			if node != null and is_instance_valid(node):
