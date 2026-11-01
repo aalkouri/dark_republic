@@ -695,6 +695,7 @@ func _live_cap() -> int:
 	if map_boss != null and is_instance_valid(map_boss) and map_boss.crowd_cap > 0 and map_boss.state != "dead":
 		return map_boss.crowd_cap
 	return LIVE_CAP
+const TANK_WEIGHT_CAP := {"forest": 4.0}   # per map: Brutes stop growing as a share of spawns at this weight (grunts are 10)
 const RING_GAP := {"forest": deg_to_rad(90.0)}   # per map: the swarm ring's opening, toward where you're heading
 const SKELETON_SHARE := 0.35  # castle: this share of spawns are skeletons (same overall rate)
 const BOMBERS_BASE := 10      # castle: bomber skeletons per wave (in place of the swarm ring)...
@@ -709,6 +710,7 @@ func _pick_type(m: float) -> int:
 	var w_grunt := 10.0
 	var w_runner := 4.0 * minf(m, 3.0) if m >= 1.0 else 0.0
 	var w_tank := 1.5 * (m - 1.0) if m >= 2.0 else 0.0
+	w_tank = minf(w_tank, TANK_WEIGHT_CAP.get(Settings.selected_map, INF) as float)
 	var r := rng.randf() * (w_grunt + w_runner + w_tank)
 	if r < w_grunt:
 		return EnemyManager.GRUNT
