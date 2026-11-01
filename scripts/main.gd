@@ -627,7 +627,8 @@ func hp_mult() -> float:
 
 func _spawn_director(dt: float) -> void:
 	var m := run_time / 60.0
-	_spawn_budget += (1.6 + m * 2.2 + m * m * 0.5) * dt
+	var k_boss := BOSS_SPAWN_MULT if boss_up() else 1.0   # half the mobs while the boss is out
+	_spawn_budget += (1.6 + m * 2.2 + m * m * 0.5) * dt * k_boss
 	var hpm := hp_mult()
 	while _spawn_budget >= 1.0:
 		_spawn_budget -= 1.0
@@ -639,7 +640,7 @@ func _spawn_director(dt: float) -> void:
 	# Swarm ring every minute (the Castle: bomber skeletons crawl out of the floor instead)
 	if run_time >= _next_swarm and CastleNav.current != null:
 		_next_swarm += 60.0
-		var nb := BOMBERS_BASE + int(m) * BOMBERS_PER_MIN
+		var nb := int((BOMBERS_BASE + int(m) * BOMBERS_PER_MIN) * k_boss)
 		for k in nb:
 			var a := TAU * float(k) / float(nb) + rng.randf_range(-0.15, 0.15)
 			var p := player.global_position + Vector3(cos(a), 0, sin(a)) * rng.randf_range(14.0, 22.0)
@@ -648,10 +649,10 @@ func _spawn_director(dt: float) -> void:
 			enemies.bombers.spawn(p, hpm, rng.randf_range(0.0, 1.2))
 	elif run_time >= _next_swarm and enemies.undead != null:   # the Graveyard: the dead climb out of the graves round you
 		_next_swarm += 60.0
-		enemies.undead.grave_swarm(player.global_position, 24 + int(m) * 6, hpm, rng, epic_chance())
+		enemies.undead.grave_swarm(player.global_position, int((24 + int(m) * 6) * k_boss), hpm, rng, epic_chance())
 	elif run_time >= _next_swarm:
 		_next_swarm += 60.0
-		var n := 24 + int(m) * 6
+		var n := int((24 + int(m) * 6) * k_boss)
 		for k in n:
 			var a := TAU * float(k) / float(n)
 			var p := player.global_position + Vector3(cos(a), 0, sin(a)) * 22.0
@@ -669,6 +670,14 @@ func _spawn_director(dt: float) -> void:
 		_boss_spawned = true
 		enemies.spawn(EnemyManager.BOSS, _spawn_point(30.0, 32.0), hpm)
 		hud.flash_message("A GOBLIN WARLORD APPROACHES", 4.0)
+
+
+## Spawns (trickle and swarm waves) are scaled by this while the map's boss is out.
+const BOSS_SPAWN_MULT := 0.5
+
+
+func boss_up() -> bool:
+	return (thog != null and is_instance_valid(thog)) or (map_boss != null and is_instance_valid(map_boss))
 
 
 const LIVE_CAP := 250   # the steady trickle pauses while this many goblins are alive (swarm rings still come)
