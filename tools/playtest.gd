@@ -45,6 +45,8 @@ var _potions := {}               # potion name -> count picked up
 var _keys := [0, 0, 0]           # keys picked up this run: bronze, silver, gold
 var _powerups := {}              # power-up name -> count picked up
 var _chests := 0                 # chests opened (slot machine pulls)
+var _trace: Array = []           # the last 10 s, every 0.5 s: what was around when it died
+var _trace_t := 0.0
 
 
 func _ready() -> void:
@@ -93,6 +95,8 @@ func _next() -> void:
 	_keys = [0, 0, 0]
 	_powerups = {}
 	_chests = 0
+	_trace = []
+	_trace_t = 0.0
 	main.potions.collected.connect(func(k: int): _bump(_potions, PotionManager.NAMES[k].get_slice(":", 0)))
 	main.keys.collected.connect(func(tier: int): _keys[tier] += 1)
 	main.powerups.collected.connect(func(k: int): _bump(_powerups, PowerupManager.NAMES[k]))
@@ -139,6 +143,10 @@ func _physics_process(dt: float) -> void:
 		return
 	_steer(dt)
 	_cast()
+	_trace_t += dt
+	if _trace_t >= 0.5:
+		_trace_t = 0.0
+		_snapshot()
 	_log_t += dt
 	var bhp := _boss_hp()
 	if _log_t >= (BOSS_LOG_EVERY if bhp > 0.0 else LOG_EVERY):
@@ -152,6 +160,25 @@ func _physics_process(dt: float) -> void:
 
 
 # ------------------------------------------------------------------ results
+
+## HP, the goblins within 2 m and 8 m by type, and how many are held (frozen/stunned/...).
+func _snapshot() -> void:
+	var em: EnemyManager = main.enemies
+	var p: Vector3 = main.player.global_position
+	var close := {}
+	var near := 0
+	for i in em.query_radius(p + Vector3(0, 0.8, 0), 8.0, false):
+		if em.is_harmless(i):
+			continue
+		near += 1
+		var d: float = Vector2(em.pos[i].x - p.x, em.pos[i].z - p.z).length() - em.t_radius[em.typ[i]] * em.sz[i]
+		if d < 2.0:
+			var nm: String = em.type_names[em.typ[i]] + (" (epic)" if em.epic[i] else "")
+			close[nm] = int(close.get(nm, 0)) + 1
+	_trace.append("%s hp %d/%d  within 8 m %d  touching %s" % [_fmt(main.run_time), int(main.player.hp), int(main.player.max_hp), near, str(close)])
+	if _trace.size() > 20:
+		_trace.pop_front()
+
 
 func _record(st: String) -> void:
 	var won: bool = st == "won"
@@ -169,6 +196,9 @@ func _record(st: String) -> void:
 	detail["keys_left"] = Array(main.keys.keys)
 	detail["keys"] = {"Bronze": _keys[0], "Silver": _keys[1], "Gold": _keys[2]}
 	detail["shards"] = main.shards_won.duplicate()
+	if st == "dead":
+		detail["last_10s"] = _trace.duplicate()
+		print("  last 10 s:\n    " + "\n    ".join(PackedStringArray(_trace)))
 	var jf := FileAccess.open(out_path + ".jsonl", FileAccess.READ_WRITE if FileAccess.file_exists(out_path + ".jsonl") else FileAccess.WRITE)
 	if jf:
 		jf.seek_end()
