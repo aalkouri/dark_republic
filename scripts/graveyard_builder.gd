@@ -358,11 +358,6 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 	amb.setup(rng, wisp_homes, lights, chapel_at, half)
 	parent.add_child(amb)
 	_occ = PackedByteArray()
-	var _cr := []   # TEMP-DEBUG
-	for n in parent.get_children():   # TEMP-DEBUG
-		if n.is_in_group("graveyard_crypt") and _cr.size() < 4:   # TEMP-DEBUG
-			_cr.append([n.position, n.rotation.y])   # TEMP-DEBUG
-	print("GRAVEYARD chapel %s yaw %s moon %s crypts %s" % [str(chapel_at), str(landmarks[0]["yaw"]), str(moon_dir), str(_cr)])   # TEMP-DEBUG
 	return water
 
 

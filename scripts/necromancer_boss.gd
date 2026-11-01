@@ -124,6 +124,12 @@ func _build_model() -> void:
 	if i >= 0:
 		var to := player.global_position - em.pos[i]
 		_yaw = atan2(to.x, to.z)
+	var fill := OmniLight3D.new()   # a cold fill so he reads against the dark
+	fill.light_color = Color(0.7, 0.85, 1.0)
+	fill.light_energy = 1.1
+	fill.omni_range = 10.0
+	fill.position = Vector3(0, 2.4, 1.0)
+	model.add_child(fill)
 	_beam = _make_beam()
 	add_child(_beam)
 	_sync(0.0)
@@ -349,7 +355,7 @@ func _land_curse(c: Vector3) -> void:
 	play_sfx("spell", 0.6)
 	add_hazard(c, CURSE_RADIUS, CURSE_LIFE, CURSE, CURSE_DPS, CURSE_SLOW)
 	if fx:
-		fx.burst(c + Vector3(0, 0.4, 0), CURSE_RADIUS, CURSE, 0.5)
+		fx.burst(c + Vector3(0, 0.3, 0), 2.0, CURSE, 0.35)
 	# a slowly turning ring of curse runes floats over it while it lasts
 	var ring := Node3D.new()
 	ring.top_level = true

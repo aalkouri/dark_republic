@@ -508,9 +508,12 @@ func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Ar
 				var reach := em.t_radius[t] * em.sz[i] + 0.55
 				if d2 < reach * reach and not em.is_harmless(i) and absf(pp.y - em.pos[i].y) < 2.5 and player.has_method("apply_slow"):
 					player.apply_slow(CHILL_SLOW, CHILL_SECS)
-					if _chill_cd <= 0.0:
-						chills += 1
+					chills += 1
+					if _chill_cd <= 0.0 and player is Node3D:   # a puff of frost (not every frame)
 						_chill_cd = 0.5
+						var fx := _fx()
+						if fx:
+							fx.burst((player as Node3D).global_position + Vector3(0, 1.0, 0), 0.7, Color(0.6, 0.9, 1.0), 0.3)
 			elif d2 < nld:
 				nld = d2
 				near_ghoul = i

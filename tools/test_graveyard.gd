@@ -178,7 +178,11 @@ func _run_checks() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	gi = em.index_of(guid)
-	var floated := und._buf_h[7] - em.pos[gi].y if gi >= 0 and und.ghosts_drawn > 0 else 0.0
+	var floated := -99.0
+	for k in und.ghosts_drawn:   # find this ghost's instance in the ghost buffer
+		var o := k * UndeadCrowd.STRIDE
+		if gi >= 0 and absf(und._buf_h[o + 3] - em.pos[gi].x) < 0.01 and absf(und._buf_h[o + 11] - em.pos[gi].z) < 0.01:
+			floated = und._buf_h[o + 7] - em.pos[gi].y
 	_check("ghosts float above the ground", und.ghosts_drawn >= 1 and floated >= UndeadCrowd.GHOST_FLOAT - 0.05, "%.2f m up" % floated)
 	var hit := em.query_radius(em.pos[gi] + Vector3(0, 1.9, 0), 0.3) if gi >= 0 else PackedInt32Array()
 	_check("...and a shot at the floating body hits", gi >= 0 and hit.has(gi), "")

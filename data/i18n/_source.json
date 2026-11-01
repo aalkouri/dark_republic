@@ -235,6 +235,9 @@
  "A blizzard swallows everything around you.": [
   "abilities.json"
  ],
+ "A bolt of green soul-fire from the staff: 26 damage, and a little of it heals you": [
+  "abilities.json"
+ ],
  "A carpet of beetles pours out of his sleeves.": [
   "abilities.json"
  ],
@@ -476,6 +479,12 @@
  ],
  "Bolts pierce 2 more enemies": [
   "forge.gd:72"
+ ],
+ "Bone Spikes": [
+  "abilities.json"
+ ],
+ "Bone spikes burst up along a {18 m} line where you aim: {70} damage": [
+  "abilities.json"
  ],
  "Borderless fullscreen": [
   "settings_menu.gd:182"
@@ -781,6 +790,9 @@
  "Each has its own Acid Body at {60%} damage": [
   "abilities.json"
  ],
+ "Each hits for {18} damage": [
+  "abilities.json"
+ ],
  "Each kill heals {1%} of your max HP": [
   "abilities.json"
  ],
@@ -871,6 +883,9 @@
  "Enemies they cross are poisoned for {4 s}": [
   "abilities.json"
  ],
+ "Enemies they hit are rooted for {1.5 s}": [
+  "abilities.json"
+ ],
  "Enemies within {12 m} lose {6%} of max HP per second for {4 s}": [
   "abilities.json"
  ],
@@ -947,6 +962,9 @@
   "abilities.json"
  ],
  "Every fire on the ground erupts: {100} damage within {3 m} of each": [
+  "abilities.json"
+ ],
+ "Every grave in reach gives up its dead.": [
   "abilities.json"
  ],
  "Every hit curses": [
@@ -1920,6 +1938,9 @@
  "Raise Dead": [
   "abilities.json"
  ],
+ "Raise the Dead": [
+  "abilities.json"
+ ],
  "Raised every grave in the parish for company. They don't say much, but they always come when called.": [
   "characters.json"
  ],
@@ -2129,6 +2150,9 @@
  "Siphon": [
   "abilities.json"
  ],
+ "Six skeletons claw out of the ground round you and fight for you for {15 s}": [
+  "abilities.json"
+ ],
  "Six-Shooter": [
   "abilities.json"
  ],
@@ -2149,6 +2173,9 @@
  ],
  "Skip this upgrade for a chest key: 60% bronze, 30% silver, 10% gold": [
   "hud.gd:338"
+ ],
+ "Skull Staff": [
+  "abilities.json"
  ],
  "Slam Cooldown": [
   "upgrades.json"
@@ -2208,6 +2235,9 @@
   "taglines.json"
  ],
  "Sonic cone, faster moving": [
+  "abilities.json"
+ ],
+ "Soul bolts, drain": [
   "abilities.json"
  ],
  "Sound": [
@@ -2355,7 +2385,7 @@
   "pharaoh_boss.gd:296"
  ],
  "THE DEAD RISE!": [
-  "necromancer_boss.gd:219"
+  "necromancer_boss.gd:225"
  ],
  "THE FORGE": [
   "forge_menu.gd:62"
@@ -2364,7 +2394,7 @@
   "toadstool_boss.gd:193"
  ],
  "THE GRAVES OPEN!  STAND ON CONSECRATED GROUND!": [
-  "necromancer_boss.gd:510"
+  "necromancer_boss.gd:516"
  ],
  "THE NECROMANCER": [
   "necromancer_boss.gd:98"
@@ -2447,6 +2477,9 @@
  "The Good Boy": [
   "characters.json"
  ],
+ "The Graves Open": [
+  "abilities.json"
+ ],
  "The Graveyard": [
   "map_picker.gd:23"
  ],
@@ -2503,11 +2536,20 @@
  "The fallen get back up, on your side this time.": [
   "abilities.json"
  ],
+ "The fallen rise as ghosts that fight for you for {10 s}": [
+  "abilities.json"
+ ],
  "The fallen rise as mummies that fight for you for {10 s}": [
   "abilities.json"
  ],
  "The goblins have disadvantage. On everything.": [
   "taglines.json"
+ ],
+ "The ground remembers what's buried in it.": [
+  "abilities.json"
+ ],
+ "The ground within {25 m} erupts: {300} damage to every enemy on it": [
+  "abilities.json"
  ],
  "The ground within {30 m} turns to bog for {12 s}: enemies are slowed {70%}": [
   "abilities.json"
@@ -2739,6 +2781,9 @@
   "mode_menu.gd:16"
  ],
  "Up to {40} enemies within {20 m} become frogs for {8 s} (not the boss)": [
+  "abilities.json"
+ ],
+ "Up you get.": [
   "abilities.json"
  ],
  "Updraft": [

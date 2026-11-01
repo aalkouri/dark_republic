@@ -94,5 +94,125 @@
   "den Nekromanten auf dem Friedhof",
   "墓地的死灵法师",
   "墓地のネクロマンサー"
+ ],
+ "A bolt of green soul-fire from the staff: 26 damage, and a little of it heals you": [
+  "Un rayo de fuego de almas verde desde el bastón: 26 de daño, y una parte te cura",
+  "Un trait de feu d'âme vert jaillit du bâton : 26 dégâts, et une partie vous soigne",
+  "صاعقة من نار الأرواح الخضراء من العصا: 26 ضررًا، ويشفيك جزء منها",
+  "Ein grüner Seelenfeuer-Blitz aus dem Stab: 26 Schaden, ein Teil davon heilt dich",
+  "法杖射出一道绿色魂火：造成26点伤害，并为你恢复少许生命",
+  "杖から緑の魂の炎の矢：26ダメージ、その一部であなたを回復"
+ ],
+ "Bone Spikes": [
+  "Púas de hueso",
+  "Pieux d'os",
+  "أشواك العظام",
+  "Knochenstacheln",
+  "骨刺",
+  "ボーンスパイク"
+ ],
+ "Bone spikes burst up along a {18 m} line where you aim: {70} damage": [
+  "Púas de hueso brotan a lo largo de una línea de {18 m} hacia donde apuntas: {70} de daño",
+  "Des pieux d'os jaillissent sur une ligne de {18 m} là où vous visez : {70} dégâts",
+  "تنبثق أشواك العظام على طول خط {18 m} حيث تصوّب: {70} ضررًا",
+  "Knochenstacheln brechen entlang einer {18 m} langen Linie hervor, wohin du zielst: {70} Schaden",
+  "骨刺沿你瞄准的{18 m}直线破土而出：造成{70}点伤害",
+  "狙った方向の{18 m}の直線に骨の棘が突き出す：{70}ダメージ"
+ ],
+ "Each hits for {18} damage": [
+  "Cada uno golpea por {18} de daño",
+  "Chacun frappe pour {18} dégâts",
+  "يضرب كل منها بـ {18} ضررًا",
+  "Jeder trifft für {18} Schaden",
+  "每个造成{18}点伤害",
+  "それぞれ{18}ダメージを与える"
+ ],
+ "Enemies they hit are rooted for {1.5 s}": [
+  "Los enemigos alcanzados quedan inmovilizados {1.5 s}",
+  "Les ennemis touchés sont immobilisés {1.5 s}",
+  "يُثبَّت الأعداء المصابون في مكانهم لمدة {1.5 s}",
+  "Getroffene Feinde werden {1.5 s} festgehalten",
+  "被击中的敌人被定身{1.5 s}",
+  "命中した敵は{1.5 s}拘束される"
+ ],
+ "Every grave in reach gives up its dead.": [
+  "Cada tumba a su alcance entrega a sus muertos.",
+  "Chaque tombe à portée rend ses morts.",
+  "كل قبر في متناوله يُخرج موتاه.",
+  "Jedes Grab in Reichweite gibt seine Toten frei.",
+  "范围内的每座坟墓都交出了它的亡者。",
+  "届く限りの墓がその死者を差し出す。"
+ ],
+ "Raise the Dead": [
+  "Alzar a los muertos",
+  "Relever les morts",
+  "إحياء الموتى",
+  "Die Toten erwecken",
+  "唤起亡者",
+  "死者の蘇生"
+ ],
+ "Six skeletons claw out of the ground round you and fight for you for {15 s}": [
+  "Seis esqueletos salen arañando de la tierra a tu alrededor y luchan por ti durante {15 s}",
+  "Six squelettes sortent de terre autour de vous et combattent pour vous pendant {15 s}",
+  "ستة هياكل عظمية تشق الأرض حولك وتقاتل معك لمدة {15 s}",
+  "Sechs Skelette krallen sich um dich herum aus dem Boden und kämpfen {15 s} für dich",
+  "六具骷髅从你周围的地里爬出，为你战斗{15 s}",
+  "周囲の地面から骸骨が6体這い出し、{15 s}あなたのために戦う"
+ ],
+ "Skull Staff": [
+  "Bastón de calavera",
+  "Bâton à crâne",
+  "عصا الجمجمة",
+  "Schädelstab",
+  "骷髅法杖",
+  "髑髏の杖"
+ ],
+ "Soul bolts, drain": [
+  "Rayos de alma, drenaje",
+  "Traits d'âme, drain",
+  "صواعق الأرواح، امتصاص",
+  "Seelenblitze, Entzug",
+  "魂弹，吸取",
+  "魂の矢、吸収"
+ ],
+ "The Graves Open": [
+  "Las tumbas se abren",
+  "Les tombes s'ouvrent",
+  "القبور تنفتح",
+  "Die Gräber öffnen sich",
+  "坟墓开启",
+  "墓が開く"
+ ],
+ "The fallen rise as ghosts that fight for you for {10 s}": [
+  "Los caídos se alzan como fantasmas que luchan por ti durante {10 s}",
+  "Les morts se relèvent en fantômes qui combattent pour vous pendant {10 s}",
+  "ينهض الساقطون أشباحًا تقاتل معك لمدة {10 s}",
+  "Die Gefallenen erheben sich als Geister, die {10 s} für dich kämpfen",
+  "倒下的敌人化为幽灵，为你战斗{10 s}",
+  "倒れた者はゴーストとなり{10 s}あなたのために戦う"
+ ],
+ "The ground remembers what's buried in it.": [
+  "La tierra recuerda lo que lleva enterrado.",
+  "La terre se souvient de ce qu'on y a enterré.",
+  "الأرض تتذكر ما دُفن فيها.",
+  "Der Boden erinnert sich, was in ihm begraben liegt.",
+  "大地记得埋在其中的一切。",
+  "大地は埋められたものを覚えている。"
+ ],
+ "The ground within {25 m} erupts: {300} damage to every enemy on it": [
+  "La tierra en {25 m} a la redonda estalla: {300} de daño a cada enemigo sobre ella",
+  "Le sol dans un rayon de {25 m} entre en éruption : {300} dégâts à chaque ennemi dessus",
+  "تنفجر الأرض ضمن {25 m}: {300} ضررًا لكل عدو عليها",
+  "Der Boden im Umkreis von {25 m} bricht auf: {300} Schaden an jedem Feind darauf",
+  "{25 m}内的地面爆裂：对其上每个敌人造成{300}点伤害",
+  "{25 m}以内の地面が噴き上がる：その上の全ての敵に{300}ダメージ"
+ ],
+ "Up you get.": [
+  "Arriba, levantaos.",
+  "Allez, debout.",
+  "انهضوا.",
+  "Hoch mit euch.",
+  "起来吧。",
+  "さあ、起きろ。"
  ]
 }

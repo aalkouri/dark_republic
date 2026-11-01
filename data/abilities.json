@@ -495,6 +495,25 @@
           "lines": ["Its gaze sweeps the field: {400} damage to every enemy within {30 m}",
                     "The fallen rise as mummies that fight for you for {10 s}"] }
       ]
+    },
+
+    "necromancer": {
+      "role": "Grave-lord who drains souls and raises the dead",
+      "weapon": { "name": "Skull Staff", "icon": { "glyph": "shadowbolt", "cover": "#14281a", "tint": "#6dff8a" }, "desc": "A bolt of green soul-fire from the staff: 26 damage, and a little of it heals you", "short": "Soul bolts, drain", "damage": "26", "every": 0.8 },
+      "abilities": [
+        { "name": "Bone Spikes", "cooldown": 30, "icon": { "glyph": "bone", "color": "#e0d8c0" },
+          "text": "The ground remembers what's buried in it.",
+          "lines": ["Bone spikes burst up along a {18 m} line where you aim: {70} damage",
+                    "Enemies they hit are rooted for {1.5 s}"] },
+        { "name": "Raise the Dead", "cooldown": 45, "icon": { "glyph": "ghost", "color": "#7dffb0" },
+          "text": "Up you get.",
+          "lines": ["Six skeletons claw out of the ground round you and fight for you for {15 s}",
+                    "Each hits for {18} damage"] },
+        { "name": "The Graves Open", "cooldown": 120, "icon": { "glyph": "moon", "color": "#5cff7a" },
+          "text": "Every grave in reach gives up its dead.",
+          "lines": ["The ground within {25 m} erupts: {300} damage to every enemy on it",
+                    "The fallen rise as ghosts that fight for you for {10 s}"] }
+      ]
     }
   }
 }
