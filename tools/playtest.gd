@@ -22,6 +22,7 @@ const UPGRADE_PRIORITY := {
 }
 const SAFE_RADIUS := 14.0
 const LOG_EVERY := 60.0
+const BOSS_LOG_EVERY := 15.0     # log more often while the boss is up
 const MAX_RUN := 1500.0          # give up after 25 minutes of game time
 
 var chars: PackedStringArray = ["fire_wizard"]
@@ -139,10 +140,15 @@ func _physics_process(dt: float) -> void:
 	_steer(dt)
 	_cast()
 	_log_t += dt
-	if _log_t >= LOG_EVERY:
+	var bhp := _boss_hp()
+	if _log_t >= (BOSS_LOG_EVERY if bhp > 0.0 else LOG_EVERY):
 		_log_t = 0.0
-		print("  [%s #%d] %s  lvl %d  hp %d/%d  kills %d  enemies %d" % [_cur["char"], _cur["n"], _fmt(main.run_time), main.level,
-			int(main.player.hp), int(main.player.max_hp), main.kills, main.enemies.alive_count()])
+		var boss := ""
+		if bhp > 0.0:   # the boss fight: his health and how far away he is
+			var b = main.get("map_boss") if main.get("map_boss") != null else main.get("thog")
+			boss = "  boss %.1f%% at %d m" % [bhp * 100.0, roundi(main.enemies.pos[b.row()].distance_to(main.player.global_position))]
+		print("  [%s #%d] %s  lvl %d  hp %d/%d  kills %d  enemies %d%s" % [_cur["char"], _cur["n"], _fmt(main.run_time), main.level,
+			int(main.player.hp), int(main.player.max_hp), main.kills, main.enemies.alive_count(), boss])
 
 
 # ------------------------------------------------------------------ results
