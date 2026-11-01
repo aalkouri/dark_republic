@@ -655,8 +655,13 @@ func _spawn_director(dt: float) -> void:
 	elif run_time >= _next_swarm:
 		_next_swarm += 60.0
 		var n := int((24 + int(m) * 6) * k_boss)
+		var gap := RING_GAP.get(Settings.selected_map, 0.0) as float   # an opening ahead of you to run out through
+		var mv := Vector3(player.velocity.x, 0, player.velocity.z)
+		var ahead := 0.0
+		if gap > 0.0:
+			ahead = atan2(mv.z, mv.x) if mv.length() > 0.5 else rng.randf() * TAU
 		for k in n:
-			var a := TAU * float(k) / float(n)
+			var a := ahead + gap * 0.5 + (TAU - gap) * (float(k) + 0.5) / float(n)
 			var p := player.global_position + Vector3(cos(a), 0, sin(a)) * 22.0
 			if CastleNav.current != null and CastleNav.current.steps_to_player(p.x, p.z) <= 0:
 				p = _spawn_point(18.0, 28.0)   # indoors: that spot is a wall or cut off
@@ -690,6 +695,7 @@ func _live_cap() -> int:
 	if map_boss != null and is_instance_valid(map_boss) and map_boss.crowd_cap > 0 and map_boss.state != "dead":
 		return map_boss.crowd_cap
 	return LIVE_CAP
+const RING_GAP := {"forest": deg_to_rad(90.0)}   # per map: the swarm ring's opening, toward where you're heading
 const SKELETON_SHARE := 0.35  # castle: this share of spawns are skeletons (same overall rate)
 const BOMBERS_BASE := 10      # castle: bomber skeletons per wave (in place of the swarm ring)...
 const BOMBERS_PER_MIN := 2    # ...plus this many per minute of the run

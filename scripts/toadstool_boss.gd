@@ -13,7 +13,7 @@ extends MapBoss
 ##   FUNGUS COURT  three giant toadstool guardians rise at marked spots around you for 12 s, each
 ##                 slamming the ground around itself (marked) every few seconds.
 
-const HP := 3200.0                 # base health (x main.hp_mult() when he arrives: about 20,000 at 8:00)
+const HP := 2800.0                 # base health (x main.hp_mult() when he arrives: about 17,800 at 8:00)
 const CROWD_CAP := 120             # goblins alive while he's up (the fight is a duel with him, not the horde)
 const SCALE := 3.4                 # x ToadstoolModel's 1.8 m: about 6 m tall
 const TURN_RATE := 3.0
