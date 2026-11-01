@@ -5,14 +5,14 @@ extends Node3D
 ##   - models built in code (bones are simple shapes) with the walk, claw and throw animated in
 ##     the vertex shader per instance (COLOR.r = animation, COLOR.g = phase; INSTANCE_CUSTOM =
 ##     the same tint / burn / flash / epic / frozen / chill / shadow codes as the goblins)
-##   - bone throwing: from THROW_MIN to THROW_MAX metres away, with a clear line (indoors),
+##   - bone throwing (elites only): from THROW_MIN to THROW_MAX metres away, with a clear line (indoors),
 ##     every THROW_EVERY seconds a skeleton stops, winds up and lobs a bone at you on a real
 ##     ballistic arc, leading your movement. Bones break on walls and the floor.
 ##   - death: the skeleton clatters apart into bones that bounce and fade, instead of a corpse.
 
 const HEIGHT := 1.75
 const THROW_MIN := 3.0
-const THROW_MAX := 17.0
+const THROW_MAX := 8.5   # halved from 17
 const THROW_EVERY := Vector2(2.4, 3.6)   # random gap between throws (s)
 const THROW_WINDUP := 0.45               # stands still this long; the bone leaves halfway
 const BONE_DAMAGE := 0.7                 # x the skeleton's contact damage (armoured: x1.4 more)
@@ -106,9 +106,6 @@ void fragment() {
 		+ vec3(0.45, 0.8, 1.0) * (frozen * (0.25 + rim * 1.4) + chill * rim * 0.6) + vec3(0.6, 0.2, 1.0) * shadow * rim * 1.8;
 }
 """
-
-## On the Castle only the elites (Armored Skeletons) throw bones; plain skeletons just close in.
-var elite_only_throw := Settings.selected_map == "castle"
 
 var em: EnemyManager
 var _mm: MultiMesh                 # plain skeletons
@@ -317,7 +314,7 @@ func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Ar
 		if em.rise_t[i] > 0.0:   # crawling up out of the floor / a grave (bombers, the Graveyard's risen): sunk into it, clawing
 			buf[b + 7] -= HEIGHT * 1.05 * clampf(em.rise_t[i] / BomberSkeletons.RISE_TIME, 0.0, 1.0)
 			anim = ANIM_ATTACK
-		if not em.dead[i] and not bomb and (em.epic[i] or not elite_only_throw):
+		if not em.dead[i] and not bomb and em.epic[i]:   # only elites (Armored Skeletons) throw bones, on every map
 			if em.throw_anim[i] > 0.0:
 				var before := em.throw_anim[i]
 				em.throw_anim[i] -= dt
