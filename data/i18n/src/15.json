@@ -1,0 +1,98 @@
+{
+ "Defeat the Necromancer in the Graveyard": [
+  "Derrota al Nigromante en el Cementerio",
+  "Vaincre le Nécromancien dans le Cimetière",
+  "اهزم مستحضر الأرواح في المقبرة",
+  "Besiege den Nekromanten auf dem Friedhof",
+  "在墓地击败死灵法师",
+  "墓地でネクロマンサーを倒す"
+ ],
+ "Ghost": [
+  "Fantasma",
+  "Fantôme",
+  "شبح",
+  "Geist",
+  "幽灵",
+  "ゴースト"
+ ],
+ "Ghoul": [
+  "Necrófago",
+  "Goule",
+  "غول",
+  "Ghul",
+  "食尸鬼",
+  "グール"
+ ],
+ "Lord of the Restless Dead": [
+  "Señor de los muertos sin descanso",
+  "Seigneur des morts sans repos",
+  "سيّد الموتى الذين لا يرقدون",
+  "Herr der ruhelosen Toten",
+  "不安亡者之主",
+  "眠らぬ死者の王"
+ ],
+ "Moonlit tombs, ground fog, ghosts, ghouls and the restless dead.": [
+  "Tumbas a la luz de la luna, niebla rasante, fantasmas, necrófagos y muertos sin descanso.",
+  "Tombes sous la lune, brume au ras du sol, fantômes, goules et morts sans repos.",
+  "قبور تحت ضوء القمر، وضباب يزحف على الأرض، وأشباح وغيلان وموتى لا يرقدون.",
+  "Mondbeschienene Gräber, Bodennebel, Geister, Ghule und ruhelose Tote.",
+  "月光下的坟墓、贴地的浓雾、幽灵、食尸鬼和不得安息的亡者。",
+  "月明かりの墓、地を這う霧、ゴースト、グール、そして眠らぬ死者たち。"
+ ],
+ "Raised every grave in the parish for company. They don't say much, but they always come when called.": [
+  "Levantó todas las tumbas de la parroquia para tener compañía. No hablan mucho, pero siempre acuden cuando los llama.",
+  "A relevé toutes les tombes de la paroisse pour avoir de la compagnie. Ils ne parlent guère, mais viennent toujours quand il les appelle.",
+  "أقام كل قبر في الأبرشية ليؤنس وحدته. لا يتكلمون كثيرًا، لكنهم يأتون دائمًا حين يناديهم.",
+  "Hat jedes Grab der Gemeinde geweckt, um Gesellschaft zu haben. Sie reden nicht viel, aber sie kommen immer, wenn er ruft.",
+  "为了有人作伴，他唤醒了教区里的每一座坟墓。它们话不多，但随叫随到。",
+  "寂しさのあまり教区じゅうの墓を起こした。口数は少ないが、呼べば必ず来てくれる。"
+ ],
+ "THE DEAD RISE!": [
+  "¡LOS MUERTOS SE LEVANTAN!",
+  "LES MORTS SE RELÈVENT !",
+  "الموتى ينهضون!",
+  "DIE TOTEN ERHEBEN SICH!",
+  "亡者复苏！",
+  "死者が蘇る！"
+ ],
+ "THE GRAVES OPEN!  STAND ON CONSECRATED GROUND!": [
+  "¡LAS TUMBAS SE ABREN!  ¡PONTE EN TIERRA CONSAGRADA!",
+  "LES TOMBES S'OUVRENT !  RESTEZ EN TERRE CONSACRÉE !",
+  "القبور تنفتح!  قف على أرض مقدّسة!",
+  "DIE GRÄBER ÖFFNEN SICH!  STELL DICH AUF GEWEIHTEN BODEN!",
+  "坟墓开启！  站到圣地上！",
+  "墓が開く！  聖別された地に立て！"
+ ],
+ "THE NECROMANCER": [
+  "EL NIGROMANTE",
+  "LE NÉCROMANCIEN",
+  "مستحضر الأرواح",
+  "DER NEKROMANT",
+  "死灵法师",
+  "ネクロマンサー"
+ ],
+ "The Graveyard": [
+  "El Cementerio",
+  "Le Cimetière",
+  "المقبرة",
+  "Der Friedhof",
+  "墓地",
+  "墓地"
+ ],
+ "The Necromancer": [
+  "El Nigromante",
+  "Le Nécromancien",
+  "مستحضر الأرواح",
+  "Der Nekromant",
+  "死灵法师",
+  "ネクロマンサー"
+ ],
+ "the Necromancer in the Graveyard": [
+  "el Nigromante en el Cementerio",
+  "le Nécromancien dans le Cimetière",
+  "مستحضر الأرواح في المقبرة",
+  "den Nekromanten auf dem Friedhof",
+  "墓地的死灵法师",
+  "墓地のネクロマンサー"
+ ]
+}

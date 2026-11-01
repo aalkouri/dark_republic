@@ -476,6 +476,25 @@
           "lines": ["A stone bridge crashes down on a {25 m} line where you aim: {350} damage",
                     "The rubble stays for {10 s} as a wall enemies can't cross"] }
       ]
+    },
+
+    "pharaoh": {
+      "role": "Cursed king who commands the sand and the dead",
+      "weapon": { "name": "Flail of Kings", "icon": { "glyph": "slam", "cover": "#3a2a10", "tint": "#ffd060" }, "desc": "Flail slam in a 4 m arc: 45 damage, and the enemies it hits are cursed (+25% damage taken for 3 s)", "short": "Slam, curses", "damage": "45", "every": 1.1 },
+      "abilities": [
+        { "name": "Scarab Swarm", "cooldown": 30, "icon": { "glyph": "swirl", "color": "#3a7a6a" },
+          "text": "A carpet of beetles pours out of his sleeves.",
+          "lines": ["Scarabs pour down a {20 m} lane where you aim: {60} damage",
+                    "Enemies they cross are poisoned for {4 s}"] },
+        { "name": "Sandstorm", "cooldown": 45, "icon": { "glyph": "cloud", "color": "#e0b870" },
+          "text": "The desert answers.",
+          "lines": ["A storm whirls round you for {8 s} out to {9 m}",
+                    "Enemies in it are slowed {50%} and take {20} damage a second"] },
+        { "name": "Wrath of the Sands", "cooldown": 120, "icon": { "glyph": "sun", "color": "#ffd23f" },
+          "text": "The Sphinx opens its eyes.",
+          "lines": ["Its gaze sweeps the field: {400} damage to every enemy within {30 m}",
+                    "The fallen rise as mummies that fight for you for {10 s}"] }
+      ]
     }
   }
 }

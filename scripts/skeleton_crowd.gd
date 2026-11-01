@@ -311,7 +311,7 @@ func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Ar
 		var anim := ANIM_ATTACK if absf(buf[b + 12] - em._clip_attack) < 0.01 else ANIM_RUN
 		var phase := buf[b + 13]
 		var bomb := em.bomber[i] != 0
-		if bomb and em.rise_t[i] > 0.0:   # crawling up out of the floor: sunk into it, clawing
+		if em.rise_t[i] > 0.0:   # crawling up out of the floor / a grave (bombers, the Graveyard's risen): sunk into it, clawing
 			buf[b + 7] -= HEIGHT * 1.05 * clampf(em.rise_t[i] / BomberSkeletons.RISE_TIME, 0.0, 1.0)
 			anim = ANIM_ATTACK
 		if not em.dead[i] and not bomb:

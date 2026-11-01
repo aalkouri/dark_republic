@@ -31,7 +31,7 @@
   "slot_machine.gd:331"
  ],
  "%s  LEVEL %d": [
-  "main.gd:935"
+  "main.gd:949"
  ],
  "%s  Lv %d": [
   "hud.gd:1336"
@@ -56,7 +56,7 @@
   "hud.gd:969"
  ],
  "%s APPROACHES": [
-  "main.gd:726"
+  "main.gd:740"
  ],
  "%s Chest": [
   "chest.gd:56",
@@ -74,7 +74,7 @@
   "weapon_system.gd:408"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:756"
+  "main.gd:770"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:394"
@@ -87,7 +87,7 @@
   "weapon_system.gd:372"
  ],
  "%s can't fight here: it's home turf": [
-  "map_picker.gd:90"
+  "map_picker.gd:95"
  ],
  "%s coins": [
   "character_select.gd:132"
@@ -191,7 +191,7 @@
   "skill_tree.gd:105"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:537"
+  "main.gd:539"
  ],
  "2 yd": [
   "abilities.gd:248"
@@ -224,7 +224,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:666"
+  "main.gd:671"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -233,6 +233,9 @@
   "characters.json"
  ],
  "A blizzard swallows everything around you.": [
+  "abilities.json"
+ ],
+ "A carpet of beetles pours out of his sleeves.": [
   "abilities.json"
  ],
  "A cauldron stands for {15 s}, spitting a glob at an enemy within {15 m} every second: {50} damage": [
@@ -275,6 +278,9 @@
   "abilities.json"
  ],
  "A stone bridge crashes down on a {25 m} line where you aim: {350} damage": [
+  "abilities.json"
+ ],
+ "A storm whirls round you for {8 s} out to {9 m}": [
   "abilities.json"
  ],
  "A thunderstorm follows you around.": [
@@ -529,7 +535,7 @@
   "forge_menu.gd:202"
  ],
  "CHOOSE YOUR BATTLEGROUND": [
-  "map_picker.gd:53"
+  "map_picker.gd:56"
  ],
  "CHOOSE YOUR CHAMPION": [
   "character_select.gd:218"
@@ -617,7 +623,7 @@
   "hud.gd:348"
  ],
  "Cooldowns reset": [
-  "main.gd:1037"
+  "main.gd:1051"
  ],
  "Cowboy": [
   "characters.json"
@@ -671,13 +677,19 @@
   "taglines.json"
  ],
  "Defeat %s to unlock": [
-  "map_picker.gd:88",
-  "map_picker.gd:129"
+  "map_picker.gd:93",
+  "map_picker.gd:134"
  ],
  "Defeat Thog the Troll in the Swamp": [
   "character_select.gd:123"
  ],
  "Defeat the Arachnid in the Castle": [
+  "character_select.gd:123"
+ ],
+ "Defeat the Necromancer in the Graveyard": [
+  "character_select.gd:123"
+ ],
+ "Defeat the Pharaoh in the Desert": [
   "character_select.gd:123"
  ],
  "Defeat the Toadstool Knight in the Magical Forest": [
@@ -829,6 +841,9 @@
  "Enemies hit take {120} damage and are thrown {8 yd}": [
   "abilities.json"
  ],
+ "Enemies in it are slowed {50%} and take {20} damage a second": [
+  "abilities.json"
+ ],
  "Enemies in it are slowed {90%} and take {6%} of max HP per second": [
   "abilities.json"
  ],
@@ -851,6 +866,9 @@
   "abilities.json"
  ],
  "Enemies that touch them burn for {4%} of max HP per second for {3 s}": [
+  "abilities.json"
+ ],
+ "Enemies they cross are poisoned for {4 s}": [
   "abilities.json"
  ],
  "Enemies within {12 m} lose {6%} of max HP per second for {4 s}": [
@@ -881,7 +899,7 @@
   "abilities.json"
  ],
  "Enter: choose   ·   Esc: back": [
-  "map_picker.gd:62"
+  "map_picker.gd:67"
  ],
  "Epic": [
   "upgrades.json"
@@ -908,7 +926,7 @@
   "forge.gd:66"
  ],
  "Every ability is at max level!  Fully healed": [
-  "main.gd:920"
+  "main.gd:934"
  ],
  "Every chest is a mimic until proven innocent": [
   "taglines.json"
@@ -1037,6 +1055,12 @@
  "Fires {16} stakes in a ring: {90} damage each": [
   "abilities.json"
  ],
+ "Flail of Kings": [
+  "abilities.json"
+ ],
+ "Flail slam in a 4 m arc: 45 damage, and the enemies it hits are cursed (+25% damage taken for 3 s)": [
+  "abilities.json"
+ ],
  "Flash Freeze": [
   "abilities.json"
  ],
@@ -1126,7 +1150,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:781"
+  "main.gd:795"
  ],
  "Gaiden": [
   "characters.json"
@@ -1152,6 +1176,12 @@
  "Ghast": [
   "characters.json"
  ],
+ "Ghost": [
+  "enemy_manager.gd:340"
+ ],
+ "Ghoul": [
+  "enemy_manager.gd:339"
+ ],
  "Giant's Heart": [
   "skill_tree.gd:29"
  ],
@@ -1165,16 +1195,16 @@
   "abilities.json"
  ],
  "Goblin": [
-  "enemy_manager.gd:239"
+  "enemy_manager.gd:242"
  ],
  "Goblin Brute": [
-  "enemy_manager.gd:241"
+  "enemy_manager.gd:244"
  ],
  "Goblin Scamp": [
-  "enemy_manager.gd:240"
+  "enemy_manager.gd:243"
  ],
  "Goblin Warlord": [
-  "enemy_manager.gd:242"
+  "enemy_manager.gd:245"
  ],
  "Gold": [
   "chest.gd:8"
@@ -1342,6 +1372,9 @@
  ],
  "Item": [
   "(runtime)"
+ ],
+ "Its gaze sweeps the field: {400} damage to every enemy within {30 m}": [
+  "abilities.json"
  ],
  "JACKPOT!": [
   "slot_machine.gd:330"
@@ -1530,6 +1563,12 @@
  "Log Toss": [
   "abilities.json"
  ],
+ "Lord of the Restless Dead": [
+  "characters.json"
+ ],
+ "Lord of the Two Sands": [
+  "characters.json"
+ ],
  "Lost Pair": [
   "abilities.json"
  ],
@@ -1615,6 +1654,9 @@
  "Midas Touch": [
   "skill_tree.gd:63"
  ],
+ "Moonlit tombs, ground fog, ghosts, ghouls and the restless dead.": [
+  "map_picker.gd:23"
+ ],
  "More health.": [
   "upgrades.json"
  ],
@@ -1639,6 +1681,9 @@
  "Movement Enhancer": [
   "powerup_manager.gd:17"
  ],
+ "Mummy": [
+  "enemy_manager.gd:322"
+ ],
  "Music": [
   "settings.gd:17",
   "settings_menu.gd:203"
@@ -1653,7 +1698,7 @@
   "upgrade_db.gd:168"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:802"
+  "main.gd:816"
  ],
  "NEW CHAMPION": [
   "hud.gd:1025"
@@ -1845,6 +1890,9 @@
  "Purple Potion: cooldowns -30%": [
   "potion_manager.gd:18"
  ],
+ "Pyramids to climb, the Great Sphinx, mummies and vultures.": [
+  "map_picker.gd:22"
+ ],
  "Pyromastery": [
   "skill_tree.gd:94"
  ],
@@ -1871,6 +1919,9 @@
  ],
  "Raise Dead": [
   "abilities.json"
+ ],
+ "Raised every grave in the parish for company. They don't say much, but they always come when called.": [
+  "characters.json"
  ],
  "Raises a shield cap.": [
   "abilities.json"
@@ -1978,7 +2029,7 @@
   "settings_menu.gd:47"
  ],
  "SHARDS: %s": [
-  "main.gd:745"
+  "main.gd:759"
  ],
  "SIGNATURE WEAPON": [
   "character_select.gd:496",
@@ -1989,10 +2040,19 @@
   "skill_screen.gd:108"
  ],
  "SURVIVE": [
-  "main.gd:463"
+  "main.gd:465"
  ],
  "Sage": [
   "skill_tree.gd:65"
+ ],
+ "Sandstorm": [
+  "abilities.json"
+ ],
+ "Scarab Swarm": [
+  "abilities.json"
+ ],
+ "Scarabs pour down a {20 m} lane where you aim: {60} damage": [
+  "abilities.json"
  ],
  "Scholar": [
   "skill_tree.gd:58"
@@ -2076,7 +2136,7 @@
   "abilities.json"
  ],
  "Skeleton": [
-  "enemy_manager.gd:244"
+  "enemy_manager.gd:247"
  ],
  "Skills": [
   "character_select.gd:745"
@@ -2099,11 +2159,17 @@
  "Slam Size": [
   "upgrades.json"
  ],
+ "Slam, curses": [
+  "abilities.json"
+ ],
  "Slash, spore cloud": [
   "abilities.json"
  ],
  "Sleeping enemies take {double} poison damage; the first hit wakes them for {3x} damage": [
   "abilities.json"
+ ],
+ "Slept four thousand years under the Sphinx. Woke up to goblins on his lawn. Has summoned the dead about it.": [
+  "characters.json"
  ],
  "Slide": [
   "settings.gd:24"
@@ -2200,6 +2266,9 @@
  "Sprinter": [
   "skill_tree.gd:64"
  ],
+ "Sprinting Zombie": [
+  "enemy_manager.gd:320"
+ ],
  "Sprints in circles for no reason.": [
   "abilities.json"
  ],
@@ -2282,24 +2351,45 @@
  "THE ARACHNID CLIMBS THE WALLS!": [
   "arachnid_boss.gd:479"
  ],
+ "THE DEAD ANSWER THE PHARAOH!": [
+  "pharaoh_boss.gd:296"
+ ],
+ "THE DEAD RISE!": [
+  "necromancer_boss.gd:219"
+ ],
  "THE FORGE": [
   "forge_menu.gd:62"
  ],
  "THE FUNGUS COURT RISES!": [
   "toadstool_boss.gd:193"
  ],
+ "THE GRAVES OPEN!  STAND ON CONSECRATED GROUND!": [
+  "necromancer_boss.gd:510"
+ ],
+ "THE NECROMANCER": [
+  "necromancer_boss.gd:98"
+ ],
+ "THE PHARAOH": [
+  "pharaoh_boss.gd:104"
+ ],
+ "THE PHARAOH CRUMBLES TO DUST!": [
+  "pharaoh_boss.gd:674"
+ ],
+ "THE PHARAOH RISES FROM HIS TOMB!": [
+  "pharaoh_boss.gd:175"
+ ],
  "THE TOADSTOOL KNIGHT": [
   "toadstool_boss.gd:68"
  ],
  "THOG": [
   "main.gd:76",
-  "main.gd:731"
+  "main.gd:745"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:382"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:754"
+  "main.gd:768"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:528"
@@ -2308,7 +2398,7 @@
   "thog_boss.gd:400"
  ],
  "THOG THE TROLL": [
-  "main.gd:711",
+  "main.gd:718",
   "thog_boss.gd:605"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2318,7 +2408,7 @@
   "thog_boss.gd:640"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:712"
+  "main.gd:719"
  ],
  "Take less damage.": [
   "upgrades.json"
@@ -2345,6 +2435,9 @@
  "The Castle": [
   "map_picker.gd:21"
  ],
+ "The Desert": [
+  "map_picker.gd:22"
+ ],
  "The Fire Wizard": [
   "characters.json"
  ],
@@ -2353,6 +2446,9 @@
  ],
  "The Good Boy": [
   "characters.json"
+ ],
+ "The Graveyard": [
+  "map_picker.gd:23"
  ],
  "The Great Puddle": [
   "abilities.json"
@@ -2369,11 +2465,22 @@
  "The Living Cinder": [
   "characters.json"
  ],
+ "The Necromancer": [
+  "necromancer_boss.gd:94",
+  "characters.json"
+ ],
  "The Old Enchanter": [
+  "characters.json"
+ ],
+ "The Pharaoh": [
+  "pharaoh_boss.gd:100",
   "characters.json"
  ],
  "The Rogue": [
   "characters.json"
+ ],
+ "The Sphinx opens its eyes.": [
+  "abilities.json"
  ],
  "The Swamp": [
   "map_picker.gd:18"
@@ -2390,7 +2497,13 @@
  "The bugbear necessities": [
   "taglines.json"
  ],
+ "The desert answers.": [
+  "abilities.json"
+ ],
  "The fallen get back up, on your side this time.": [
+  "abilities.json"
+ ],
+ "The fallen rise as mummies that fight for you for {10 s}": [
   "abilities.json"
  ],
  "The goblins have disadvantage. On everything.": [
@@ -2442,11 +2555,11 @@
   "taglines.json"
  ],
  "Thog the Troll": [
-  "enemy_manager.gd:248",
+  "enemy_manager.gd:251",
   "characters.json"
  ],
  "Thog the Troll in the Swamp": [
-  "map_picker.gd:24"
+  "map_picker.gd:26"
  ],
  "Thorns": [
   "upgrades.json"
@@ -2599,7 +2712,7 @@
   "settings.gd:26"
  ],
  "Unknown map": [
-  "map_picker.gd:92"
+  "map_picker.gd:97"
  ],
  "Unknown skill": [
   "skill_tree.gd:154"
@@ -2670,8 +2783,14 @@
  "Volley": [
   "skill_tree.gd:45"
  ],
+ "Vulture": [
+  "enemy_manager.gd:323"
+ ],
  "WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns": [
   "hud.gd:174"
+ ],
+ "WRATH OF THE SANDS! FIND SHELTER!": [
+  "pharaoh_boss.gd:454"
  ],
  "Wail": [
   "abilities.json"
@@ -2745,6 +2864,9 @@
  "Wraps everything nearby. Breakfast. And lunch.": [
   "abilities.json"
  ],
+ "Wrath of the Sands": [
+  "abilities.json"
+ ],
  "XP Gain": [
   "upgrades.json"
  ],
@@ -2804,6 +2926,12 @@
  ],
  "Zaps the 3 nearest enemies for 18 damage; builds up to 2x damage while you keep moving": [
   "abilities.json"
+ ],
+ "Zombie": [
+  "enemy_manager.gd:319"
+ ],
+ "Zombie Brute": [
+  "enemy_manager.gd:321"
  ],
  "Zoomies": [
   "abilities.json"
@@ -2869,10 +2997,16 @@
   "abilities.gd:50"
  ],
  "the Arachnid in the Castle": [
-  "map_picker.gd:24"
+  "map_picker.gd:26"
+ ],
+ "the Necromancer in the Graveyard": [
+  "map_picker.gd:26"
+ ],
+ "the Pharaoh in the Desert": [
+  "map_picker.gd:26"
  ],
  "the Toadstool Knight in the Magical Forest": [
-  "map_picker.gd:24"
+  "map_picker.gd:26"
  ],
  "trail damage": [
   "abilities.gd:35"

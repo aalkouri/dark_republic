@@ -202,17 +202,23 @@ void fragment() {
 
 static var force_time := ""     # screenshots: "day" or "night" for the Swamp (--swamp-time=...)
 
-const MAPS := ["swamp", "forest", "castle"]
+const MAPS := ["swamp", "forest", "castle", "desert", "graveyard"]
 
 
 ## Build the arena for `map` ("swamp", "forest" or "castle"). All share the 440 m footprint and
 ## the same prop counts; the outdoor two share the terrain generator, the castle is indoors.
 static func build(parent: Node3D, rng: RandomNumberGenerator, half: float, map := "swamp") -> SwampWater:
 	CastleNav.current = null
+	DesertBuilder.active = false
+	GraveyardBuilder.active = false
+	if map == "desert":
+		return DesertBuilder.build(parent, rng, half)
 	if map == "forest":
 		return ForestBuilder.build(parent, rng, half)
 	if map == "castle":
 		return CastleBuilder.build(parent, rng, half)
+	if map == "graveyard":
+		return GraveyardBuilder.build(parent, rng, half)
 	var is_night := rng.randf() < 0.5
 	if force_time != "":   # screenshots: --swamp-time=day|night
 		is_night = force_time == "night"

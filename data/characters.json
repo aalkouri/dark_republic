@@ -56,8 +56,12 @@
 
     {"id": "mystery_3", "name": "???", "mystery": true, "icon": {"mystery": true}},
 
-    {"id": "mystery_4", "name": "???", "mystery": true, "icon": {"mystery": true}},
+    {"id": "pharaoh", "name": "The Pharaoh", "epithet": "Lord of the Two Sands", "bio": "Slept four thousand years under the Sphinx. Woke up to goblins on his lawn. Has summoned the dead about it.",
+     "icon": {"bg": ["#6a4614", "#160c04"], "body": "slim", "body_col": "#cdb88c", "skin": "#e0b04a", "head": "round", "hat": "nemes", "hat_col": "#e6b43c", "eyes": "#9cff5a", "eyes_glow": true, "beard": "#c08a2a", "item": "crook_flail", "fx": "sand"},
+     "price": 10000, "requires_boss": "pharaoh", "banned_maps": ["desert"]},
 
-    {"id": "mystery_5", "name": "???", "mystery": true, "icon": {"mystery": true}}
+    {"id": "necromancer", "name": "The Necromancer", "epithet": "Lord of the Restless Dead", "bio": "Raised every grave in the parish for company. They don't say much, but they always come when called.",
+     "icon": {"bg": ["#14281a", "#030805"], "body": "robe", "body_col": "#1c1024", "skin": "#d9d2bf", "head": "skull", "hat": "hood", "hat_col": "#2a1236", "eyes": "#6dff8a", "eyes_glow": true, "item": "staff_dark", "fx": "wisps"},
+     "price": 10000, "requires_boss": "necromancer", "banned_maps": ["graveyard"]}
   ]
 }

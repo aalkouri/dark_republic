@@ -11,11 +11,11 @@ const REQUESTED := ["Ice Wizard", "Merlin", "Thunder Wizard", "Dark Wizard", "Og
 const BODIES := ["robe", "bulky", "slim", "coat", "ghost", "spider", "blob", "box", "imp", "sock"]
 const HEADS := ["round", "hooded", "ogre", "skull", "croc", "dog", "robot", "platypus", "gorilla", "troll", "none"]
 const HATS := ["wizard", "wizard_stars", "wizard_bent", "hood", "tricorn", "winged_helm", "headband",
-	"goggles", "collar", "cowboy", "sombrero", "flame_hair", "top_hat", "witch", "mushroom", "none"]
+	"goggles", "collar", "cowboy", "sombrero", "flame_hair", "top_hat", "witch", "mushroom", "nemes", "none"]
 const ITEMS := ["staff_fire", "staff_ice", "staff_wood", "staff_thunder", "staff_dark", "club", "chains",
 	"crossbow", "spear", "daggers", "katana", "flask", "web", "scythe", "bone", "revolver", "maracas",
-	"ladle", "sword", "none"]
-const FX := ["embers", "snow", "stars", "sparks", "shadow", "wisps", "bubbles", "spores", "none"]
+	"ladle", "sword", "crook_flail", "none"]
+const FX := ["embers", "snow", "stars", "sparks", "shadow", "wisps", "bubbles", "spores", "sand", "none"]
 
 var fails := 0
 
@@ -28,9 +28,10 @@ func _ready() -> void:
 	var all: Array = load("res://scripts/character_select.gd").load_characters()
 	_check("30 slots", all.size() == 30, "%d" % all.size())
 	var mysteries := all.filter(func(c): return c.get("mystery", false))
-	_check("5 mystery slots, no info", mysteries.size() == 5 and mysteries.all(func(c): return c["name"] == "???" and not c.has("bio") and not c.has("price")), "%d" % mysteries.size())
+	# the mystery slots fill up as map bosses join the roster (the Pharaoh, the Necromancer...)
+	_check("mystery slots, no info", mysteries.size() >= 1 and mysteries.size() <= 5 and mysteries.all(func(c): return c["name"] == "???" and not c.has("bio") and not c.has("price")), "%d" % mysteries.size())
 	var chars := all.filter(func(c): return not c.get("mystery", false))
-	_check("25 characters", chars.size() == 25, "%d" % chars.size())
+	_check("25 characters, plus the bosses in the mystery slots", chars.size() == 30 - mysteries.size(), "%d" % chars.size())
 	var price_ok := true
 	for c in chars:
 		var want := 0 if c["id"] == "fire_wizard" else (2000 if c["id"] in ["ice_wizard", "thunder_wizard", "dark_wizard"] else (7000 if c["id"] == "merlin" else 10000))
@@ -85,12 +86,13 @@ func _ready() -> void:
 	for t in cs._tiles:
 		if (t.get_meta("icon") as CharacterIcon).locked:
 			locked_icons += 1
-	_check("24 tiles show the padlock", locked_icons == 24, "%d" % locked_icons)
+	var n_locked: int = cs.characters.filter(func(c): return not c.get("mystery", false) and not c.get("unlocked", false)).size()   # 24, plus the bosses in the mystery slots
+	_check("every locked character's tile shows the padlock", locked_icons == n_locked and n_locked >= 24, "%d of %d" % [locked_icons, n_locked])
 	var priced := 0
 	for t in cs._tiles:
 		if (t.get_meta("price") as Control).visible:
 			priced += 1
-	_check("24 locked tiles show their price", priced == 24, "%d" % priced)
+	_check("every locked tile shows its price", priced == n_locked, "%d" % priced)
 	_check("menu song keeps playing from the title (no restart)", MenuMusic.player.playing and MenuMusic.player.get_playback_position() > 0.05, "%.2f" % MenuMusic.player.get_playback_position())
 	_check("wizard shows 3 ability squares", cs._ability_bar.visible and cs._ability_slots.size() == 3, "")
 	cs._on_slot_hover(2, true)
@@ -137,7 +139,7 @@ func _ready() -> void:
 			cs._on_slot_hover(i, false)
 		if why != "":
 			kit_bad.append("%s (%s)" % [c["id"], why])
-	_check("all 24 roster characters show their own kit", kit_bad.is_empty(), str(kit_bad))
+	_check("every roster character shows its own kit", kit_bad.is_empty(), str(kit_bad))
 	_check("roster kits use a good spread of icons", glyph_names.size() >= 25, "%d" % glyph_names.size())
 	cs._tiles[0].grab_focus()
 	await get_tree().process_frame

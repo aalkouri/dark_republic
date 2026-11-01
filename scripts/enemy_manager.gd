@@ -64,6 +64,9 @@ var bonus_mult := 1.0           # ability damage buffs (Eclipse), on top of dama
 #   stun   can't move or hit you                   (Thunderclap, Rewind...)
 #   curse  takes +curse_bonus damage               (Shadow Bolts)
 var skeletons: SkeletonCrowd     # draws skeletons, throws their bones, scatters them on death
+var desert: DesertCrowd          # the Desert: draws zombies, mummies and vultures (null elsewhere)
+var undead: UndeadCrowd          # the Graveyard: draws ghouls and ghosts, raises the dead (null elsewhere)
+var type_remap := PackedInt32Array()   # spawn type -> the type that actually spawns (the Desert: goblins -> zombies)
 var troll_busy := false          # the map boss (Thog etc.) is mid-attack: he stands still
 var boss_contact := true         # false: touching the map boss doesn't hurt (the Arachnid up a wall)
 var _trolls := 0                 # live Thog rows (hidden from the goblin mesh and bars)
@@ -194,7 +197,7 @@ var buf := PackedFloat32Array()
 var bar_mm: MultiMesh
 var bar_buf := PackedFloat32Array()
 
-enum { GRUNT, RUNNER, TANK, BOSS, SKELETON, TROLL }   # SKELETON: castle (epic: Armored Skeleton); TROLL: Thog, the Swamp boss (drawn by ThogBoss)
+enum { GRUNT, RUNNER, TANK, BOSS, SKELETON, TROLL, ZOMBIE, ZOMBIE_RUNNER, ZOMBIE_BRUTE, MUMMY, VULTURE, GHOUL, GHOST }   # SKELETON: castle (epic: Armored Skeleton); TROLL: Thog, the Swamp boss (drawn by ThogBoss); ZOMBIE..VULTURE: the Desert (DesertCrowd); GHOUL, GHOST: the Graveyard (UndeadCrowd)
 
 
 func _ready() -> void:
@@ -246,6 +249,8 @@ func _ready() -> void:
 	# Thog the Troll: the Swamp's boss. A crowd row (so every weapon and ability hits him) that
 	# isn't drawn here: ThogBoss draws the giant, picks his attacks and holds him still for them.
 	_add_type("Thog the Troll", THOG_HP, 3.4, 3.4, 10.5, 55.0, 400.0, Color(0.3, 0.5, 0.8))
+	_add_desert_types()   # ZOMBIE..VULTURE (indices 6-10); any types after them append from 11
+	_add_graveyard_types()   # GHOUL, GHOST (indices 11-12)
 	skeletons = SkeletonCrowd.new()
 	skeletons.em = self
 	add_child(skeletons)
@@ -307,6 +312,56 @@ func set_boss_stats(s: Dictionary) -> void:
 	t_xp[TROLL] = s.get("xp", t_xp[TROLL])
 
 
+## The Desert's dead: zombies (the goblins' places), mummies, vultures. Written at their enum
+## index (whatever other types are added round them), drawn by DesertCrowd on the Desert only.
+func _add_desert_types() -> void:
+	#                       id             name               hp    speed radius scale  dmg   xp   rags
+	_put_type(ZOMBIE, "Zombie", 12.0, 3.7, 0.42, 1.0, 16.0, 1.0, Color(0.52, 0.47, 0.37))
+	_put_type(ZOMBIE_RUNNER, "Sprinting Zombie", 7.0, 6.4, 0.38, 0.95, 12.0, 1.0, Color(0.3, 0.36, 0.44))
+	_put_type(ZOMBIE_BRUTE, "Zombie Brute", 60.0, 2.8, 0.8, 1.45, 32.0, 5.0, Color(0.25, 0.3, 0.38))
+	_put_type(MUMMY, "Mummy", 36.0, 2.9, 0.45, 1.08, 22.0, 3.0, Color(0.78, 0.72, 0.58))
+	_put_type(VULTURE, "Vulture", 8.0, 7.5, 0.6, 1.0, 11.0, 1.5, Color(0.32, 0.24, 0.17))
+	for t in [ZOMBIE, ZOMBIE_RUNNER, ZOMBIE_BRUTE, MUMMY]:
+		t_height[t] = DesertCrowd.HEIGHT * t_scale[t]
+	t_height[VULTURE] = 0.9
+	if DesertBuilder.active:
+		type_remap = PackedInt32Array([ZOMBIE, ZOMBIE_RUNNER, ZOMBIE_BRUTE])   # GRUNT, RUNNER, TANK
+		desert = DesertCrowd.new()
+		desert.em = self
+		add_child(desert)
+
+
+## The Graveyard's dead: ghouls (in the goblins' places), ghosts (in the scamps'), and skeletons
+## (in the brutes'). Drawn by UndeadCrowd on the Graveyard only. A ghost's hit box reaches up to
+## its floating body (UndeadCrowd.GHOST_HEIGHT).
+func _add_graveyard_types() -> void:
+	#                       id     name     hp    speed radius scale  dmg   xp   tint
+	_put_type(GHOUL, "Ghoul", 11.0, 4.9, 0.42, 1.0, 16.0, 1.0, Color(0.44, 0.48, 0.39))
+	_put_type(GHOST, "Ghost", 7.0, 5.2, 0.42, 1.0, 13.0, 1.2, Color(0.72, 0.86, 0.9))
+	t_height[GHOUL] = UndeadCrowd.GHOUL_HEIGHT
+	t_height[GHOST] = UndeadCrowd.GHOST_HEIGHT
+	if GraveyardBuilder.active:
+		type_remap = PackedInt32Array([GHOUL, GHOST, SKELETON])   # GRUNT, RUNNER, TANK
+		undead = UndeadCrowd.new()
+		undead.em = self
+		add_child(undead)
+
+
+## Like _add_type, but at index `id` (the type tables grow to fit).
+func _put_type(id: int, n: String, p_hp: float, speed: float, radius: float, scale: float, damage: float, xp: float, color: Color) -> void:
+	while type_names.size() <= id:
+		_add_type("", 1.0, 1.0, 0.4, 1.0, 1.0, 1.0, Color.WHITE)
+	type_names[id] = n
+	t_hp[id] = p_hp
+	t_speed[id] = speed
+	t_radius[id] = radius
+	t_scale[id] = scale
+	t_height[id] = GOBLIN_HEIGHT * scale
+	t_damage[id] = damage
+	t_xp[id] = xp
+	t_color[id] = color
+
+
 func _add_type(n: String, p_hp: float, speed: float, radius: float, scale: float, damage: float, xp: float, color: Color) -> void:
 	type_names.append(n)
 	t_hp.append(p_hp)
@@ -324,6 +379,8 @@ func _add_type(n: String, p_hp: float, speed: float, radius: float, scale: float
 func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	if count >= MAX:
 		return -1
+	if t < type_remap.size():   # the Desert: every goblin spawn is its zombie counterpart
+		t = type_remap[t]
 	var i := count
 	count += 1
 	pos[i] = Vector3(clampf(p.x, -arena_half, arena_half), 0.0, clampf(p.z, -arena_half, arena_half))
@@ -368,6 +425,8 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 	throw_anim[i] = 0.0
 	if t == TROLL:
 		_trolls += 1
+	if desert != null:
+		desert.on_spawn(i)
 	return i
 
 
@@ -533,6 +592,10 @@ func _kill(i: int) -> void:
 			bombers.drop_barrel(pos[i])
 	elif typ[i] == TROLL:   # ThogBoss plays his fall
 		_trolls -= 1
+	elif desert != null and DesertCrowd.owns(typ[i]):   # the Desert's dead fall / crumble / tumble their own way
+		desert.on_kill(i)
+	elif undead != null and (typ[i] == GHOUL or typ[i] == GHOST):   # ghouls pitch into the dirt, ghosts fade upward
+		undead.on_killed(i)
 	elif corpses != null:
 		var t := typ[i]
 		var col: Color = t_color[t]
@@ -1045,6 +1108,10 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		buf[b + 19] = fxc
 
 	buf = skeletons.sync(dt, buf, player)
+	if desert != null:
+		buf = desert.sync(dt, buf, player)
+	if undead != null:
+		buf = undead.sync(dt, buf, player)
 	frog_count = frogs
 	if _trolls > 0 or frogs > 0:   # Thog is drawn by ThogBoss and frogs by RosterKit, not as goblins
 		for i in n:

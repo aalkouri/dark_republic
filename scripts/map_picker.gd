@@ -19,11 +19,14 @@ const MAPS := [
 	# The Castle will need the Forest's boss once it has one; until then Thog opens both.
 	{"id": "forest", "name": "Magical Forest", "blurb": "Sunlit glades, blossoming trees and butterflies.", "image": "res://images/maps/forest.png", "requires": "thog"},
 	{"id": "castle", "name": "The Castle", "blurb": "Torch-lit halls, a feast to trample, skeletons.", "image": "res://images/maps/castle.png", "requires": "toadstool_knight"},
+	{"id": "desert", "name": "The Desert", "blurb": "Pyramids to climb, the Great Sphinx, mummies and vultures.", "image": "res://images/maps/desert.png", "requires": "arachnid"},
+	{"id": "graveyard", "name": "The Graveyard", "blurb": "Moonlit tombs, ground fog, ghosts, ghouls and the restless dead.", "image": "res://images/maps/graveyard.png", "requires": "pharaoh"},
 ]
 
-const BOSS_NAMES := {"thog": "Thog the Troll in the Swamp", "toadstool_knight": "the Toadstool Knight in the Magical Forest", "arachnid": "the Arachnid in the Castle"}
+const BOSS_NAMES := {"thog": "Thog the Troll in the Swamp", "toadstool_knight": "the Toadstool Knight in the Magical Forest", "arachnid": "the Arachnid in the Castle", "pharaoh": "the Pharaoh in the Desert", "necromancer": "the Necromancer in the Graveyard"}
 
 var _font: Font
+var _card_w := 380.0      # cards shrink to fit the screen as maps are added
 static var _banned := {}   # character id -> maps it can't play (from data/characters.json)
 var _cards: Array[Button] = []
 var _reveal: Array[Button] = []   # newly unlocked cards still to play their padlock drop
@@ -57,6 +60,8 @@ func _ready() -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 28)
 	v.add_child(row)
+	var vw := get_viewport_rect().size.x if is_inside_tree() else 1600.0
+	_card_w = clampf((vw - 60.0 - 28.0 * (MAPS.size() - 1)) / MAPS.size(), 250.0, 380.0)
 	for m in MAPS:
 		row.add_child(_card(m))
 	var hint := _label("Enter: choose   ·   Esc: back", 18, Color(0.8, 0.75, 0.68, 0.7))
@@ -129,7 +134,9 @@ func _card(m: Dictionary) -> Button:
 		reason = tr("Defeat %s to unlock") % tr(BOSS_NAMES.get(m["requires"], m["requires"]))
 	var locked := reason != ""
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(380, 330)
+	var pw := _card_w - 28.0          # the picture, 16:9
+	var ph := pw * 0.5625
+	b.custom_minimum_size = Vector2(_card_w, ph + 132.0)
 	b.focus_mode = Control.FOCUS_ALL
 	b.disabled = locked
 	b.set_meta("id", m["id"])
@@ -157,7 +164,7 @@ func _card(m: Dictionary) -> Button:
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	b.add_child(v)
 	var pic := TextureRect.new()
-	pic.custom_minimum_size = Vector2(352, 198)
+	pic.custom_minimum_size = Vector2(pw, ph)
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -169,11 +176,11 @@ func _card(m: Dictionary) -> Button:
 		pic.modulate = Color(0.32, 0.3, 0.3)
 		var lock := Padlock.new()
 		lock.size = Vector2(96, 120)
-		lock.position = Vector2(14, 14) + Vector2(352 - 96, 198 - 120) * 0.5 + Vector2(0, 6)   # over the picture (not dimmed with it)
+		lock.position = Vector2(14, 14) + Vector2(pw - 96, ph - 120) * 0.5 + Vector2(0, 6)   # over the picture (not dimmed with it)
 		lock.pivot_offset = Vector2(48, 30)   # hangs from the shackle when it rattles
 		b.set_meta("lock", lock)
 		b.add_child(lock)   # after the picture and text, so it draws on top, undimmed
-	var name := _label(tr(str(m["name"])).to_upper(), 26, Color(0.95, 0.88, 0.75) if not locked else Color(0.6, 0.55, 0.5))
+	var name := _label(tr(str(m["name"])).to_upper(), 26 if _card_w > 330.0 else 22, Color(0.95, 0.88, 0.75) if not locked else Color(0.6, 0.55, 0.5))
 	v.add_child(name)
 	var blurb := _label(tr(m["blurb"]) if not locked else reason + ".", 17, Color(0.82, 0.76, 0.68) if not locked else Color(1.0, 0.55, 0.4))
 	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

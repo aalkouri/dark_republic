@@ -182,7 +182,9 @@ func base_terrain(x: float, z: float) -> float:
 ## Bakes the terrain into the height grid. `chest_count` level pads are reserved for
 ## chests (away from the start, the pools and each other); the start point and every pool
 ## sit on level ground too.
-func build_terrain(rng: RandomNumberGenerator, half: float, chest_count: int, chest_radius: float) -> void:
+## `extra_pads` ([[Vector2 centre, radius], ...]) are more level pads to keep at the hills' height
+## there (the Desert's pyramids and sphinx stand on them); chests keep clear of them too.
+func build_terrain(rng: RandomNumberGenerator, half: float, chest_count: int, chest_radius: float, extra_pads: Array = []) -> void:
 	half_extent = half
 	_hills = FastNoiseLite.new()
 	_hills.seed = rng.randi()
@@ -201,6 +203,9 @@ func build_terrain(rng: RandomNumberGenerator, half: float, chest_count: int, ch
 		var c: Vector2 = p["center"]
 		p["base"] = base_terrain(c.x, c.y)
 		pads.append([c, max_radius(p) + 2.5, p["base"]])
+	for ep in extra_pads:
+		var ec: Vector2 = ep[0]
+		pads.append([ec, float(ep[1]), base_terrain(ec.x, ec.y)])
 	chest_sites.clear()
 	var tries := 0
 	while chest_sites.size() < chest_count and tries < 6000:

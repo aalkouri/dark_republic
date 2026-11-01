@@ -63,13 +63,13 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_check("its Play asks which map", cs._picker != null and cs._picker.visible, "")
 	var cards: Array = cs._picker._cards
-	_check("map cards: Swamp, then the Forest and Castle locked until Thog is beaten", cards.size() == 3 and cards[0].get_meta("id") == "swamp"
+	_check("map cards: Swamp, then the Forest, Castle (and the later maps) locked until their bosses are beaten", cards.size() == MapPicker.MAPS.size() and cards.size() >= 3 and cards[0].get_meta("id") == "swamp"
 		and cards[1].get_meta("id") == "forest" and cards[2].get_meta("id") == "castle"
-		and not cards[0].disabled and cards[1].disabled and cards[2].disabled, "%d" % cards.size())
+		and not cards[0].disabled and cards.slice(1).all(func(c): return c.disabled), "%d" % cards.size())
 	cs._picker.choose("forest")
 	_check("a locked map can't be picked", Settings.selected_map != "forest", Settings.selected_map)
 	var lk: Array = cards.filter(func(c): return c.has_meta("lock"))
-	_check("locked maps show a padlock", lk.size() == 2, str(lk.size()))
+	_check("locked maps show a padlock", lk.size() == cards.size() - 1, str(lk.size()))
 	# Thog and the Toadstool Knight beaten: the next time the picker opens, the padlocks spring
 	# open and fall away
 	cs._picker.cancelled.emit()

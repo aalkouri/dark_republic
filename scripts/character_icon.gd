@@ -322,6 +322,19 @@ func _hat(kind: String) -> void:
 			_ellipse(Vector2(60, 40), 22, 4, hc)
 			_poly([Vector2(48, 40), Vector2(72, 40), Vector2(72, 12), Vector2(48, 12)], hc)
 			_poly([Vector2(48, 32), Vector2(72, 32), Vector2(72, 36), Vector2(48, 36)], Color(0.55, 0.12, 0.15))
+		"nemes":   # the pharaoh's striped headcloth, lappets onto the shoulders, the uraeus
+			var stripe := Color(0.15, 0.27, 0.68)
+			for side in [-1.0, 1.0]:
+				_poly([Vector2(64 + side * 15, 40), Vector2(64 + side * 27, 46), Vector2(64 + side * 25, 92), Vector2(64 + side * 14, 92), Vector2(64 + side * 15, 62)], hc)
+				for k in 6:
+					var y := 52.0 + k * 7.0
+					draw_line(Vector2(64 + side * 15.5, y), Vector2(64 + side * 25.5, y + 1.0), stripe, 2.5)
+			_ellipse(Vector2(64, 45), 21, 15, hc, PI, TAU)
+			for k in 4:
+				draw_arc(Vector2(64, 45), 7.0 + k * 4.0, PI, TAU, 16, stripe, 1.6)
+			_poly([Vector2(43, 44), Vector2(85, 44), Vector2(85, 48), Vector2(43, 48)], hc.darkened(0.18))
+			_poly([Vector2(62, 31), Vector2(66, 31), Vector2(65, 44), Vector2(63, 44)], hc.lightened(0.2))
+			_ellipse(Vector2(64, 31), 3.5, 4.5, hc.lightened(0.2))
 		"mushroom":
 			_ellipse(Vector2(64, 46), 38, 26, hc, PI, TAU)
 			_poly([Vector2(26, 46), Vector2(102, 46), Vector2(96, 50), Vector2(32, 50)], Color(0.92, 0.86, 0.72))
@@ -488,6 +501,17 @@ func _item(kind: String) -> void:
 			draw_line(Vector2(110, 40), Vector2(98, 120), wood, 3.0)
 			_ellipse(Vector2(111, 36), 8, 6, Color(0.5, 0.45, 0.4))
 			draw_circle(Vector2(111, 34), 4.0, Color(0.45, 0.9, 0.3))
+		"crook_flail":   # the crook (right) and the flail (left), gold and lapis
+			var gold := Color(0.95, 0.75, 0.3)
+			var lapis := Color(0.15, 0.27, 0.68)
+			for k in 8:
+				draw_line(Vector2(106, 124 - k * 10.0), Vector2(106, 114 - k * 10.0), gold if k % 2 == 0 else lapis, 4.0)
+			draw_arc(Vector2(98, 44), 8.0, PI, TAU, 12, gold, 4.0)
+			draw_line(Vector2(22, 124), Vector2(22, 74), gold, 4.0)
+			for k in 3:
+				var sway := 2.0 * sin(_t * 3.0 + k)
+				for b in 5:
+					draw_circle(Vector2(24 + k * 4.0 + b * 1.2 + sway * b * 0.2, 76 + b * 6.0), 2.2, gold if b % 2 == 0 else lapis)
 		"sword":
 			_poly([Vector2(104, 20), Vector2(108, 20), Vector2(108, 100), Vector2(104, 100)], Color(0.85, 0.88, 0.92))
 			_poly([Vector2(96, 100), Vector2(116, 100), Vector2(116, 104), Vector2(96, 104)], Color(0.6, 0.45, 0.15))
@@ -521,6 +545,8 @@ func _fx(kind: String) -> void:
 					draw_arc(Vector2(x, y), 2.0 + (k % 3), 0, TAU, 12, Color(0.6, 1.0, 0.5, 0.7), 1.0)
 			"spores":
 				draw_circle(Vector2(x + 2.0 * sin(_t * 2.0 + k), y), 1.2, Color(1.0, 0.95, 0.8, 0.6))
+			"sand":   # grains blowing across on the wind
+				draw_circle(Vector2(fmod(x + _t * speed * 2.5, 128.0), 30.0 + h * 92.0 + 2.0 * sin(_t * 2.0 + k)), 1.1 + (k % 3) * 0.4, Color(0.98, 0.82, 0.5, 0.75))
 
 
 func _star(c: Vector2, r: float, col: Color) -> void:

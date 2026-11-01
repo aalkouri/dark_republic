@@ -71,7 +71,7 @@ var _boss_spawned := false
 var thog: ThogBoss                 # the Swamp boss once he's arrived
 var boss_map := false              # this map has a boss you must kill to win
 ## Each map's boss (also the Wallet.bosses_defeated id, and the character it unlocks)
-const MAP_BOSS := {"swamp": "thog", "forest": "toadstool_knight", "castle": "arachnid"}
+const MAP_BOSS := {"swamp": "thog", "forest": "toadstool_knight", "castle": "arachnid", "desert": "pharaoh", "graveyard": "necromancer"}
 var boss_id := ""                  # this run's boss
 var boss_name := "THOG"            # for "%s DEFEATED!"
 var map_boss: MapBoss              # the Forest's / Castle's boss once it has arrived
@@ -177,6 +177,8 @@ func _ready() -> void:
 			WorldBuilder.force_time = a.split("=")[1]
 		elif a.begins_with("--forest-time="):   # noon / golden / night (screenshots)
 			ForestBuilder.force_time = a.split("=")[1]
+		elif a.begins_with("--desert-time="):   # day / dusk / night (screenshots)
+			DesertBuilder.force_time = a.split("=")[1]
 		elif a.begins_with("--thog-at=") or a.begins_with("--boss-at="):   # bring the map's boss early (tests, screenshots)
 			_thog_at = float(a.split("=")[1])
 		elif a.begins_with("--smoke-wall="):   # wall-clock limit for long smoke runs (seconds)
@@ -644,6 +646,9 @@ func _spawn_director(dt: float) -> void:
 			if CastleNav.current.steps_to_player(p.x, p.z) <= 0:
 				p = _spawn_point(14.0, 24.0)   # that spot is a wall or cut off
 			enemies.bombers.spawn(p, hpm, rng.randf_range(0.0, 1.2))
+	elif run_time >= _next_swarm and enemies.undead != null:   # the Graveyard: the dead climb out of the graves round you
+		_next_swarm += 60.0
+		enemies.undead.grave_swarm(player.global_position, 24 + int(m) * 6, hpm, rng, epic_chance())
 	elif run_time >= _next_swarm:
 		_next_swarm += 60.0
 		var n := 24 + int(m) * 6
@@ -673,6 +678,8 @@ const BOMBERS_PER_MIN := 2    # ...plus this many per minute of the run
 
 
 func _pick_type(m: float) -> int:
+	if DesertBuilder.active:   # zombies instead of goblins, mummies and vultures
+		return DesertCrowd.pick_type(rng, m)
 	if CastleNav.current != null and rng.randf() < SKELETON_SHARE:
 		return EnemyManager.SKELETON
 	var w_grunt := 10.0
@@ -715,8 +722,15 @@ func spawn_thog() -> ThogBoss:
 
 ## The Forest's Toadstool Knight / the Castle's Arachnid walks in with 2 minutes left.
 func spawn_map_boss() -> MapBoss:
-	map_boss = ArachnidBoss.new() if boss_id == "arachnid" else ToadstoolBoss.new()
-	map_boss.setup(self, _spawn_point(34.0, 38.0), hp_mult())
+	if boss_id == "pharaoh":   # the Desert's: he rises from the tomb before the sphinx
+		map_boss = PharaohBoss.new()
+		map_boss.setup(self, PharaohBoss.rise_point(), hp_mult())
+	elif boss_id == "necromancer":   # the Graveyard's: he steps out of the fog among the graves
+		map_boss = NecromancerBoss.new()
+		map_boss.setup(self, _spawn_point(30.0, 34.0), hp_mult())
+	else:
+		map_boss = ArachnidBoss.new() if boss_id == "arachnid" else ToadstoolBoss.new()
+		map_boss.setup(self, _spawn_point(34.0, 38.0), hp_mult())
 	add_child(map_boss)
 	map_boss.defeated.connect(_on_boss_defeated)
 	if _thog_enraged:
@@ -1228,6 +1242,8 @@ func _shot_tick() -> void:
 			var t := EnemyManager.TANK if k % 9 == 0 else (EnemyManager.RUNNER if k % 3 == 0 else EnemyManager.GRUNT)
 			if CastleNav.current != null and k % 3 == 1:
 				t = EnemyManager.SKELETON   # indoors: show some skeletons too
+			if DesertBuilder.active and k % 4 == 1:
+				t = EnemyManager.MUMMY if k % 8 == 1 else EnemyManager.VULTURE   # the Desert: mummies and vultures too
 			if _shot_epic and k % 3 == 0:   # --shot-epic: every third one is an epic, close by
 				enemies.spawn(t, _spawn_point(5.0, 9.0), 3.0, true)
 			else:
