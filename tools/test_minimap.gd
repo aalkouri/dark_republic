@@ -124,7 +124,7 @@ func _test_blips() -> void:
 	var pm := mm.to_map(pu_at)
 	_check("power-up blip shown, to your right", mm.shown["powerups"].size() >= 1 and absf((pm.x - c.x) - 20.0 * px) < 2.0 and absf(pm.y - c.y) < 2.0, str(pm))
 	_check("ordinary enemies aren't shown (no dots for the crowd)", mm.shown["enemies"] == 0 and mm.shown["elites"] == 0, "%d dots" % mm.shown["enemies"])
-	var all_cols: Array = Minimap.CHEST_COLS + Minimap.KEY_COLS + Minimap.POTION_COLS + Minimap.POWERUP_COLS + [Minimap.SAFE, Minimap.BOSS]
+	var all_cols: Array = Minimap.CHEST_COLS + Minimap.KEY_COLS + Minimap.POTION_COLS + Minimap.POWERUP_COLS + Minimap.WAYGATE_COLS + [Minimap.SAFE, Minimap.BOSS, Minimap.SUBBOSS]
 	var uniq := {}
 	for col in all_cols:
 		uniq[(col as Color).to_html(false)] = true

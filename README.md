@@ -440,7 +440,7 @@ Picking one up while it's active refreshes its timer; active power-ups and their
 ## The minimap
 
 `scripts/minimap.gd`, in the HUD's **top-right corner** just under the coin and shard counters (the kills / enemies counter moved down below it). A round, semi-transparent dark map with a gold rim, 216 px across, showing **65 m** around you. It **turns with the camera**: you're the white arrow in the middle, always pointing the way the camera looks, and a gold **N** on the rim shows north.
-- **Blips:** enemies as tiny dim red dots (sampled, at most 300), elites purple, bosses a big red diamond with a skull; unopened chests in their tier's colour (opened ones disappear); power-ups as their own icons in a pulsing ring; dropped keys and potions; the portal out once the boss is down (a violet swirl, or a violet arrow on the rim).
+- **Blips:** enemies as tiny dim red dots (sampled, at most 300), elites purple, bosses a big red diamond with a skull; unopened chests in their tier's colour (opened ones disappear); power-ups as their own icons in a pulsing ring; dropped keys and potions; the portal out once the boss is down (a violet swirl, or a violet arrow on the rim); sub-bosses (an orange skull hexagon) and waygates (an arch: dim, bright aqua or muted teal; see **Sub-bosses and waygates**).
 - **Map context:** the arena edge, the swamp pools, the Caldera's lava pools and rivers, and the Castle's walls with their doorways.
 - **Boss ultimates:** while one is coming, the places to stand **pulse bright green**: Thog's quake ponds, the Pharaoh's three golden safe spots (Wrath of the Sands), the Necromancer's churchyard and holy-light circles (The Graves Open) and Singe's basalt islands (Caldera Eruption). The Arachnid's web swath is the reverse: the webbed half of the keep is **tinted red**. Bosses report these through `map_safe_zones()` / `map_danger_zones()` (default empty in `MapBoss`; `ThogBoss` has the same pair), returning `{pos, radius}` circles or `{rect}` areas.
 - **The boss off the map:** whenever a boss is alive beyond the map's range, a **big, bright red, pulsing double arrow** sits on the rim pointing toward him (it turns with the map: lower left means behind you, to your left); once he's in range his skull blip shows instead.
@@ -650,6 +650,28 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **Claw Swipe** (close): a wedge in front of him fills while he cocks his claws back, then he rakes them through it (damage and a burn). **Fire Breath**: he rears back drawing breath while a cone from his grin fills, then spews fire down it (damage and a burn), and the ground in the cone burns for 4 s. **Lava Dive**: he leaps, tucked into a cannonball, into the nearest lava (or straight through the crust if there's none within 30 m) with a SPLOOSH, then pops out under a circle marked by you (also when you run too far from him), leaving burning ground. **Meteor Call**: he juggles lava bombs over his head, then flings them onto five (enraged seven) marked circles round you. **Summon**: his magma imps claw out of marked cracks round you, every other time with an obsidian golem. **Scorch Run** (scorch marks on everything): he crouches cackling, then scampers in a loop round you; every footfall is marked on the ground first, filling until he gets there (the first at least 1.1 s ahead), and leaves a **scorch mark** for 6 s: step on one and you burn for 3 s.
 - **Caldera Eruption** (his ultimate, at 75%, 50% and 10% health, like Thog's quake): he flings up his arms cackling, the volcano erupts and the ground's cracks race open and pulse for **10 seconds**, while four **raised basalt islands** burst up out of the ground round you, each under a big glowing arrow pointing down at it. Then the **whole floor floods with lava** for 8.5 s. On an island you're safe; anywhere else it takes 35% of your max HP straight through your shield when it floods and 6% every second you stay in it, and sets you burning. Then the islands sink again.
 - **Death:** he sputters and staggers, his flame hair dies down and he fizzles and shrinks, guttering out into a small heap of cooling coals with one last puff of smoke; every lava surface on the map dims. Beating him the first time records his defeat (`"singe"`), which (with 10,000 coins) unlocks **Singe** on the roster. He can't play the Caldera. Sounds (a synthesised cackle and giggle, spew, splash, scamper, fizzle and puff): `tools/gen_caldera_sounds.py`.
+
+## Sub-bosses and waygates (Swamp)
+
+A try-out to ease the pressure of the horde: mid-run mini-bosses whose deaths leave a pair of linked portals you can hop between. Data per map in `SubBosses.MAPS` (`scripts/sub_bosses.gd`): only `"swamp": {"times": [120, 240], "kind": "bog_shaman"}` for now; other maps get it with one line (and a kind in `SubBoss.KINDS`).
+
+- **The Bog Shaman** (`scripts/sub_boss.gd`, `SubBoss`): arrives at **2:00** and again at **4:00**, 25-35 m from you on dry ground, with a burst of bog mud and a guttural chant. A 2.2x goblin chieftain in bog-green rags (a crowd row of its own type, `EnemyManager.SUB_BOSS`, drawn by the goblin VAT) with a code-built bone crown and horns, a hide mantle, a totem staff topped with a skull and a ball of green swamp-fire (with its own light), and a green aura ring on the ground. Its name and an orange-bordered health bar float over it (not the big boss bar).
+  - **Numbers:** 320 HP x the run's HP multiplier (about 600 at 2:00, 970 at 4:00; an epic is 40, Thog about 33,000), speed 3.3, contact damage 32 (a brute's), 40 XP. Can't be polymorphed or shrunk; otherwise every weapon, burn and status hits it.
+  - **Targeted like an elite:** the bosses-first rule stays the real boss's. **Spawns aren't reduced** while it's up (`main.boss_up()` is the map boss only).
+  - **Mud Slam** (close, every 7 s): a 5 m circle round it fills for 1.1 s, then it slams: 24 damage, slowed to half for 2.5 s, shoved back.
+  - **Bog Bolt** (4-22 m, every 8 s): a 20 m lane, 3.2 m wide, fills toward where you're heading for 1.0 s, then a bolt of bog water tears down it: 18 damage, slowed 35% for 2 s.
+  - It stands still while it casts; every telegraph gives at least 1 s (`SubBoss.MIN_WARN`).
+  - **Rewards:** its XP gems, an elite's 24% chance at a chest key, and it counts as an elite kill for character EXP.
+- **Waygates** (`scripts/waygate.gd`, `Waygate`): each sub-boss drops one where it fell (snapped to the nearest flat, dry, open ground: not in water, props, chests or on top of the other gate). A mossy trilithon about 2.9 m tall (two standing stones and a lintel carved with runes, in a ring of half-sunk stones) that grinds up out of the ground, its front facing you.
+  - **Inactive** (the first one): dark, runes faint. Within 4 m a floating text says **"Needs another portal to activate"**.
+  - **Active** (once the second drops; both flare up with a chord): runes glow blue-green, a swirling vortex fills the arch, a light and a hum. Near one, **Press E**: you're thrown to the other (a whoosh and a flash), landing just in front of it facing away, and goblins right there are shoved back so you don't land in a crowd. One teleport per press.
+  - **Recharging:** after any use both gates dim for **90 s** (`SubBosses.COOLDOWN`); the floating text counts down ("Recharging 1:12") and E does nothing.
+  - **Until the map is done:** they stay until the map boss dies (`main._on_boss_defeated` calls `SubBosses.on_map_boss_defeated`), then fade and sink away; also when the run ends. A sub-boss still alive when Thog arrives stays (and no longer drops a gate once he's dead).
+- **Minimap:** the sub-boss is a deep orange skull hexagon (`Minimap.SUBBOSS`); gates are a little arch, dim grey-teal inactive, bright aqua active, muted teal while recharging (`Minimap.WAYGATE_COLS`; active or recharging gates out of range get a rim arrow).
+- **Sounds:** `tools/gen_subboss_sounds.py` (`audio/subboss/`: arrival, slam, bolt, death, the gate rising, activating, its hum loop and the teleport whoosh).
+- **Debug:** `-- --subboss-at=T[,T2...]` replaces the map's times (and turns them on for any map), `-- --waygates-at=T` drops two active gates near you, `-- --shot-subboss` keeps the camera on the sub-boss.
+- **Other maps later:** add a `MAPS` entry. The Desert, Graveyard and Caldera draw their own crowds, so a kind there would want its own look rather than the goblin VAT.
+- **Tests:** `godot --headless --fixed-fps 60 --path . res://tools/test_subboss.tscn` (2:00 and 4:00 arrivals, HP between an epic and Thog, both telegraphs >= 0.8 s and hitting, the inactive gate and its text, activation, teleport and landing, one per press, the full 90 s recharge and its countdown, the minimap blips, the gates going with Thog, none on the Forest).
 
 ## Boss rules (all bosses)
 
@@ -878,6 +900,9 @@ godot --headless --path . res://tools/test_title.tscn
 
 # The Forest and Castle bosses (telegraphs, minimum warning, wall climbing, unlocks)
 godot --headless --path . res://tools/test_bosses.tscn
+
+# Sub-bosses and waygates (Swamp: 2:00 / 4:00 Bog Shamans, their telegraphs, the linked portals and cooldown)
+godot --headless --fixed-fps 60 --path . res://tools/test_subboss.tscn
 
 # Thog the Troll (arrives at 8:00, attacks, enrage, must die to win, unlocks)
 godot --headless --path . res://tools/test_boss.tscn

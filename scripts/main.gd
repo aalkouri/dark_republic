@@ -83,6 +83,7 @@ var boss_won := false              # the run was won by killing the boss (and le
 var boss_down := false             # Classic: the boss has fallen; no more monsters come (BossAftermath opens the portal)
 var _boss_down_at := 0.0           # run_time when he fell (the run's time and coins stop there)
 var aftermath: BossAftermath       # the boss's shards on the ground and the portal out
+var sub_bosses: SubBosses          # the map's sub-bosses and their waygates (SubBosses.MAPS: the Swamp)
 ## Unrelenting mode: no time limit (the clock counts up), spawns never stop, upgrades have no
 ## level cap, and past 10:00 enemies hit harder and drop less XP the longer you last.
 var endless := false
@@ -420,6 +421,9 @@ func _ready() -> void:
 	aftermath = BossAftermath.new()   # after the boss: shard pickups and the portal out
 	aftermath.setup(self)
 	add_child(aftermath)
+	sub_bosses = SubBosses.new()   # sub-bosses at set times, the waygates they drop
+	sub_bosses.setup(self)
+	add_child(sub_bosses)
 	# Main runs while paused (menus, input); all gameplay nodes freeze with the pause.
 	for n in [fx, enemies, numbers, corpses, powerups, chests, keys, gems, weapons, abilities, potions, goblin_audio, items, aftermath]:
 		(n as Node).process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -870,6 +874,7 @@ func _on_boss_defeated() -> void:
 		boss_down = true
 		_boss_down_at = run_time
 	aftermath.boss_down(_boss_fall_point(), Wallet.roll_boss_shards(rng, Settings.selected_map))
+	sub_bosses.on_map_boss_defeated()   # the map is done: the waygates fade away
 
 
 ## Where the boss came down (his body; the player if it's gone), on the ground.
@@ -1104,6 +1109,8 @@ func _end_run(won: bool) -> void:
 		run_time = minf(run_time, _boss_down_at)
 	_stop_music()
 	state = "won" if won else "dead"
+	if sub_bosses != null:
+		sub_bosses.clear_gates()
 	if run_stats:
 		run_stats.save("WON" if won else "DIED")   # no-i18n
 	get_tree().paused = true

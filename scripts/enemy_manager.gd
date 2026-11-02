@@ -237,7 +237,7 @@ var buf := PackedFloat32Array()
 var bar_mm: MultiMesh
 var bar_buf := PackedFloat32Array()
 
-enum { GRUNT, RUNNER, TANK, BOSS, SKELETON, TROLL, ZOMBIE, ZOMBIE_RUNNER, ZOMBIE_BRUTE, MUMMY, VULTURE, GHOUL, GHOST, MAGMA_IMP, CINDER_BAT, OBSIDIAN_GOLEM, LAVA_SLUG }   # SKELETON: castle (epic: Armored Skeleton); TROLL: Thog, the Swamp boss (drawn by ThogBoss); ZOMBIE..VULTURE: the Desert (DesertCrowd); GHOUL, GHOST: the Graveyard (UndeadCrowd); MAGMA_IMP..LAVA_SLUG: the Caldera (CalderaCrowd)
+enum { GRUNT, RUNNER, TANK, BOSS, SKELETON, TROLL, ZOMBIE, ZOMBIE_RUNNER, ZOMBIE_BRUTE, MUMMY, VULTURE, GHOUL, GHOST, MAGMA_IMP, CINDER_BAT, OBSIDIAN_GOLEM, LAVA_SLUG, SUB_BOSS }   # SUB_BOSS: a map's sub-boss (SubBoss sets its numbers; drawn as a big goblin); SKELETON: castle (epic: Armored Skeleton); TROLL: Thog, the Swamp boss (drawn by ThogBoss); ZOMBIE..VULTURE: the Desert (DesertCrowd); GHOUL, GHOST: the Graveyard (UndeadCrowd); MAGMA_IMP..LAVA_SLUG: the Caldera (CalderaCrowd)
 
 
 func _ready() -> void:
@@ -294,6 +294,8 @@ func _ready() -> void:
 	_add_desert_types()   # ZOMBIE..VULTURE (indices 6-10); any types after them append from 11
 	_add_graveyard_types()   # GHOUL, GHOST (indices 11-12)
 	_add_caldera_types()   # MAGMA_IMP..LAVA_SLUG (indices 13-16)
+	# A sub-boss (index 17): a big goblin chieftain; SubBoss writes its kind's numbers before it spawns
+	_put_type(SUB_BOSS, "Bog Shaman", 320.0, 3.3, 1.0, 2.2, 32.0, 40.0, Color(0.13, 0.36, 0.12))
 	for k in type_names.size():   # calmer legs per kind
 		t_stride[k] = float(STRIDE_BY_TYPE.get(type_names[k], STRIDE_LEN))
 	skeletons = SkeletonCrowd.new()
@@ -548,7 +550,7 @@ func taken_mult(i: int) -> float:
 
 ## Shrunk in the wash for `secs` (not bosses): smaller, hits for half, takes double damage.
 func shrink(i: int, secs: float) -> void:
-	if dead[i] or is_boss(i):
+	if dead[i] or is_boss(i) or typ[i] == SUB_BOSS:
 		return
 	if shrink_t[i] <= 0.0:
 		sz[i] *= SHRINK_SIZE
@@ -618,7 +620,7 @@ func scare(i: int, secs: float) -> void:
 
 ## Polymorph into a frog for `secs` (not the bosses).
 func frog(i: int, secs: float) -> void:
-	if not dead[i] and not is_boss(i):
+	if not dead[i] and not is_boss(i) and typ[i] != SUB_BOSS:
 		frog_t[i] = maxf(frog_t[i], secs)
 
 
@@ -1221,7 +1223,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 func _write_bars(n: int) -> void:
 	for i in n:
 		var b := i * BAR_STRIDE
-		var s := clampf(t_scale[typ[i]] * sz[i], 1.0, 3.0) if typ[i] != TROLL else 0.0   # Thog's bar is on the HUD
+		var s := clampf(t_scale[typ[i]] * sz[i], 1.0, 3.0) if typ[i] != TROLL and typ[i] != SUB_BOSS else 0.0   # Thog's bar is on the HUD, a sub-boss draws its own
 		var p := pos[i]
 		bar_buf[b] = s
 		bar_buf[b + 3] = p.x

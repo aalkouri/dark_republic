@@ -49,11 +49,11 @@
   "map_boss.gd:477"
  ],
  "%s / %s EXP": [
-  "character_select.gd:896",
+  "character_select.gd:894",
   "hud.gd:1073"
  ],
  "%s APPROACHES": [
-  "main.gd:839"
+  "main.gd:843"
  ],
  "%s Chest": [
   "chest.gd:60",
@@ -71,7 +71,7 @@
   "weapon_system.gd:446"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:866"
+  "main.gd:870"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:408"
@@ -200,7 +200,7 @@
   "hero_entrances.gd:633"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:572"
+  "main.gd:576"
  ],
  "2 yd": [
   "abilities.gd:254"
@@ -230,7 +230,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:724"
+  "main.gd:728"
  ],
  "A Legendary card you don't need can be converted into a chest key instead.": [
   "tips.json"
@@ -387,7 +387,7 @@
   "upgrades.json"
  ],
  "Armored Skeleton": [
-  "main.gd:740",
+  "main.gd:744",
   "skeleton_crowd.gd:412"
  ],
  "Ashen Ward": [
@@ -421,7 +421,7 @@
   "abilities.json"
  ],
  "Available from the start of every run": [
-  "character_select.gd:710"
+  "character_select.gd:708"
  ],
  "BAN  %d": [
   "hud.gd:339"
@@ -436,7 +436,7 @@
   "hud.gd:1590"
  ],
  "Back": [
-  "character_select.gd:808",
+  "character_select.gd:806",
   "settings_menu.gd:63"
  ],
  "Bans left: %d / %d   ·   %d coins each": [
@@ -492,7 +492,7 @@
   "upgrades.json"
  ],
  "Bleed": [
-  "enemy_manager.gd:941"
+  "enemy_manager.gd:943"
  ],
  "Bleeds deal double damage": [
   "forge.gd:81"
@@ -506,6 +506,11 @@
  "Blue Potion: +10% shield": [
   "potion_manager.gd:18"
  ],
+ "Bog Shaman": [
+  "enemy_manager.gd:298",
+  "sub_boss.gd:26",
+  "sub_boss.gd:123"
+ ],
  "Bog Witch": [
   "characters.json"
  ],
@@ -517,7 +522,7 @@
  ],
  "Bomber Skeleton": [
   "bomber_skeletons.gd:144",
-  "main.gd:738"
+  "main.gd:742"
  ],
  "Borderless fullscreen": [
   "settings_menu.gd:188"
@@ -571,10 +576,10 @@
   "abilities.json"
  ],
  "Burning": [
-  "enemy_manager.gd:912"
+  "enemy_manager.gd:914"
  ],
  "Burning Explosions": [
-  "enemy_manager.gd:1298"
+  "enemy_manager.gd:1300"
  ],
  "Burns deal double damage": [
   "forge.gd:92"
@@ -662,7 +667,7 @@
   "mode_menu.gd:14"
  ],
  "Cinder Bat": [
-  "enemy_manager.gd:401"
+  "enemy_manager.gd:403"
  ],
  "Cinder Shell": [
   "skill_tree.gd:86"
@@ -671,13 +676,13 @@
   "mode_menu.gd:14"
  ],
  "Click or press any key for the next tip": [
-  "loader.gd:223"
+  "loader.gd:249"
  ],
  "Click to continue": [
   "unlock_reveal.gd:52"
  ],
  "Click to forge": [
-  "character_select.gd:699"
+  "character_select.gd:697"
  ],
  "Close": [
   "forge_menu.gd:143"
@@ -698,7 +703,7 @@
   "hud.gd:770"
  ],
  "Collect the shards below to forge it": [
-  "character_select.gd:699"
+  "character_select.gd:697"
  ],
  "Collects what's owed.": [
   "abilities.json"
@@ -725,7 +730,7 @@
   "abilities.gd:389"
  ],
  "Cooldowns reset": [
-  "main.gd:1168"
+  "main.gd:1175"
  ],
  "Cowboy": [
   "characters.json"
@@ -762,7 +767,7 @@
   "abilities.json"
  ],
  "DARK REPUBLIC": [
-  "loader.gd:248",
+  "loader.gd:274",
   "title.gd:356"
  ],
  "DESTROY Mode": [
@@ -778,7 +783,7 @@
   "abilities.gd:222"
  ],
  "Damage: %s": [
-  "character_select.gd:685"
+  "character_select.gd:683"
  ],
  "Dancing enemies take {5%} of max HP per second": [
   "abilities.json"
@@ -1269,7 +1274,7 @@
   "abilities.json"
  ],
  "Forge": [
-  "character_select.gd:505"
+  "character_select.gd:503"
  ],
  "Forge Weapon": [
   "forge_menu.gd:136",
@@ -1279,8 +1284,8 @@
   "forge_menu.gd:179"
  ],
  "Forged +%d": [
-  "character_select.gd:505",
-  "character_select.gd:696"
+  "character_select.gd:503",
+  "character_select.gd:694"
  ],
  "Fortune": [
   "skill_tree.gd:60"
@@ -1311,7 +1316,7 @@
   "abilities.json"
  ],
  "Frozen Shatter": [
-  "enemy_manager.gd:1312"
+  "enemy_manager.gd:1314"
  ],
  "Frozen enemies that die shatter for {40%} of their max HP to enemies within {2 yd}; shatters chain": [
   "abilities.json"
@@ -1320,7 +1325,7 @@
   "settings_menu.gd:188"
  ],
  "Fully forged": [
-  "character_select.gd:505"
+  "character_select.gd:503"
  ],
  "Fungal Shield": [
   "abilities.json"
@@ -1329,7 +1334,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:905"
+  "main.gd:910"
  ],
  "Gaiden": [
   "characters.json"
@@ -1353,11 +1358,11 @@
   "characters.json"
  ],
  "Ghost": [
-  "enemy_manager.gd:385"
+  "enemy_manager.gd:387"
  ],
  "Ghoul": [
   "enemy_manager.gd:40",
-  "enemy_manager.gd:384"
+  "enemy_manager.gd:386"
  ],
  "Giant's Heart": [
   "skill_tree.gd:29"
@@ -1660,8 +1665,9 @@
   "hud.gd:1078"
  ],
  "LOADING": [
-  "loader.gd:224",
-  "loader.gd:386"
+  "loader.gd:200",
+  "loader.gd:250",
+  "loader.gd:412"
  ],
  "LV %d": [
   "hud.gd:1561"
@@ -1670,7 +1676,7 @@
   "hud.gd:101"
  ],
  "LVL %d": [
-  "character_select.gd:895"
+  "character_select.gd:893"
  ],
  "Ladle of Bile": [
   "abilities.json"
@@ -1700,7 +1706,7 @@
   "abilities.json"
  ],
  "Lava Slug": [
-  "enemy_manager.gd:403"
+  "enemy_manager.gd:405"
  ],
  "Lawful good at running away": [
   "taglines.json"
@@ -1844,7 +1850,7 @@
   "map_picker.gd:20"
  ],
  "Magma Imp": [
-  "enemy_manager.gd:400"
+  "enemy_manager.gd:402"
  ],
  "Magnet": [
   "powerup_manager.gd:20"
@@ -1927,7 +1933,7 @@
  ],
  "Mummy": [
   "enemy_manager.gd:40",
-  "enemy_manager.gd:367"
+  "enemy_manager.gd:369"
  ],
  "Music": [
   "settings.gd:17",
@@ -1946,7 +1952,7 @@
   "hud.gd:1230"
  ],
  "NEW LEGENDARY LEVEL-UP REWARD": [
-  "character_select.gd:987"
+  "character_select.gd:985"
  ],
  "NEW MAP": [
   "hud.gd:1224"
@@ -1959,6 +1965,9 @@
  ],
  "Needs a %s": [
   "chest.gd:120"
+ ],
+ "Needs another portal to activate": [
+  "waygate.gd:166"
  ],
  "Never stands still. Neither does anything near him.": [
   "characters.json"
@@ -2008,7 +2017,7 @@
   "powerup_manager.gd:20"
  ],
  "Obsidian Golem": [
-  "enemy_manager.gd:402"
+  "enemy_manager.gd:404"
  ],
  "Offense": [
   "skill_tree.gd:11",
@@ -2020,7 +2029,7 @@
   "characters.json"
  ],
  "One attack every %s": [
-  "character_select.gd:687"
+  "character_select.gd:685"
  ],
  "Opening a chest spins a slot machine of your abilities. Three of a kind gives that ability +3 levels, and gold chests hit it most often.": [
   "tips.json"
@@ -2053,7 +2062,7 @@
   "hud.gd:549"
  ],
  "PLAY": [
-  "character_select.gd:885"
+  "character_select.gd:883"
  ],
  "PORTAL OPEN": [
   "boss_aftermath.gd:121",
@@ -2114,11 +2123,11 @@
   "skill_tree.gd:23"
  ],
  "Play": [
-  "character_select.gd:812",
+  "character_select.gd:810",
   "title.gd:409"
  ],
  "Poison": [
-  "enemy_manager.gd:947"
+  "enemy_manager.gd:949"
  ],
  "Poison kick, slows": [
   "abilities.json"
@@ -2224,10 +2233,13 @@
  ],
  "Ready to unlock": [
   "character_select.gd:30",
-  "character_select.gd:906"
+  "character_select.gd:904"
  ],
  "Reaps every enemy within {12 m} below {30%} HP (not the boss)": [
   "abilities.json"
+ ],
+ "Recharging %d:%02d": [
+  "waygate.gd:169"
  ],
  "Red Potion: +10% health": [
   "potion_manager.gd:18"
@@ -2304,9 +2316,9 @@
   "settings_menu.gd:47"
  ],
  "SIGNATURE WEAPON": [
-  "character_select.gd:561",
-  "character_select.gd:684",
-  "character_select.gd:985"
+  "character_select.gd:559",
+  "character_select.gd:682",
+  "character_select.gd:983"
  ],
  "SINGE": [
   "singe_boss.gd:127"
@@ -2325,7 +2337,7 @@
   "character_select.gd:449"
  ],
  "SURVIVE": [
-  "main.gd:492"
+  "main.gd:496"
  ],
  "Sage": [
   "skill_tree.gd:63"
@@ -2438,7 +2450,7 @@
   "hud.gd:1137"
  ],
  "Skills": [
-  "character_select.gd:810"
+  "character_select.gd:808"
  ],
  "Skills  →   +%s coins": [
   "hud.gd:1088"
@@ -2576,7 +2588,7 @@
  ],
  "Sprinting Zombie": [
   "enemy_manager.gd:40",
-  "enemy_manager.gd:365"
+  "enemy_manager.gd:367"
  ],
  "Sprints in circles for no reason.": [
   "abilities.json"
@@ -2698,7 +2710,7 @@
  ],
  "THOG": [
   "main.gd:80",
-  "main.gd:844",
+  "main.gd:848",
   "thog_boss.gd:424",
   "thog_boss.gd:522"
  ],
@@ -2706,7 +2718,7 @@
   "thog_boss.gd:382"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:864"
+  "main.gd:868"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:544"
@@ -2715,7 +2727,7 @@
   "thog_boss.gd:400"
  ],
  "THOG THE TROLL": [
-  "main.gd:814",
+  "main.gd:818",
   "thog_boss.gd:621"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2725,11 +2737,11 @@
   "thog_boss.gd:656"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:815"
+  "main.gd:819"
  ],
  "TIP": [
-  "loader.gd:222",
-  "loader.gd:422"
+  "loader.gd:248",
+  "loader.gd:448"
  ],
  "Take less damage.": [
   "upgrades.json"
@@ -2892,7 +2904,7 @@
   "map_picker.gd:27"
  ],
  "Thorns": [
-  "main.gd:628",
+  "main.gd:632",
   "upgrades.json"
  ],
  "Thorns Damage": [
@@ -3019,7 +3031,7 @@
   "skill_tree.gd:22"
  ],
  "Toxic Spill": [
-  "enemy_manager.gd:1325",
+  "enemy_manager.gd:1327",
   "abilities.json"
  ],
  "Tree Trunk": [
@@ -3045,7 +3057,7 @@
   "kit_db.gd:81"
  ],
  "UNLOCK": [
-  "character_select.gd:908"
+  "character_select.gd:906"
  ],
  "UNLOCKED %s": [
   "unlock_reveal.gd:33"
@@ -3077,11 +3089,11 @@
   "settings_menu.gd:199"
  ],
  "Unlock": [
-  "character_select.gd:1012"
+  "character_select.gd:1010"
  ],
  "Unlock Requirements:": [
   "character_select.gd:30",
-  "character_select.gd:906"
+  "character_select.gd:904"
  ],
  "Unlocks at level %d": [
   "skill_screen.gd:135",
@@ -3089,7 +3101,7 @@
   "skill_tree.gd:166"
  ],
  "Unlocks at level %d during a run": [
-  "character_select.gd:712"
+  "character_select.gd:710"
  ],
  "Unrelenting": [
   "mode_menu.gd:16"
@@ -3149,7 +3161,7 @@
   "skill_tree.gd:44"
  ],
  "Vulture": [
-  "enemy_manager.gd:368"
+  "enemy_manager.gd:370"
  ],
  "WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns": [
   "hud.gd:194"
@@ -3315,11 +3327,11 @@
  ],
  "Zombie": [
   "enemy_manager.gd:39",
-  "enemy_manager.gd:364"
+  "enemy_manager.gd:366"
  ],
  "Zombie Brute": [
   "enemy_manager.gd:40",
-  "enemy_manager.gd:366"
+  "enemy_manager.gd:368"
  ],
  "Zoomies": [
   "abilities.json"
@@ -3358,7 +3370,7 @@
   "skill_screen.gd:264"
  ],
  "max level": [
-  "character_select.gd:896",
+  "character_select.gd:894",
   "hud.gd:1073",
   "hud.gd:1126"
  ],

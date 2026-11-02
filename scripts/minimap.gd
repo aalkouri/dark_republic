@@ -6,6 +6,9 @@ extends Control
 ## looks), and a little N on the rim shows north.
 ##   - Enemies: not shown, except the boss as a big red
 ##     skull diamond.
+##   - Sub-bosses: an orange skull hexagon (smaller than the boss's). Waygates: a little arch,
+##     dim while inactive, bright aqua when active, muted teal while recharging (rim arrows once
+##     active, when out of range).
 ##   - Unopened chests (tier colour), power-ups (their own icons), keys and potions.
 ##   - Map context: the arena edge, swamp pools, the Caldera's lava, the castle's walls.
 ##   - BOSS ULTIMATES: while one is coming, the places to stand pulse bright green (Thog's quake
@@ -40,6 +43,8 @@ const CHEST_COLS := [Color("c8742f"), Color("eef2fa"), Color("ffd21f")]      # c
 const KEY_COLS := [Color("ff8f70"), Color("5fd8ff"), Color("ff3ddb")]        # salmon, sky blue, magenta
 const POTION_COLS := [Color("8a3dff"), Color("ff5c8a"), Color("2f6bff")]     # purple, rose, royal blue
 const POWERUP_COLS := [Color("ff6a00"), Color("19d6b0"), Color("ffb000"), Color("00ff9c"), Color("b8ff2e")]   # magnet, fear, damage, speed, nuke
+const WAYGATE_COLS := [Color("5a6e6a"), Color("6ffff0"), Color("2b8a9a")]   # waygates: inactive (dim), active (bright aqua), recharging
+const SUBBOSS := Color("e85d04")              # a sub-boss: a deep orange skull hexagon (the boss's is a red diamond)
 const DANGER := Color(1.0, 0.12, 0.08)
 const WATER := Color(0.25, 0.5, 0.6, 0.55)
 const LAVA := Color(1.0, 0.42, 0.08, 0.6)
@@ -56,7 +61,7 @@ var _k := 1.0                    # pixels per metre
 var last_draw_ms := 0.0          # how long the last content redraw took (tests, perf)
 # what the last redraw showed (tests)
 var shown := {"enemies": 0, "elites": 0, "bosses": [], "chests": [], "powerups": [], "keys": 0, "potions": 0,
-	"safe": [], "danger": 0, "rim": 0, "boss_arrows": []}
+	"safe": [], "danger": 0, "rim": 0, "boss_arrows": [], "subbosses": [], "waygates": []}
 
 
 func _init() -> void:
@@ -163,7 +168,7 @@ func _draw_layer() -> void:
 		return
 	var t0 := Time.get_ticks_usec()
 	shown = {"enemies": 0, "elites": 0, "bosses": [], "chests": [], "powerups": [], "keys": 0, "potions": 0,
-		"safe": [], "danger": 0, "rim": 0, "boss_arrows": []}
+		"safe": [], "danger": 0, "rim": 0, "boss_arrows": [], "subbosses": [], "waygates": []}
 	_draw_terrain()
 	var boss = _boss()
 	if boss != null and boss.has_method("map_danger_zones"):
@@ -172,6 +177,7 @@ func _draw_layer() -> void:
 	_draw_enemies()
 	_draw_pickups()
 	_draw_portal()
+	_draw_waygates()
 	if boss != null and boss.has_method("map_safe_zones"):
 		_draw_safe(boss.map_safe_zones())
 	last_draw_ms = (Time.get_ticks_usec() - t0) / 1000.0
@@ -262,6 +268,8 @@ func _draw_enemies() -> void:
 	for i in em.count:
 		if not em.dead[i] and em.is_boss(i):
 			_draw_boss(em.pos[i])
+		elif not em.dead[i] and em.typ[i] == EnemyManager.SUB_BOSS:
+			_draw_subboss(em.pos[i])
 	shown["enemies"] = 0
 	shown["elites"] = 0
 
@@ -285,6 +293,59 @@ func _draw_boss(p: Vector3) -> void:
 	L.draw_circle(Vector2(-1.7, -1.2), 1.25, Color(0.15, 0.0, 0.0))
 	L.draw_circle(Vector2(1.7, -1.2), 1.25, Color(0.15, 0.0, 0.0))
 	L.draw_set_transform(Vector2.ZERO)
+
+
+## A sub-boss: an orange hexagon with a little skull (or a small orange rim arrow).
+func _draw_subboss(p: Vector3) -> void:
+	shown["subbosses"].append(p)
+	if not _in_range(p):
+		_rim_arrow(p, SUBBOSS, 8.0)
+		return
+	var L := _layer
+	var c := _at(p)
+	var s := 7.5
+	var hex := PackedVector2Array()
+	for k in 6:
+		var a := TAU * k / 6.0 + PI / 6.0
+		hex.append(c + Vector2(cos(a), sin(a)) * s)
+	L.draw_colored_polygon(hex, Color(SUBBOSS, 0.95))
+	hex.append(hex[0])
+	L.draw_polyline(hex, Color(0.12, 0.03, 0.0), 1.5, true)
+	L.draw_set_transform(c, -_layer.rotation)
+	L.draw_circle(Vector2(0, -0.8), 3.2, Color(0.98, 0.95, 0.88))
+	L.draw_rect(Rect2(Vector2(-1.9, 1.4), Vector2(3.8, 2.2)), Color(0.98, 0.95, 0.88))
+	L.draw_circle(Vector2(-1.2, -0.9), 0.95, Color(0.2, 0.05, 0.0))
+	L.draw_circle(Vector2(1.2, -0.9), 0.95, Color(0.2, 0.05, 0.0))
+	L.draw_set_transform(Vector2.ZERO)
+
+
+## Waygates ("waygate" group): a little arch in the state's colour; an active or recharging one
+## out of range sits on the rim as an arrow.
+func _draw_waygates() -> void:
+	for g in get_tree().get_nodes_in_group("waygate"):
+		var gate := g as Node3D
+		if gate == null:
+			continue
+		var st: String = str(gate.get("state"))
+		var col: Color = WAYGATE_COLS[1] if st == "active" else (WAYGATE_COLS[2] if st == "cooldown" else WAYGATE_COLS[0])
+		var at := gate.global_position
+		shown["waygates"].append({"pos": at, "state": st, "col": col})
+		if not _in_range(at):
+			if st != "inactive":
+				_rim_arrow(at, col, 7.0)
+			continue
+		var c := _at(at)
+		var L := _layer
+		var pulse := 1.0 + (0.15 * sin(_time * 6.0) if st == "active" else 0.0)
+		L.draw_set_transform(c, -_layer.rotation)
+		L.draw_circle(Vector2.ZERO, 7.5 * pulse, Color(0.02, 0.05, 0.05, 0.9))
+		L.draw_line(Vector2(-3.5, 4.0), Vector2(-3.5, -3.0), col, 2.2)   # the arch: two stones and a lintel
+		L.draw_line(Vector2(3.5, 4.0), Vector2(3.5, -3.0), col, 2.2)
+		L.draw_line(Vector2(-5.0, -3.8), Vector2(5.0, -3.8), col, 2.4)
+		if st == "active":
+			L.draw_circle(Vector2(0, 0.5), 2.0, col.lerp(Color.WHITE, 0.3))
+		L.draw_arc(Vector2.ZERO, 7.5 * pulse, 0.0, TAU, 20, Color(col, 0.9), 1.4, true)
+		L.draw_set_transform(Vector2.ZERO)
 
 
 # --- pickups

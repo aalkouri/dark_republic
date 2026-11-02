@@ -1,0 +1,5 @@
+{
+"Bog Shaman": ["Chamán del Pantano", "Chaman des marais", "شامان المستنقع", "Sumpfschamane", "沼泽萨满", "沼のシャーマン"],
+"Needs another portal to activate": ["Necesita otro portal para activarse", "Il faut un autre portail pour l'activer", "يحتاج إلى بوابة أخرى ليعمل", "Braucht ein zweites Portal, um sich zu aktivieren", "需要另一个传送门才能激活", "起動にはもう一つのポータルが必要"],
+"Recharging %d:%02d": ["Recargando %d:%02d", "Recharge %d:%02d", "إعادة الشحن %d:%02d", "Lädt auf %d:%02d", "充能中 %d:%02d", "再充填中 %d:%02d"]
+}
