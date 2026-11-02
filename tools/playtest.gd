@@ -197,6 +197,8 @@ func _record(st: String) -> void:
 	detail["keys_left"] = Array(main.keys.keys)
 	detail["keys"] = {"Bronze": _keys[0], "Silver": _keys[1], "Gold": _keys[2]}
 	detail["shards"] = main.shards_won.duplicate()
+	detail["killed_by"] = main.player.last_hit_by if st == "dead" else ""
+	detail["damage_by"] = main.player.damage_by.duplicate()
 	if st == "dead":
 		detail["last_10s"] = _trace.duplicate()
 		print("  last 10 s:\n    " + "\n    ".join(PackedStringArray(_trace)))
@@ -206,7 +208,7 @@ func _record(st: String) -> void:
 		jf.store_line(JSON.stringify(detail))
 		jf.close()
 	var line := "%s #%d: %s at %s  (lvl %d, %d kills%s)" % [r["char"], r["n"], "WON" if won else ("DIED" if st == "dead" else "TIMEOUT"),
-		_fmt(r["time"]), r["level"], r["kills"], "" if won or r["boss_hp"] < 0 else ", boss at %d%% HP" % roundi(r["boss_hp"] * 100)]
+		_fmt(r["time"]), r["level"], r["kills"], ("" if won or r["boss_hp"] < 0 else ", boss at %d%% HP" % roundi(r["boss_hp"] * 100)) + (", killed by %s" % detail["killed_by"] if st == "dead" else "")]
 	print("RESULT " + line)
 	var f := FileAccess.open(out_path, FileAccess.READ_WRITE if FileAccess.file_exists(out_path) else FileAccess.WRITE)
 	if f:

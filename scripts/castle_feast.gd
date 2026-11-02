@@ -574,7 +574,7 @@ func _crash(at: Vector3, f: Dictionary) -> void:
 	if player != null and is_instance_valid(player):
 		var pp := player.global_position
 		if Vector2(pp.x - at.x, pp.z - at.z).length() <= DROP_RADIUS and pp.y < at.y + 2.5:
-			if player.has_method("hurt") and player.hurt(float(player.get("max_hp")) * DROP_DAMAGE):
+			if player.has_method("hurt") and player.hurt(float(player.get("max_hp")) * DROP_DAMAGE, "Falling Chandelier"):
 				drop_hits += 1
 		if player.has_method("add_shake"):
 			player.add_shake(0.5 if Vector2(pp.x - at.x, pp.z - at.z).length() < 12.0 else 0.2)

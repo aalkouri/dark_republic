@@ -141,7 +141,7 @@ func _explode(at: Vector3, player: Node3D, dmg: float) -> void:
 		var pp := player.global_position
 		var d := Vector2(pp.x - at.x, pp.z - at.z).length()
 		if d <= BLAST_RADIUS and absf(pp.y - at.y) < 3.0:
-			if player.has_method("hurt") and player.hurt(dmg):
+			if player.has_method("hurt") and player.hurt(dmg, "Bomber Skeleton"):
 				player_hits += 1
 			if player.has_method("knockback"):
 				var away := Vector3(pp.x - at.x, 0, pp.z - at.z)

@@ -421,7 +421,7 @@ func _tick_quake(dt: float) -> void:
 		_play_sfx("slam")
 		player.add_shake(1.6)
 		var safe: bool = main.water != null and main.water.in_pool_xz(player.global_position.x, player.global_position.z)
-		if not safe and player.hurt_true(QUAKE_FRAC):
+		if not safe and player.hurt_true(QUAKE_FRAC, "THOG"):
 			counts["quake_hits"] += 1
 			counts["hits"] += 1
 		_quake_ground(0.0, 0.0)
@@ -503,7 +503,7 @@ func is_quaking() -> bool:
 
 func _hit(amount: float, push: Vector3) -> void:
 	player.invuln = 0.0   # the big swings always land, whatever grazed you a moment ago
-	if player.hurt(amount * EnemyManager.BOSS_DAMAGE_MULT):
+	if player.hurt(amount * EnemyManager.BOSS_DAMAGE_MULT, "THOG"):
 		counts["hits"] += 1
 		player.knockback(push)
 		_shake(0.5)

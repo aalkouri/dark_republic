@@ -511,6 +511,7 @@ func _tick_burn(dt: float) -> void:
 	if god_mode or hp <= 0.0:
 		return
 	var dmg := max_hp * BURN_FRAC * dt
+	_note_hit("Fire", dmg)
 	var absorbed := minf(shield, dmg)
 	_drain_shield(absorbed)
 	hp -= dmg - absorbed
@@ -550,7 +551,32 @@ func _follow_camera(dt: float) -> void:
 	cam.v_offset = randf_range(-1.0, 1.0) * sk * 0.5
 
 
-func hurt(amount: float) -> bool:
+## What hurt you this run (shown on the death screen, written by the playtest bot): the last
+## source to land a hit, and the damage each source dealt (after armour, shields included).
+## Sources are English names (enemy type, "Elite <type>", a boss's name, "Fire"), translated
+## on display. A dictionary add per landed hit: no measurable cost.
+var last_hit_by := ""
+var damage_by := {}
+
+
+func _note_hit(source: String, amount: float) -> void:
+	if source == "":
+		source = "Unknown"
+	last_hit_by = source
+	amount = minf(amount, maxf(hp, 0.0) + shield)   # an overkill only counts what you had left
+	damage_by[source] = float(damage_by.get(source, 0.0)) + amount
+
+
+## The source that dealt the most damage this run, and how much: [name, damage], or ["", 0].
+func top_damage_source() -> Array:
+	var best := ""
+	for k in damage_by:
+		if best == "" or damage_by[k] > damage_by[best]:
+			best = k
+	return [best, float(damage_by.get(best, 0.0))]
+
+
+func hurt(amount: float, source := "") -> bool:
 	if meteor_form or untouchable or invuln > 0.0 or hp <= 0.0:
 		return false
 	invuln = IFRAMES
@@ -559,6 +585,7 @@ func hurt(amount: float) -> bool:
 		return true
 	var armor := stats.value("armor")
 	amount *= 20.0 / (20.0 + armor) * dmg_taken
+	_note_hit(source, amount)
 	var absorbed := minf(shield, amount)
 	_drain_shield(absorbed)
 	amount -= absorbed
@@ -573,7 +600,7 @@ func hurt(amount: float) -> bool:
 
 ## A hit that ignores armour and goes straight through shields, wiping them out: `frac` of
 ## max HP (Thog's quake). Returns true if it landed.
-func hurt_true(frac: float) -> bool:
+func hurt_true(frac: float, source := "") -> bool:
 	if meteor_form or untouchable or hp <= 0.0:
 		return false
 	invuln = IFRAMES
@@ -582,6 +609,7 @@ func hurt_true(frac: float) -> bool:
 	if god_mode:
 		return true
 	var amount := max_hp * frac
+	_note_hit(source, amount)
 	hp -= amount
 	Events.player_damaged.emit(amount)
 	if hp <= 0.0:

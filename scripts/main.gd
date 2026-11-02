@@ -567,19 +567,23 @@ func _contact_damage() -> void:
 			enemies.bombers.detonate(i, player, enemy_damage_mult())
 	if player.invuln <= 0.0:
 		var dmg := 0.0
+		var by := -1   # the hardest hitter: credited on the death screen
 		var push := Vector3.ZERO
 		for i in hits:
 			if enemies.dead[i] or enemies.is_harmless(i):
 				continue   # frozen, stunned, frogs, possessed or fleeing goblins can't hit (or a bomber that just blew)
 			if enemies.typ[i] == EnemyManager.TROLL and not enemies.boss_contact:
 				continue
-			dmg = maxf(dmg, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * enemies.hit_mult(i) * (EnemyManager.BOSS_DAMAGE_MULT if enemies.is_boss(i) else 1.0))
+			var d := enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * enemies.hit_mult(i) * (EnemyManager.BOSS_DAMAGE_MULT if enemies.is_boss(i) else 1.0)
+			if d > dmg:
+				dmg = d
+				by = i
 			var away := enemies.pos[i] - me
 			away.y = 0.0
 			push -= away.normalized() if away.length_squared() > 0.0001 else Vector3.ZERO
 		if dmg <= 0.0:
 			return
-		player.hurt(dmg)
+		player.hurt(dmg, damage_source(by))
 		_smoke_contacts += 1
 		# Thorns (the weapon) and Shield Wall: whatever hits you takes its damage back
 		var thorns := player.thorns
@@ -677,6 +681,24 @@ func _spawn_director(dt: float) -> void:
 		_boss_spawned = true
 		enemies.spawn(EnemyManager.BOSS, _spawn_point(30.0, 32.0), hpm)
 		hud.flash_message("A GOBLIN WARLORD APPROACHES", 4.0)
+
+
+## Who an enemy row is on the death screen: the boss's name, or its type ("Elite <type>" for
+## an epic; the epic Skeleton is the Armored Skeleton, and a bomber is a Bomber Skeleton).
+func damage_source(i: int) -> String:
+	if i < 0:
+		return ""
+	var boss_row := thog.row() if thog != null and is_instance_valid(thog) else (map_boss.row() if map_boss != null and is_instance_valid(map_boss) else -1)
+	if i == boss_row:
+		return boss_name
+	var t := enemies.typ[i]
+	if t == EnemyManager.SKELETON:
+		if enemies.bomber[i] != 0:
+			return "Bomber Skeleton"
+		if enemies.epic[i]:
+			return "Armored Skeleton"
+	var n: String = enemies.type_names[t]
+	return ("Elite " + n) if enemies.epic[i] and not enemies.is_boss(i) else n   # no-i18n
 
 
 ## Spawns (trickle and swarm waves) are scaled by this while the map's boss is out.

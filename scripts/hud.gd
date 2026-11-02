@@ -59,6 +59,7 @@ const POPUP_LIFE := 0.9
 var _hover_slot := -1
 var end_title: Label
 var end_stats: Label
+var end_killer: Label   # what killed you and what hurt most, on a death
 var end_coin_lines: Label
 var end_exp: Label
 var end_shards: HBoxContainer   # elemental shards won from bosses this run
@@ -653,6 +654,12 @@ func _build_end(root: Control) -> void:
 	end_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	end_stats.add_theme_color_override("font_color", Color(0.85, 0.8, 0.74))
 	vb.add_child(end_stats)
+	# Death: what killed you and what hurt you most this run
+	end_killer = _label("", 20)
+	end_killer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	end_killer.add_theme_color_override("font_color", Color(1.0, 0.6, 0.5))
+	end_killer.visible = false
+	vb.add_child(end_killer)
 	# Unlocks (after a first boss kill)
 	end_unlocks = VBoxContainer.new()
 	end_unlocks.add_theme_constant_override("separation", 8)
@@ -959,6 +966,11 @@ func show_end(won: bool) -> void:
 	end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if won else Color(1.0, 0.35, 0.3))
 	end_stats.text = tr("Time %s   ·   Level %d   ·   Kills %d") % [_fmt_time(main.run_time), main.level, main.kills]
 	show_unlocks(unlocks_for(main.boss_id) if main.first_boss_kill else [])
+	end_killer.visible = not won and main.player.last_hit_by != ""
+	if end_killer.visible:
+		var top: Array = main.player.top_damage_source()
+		end_killer.text = tr("Killed by %s") % source_label(main.player.last_hit_by) + "   ·   " \
+			+ tr("Most damage: %s (%d)") % [source_label(top[0]), int(round(top[1]))]
 	end_root.visible = true
 	# EXP for the character played (kills, elites, boss, chests, time alive, win bonus), banked now
 	var cid := Settings.selected_character
@@ -989,6 +1001,13 @@ func show_end(won: bool) -> void:
 
 
 var run_exp := {}
+
+
+## A damage source (see Player.damage_by) in the player's language.
+func source_label(src: String) -> String:
+	if src.begins_with("Elite "):   # no-i18n
+		return tr("Elite %s") % tr(src.substr(6))
+	return tr(src)
 
 
 ## "Kills 1,200 · Elites +350 · Boss +2,000 · Chests +500 · Time +1,000 · Win +1,262" (zero parts left out).

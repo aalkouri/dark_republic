@@ -409,7 +409,7 @@ func _tick_bones(dt: float, player: Node3D) -> void:
 		if not gone and chest != Vector3.INF:
 			var d := p - chest
 			if absf(d.y) < 0.95 and Vector2(d.x, d.z).length() < 0.6:
-				if player.has_method("hurt") and player.hurt(_b_dmg[i]):
+				if player.has_method("hurt") and player.hurt(_b_dmg[i], "Armored Skeleton"):   # only elites throw
 					bone_hits += 1
 					player.knockback(Vector3(_b_vel[i].x, 0, _b_vel[i].z))
 				_shatter_bone(p, _b_vel[i] * 0.2)

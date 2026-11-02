@@ -1,0 +1,10 @@
+{
+ "Killed by %s": ["Te mató: %s", "Tué par %s", "قتلك: %s", "Getötet von %s", "击杀者：%s", "%sに倒された"],
+ "Most damage: %s (%d)": ["Más daño: %s (%d)", "Plus de dégâts : %s (%d)", "أكثر ضرر: %s (%d)", "Meister Schaden: %s (%d)", "伤害最高：%s（%d）", "最大ダメージ：%s（%d）"],
+ "Elite %s": ["%s élite", "%s d'élite", "%s نخبة", "Elite-%s", "精英%s", "エリート%s"],
+ "Armored Skeleton": ["Esqueleto acorazado", "Squelette en armure", "هيكل عظمي مدرّع", "Gepanzertes Skelett", "装甲骷髅", "装甲スケルトン"],
+ "Bomber Skeleton": ["Esqueleto bombardero", "Squelette bombardier", "هيكل عظمي مفجّر", "Bomben-Skelett", "炸弹骷髅", "爆弾スケルトン"],
+ "Falling Chandelier": ["Candelabro que cae", "Lustre qui tombe", "ثريا ساقطة", "Fallender Kronleuchter", "坠落的吊灯", "落ちてくるシャンデリア"],
+ "Fire": ["Fuego", "Feu", "نار", "Feuer", "火焰", "炎"],
+ "Unknown": ["Desconocido", "Inconnu", "مجهول", "Unbekannt", "未知", "不明"]
+}

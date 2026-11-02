@@ -487,7 +487,7 @@ func _tick_drain(dt: float) -> void:
 		_drain_tick = 0.25
 		player.invuln = 0.0
 		var dmg := DRAIN_DPS * 0.25 * EnemyManager.BOSS_DAMAGE_MULT
-		if player.hurt(dmg):
+		if player.hurt(dmg, display_name()):
 			counts["drain_hits"] = int(counts.get("drain_hits", 0)) + 1
 			em.hp[i] = minf(em.hp_max[i], em.hp[i] + dmg * DRAIN_HEAL)
 			if fx:
@@ -548,7 +548,7 @@ func _tick_graves(dt: float) -> void:
 		play_sfx("spikes", 0.7)
 		player.add_shake(1.4)
 		if not in_consecrated(player.global_position):
-			if player.hurt_true(ULT_FRAC):
+			if player.hurt_true(ULT_FRAC, display_name()):
 				counts["ult_hits"] = int(counts.get("ult_hits", 0)) + 1
 				counts["hits"] += 1
 		# bone spikes everywhere but the holy ground, and the dead rise
