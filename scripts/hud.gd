@@ -52,6 +52,7 @@ var tooltip: PanelContainer
 var tooltip_text: RichTextLabel
 var inspect_hint: Label
 var buff_label: RichTextLabel
+var minimap: Minimap
 var key_row: HBoxContainer        # keys held (chests): bottom left, above the inventory
 var key_icons: Array = []           # KeyIcon per tier
 var key_labels: Array[Label] = []
@@ -134,15 +135,19 @@ func setup(m) -> void:
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	info_label.offset_left = -320
 	info_label.offset_right = -20
-	info_label.offset_top = 70   # below the coin counter (Wallet)
+	info_label.offset_top = Minimap.TOP + Minimap.SIZE + 8.0   # below the minimap (which sits under the coin counter)
 	root.add_child(info_label)
+
+	minimap = Minimap.new()   # top right, under the coin and shard counters
+	minimap.main = main
+	root.add_child(minimap)
 
 	debug_label = _label("", 14)
 	debug_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	debug_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	debug_label.offset_left = -420
 	debug_label.offset_right = -20
-	debug_label.offset_top = 130
+	debug_label.offset_top = Minimap.TOP + Minimap.SIZE + 100.0
 	debug_label.visible = false
 	root.add_child(debug_label)
 
@@ -638,6 +643,51 @@ func _update_tooltip() -> void:
 	tooltip.position = pos
 
 
+var end_ledger: VBoxContainer       # the end screen's rows: item ...... value
+var end_scroll: ScrollContainer
+
+
+## Dots between an end-screen item and its value.
+class DotLeader extends Control:
+	func _init() -> void:
+		size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		custom_minimum_size = Vector2(24, 0)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var y := size.y * 0.72
+		var x := 6.0
+		while x < size.x - 6.0:
+			draw_circle(Vector2(x, y), 1.4, Color(0.85, 0.75, 0.6, 0.55))
+			x += 9.0
+
+
+## One ledger row: `item` on the left, dots, `value` on the right.
+func _ledger_row(item: String, value: String, value_col := Color(0.95, 0.9, 0.8), item_col := Color(0.82, 0.77, 0.7), size := 19) -> void:
+	var hb := HBoxContainer.new()
+	hb.add_theme_constant_override("separation", 8)
+	var l := _label(item, size)
+	l.add_theme_color_override("font_color", item_col)
+	hb.add_child(l)
+	hb.add_child(DotLeader.new())
+	var v := _label(value, size)
+	v.add_theme_color_override("font_color", value_col)
+	v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hb.add_child(v)
+	end_ledger.add_child(hb)
+
+
+## A small heading between groups of rows.
+func _ledger_head(text: String) -> void:
+	var l := _label(text, 15)
+	l.add_theme_color_override("font_color", Color(0.85, 0.6, 0.3, 0.9))
+	if end_ledger.get_child_count() > 0:
+		var gap := Control.new()
+		gap.custom_minimum_size = Vector2(0, 8)
+		end_ledger.add_child(gap)
+	end_ledger.add_child(l)
+
+
 func _build_end(root: Control) -> void:
 	end_root = _dim(root)
 	(end_root as ColorRect).color = Color(0, 0, 0, 0.45)
@@ -658,7 +708,7 @@ func _build_end(root: Control) -> void:
 	sb.content_margin_top = 26
 	sb.content_margin_bottom = 26
 	card.add_theme_stylebox_override("panel", sb)
-	card.custom_minimum_size = Vector2(720, 0)
+	card.custom_minimum_size = Vector2(640, 0)
 	center.add_child(card)
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 10)
@@ -667,23 +717,27 @@ func _build_end(root: Control) -> void:
 	end_title = _label("", 54)
 	end_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(end_title)
+	# Everything else is one tidy ledger: the item on the left, dots, the value on the right
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(0, 120)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vb.add_child(scroll)
+	end_scroll = scroll
+	end_ledger = VBoxContainer.new()
+	end_ledger.add_theme_constant_override("separation", 2)
+	end_ledger.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(end_ledger)
+	# Old summary labels: still filled in (tests and the dev stats read them), never shown
 	end_stats = _label("", 21)
-	end_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	end_stats.add_theme_color_override("font_color", Color(0.85, 0.8, 0.74))
-	vb.add_child(end_stats)
-	# Death: what killed you and what hurt you most this run
 	end_killer = _label("", 20)
-	end_killer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	end_killer.add_theme_color_override("font_color", Color(1.0, 0.6, 0.5))
-	end_killer.visible = false
-	vb.add_child(end_killer)
-	# Your damage: the weapons and abilities that dealt the most this run
 	end_dealt = _label("", 19)
-	end_dealt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	end_dealt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	end_dealt.add_theme_color_override("font_color", Color(0.75, 0.9, 0.65))
-	end_dealt.visible = false
-	vb.add_child(end_dealt)
+	end_exp = _label("", 19)
+	end_coin_lines = _label("", 19)
+	end_shards = HBoxContainer.new()
+	for hidden in [end_stats, end_killer, end_dealt, end_exp, end_coin_lines, end_shards]:
+		hidden.visible = false
+		vb.add_child(hidden)
 	# Developer stats (temporary): the run's full breakdown
 	end_dev = RichTextLabel.new()
 	end_dev.bbcode_enabled = true
@@ -705,34 +759,22 @@ func _build_end(root: Control) -> void:
 	if ResourceLoader.exists("res://audio/coins/coin_done.wav"):
 		_unlock_ding.stream = load("res://audio/coins/coin_done.wav")
 	add_child(_unlock_ding)
-	# Experience: character EXP earned this run (banked when the run ends)
-	vb.add_child(_end_section(tr("EXPERIENCE")))
-	end_exp = _label("", 19)
-	end_exp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	end_exp.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
-	vb.add_child(end_exp)
-	# Rewards: shards from bosses, then the coins (banked here, poured into the counter)
-	vb.add_child(_end_section(tr("REWARDS")))
-	end_shards = HBoxContainer.new()
-	end_shards.alignment = BoxContainer.ALIGNMENT_CENTER
-	end_shards.add_theme_constant_override("separation", 8)
-	end_shards.visible = false
-	vb.add_child(end_shards)
-	var coin_box := VBoxContainer.new()
-	coin_box.add_theme_constant_override("separation", 2)
-	vb.add_child(coin_box)
-	end_coin_lines = _label("", 19)
-	end_coin_lines.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	end_coin_lines.add_theme_color_override("font_color", Color(0.95, 0.85, 0.6))
-	coin_box.add_child(end_coin_lines)
+	# The coins earned, last and biggest: they pour into the counter
+	var rule := ColorRect.new()
+	rule.color = Color(0.85, 0.55, 0.22, 0.35)
+	rule.custom_minimum_size = Vector2(0, 2)
+	vb.add_child(rule)
 	var pot_row := HBoxContainer.new()
-	pot_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	pot_row.add_theme_constant_override("separation", 10)
-	coin_box.add_child(pot_row)
+	vb.add_child(pot_row)
+	var pot_name := _label(tr("Coins earned"), 26)
+	pot_name.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	pot_row.add_child(pot_name)
+	pot_row.add_child(DotLeader.new())
 	end_pot_icon = CoinIcon.new()
-	end_pot_icon.custom_minimum_size = Vector2(44, 44)
+	end_pot_icon.custom_minimum_size = Vector2(40, 40)
 	pot_row.add_child(end_pot_icon)
-	end_pot = _label("", 42)
+	end_pot = _label("", 36)
 	end_pot.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	end_pot.add_theme_color_override("font_outline_color", Color(0.2, 0.1, 0.0))
 	end_pot.add_theme_constant_override("outline_size", 6)
@@ -757,6 +799,12 @@ func _build_end(root: Control) -> void:
 	menu_btn.add_theme_font_size_override("font_size", 24)
 	menu_btn.pressed.connect(func(): main.to_title())
 	buttons.add_child(menu_btn)
+	var chars_btn := Button.new()   # back to the roster (behind the loading screen)
+	chars_btn.text = tr("Characters")
+	chars_btn.custom_minimum_size = Vector2(220, 52)
+	chars_btn.add_theme_font_size_override("font_size", 24)
+	chars_btn.pressed.connect(func(): main.to_character_select())
+	buttons.add_child(chars_btn)
 
 
 ## A small section heading with a thin rule under it, for the end screen.
@@ -1038,6 +1086,7 @@ func show_end(won: bool) -> void:
 	end_coin_lines.text = tr("Survived %s   →   %s coins") % [_fmt_time(main.run_time), Wallet.fmt(run_reward["time"])] + "\n" + bonus_line
 	if run_reward["extra"] > 0:
 		end_coin_lines.text += "\n" + tr("Skills  →   +%s coins") % Wallet.fmt(run_reward["extra"])
+	_fill_ledger(won, lvl, next, gained_levels)
 	_pot_left = run_reward["total"]
 	end_pot.text = "+" + Wallet.fmt(_pot_left)
 	_pay_started = false
@@ -1045,6 +1094,50 @@ func show_end(won: bool) -> void:
 
 
 var run_exp := {}
+
+
+## The end screen's ledger: the run, your damage, EXP and rewards, one item per row.
+func _fill_ledger(won: bool, lvl: int, next: int, gained_levels: int) -> void:
+	for c in end_ledger.get_children():
+		c.queue_free()
+	var cid := Settings.selected_character
+	_ledger_head(tr("RUN"))
+	_ledger_row(tr("Time survived"), _fmt_time(main.run_time))
+	_ledger_row(tr("Level reached"), str(main.level))
+	_ledger_row(tr("Enemies killed"), Wallet.fmt(main.kills))
+	if main.elites_killed > 0:
+		_ledger_row(tr("Elites killed"), Wallet.fmt(main.elites_killed))
+	if main.chests_opened > 0:
+		_ledger_row(tr("Chests opened"), str(main.chests_opened))
+	if not won and main.player.last_hit_by != "":
+		var top: Array = main.player.top_damage_source()
+		_ledger_row(tr("Killed by"), source_label(main.player.last_hit_by), Color(1.0, 0.6, 0.5))
+		_ledger_row(tr("Most damage taken"), "%s  (%s)" % [source_label(top[0]), Wallet.fmt(int(round(top[1])))], Color(1.0, 0.6, 0.5))
+	var dealt: Array = main.enemies.top_damage_sources(3)
+	if not dealt.is_empty():
+		_ledger_head(tr("YOUR DAMAGE"))
+		for d in dealt:
+			_ledger_row(source_label(d[0]), Wallet.fmt(int(round(d[1]))), Color(0.75, 0.92, 0.65))
+	_ledger_head(tr("EXPERIENCE"))
+	for k in [["kills", "Kills"], ["elites", "Elites"], ["boss", "Boss"], ["chests", "Chests"], ["time", "Time alive"], ["win", "Win bonus"]]:
+		if int(run_exp.get(k[0], 0)) > 0:
+			_ledger_row(tr(k[1]), "+" + Wallet.fmt(int(run_exp[k[0]])), Color(0.6, 0.85, 1.0))
+	_ledger_row(tr("Total EXP"), "+" + Wallet.fmt(int(run_exp["total"])), Color(0.75, 0.92, 1.0), Color(0.95, 0.9, 0.8))
+	var prog := ("%s / %s" % [Wallet.fmt(Wallet.char_exp_of(cid)), Wallet.fmt(next)]) if next >= 0 else tr("max level")
+	_ledger_row(tr("Character level"), "%d   (%s)" % [lvl, prog], Color(0.6, 0.85, 1.0))
+	if gained_levels > 0:
+		_ledger_row(tr("LEVEL UP!"), (tr("+%d skill points") if gained_levels > 1 else tr("+%d skill point")) % gained_levels, Color(0.55, 1.0, 0.6), Color(0.55, 1.0, 0.6))
+	_ledger_head(tr("REWARDS"))
+	for kind in Wallet.SHARDS:
+		if main.shards_won.has(kind):
+			_ledger_row(tr(Wallet.SHARD_NAMES[kind]), "x%d" % int(main.shards_won[kind]), (ShardIcon.COLORS[kind][2] as Color))
+	_ledger_row(tr("Survival coins"), Wallet.fmt(run_reward["time"]), Color(0.95, 0.85, 0.6))
+	_ledger_row(tr("Kill bonus"), "+" + Wallet.fmt(run_reward["bonus"]), Color(0.95, 0.85, 0.6))
+	if run_reward["extra"] > 0:
+		_ledger_row(tr("Skill bonus"), "+" + Wallet.fmt(run_reward["extra"]), Color(0.95, 0.85, 0.6))
+	# fit the screen: the ledger scrolls only if it's taller than there's room for
+	var room := get_viewport().get_visible_rect().size.y - 420.0 - (end_unlocks.size.y if end_unlocks.visible else 0.0)
+	end_scroll.custom_minimum_size.y = clampf(float(end_ledger.get_child_count()) * 26.0, 120.0, maxf(room, 200.0))
 
 
 ## Developer stats (temporary): keys, shards and every damage source of this run, dealt and taken.
@@ -1295,31 +1388,60 @@ func _land_burst(card: Control) -> void:
 	get_tree().create_timer(1.0, true).timeout.connect(p.queue_free)
 
 
-## Owned upgrades as icons with their level: weapons + items on the top row, tomes below,
-## in the order you picked them up. Rebuilt only when something changes.
+## Owned upgrades as icons with their level, bottom left: a row of weapon slots, a row of tome
+## slots (empty slots shown until you fill them, in the order you picked things up), and any
+## items on a row of their own. Rebuilt only when something changes.
 func _update_inventory() -> void:
-	var gear := []
+	var weapons := []
 	var tomes := []
+	var items := []
 	for id in main.db.levels:
 		var lv: int = main.db.levels[id]
 		if lv <= 0:
 			continue
-		(tomes if main.db.defs[id]["kind"] == "tome" else gear).append([id, lv])
-	var sig := str(gear) + str(tomes)
+		match str(main.db.defs[id]["kind"]):
+			"tome": tomes.append([id, lv])
+			"weapon": weapons.append([id, lv])
+			_: items.append([id, lv])
+	var sig := str(weapons) + str(tomes) + str(items)
 	if sig == _inv_sig:
 		return
 	_inv_sig = sig
 	for c in inv_box.get_children():
 		c.queue_free()
-	for row in [gear, tomes]:
-		if row.is_empty():
+	for row in [[weapons, _max_weapons()], [tomes, UpgradeDB.MAX_TOMES], [items, 0]]:
+		var owned: Array = row[0]
+		var slots: int = maxi(int(row[1]), owned.size())
+		if slots == 0:
 			continue
 		var hb := HBoxContainer.new()
 		hb.add_theme_constant_override("separation", 6)
 		hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		inv_box.add_child(hb)
-		for e in row:
-			hb.add_child(_inv_chip(e[0], e[1]))
+		for k in slots:
+			if k < owned.size():
+				hb.add_child(_inv_chip(owned[k][0], owned[k][1]))
+			else:
+				hb.add_child(_empty_slot())
+
+
+func _max_weapons() -> int:
+	return int(main.MAX_WEAPONS) if main != null else 4
+
+
+## An empty inventory slot: a faint rounded outline waiting to be filled.
+func _empty_slot() -> Control:
+	var p := Panel.new()
+	p.custom_minimum_size = Vector2(46, 46)
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.04, 0.04, 0.45)
+	sb.border_color = Color(0.75, 0.62, 0.42, 0.55)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(8)
+	p.add_theme_stylebox_override("panel", sb)
+	p.name = "EmptySlot"   # no-i18n
+	return p
 
 
 func _inv_chip(id: String, lv: int) -> Control:

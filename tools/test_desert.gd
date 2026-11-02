@@ -6,7 +6,9 @@ extends Node3D
 ##   - the player can walk up a pyramid's steps to its summit;
 ##   - no goblins: zombies (and mummies and vultures) spawn instead, swarm rings are zombies, and
 ##     zombies climb the pyramids (their height follows the slope, they slow and lean in);
-##   - vultures fly (well above the ground), and swoop down to hit a player standing on a summit;
+##   - vultures circle high (harmless, out of reach) until you come close, then land near you (on
+##     a pyramid's steps too), walk after you and peck after a ground telegraph (>= 0.7 s); step
+##     out and it misses; run far and it takes off; killed on the ground it keels over there;
 ##   - mummies claw out of the sand and their touch curses (slows); the dead leave corpses;
 ##   - the Pharaoh rises from the tomb before the sphinx at 8:00; his slam, curse beam,
 ##     sandstorm, scarabs and summons are all marked first; his Wrath of the Sands comes at 75%
@@ -107,6 +109,11 @@ func _static_checks() -> void:
 			_check("desert: ground scatter in chunks drawn near the camera", chunks >= 60, str(chunks))
 			_check("desert: towering dunes all round the edge", root.get_children().filter(func(n): return n.is_in_group("edge_dunes")).size() == 4, "")
 			_check("desert: invisible walls round the edge", root.get_children().filter(func(n): return n.is_in_group("arena_edge")).size() == 4, "")
+			var stones := 0
+			for n in root.get_children():
+				if n.is_in_group("edge_stones"):
+					stones += (n as MultiMeshInstance3D).multimesh.instance_count
+			_check("desert: a line of stones and boulders marks the edge all the way round", stones >= 200, "%d" % stones)
 			_check("desert: the sphinx's body blocks the horde", DesertBuilder.barriers.size() == 1, "")
 		root.free()
 	var s: Dictionary = counts["swamp"]
@@ -133,7 +140,7 @@ func _picker_checks() -> void:
 			ph = c
 	_check("the Pharaoh is in the roster, locked behind his defeat", not ph.is_empty() and ph.get("requires_boss", "") == "pharaoh" and int(ph.get("price", 0)) == 10000 and "desert" in ph.get("banned_maps", []), str(ph.keys()))
 	_check("...with a portrait (nemes, crook and flail)", ph.has("icon") and ph["icon"].get("hat", "") == "nemes" and ph["icon"].get("item", "") == "crook_flail", "")
-	_check("...and not yet playable", not RosterHero.is_playable("pharaoh"), "")
+	_check("...and playable once beaten and bought (his own body, not the Desert)", RosterHero.is_playable("pharaoh") and not WeaponSystem.char_unlocked("pharaoh") and MapPicker.lock_reason("desert", "pharaoh") != "", "")
 	_check("the desert's sounds exist", ResourceLoader.exists("res://audio/desert/zombie_groan_1.wav") and ResourceLoader.exists("res://audio/desert/pharaoh_roar.wav") and ResourceLoader.exists("res://audio/desert/vulture_screech_1.wav"), "")
 
 
@@ -249,45 +256,52 @@ func _run_checks() -> void:
 	_clear(em)
 	await get_tree().physics_frame
 
-	# --- vultures fly up to you on the summit and still hit you
+	# --- a vulture lands on the pyramid near you, walks up and pecks you on the summit
 	player.god_mode = false
 	player.hp = player.max_hp
-	var hp_hits := [0]
-	var vi := em.spawn(EnemyManager.VULTURE, Vector3(c.x + 18.0, 0, c.y + 6.0))
+	var vi := em.spawn(EnemyManager.VULTURE, Vector3(c.x + 7.0, 0, c.y + 1.0))
 	var vu := em.uid[vi]
-	var max_air := 0.0
-	var reached := false
-	for f in 60 * 16:
+	var landed_y := -INF
+	var land_ground := -INF
+	var on_ground := true
+	var strut := false
+	var hit_at := -1
+	var warned_at := -1
+	var pecks0: int = em.desert.pecks
+	for f in 60 * 10:
 		player.global_position = Vector3(c.x, summit + 0.5, c.y)
 		player.velocity = Vector3.ZERO
 		main._spawn_budget = -1e9
 		var hp0 := player.hp
 		await get_tree().physics_frame
-		if player.hp < hp0:
-			hp_hits[0] += 1
-			player.hp = player.max_hp
 		var k := em.index_of(vu)
 		if k < 0:
 			break
-		var p := em.pos[k]
-		max_air = maxf(max_air, p.y - SwampWater.height_at(p.x, p.z))
-		if Vector2(p.x - c.x, p.z - c.y).length() < 1.5 and absf(p.y - (summit + 0.5)) < 1.5:
-			reached = true
-		if hp_hits[0] > 0 and reached:
+		var st: int = em.desert.vulture_state(vu)
+		if st == DesertCrowd.V_GROUND or st == DesertCrowd.V_PECK:
+			var p := em.pos[k]
+			if landed_y == -INF:
+				landed_y = p.y
+				land_ground = SwampWater.height_at(p.x, p.z)
+			if absf(p.y - SwampWater.height_at(p.x, p.z)) > 0.1:
+				on_ground = false
+			if st == DesertCrowd.V_GROUND and _vulture_anim(em) == DesertCrowd.A_STRUT:
+				strut = true
+		if warned_at < 0 and em.desert.pecks > pecks0:
+			warned_at = f
+		if player.hp < hp0:
+			hit_at = f
 			break
-	_check("vultures fly (well above the ground)", max_air > 3.0, "%.1f m up" % max_air)
-	_check("a vulture swoops to you on top of the pyramid...", reached, "")
-	_check("...and hits you there", hp_hits[0] > 0, str(hp_hits[0]))
+	_check("a vulture near you on the pyramid glides down and lands on its steps", landed_y > base + 3.0 and absf(landed_y - land_ground) < 0.1, "landed %.1f m up the pyramid" % (landed_y - base))
+	_check("...then walks on the ground (wings folded, strutting) up to you", on_ground and strut, "")
+	_check("...and pecks you on the summit, after its ground telegraph (>= 0.7 s)", hit_at >= 0 and warned_at >= 0 and float(hit_at - warned_at) / 60.0 >= 0.7,
+		"warned %d, hit %d (%.2f s)" % [warned_at, hit_at, float(hit_at - warned_at) / 60.0])
 	player.god_mode = true
 	_clear(em)
 	await get_tree().physics_frame
-	var vk := em.spawn(EnemyManager.VULTURE, player.global_position + Vector3(8, 0, 0))
-	await _secs(0.5)
-	var vy := em.pos[vk].y
-	var hit_ok := false
-	em.damage(vk, 1e6)
-	hit_ok = em.dead[vk] == 1
-	_check("vultures can be shot down (their row is at their height)", hit_ok and vy > SwampWater.height_at(em.pos[vk].x, em.pos[vk].z) + 1.0, "y %.1f" % vy)
+
+	# --- vultures on the sand: circling harmless and out of reach, landing, walking, pecking
+	await _vultures_on_sand(em, player)
 
 	# --- back down to the sand: mummies, the dead
 	player.global_position = Vector3(30, SwampWater.height_at(30, 30) + 0.6, 30)
@@ -317,9 +331,15 @@ func _run_checks() -> void:
 	var vv := em.spawn(EnemyManager.VULTURE, pp + Vector3(-6, 0, 0))
 	await get_tree().physics_frame
 	em.damage(em.index_of(em.uid[zz]), 1e6)
-	em.damage(em.index_of(em.uid[vv]), 1e6)
+	em.desert.land_now(em.index_of(em.uid[vv]))   # landed: now it can be killed
+	var v_killed := em.damage(em.index_of(em.uid[vv]), 1e6)
 	await get_tree().physics_frame
-	_check("the dead fall (and vultures tumble from the sky) and sink into the sand", em.desert.corpse_count() >= c0 + 2, "%d -> %d" % [c0, em.desert.corpse_count()])
+	_check("the dead fall (a vulture shot on the ground too) and sink into the sand", v_killed and em.desert.corpse_count() >= c0 + 2, "%d -> %d" % [c0, em.desert.corpse_count()])
+	var low_corpse := false
+	for k in em.desert._c_n:
+		if em.desert._c_kind[k] == DesertCrowd.M_VULTURE and em.desert._c_from[k] < 0.6:
+			low_corpse = true
+	_check("...a vulture killed on the ground keels over there (it doesn't fall from the sky)", low_corpse, "")
 	_clear(em)
 	await get_tree().physics_frame
 
@@ -431,8 +451,184 @@ func _pharaoh(em: EnemyManager) -> void:
 	# kill him
 	em.damage(b.row(), 1e9)
 	await _secs(5.0)
-	_check("killing the Pharaoh wins the run", main.state == "won", main.state)
+	_check("killing the Pharaoh opens the portal (the run goes on)", main.state != "won" and main.boss_down, main.state)
+	await _through_portal()
+	_check("stepping through it wins the run", main.state == "won", main.state)
 	_check("...and records his defeat", Wallet.has_defeated("pharaoh"), "")
+
+
+# ------------------------------------------------------------------ vultures
+
+func _vultures_on_sand(em: EnemyManager, player: Player) -> void:
+	var at := Vector3(30, SwampWater.height_at(30, 30) + 0.6, 30)
+	player.global_position = at
+	player.velocity = Vector3.ZERO
+	await _secs(0.3)
+	_clear(em)
+	await get_tree().physics_frame
+	at = player.global_position
+	player.god_mode = false
+	player.hp = player.max_hp
+	# circling at range: harmless, untargetable, undamageable, for several seconds
+	var vi := em.spawn(EnemyManager.VULTURE, at + Vector3(22, 0, 0))
+	var vu := em.uid[vi]
+	var max_air := 0.0
+	var stayed_up := true
+	var out_of_reach := true
+	var hp0 := player.hp
+	for f in 60 * 6:
+		player.global_position = at
+		player.velocity = Vector3.ZERO
+		main._spawn_budget = -1e9
+		await get_tree().physics_frame
+		var k := em.index_of(vu)
+		if k < 0:
+			stayed_up = false
+			break
+		var p := em.pos[k]
+		if f > 60:
+			max_air = maxf(max_air, p.y - SwampWater.height_at(p.x, p.z))
+		if em.desert.vulture_state(vu) != DesertCrowd.V_CIRCLE or not em.is_airborne(k):
+			stayed_up = false
+		if f % 30 == 0:
+			var hp_k: float = em.hp[k]
+			var under := Vector3(p.x, SwampWater.height_at(p.x, p.z) + 1.0, p.z)
+			if em.query_radius(under, 2.0, false).has(k) or em.query_radius(p, 1.0).has(k) or em.nearest_k(at, 60.0, 50).has(k) or em.damage(k, 1e6) or em.hp[k] != hp_k:
+				out_of_reach = false
+	_check("vultures circle high on a thermal (well above the ground)", max_air > 3.0, "%.1f m up" % max_air)
+	_check("a vulture circling at range stays up there and does no harm (6 s, you standing still)", stayed_up and player.hp == hp0, "hp %.0f -> %.0f" % [hp0, player.hp])
+	_check("...and can't be hit, targeted or damaged while it's up there", out_of_reach, "")
+	# you come close: it lands near you (out of reach until it touches down), then it can be hit
+	var k := em.index_of(vu)
+	var vp := em.pos[k]
+	var dir := Vector2(at.x - vp.x, at.z - vp.z).normalized()
+	at = Vector3(vp.x + dir.x * 6.0, 0, vp.z + dir.y * 6.0)
+	at.y = SwampWater.height_at(at.x, at.z) + 0.6
+	var land_f := -1
+	var unreachable_landing := true
+	var saw_landing := false
+	for f in 60 * 4:
+		player.global_position = at
+		player.velocity = Vector3.ZERO
+		main._spawn_budget = -1e9
+		await get_tree().physics_frame
+		k = em.index_of(vu)
+		var st: int = em.desert.vulture_state(vu)
+		if st == DesertCrowd.V_LAND:
+			saw_landing = true
+			if not em.is_airborne(k) or em.query_radius(em.pos[k], 1.0).has(k):
+				unreachable_landing = false
+		if st == DesertCrowd.V_GROUND:
+			land_f = f
+			break
+	k = em.index_of(vu)
+	var p := em.pos[k]
+	var dl := Vector2(p.x - at.x, p.z - at.z).length()
+	_check("come close and it glides down and lands a few metres from you", land_f >= 0 and saw_landing and dl < 4.5 and absf(p.y - SwampWater.height_at(p.x, p.z)) < 0.1,
+		"after %.1f s, %.1f m away" % [float(land_f) / 60.0, dl])
+	_check("...out of reach until it touches down", unreachable_landing, "")
+	_check("...landed, it can be hit and targeted", not em.is_airborne(k) and em.query_radius(p + Vector3(0, 0.5, 0), 0.5).has(k) and em.nearest_k(at, 20.0, 5).has(k), "")
+	# it walks toward you, slowly (slower than a zombie), and then pecks
+	var walk_from := em.pos[k]
+	var d_start := Vector2(walk_from.x - at.x, walk_from.z - at.z).length()
+	at = Vector3(walk_from.x + (at.x - walk_from.x) * 4.0, 0, walk_from.z + (at.z - walk_from.z) * 4.0)   # step back so it has to walk
+	at.y = SwampWater.height_at(at.x, at.z) + 0.6
+	var walked_ok := true
+	for f in 60:
+		player.global_position = at
+		player.velocity = Vector3.ZERO
+		main._spawn_budget = -1e9
+		await get_tree().physics_frame
+		k = em.index_of(vu)
+		if absf(em.pos[k].y - SwampWater.height_at(em.pos[k].x, em.pos[k].z)) > 0.1 or em.desert.vulture_state(vu) != DesertCrowd.V_GROUND:
+			walked_ok = false
+	var moved := Vector2(em.pos[k].x - walk_from.x, em.pos[k].z - walk_from.z).length()
+	var closer := Vector2(em.pos[k].x - at.x, em.pos[k].z - at.z).length() < Vector2(walk_from.x - at.x, walk_from.z - at.z).length() - 1.0
+	_check("it walks toward you on the ground, slower than a zombie", walked_ok and closer and moved < em.t_speed[EnemyManager.ZOMBIE] and moved > 1.0 and _vulture_anim(em) == DesertCrowd.A_STRUT,
+		"%.1f m in 1 s (started %.1f m off)" % [moved, d_start])
+	# stand in its way: the wedge fills, then the beak hits you
+	player.hp = player.max_hp
+	var pecks0: int = em.desert.pecks
+	var hits0: int = em.desert.peck_hits
+	var warned := -1
+	var disc_ok := false
+	var hit := -1
+	for f in 60 * 8:
+		player.global_position = at
+		player.velocity = Vector3.ZERO
+		main._spawn_budget = -1e9
+		var hp1 := player.hp
+		await get_tree().physics_frame
+		if warned < 0 and em.desert.pecks > pecks0:
+			warned = f
+			var dsc := em.desert.peck_disc(vu)
+			disc_ok = dsc != null and is_instance_valid(dsc) and dsc.visible
+		if player.hp < hp1:
+			hit = f
+			break
+	_check("within reach it stops and a red wedge fills on the ground in front of it", warned >= 0 and disc_ok, "")
+	_check("...for at least 0.7 s, then its beak hits you standing in it", hit >= 0 and float(hit - warned) / 60.0 >= 0.7 and em.desert.peck_hits > hits0,
+		"%.2f s, %.0f damage" % [float(hit - warned) / 60.0, player.max_hp - player.hp])
+	# ...step out of the wedge while it fills: it misses
+	player.hp = player.max_hp
+	pecks0 = em.desert.pecks
+	hits0 = em.desert.peck_hits
+	var dodged := false
+	var hp2 := player.hp
+	var miss_done := false
+	for f in 60 * 8:
+		main._spawn_budget = -1e9
+		player.velocity = Vector3.ZERO
+		if not dodged and em.desert.pecks > pecks0:
+			k = em.index_of(vu)
+			var side := Vector3(em.pos[k].x - at.x, 0, em.pos[k].z - at.z).normalized().cross(Vector3.UP)
+			at = Vector3(at.x, 0, at.z) + side * 3.5   # sidestep out of the wedge
+			at.y = SwampWater.height_at(at.x, at.z) + 0.6
+			dodged = true
+		player.global_position = at
+		await get_tree().physics_frame
+		if dodged and em.desert.vulture_state(vu) == DesertCrowd.V_GROUND:
+			miss_done = true
+			break
+	_check("step out of the wedge before it strikes and the peck misses", dodged and miss_done and em.desert.peck_hits == hits0 and player.hp == hp2, "hp %.0f -> %.0f" % [hp2, player.hp])
+	# frozen on the ground: it stays put
+	k = em.index_of(vu)
+	em.freeze(k, 1.0)
+	var fz := em.pos[k]
+	await _secs(0.5)
+	k = em.index_of(vu)
+	_check("a frozen vulture stays put on the ground", k >= 0 and Vector2(em.pos[k].x - fz.x, em.pos[k].z - fz.z).length() < 0.05 and not em.is_airborne(k), "")
+	await _secs(0.6)
+	# run far away: it takes off and climbs back out of reach
+	var took_off := false
+	var back_up := false
+	var far := at + Vector3(0, 0, -24.0)
+	far.y = SwampWater.height_at(far.x, far.z) + 0.6
+	for f in 60 * 6:
+		player.global_position = far
+		player.velocity = Vector3.ZERO
+		main._spawn_budget = -1e9
+		await get_tree().physics_frame
+		k = em.index_of(vu)
+		if k < 0:
+			break
+		if em.desert.vulture_state(vu) == DesertCrowd.V_TAKEOFF:
+			took_off = true
+		if took_off and em.is_airborne(k):
+			back_up = true
+		if em.desert.vulture_state(vu) == DesertCrowd.V_CIRCLE:
+			break
+	_check("run far away and it takes off again, back out of reach", took_off and back_up, "state %d" % em.desert.vulture_state(vu))
+	player.god_mode = true
+	player.hp = player.max_hp
+	_clear(em)
+	await get_tree().physics_frame
+
+
+## The animation code of the first live vulture drawn this frame.
+func _vulture_anim(em: EnemyManager) -> float:
+	var o := (DesertCrowd.M_VULTURE * DesertCrowd.CAP) * DesertCrowd.STRIDE
+	return em.desert._buf[o + 16]
 
 
 # ------------------------------------------------------------------ helpers
@@ -471,6 +667,21 @@ func _count_type(em: EnemyManager, t: int) -> int:
 		if em.typ[k] == t and not em.dead[k]:
 			n += 1
 	return n
+
+
+## The boss is down: the run goes on until you step through the portal that opens (level-ups
+## from his XP are taken as they come). Returns once the end screen is up (or after 15 s).
+func _through_portal() -> void:
+	for f in 60 * 15:
+		await get_tree().physics_frame
+		if main.state == "levelup":
+			main.choose_upgrade(0)
+		var pt: BossPortal = main.aftermath.portal
+		if pt != null and pt.is_open() and main.state == "playing" and not main.aftermath.entering:
+			main.player.global_position = pt.global_position + Vector3(0, 0.4, 0)
+			main.player.velocity = Vector3.ZERO
+		if main.state == "won":
+			return
 
 
 func _check(what: String, ok: bool, detail: String) -> void:

@@ -37,9 +37,16 @@ var _loco: LocoBody
 var _knight: ToadstoolBody
 var _blob: BlobBody
 var _spider: ArachnidBody
+var _boss: Node3D   # the Pharaoh, the Necromancer, Singe (PlayableBoss)
 
 
 func _ready() -> void:
+	var kind := str(RosterHero.CFG.get(char_id, {}).get("procedural", ""))
+	if PlayableBoss.is_kind(kind):   # a boss model at player size
+		_boss = PlayableBoss.create(kind)
+		_rig = _boss
+		add_child(_boss)
+		return
 	if RosterHero.CFG.get(char_id, {}).get("procedural", "") == "arachnid":   # built in code
 		_spider = ArachnidBody.create()
 		_rig = _spider
@@ -115,6 +122,8 @@ func _set_drawn(on: bool) -> void:
 
 
 func is_drawn() -> bool:
+	if _boss:
+		return bool(_boss.drawn)
 	if _knight:
 		return _knight.drawn
 	if _loco:
@@ -135,6 +144,11 @@ func play(clip: String) -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
+	if _boss:   # stands relaxed, weapon put away; now and then a cast flourish (arms up)
+		if fmod(_t, 7.0) < dt * 1.01 and _t > 3.0:
+			_boss.cast(0)
+		_boss.animate(dt, 0.0, false)
+		return
 	if _spider:   # idles: breathes and sways, now and then rears up and spits
 		var c := fmod(_t, 5.0)
 		if c < dt * 1.01 and _t > 1.0:

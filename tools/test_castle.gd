@@ -283,6 +283,14 @@ func _run_checks() -> void:
 		await get_tree().physics_frame
 	_check("after 2 s a chandelier drops at your spot, marked on the table", feast.drops == ch_d0 + 1
 		and (feast._falling[-1]["at"] as Vector3).distance_to(Vector3(tcx, feast.top_y, tmid - 2.0)) < 0.5, "")
+	# Paused (a level-up or a chest): the falling chandelier freezes with everything else
+	var ft0: float = feast._falling[-1]["t"]
+	get_tree().paused = true
+	for f in 30:
+		await get_tree().process_frame
+	var ft1: float = feast._falling[-1]["t"]
+	get_tree().paused = false
+	_check("a falling chandelier freezes while the game is paused (level-up menu)", is_equal_approx(ft0, ft1) and feast.process_mode == Node.PROCESS_MODE_PAUSABLE, "%.2f -> %.2f" % [ft0, ft1])
 	var tmk: GroundDisc = feast._falling[-1]["top_marker"]
 	_check("...and its warning circle also shows on the table top (flat, clipped to the table)", is_instance_valid(tmk) and tmk.visible
 		and absf(tmk.global_position.y - feast.top_y) < 0.1, "y %.2f vs top %.2f" % [tmk.global_position.y if is_instance_valid(tmk) else -1.0, feast.top_y])

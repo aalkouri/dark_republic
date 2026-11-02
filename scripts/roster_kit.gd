@@ -11,7 +11,7 @@ extends Node3D
 ##   3  Absolute Zero  120 s  25 m blizzard on you for 8 s: 80% slow, 4% max HP/s; then everything
 ##                            inside freezes for 2 s and shatters for 200 damage
 ## Thunder Wizard
-##   1  Overcharge      30 s  +40% move speed for 8 s; every jump and landing shocks 6 m for 40
+##   1  Overcharge      30 s  +40% move speed and invincible for 8 s; every jump and landing shocks 6 m for 40
 ##   2  Thunderclap     30 s  12 bolts on the goblins with the most HP within 25 m: 120 + 1.5 s stun
 ##                            (a boss can take up to 4 of them)
 ##   3  Storm Lord     120 s  10 s storm: a bolt every 0.25 s within 18 m, 90 dmg, chains to 3 more
@@ -43,6 +43,9 @@ const PARTS := {
 	"loco_robotico": "res://scripts/kits/kit_loco.gd", "blob": "res://scripts/kits/kit_blob.gd",
 	"arachnid": "res://scripts/kits/kit_arachnid.gd",
 	"toadstool_knight": "res://scripts/kits/kit_toadstool.gd",
+	"pharaoh": "res://scripts/kits/kit_pharaoh.gd",
+	"necromancer": "res://scripts/kits/kit_necromancer.gd",
+	"singe": "res://scripts/kits/kit_singe.gd",
 }
 
 const YARD := 0.9144
@@ -610,6 +613,8 @@ func _cast_charge() -> void:
 		_charge_sparks.position.y = 1.0
 		player.add_child(_charge_sparks)
 	_charge_t = CHARGE_TIME
+	player.untouchable = true   # invincible for the whole Overcharge (with the invincible glow)
+	player.invuln = maxf(player.invuln, CHARGE_TIME)
 	_was_floor = player.is_on_floor()
 	_shock(player.global_position)
 
@@ -618,6 +623,8 @@ func _tick_charge(dt: float) -> void:
 	if _charge_t <= 0.0:
 		return
 	_charge_t -= dt
+	if _charge_t <= 0.0:
+		player.untouchable = false   # Overcharge over: hittable again
 	_charge_cd -= dt
 	var on := player.is_on_floor()
 	if on != _was_floor and _charge_cd <= 0.0:

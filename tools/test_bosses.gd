@@ -7,7 +7,8 @@ extends Node
 ##   - the Arachnid climbs a wall of your room, scuttles along it out of contact range while
 ##     her hitbox still reaches her, shoots webs / venom, then comes down with a marked drop
 ##     and spiderlings; her lunge is a marked lane;
-##   - killing them wins the run; the Knight unlocks the Castle and himself, the Arachnid herself.
+##   - killing them opens the portal and stepping through wins the run; the Knight unlocks the
+##     Castle and himself, the Arachnid herself.
 ## Also: Thog's enraged wind-ups respect MIN_WARN.
 ##   godot --headless --path . res://tools/test_bosses.tscn
 
@@ -91,7 +92,7 @@ func _forest() -> void:
 	await _secs(3.0)
 	_check("...and slam around themselves (marked)", k.counts["warned"] - warned0 >= 9, str(k.counts["warned"] - warned0))
 	# Enraged: faster, but never less than MIN_WARN of warning
-	_check("he enrages after 3 minutes and keeps the goblins to 120 while he's up", k.enrage_after == 180.0 and not k.is_enraged and main._live_cap() == 120, "%.0f s, cap %d" % [k.enrage_after, main._live_cap()])
+	_check("he enrages after 3 minutes and keeps the goblins to 90 while he's up", k.enrage_after == 180.0 and not k.is_enraged and main._live_cap() == 90, "%.0f s, cap %d" % [k.enrage_after, main._live_cap()])
 	k.alive_time = k.enrage_after
 	await _secs(0.2)
 	_check("...and then he's enraged", k.is_enraged and "ENRAGED" in k._bar_label.text, k._bar_label.text)
@@ -99,7 +100,9 @@ func _forest() -> void:
 	# Kill him
 	em.damage(k.row(), 1e9)
 	await _secs(4.8)
-	_check("killing him wins the run", main.state == "won" and main.boss_won, main.state)
+	_check("killing him doesn't end the run: a portal opens instead", main.state != "won" and main.boss_down, main.state)
+	await _through_portal()
+	_check("stepping through the portal wins the run", main.state == "won" and main.boss_won, main.state)
 	_check("the end screen names him", main.hud.end_title.text == "THE TOADSTOOL KNIGHT DEFEATED!", main.hud.end_title.text)
 	_check("the Castle unlocks", Wallet.has_defeated("toadstool_knight") and MapPicker.lock_reason("castle", "fire_wizard") == "", "")
 	var names := []
@@ -218,7 +221,9 @@ func _castle() -> void:
 	# Kill her
 	em.damage(a.row(), 1e9)
 	await _secs(4.8)
-	_check("killing her wins the run", main.state == "won", main.state)
+	_check("killing her doesn't end the run: a portal opens instead", main.state != "won" and main.boss_down, main.state)
+	await _through_portal()
+	_check("stepping through the portal wins the run", main.state == "won", main.state)
 	_check("...and makes her playable", Wallet.has_defeated("arachnid"), "")
 	get_tree().paused = false
 
@@ -285,6 +290,21 @@ func _count_type(em: EnemyManager, t: int) -> int:
 		if em.typ[k] == t and not em.dead[k]:
 			n += 1
 	return n
+
+
+## The boss is down: the run goes on until you step through the portal that opens (level-ups
+## from his XP are taken as they come). Returns once the end screen is up (or after 15 s).
+func _through_portal() -> void:
+	for f in 60 * 15:
+		await get_tree().physics_frame
+		if main.state == "levelup":
+			main.choose_upgrade(0)
+		var pt: BossPortal = main.aftermath.portal
+		if pt != null and pt.is_open() and main.state == "playing" and not main.aftermath.entering:
+			main.player.global_position = pt.global_position + Vector3(0, 0.4, 0)
+			main.player.velocity = Vector3.ZERO
+		if main.state == "won":
+			return
 
 
 func _finish() -> void:

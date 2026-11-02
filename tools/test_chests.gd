@@ -273,7 +273,7 @@ func _test_levels_in_game() -> void:
 	main.cast_ability(1)
 	await _secs(1.5)
 	var dealt: float = hp0 - e.hp[g]
-	_check("Thunderclap at level 10 hits for 4x (480)", absf(dealt - RosterKit.CLAP_DAMAGE * 4.0 * main.stats.value("damage")) < 1.0, "%.0f" % dealt)
+	_check("Thunderclap at level 10 hits for 4x (480, doubled as an ability: 960)", absf(dealt - RosterKit.CLAP_DAMAGE * 4.0 * main.stats.value("damage") * EnemyManager.ABILITY_DAMAGE_MULT) < 1.0, "%.0f" % dealt)
 	# Overcharge shocks scale with its level too
 	ab.ab_level[0] = 4
 	_check("pw(): level 4 = 2x", is_equal_approx(ab.roster.pw(0), 2.0), "")

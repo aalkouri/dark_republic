@@ -1,0 +1,6 @@
+{
+ "Ability Cooldown": ["Enfriamiento de habilidades", "Recharge des capacités", "تبريد القدرات", "Fähigkeiten-Abklingzeit", "技能冷却", "アビリティのクールダウン"],
+ "Coin Gain": ["Monedas obtenidas", "Gain de pièces", "زيادة العملات", "Münzgewinn", "金币获取", "コイン獲得量"],
+ "Jump Height": ["Altura de salto", "Hauteur de saut", "ارتفاع القفز", "Sprunghöhe", "跳跃高度", "ジャンプの高さ"],
+ "STARTING BONUSES": ["BONIFICACIONES INICIALES", "BONUS DE DÉPART", "مكافآت البداية", "STARTBONI", "初始加成", "初期ボーナス"]
+}

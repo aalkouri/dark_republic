@@ -12,17 +12,21 @@ extends Node3D
 ##   MUMMY          slow and tanky, bound in bandages that trail and flutter, one eye burning
 ##                  through the wraps; it claws its way out of the sand when it spawns, and its
 ##                  touch CURSES you (slowed for a moment). Epic: a Mummy Priest in a gold nemes.
-##   VULTURE        flies: circles above you on a thermal, then swoops down to rake you and
-##                  climbs away again. Its height follows the ground below it and your height
-##                  when it's near you, so it reaches you on top of a pyramid; its crowd row is
-##                  at its real height, so every weapon still hits it.
+##   VULTURE        circles high on a thermal that keeps its distance from you, harmless and out
+##                  of reach (EnemyManager.is_airborne: nothing can hit or target it up there).
+##                  Come close and it glides down to land a few metres from you (on a pyramid's
+##                  steps too), folds its wings and waddles after you on foot, slowly: now it can
+##                  be hit. Within reach it rears back, a red wedge fills on the ground in front
+##                  of it (PECK_WARN), and it lunges: a beak attack that hurts if you're still in
+##                  the wedge. Run far away (or keep away long enough) and it takes off again.
 ## Walkers climb the pyramids by following the height grid (the steps are baked into it): on a
 ## steep stretch they slow down, lean into the slope and claw their way up, hand over hand.
 ##
-## Models are built in code; walk, claw, climb, flap, glide, dive and death are animated in
-## the vertex shader per instance (INSTANCE_CUSTOM: r = animation, g = phase, b = lean / fall,
+## Models are built in code; walk, claw, climb, flap, glide, dive, strut, peck and death are
+## animated in the vertex shader per instance (INSTANCE_CUSTOM: r = animation, g = phase, b = lean / fall / peck,
 ## a = the same burn / flash / epic / frozen / chill / shadow code as the goblins). The dead fall
-## where they die (vultures tumble out of the sky) and sink into the sand.
+## where they die (a vulture shot on the ground keels over; one caught in the air tumbles out
+## of the sky) and sink into the sand.
 
 const HEIGHT := 1.75
 const STRIDE := 20
@@ -33,10 +37,27 @@ const CLIMB_SLOPE := 0.42         # steeper than this uphill: climbing (the pyra
 const CLIMB_SLOW := 0.45          # ...and they lose this share of their speed
 const CURSE_SLOW := 0.55          # a mummy's touch: you move at this share of your speed...
 const CURSE_TIME := 1.6           # ...for this long
-const VULTURE_CYCLE := 6.5        # seconds: circle, then swoop
-const VULTURE_CIRCLE := 0.58      # share of the cycle spent circling
 const VULTURE_HIGH := 5.2         # metres above the ground (or you) while circling
-const VULTURE_LOW := 0.55         # ...and at the bottom of a swoop (your chest)
+const VULTURE_FLY_SPEED := 6.0    # m/s round its thermal
+const VULTURE_RING := 4.5         # radius of the circle it flies round its thermal
+const VULTURE_KEEP := 15.0        # its thermal hangs this far from you (+ 0..4.5 m per bird), so a
+                                  # bird circling never comes nearer than VULTURE_LAND_RANGE by itself
+const VULTURE_LAND_RANGE := 9.5   # you come this close (across the ground): it lands
+const VULTURE_LAND_TIME := 1.2    # seconds gliding down and flaring
+const VULTURE_LAND_DIST := 3.0    # it touches down this far from you
+const VULTURE_STAND := 0.42       # standing: its body's centre this high over its feet (x scale)
+const VULTURE_FLEE := 16.0        # on the ground: you get this far away and it takes off...
+const VULTURE_GIVE_UP := 8.0      # ...or it's walked this long without pecking you
+const VULTURE_CLIMB := 3.2        # m/s climbing back up
+const VULTURE_RELAND := 4.0       # after taking off it won't land again for this long
+const PECK_RANGE := 2.0           # within this it stops to peck
+const PECK_REACH := 2.7           # the beak's wedge: this long...
+const PECK_ARC := 0.55            # ...this many radians either side of its aim
+const PECK_WARN := 0.8            # the wedge fills over this long before the beak strikes (>= 0.7 s)
+const PECK_RECOVER := 0.3         # the lunge and pulling back
+const PECK_CD := 1.5              # seconds between pecks
+const PECK_DAMAGE := 1.5          # a peck hits this many zombie hits hard (x the run's enemy damage)
+enum { V_CIRCLE, V_LAND, V_GROUND, V_PECK, V_TAKEOFF }
 const A_WALK := 0.0
 const A_CLAW := 0.25
 const A_CLIMB := 0.5
@@ -45,6 +66,8 @@ const A_DIE := 0.75
 const A_FLAP := 0.0
 const A_GLIDE := 0.25
 const A_DIVE := 0.5
+const A_STRUT := 1.0      # walking on the ground, wings folded
+const A_PECK := 1.25      # rearing back and lunging (b = progress: 0..0.7 rear, the strike, 0.7..1 lunge)
 
 enum { M_ZOMBIE, M_RUNNER, M_BRUTE, M_PLAGUE, M_MUMMY, M_PRIEST, M_VULTURE }
 
@@ -186,7 +209,8 @@ shader_type spatial;
 render_mode cull_disabled;
 // COLOR.a = limb: 0 body, 1 L inner wing, 2 R inner wing, 3 L outer wing, 4 R outer wing,
 // 5 neck and head, 6 eyes, 7 tail and feet. INSTANCE_CUSTOM: r = animation (0 flap, .25 glide,
-// .5 dive, .75 dead), g = phase, b = (unused), a = status code (as the goblins).
+// .5 dive, .75 dead, 1 strut on the ground, 1.25 peck), g = phase, b = peck progress (0..0.7
+// rearing back, 0.7..1 the lunge), a = status code (as the goblins).
 varying float burn;
 varying float flash;
 varying float epic;
@@ -203,34 +227,84 @@ void vertex() {
 	int limb = int(COLOR.a * 8.0 + 0.5);
 	float anim = INSTANCE_CUSTOM.r;
 	float ph = INSTANCE_CUSTOM.g * 6.2831853;
+	float pk = INSTANCE_CUSTOM.b;
 	float flap = 1.0 - step(0.125, anim);
 	float glide = step(0.125, anim) * (1.0 - step(0.375, anim));
 	float dive = step(0.375, anim) * (1.0 - step(0.625, anim));
-	float dead = step(0.625, anim);
+	float dead = step(0.625, anim) * (1.0 - step(0.875, anim));
+	float walk = step(0.875, anim) * (1.0 - step(1.125, anim));
+	float peck = step(1.125, anim);
+	float ground = walk + peck;
+	float rear = peck * smoothstep(0.0, 0.7, pk) * (1.0 - smoothstep(0.7, 0.75, pk));
+	float lunge = peck * smoothstep(0.7, 0.77, pk) * (1.0 - smoothstep(0.86, 1.0, pk));
 	float a1 = sin(ph) * 0.85 * flap + (0.1 + sin(TIME * 1.7 + ph) * 0.05) * glide - 0.55 * dead + 0.25 * dive;
 	float a2 = sin(ph - 0.7) * 0.5 * flap + (-0.05 + sin(TIME * 2.1 + ph) * 0.06) * glide - 0.8 * dead - 0.2 * dive;
 	vec3 v = VERTEX;
 	vec3 n = NORMAL;
+	bool leg = limb == 7 && VERTEX.z > -0.3 && VERTEX.y < -0.06;
 	if (limb >= 1 && limb <= 4) {
 		float side = (limb == 1 || limb == 3) ? 1.0 : -1.0;
-		vec3 sh = vec3(side * 0.16, 0.06, 0.08);
-		vec3 el = vec3(side * 0.82, 0.06, 0.0);
-		mat3 r1 = rot_y(-side * 1.1 * dive) * rot_z(side * a1);
-		if (limb >= 3) {   // the outer wing bends again at the wrist
-			mat3 r2 = rot_y(-side * 0.6 * dive) * rot_z(side * a2);
-			v = el + r2 * (v - el);
-			n = r2 * n;
+		if (ground > 0.5) {
+			// folded: the wing shortened, swept back along the body and draped over the flank,
+			// the primaries crossing over the tail; mantled a little as it rears back
+			vec3 sh = vec3(side * 0.13, 0.09, 0.1);
+			v.x = sh.x + (v.x - sh.x) * 0.6;
+			if (limb >= 3) {
+				vec3 el = vec3(side * 0.53, 0.06, 0.0);
+				mat3 r2 = rot_y(side * 0.3);
+				v = el + r2 * (v - el);
+				n = r2 * n;
+			}
+			mat3 r1 = rot_z(-side * (1.2 - rear * 0.45)) * rot_y(side * 1.48);
+			v = sh + r1 * (v - sh);
+			n = r1 * n;
+		} else {
+			vec3 sh = vec3(side * 0.16, 0.06, 0.08);
+			vec3 el = vec3(side * 0.82, 0.06, 0.0);
+			mat3 r1 = rot_y(-side * 1.1 * dive) * rot_z(side * a1);
+			if (limb >= 3) {   // the outer wing bends again at the wrist
+				mat3 r2 = rot_y(-side * 0.6 * dive) * rot_z(side * a2);
+				v = el + r2 * (v - el);
+				n = r2 * n;
+			}
+			v = sh + r1 * (v - sh);
+			n = r1 * n;
 		}
-		v = sh + r1 * (v - sh);
-		n = r1 * n;
 	}
-	if (limb == 5 || limb == 6) {   // the head bobs and peers down
+	if (limb == 5 || limb == 6) {   // the head bobs and peers down; on foot it bobs as it walks, rears back, strikes
 		vec3 nk = vec3(0.0, 0.08, 0.32);
-		mat3 r = rot_x(0.25 + sin(ph * 2.0) * 0.08 * flap + dive * 0.4);
+		float hx = 0.25 + sin(ph * 2.0) * 0.08 * flap + dive * 0.4;
+		hx = mix(hx, 0.45 + sin(ph * 2.0) * 0.14 * walk - rear * 1.15 + lunge * 1.0, ground);
+		mat3 r = rot_x(hx);
 		v = nk + r * (v - nk);
 		n = r * n;
+		v.z += (sin(ph * 2.0) * 0.05 * walk - rear * 0.12 + lunge * 0.2) * ground;
+		v.y += (rear * 0.08 - lunge * 0.06) * ground;
 	}
-	if (limb == 7) { v.y += sin(ph) * 0.02; }
+	if (limb == 7 && !leg) { v.y += sin(ph) * 0.02 * (1.0 - ground); }
+	if (ground > 0.5) {
+		if (leg) {
+			// standing: the legs straighten down from the hips (and lengthen), stepping in turn
+			float ls = VERTEX.x > 0.0 ? 1.0 : -1.0;
+			vec3 hip = vec3(ls * 0.08, -0.12, 0.0);
+			mat3 r = rot_x(-0.98 + ls * sin(ph) * 0.5 * walk);
+			v = hip + r * ((v - hip) * 1.6);
+			n = r * n;
+			v.y += max(0.0, ls * cos(ph)) * 0.04 * walk;   // the foot coming forward lifts
+		} else {
+			// the body sits up, hunched, and pitches into the lunge
+			mat3 bp = rot_x(-0.32 - rear * 0.25 + lunge * 0.8 + sin(ph * 2.0) * 0.05 * walk);
+			vec3 hp = vec3(0.0, -0.12, 0.0);
+			v = hp + bp * (v - hp);
+			n = bp * n;
+		}
+		// a waddle: rolling over each foot in turn, bobbing
+		mat3 wd = rot_z(sin(ph) * 0.12 * walk);
+		vec3 ft = vec3(0.0, -0.42, 0.0);
+		v = ft + wd * (v - ft);
+		n = wd * n;
+		v.y += abs(sin(ph)) * 0.03 * walk;
+	}
 	v.y -= sin(ph) * 0.08 * flap;   // the body heaves against each beat
 	VERTEX = v;
 	NORMAL = normalize(n);
@@ -265,6 +339,7 @@ const SOUNDS := {
 	"rasp": ["res://audio/desert/mummy_rasp_1.wav", "res://audio/desert/mummy_rasp_2.wav"],
 	"screech": ["res://audio/desert/vulture_screech_1.wav", "res://audio/desert/vulture_screech_2.wav"],
 	"flap": ["res://audio/desert/vulture_flap.wav"],
+	"peck": ["res://audio/desert/vulture_peck.wav"],
 	"curse": ["res://audio/desert/mummy_curse.wav"],
 	"crumble": ["res://audio/desert/mummy_crumble.wav"],
 }
@@ -279,6 +354,8 @@ const KIND_OF := [0, 1, 2, 4, 6]     # ZOMBIE.. VULTURE -> M_ZOMBIE, M_RUNNER, M
 var _stone_grid := PackedByteArray()
 var _goblins_hidden := false
 var _alt := {}                       # vulture uid -> height above its floor
+var _v := {}                         # vulture uid -> its state (see _fly)
+var _frame := 0
 var _curse_cd := {}                  # mummy uid -> seconds until it can curse again
 var _t := 0.0
 # corpses: kind (mesh), position, yaw, scale, age, the height it fell from
@@ -296,7 +373,9 @@ var _fx: FxManager
 # counters for tests
 var curses := 0
 var climbing := 0                    # walkers climbing right now
-var vultures_low := 0                # vultures at the bottom of a swoop right now
+var vultures_grounded := 0           # vultures on the ground right now
+var pecks := 0                       # beak attacks started (telegraphed)...
+var peck_hits := 0                   # ...and the ones that caught you in the wedge
 
 
 func _ready() -> void:
@@ -385,6 +464,12 @@ func on_spawn(i: int) -> void:
 		var p := em.pos[i]
 		p.y += alt
 		em.pos[i] = p
+		_v[em.uid[i]] = _new_state(p)
+
+
+func _new_state(p: Vector3) -> Dictionary:
+	return {"s": V_CIRCLE, "t": 0.0, "cd": 0.0, "pcd": 0.0, "p": p, "c": p, "a": randf() * TAU, "ph": 0.0,
+		"from": p, "goal": p, "aim": Vector3.FORWARD, "disc": null, "struck": false, "f": _frame}
 
 
 func on_kill(i: int) -> void:
@@ -405,7 +490,8 @@ func on_kill(i: int) -> void:
 	_c_from[k] = em.pos[i].y - SwampWater.height_at(em.pos[i].x, em.pos[i].z)
 	if t == EnemyManager.VULTURE:
 		_alt.erase(em.uid[i])
-		_burst(em.pos[i], 1.4, Color(0.22, 0.18, 0.15))   # a puff of feathers
+		_drop_state(em.uid[i])
+		_burst(em.pos[i] + Vector3(0, 0.4 if _c_from[k] < 0.6 else 0.0, 0), 1.4, Color(0.22, 0.18, 0.15))   # a puff of feathers
 		_play("screech", em.pos[i], 0.6, 1.25)
 	elif t == EnemyManager.MUMMY:
 		_curse_cd.erase(em.uid[i])
@@ -438,9 +524,10 @@ func _mesh_of(i: int) -> int:
 ## with the mummies' touch, and runs the corpses and the voices.
 func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Array:
 	_t += dt
+	_frame += 1
 	_counts.fill(0)
 	climbing = 0
-	vultures_low = 0
+	vultures_grounded = 0
 	var pp := player.global_position if player != null else Vector3.ZERO
 	var p_ok := player != null
 	for k in _curse_cd.keys():
@@ -483,16 +570,8 @@ func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Ar
 		if kind == M_MUMMY and epic[i] == 1:
 			kind = M_PRIEST
 		if t == EnemyManager.VULTURE:
-			var r := _fly(i, dt, pp, p_ok)
-			p = em.pos[i]
-			v = em.vel[i]
-			if not held:
-				phase = fmod(_t * (3.2 if r.x == A_FLAP else 0.4) + float(em.uid[i]) * 0.37, 1.0)
-			var fw := Vector2(v.x, v.z)
-			if fw.length() < 0.2 and p_ok:
-				fw = Vector2(pp.x - p.x, pp.z - p.z)
-			var xf := Transform3D(Basis(Vector3.UP, atan2(fw.x, fw.y)) * Basis(Vector3(1, 0, 0), r.z) * Basis(Vector3(0, 0, 1), r.y), p).scaled_local(Vector3.ONE * sc)
-			_put(kind, xf, r.x, phase, 0.0, buf[b + 19])
+			if dead[i] == 0:
+				_fly(i, dt, pp, player, held, kind, sc, buf[b + 19])
 		else:
 			if dead[i] == 0:
 				# walkers climbing the pyramids (or the plinth's steps) slow down and lean in
@@ -541,6 +620,11 @@ func sync(dt: float, buf: PackedFloat32Array, player: Node3D) -> PackedFloat32Ar
 				_buf[o + 4] = 0.0; _buf[o + 5] = sc; _buf[o + 6] = 0.0; _buf[o + 7] = p.y
 				_buf[o + 8] = -fx * sc; _buf[o + 9] = 0.0; _buf[o + 10] = fz * sc; _buf[o + 11] = p.z
 				_buf[o + 16] = anim; _buf[o + 17] = phase; _buf[o + 18] = lean; _buf[o + 19] = buf[b + 19]
+	if not _v.is_empty():   # rows gone without a death (cleared, despawned): drop their state
+		for u in _v.keys():
+			if int((_v[u] as Dictionary)["f"]) != _frame:
+				_drop_state(u)
+				_alt.erase(u)
 	_tick_corpses(dt)
 	_voices(dt, pp, p_ok)
 	for k in _mm.size():
@@ -564,54 +648,336 @@ func _put(kind: int, xf: Transform3D, anim: float, phase: float, lean: float, co
 	_buf[o + 16] = anim; _buf[o + 17] = phase; _buf[o + 18] = lean; _buf[o + 19] = code
 
 
-## A vulture's flight this frame. Returns (animation, bank roll, pitch).
-func _fly(i: int, dt: float, pp: Vector3, p_ok: bool) -> Vector3:
+## How high a vulture is flying above its floor (metres); 0 for anything that isn't one.
+func altitude(u: int) -> float:
+	return float(_alt.get(u, 0.0))
+
+
+## Is this vulture up in the air, out of reach (circling, gliding down to land, or climbing
+## away above EnemyManager.VULTURE_HITTABLE_ALT)? Only once it's on the ground can it be hit.
+func airborne(u: int) -> bool:
+	var s: Dictionary = _v.get(u, {})
+	if s.is_empty():
+		return false
+	var st: int = s["s"]
+	if st == V_CIRCLE or st == V_LAND:
+		return true
+	return st == V_TAKEOFF and float(_alt.get(u, 0.0)) > EnemyManager.VULTURE_HITTABLE_ALT
+
+
+## The vulture's state (V_CIRCLE ..), -1 for anything that isn't one.
+func vulture_state(u: int) -> int:
+	var s: Dictionary = _v.get(u, {})
+	return -1 if s.is_empty() else int(s["s"])
+
+
+## Its beak's warning wedge on the ground right now (null when it isn't pecking).
+func peck_disc(u: int) -> GroundDisc:
+	var s: Dictionary = _v.get(u, {})
+	return null if s.is_empty() else s["disc"] as GroundDisc
+
+
+## Put a vulture straight down on the ground where it is (tests).
+func land_now(i: int) -> void:
 	var u := em.uid[i]
+	if not _v.has(u):
+		_v[u] = _new_state(em.pos[i])
+	var p := em.pos[i]
+	p.y = SwampWater.height_at(p.x, p.z)
+	em.pos[i] = p
+	_touch_down(_v[u], u, p, em.t_scale[EnemyManager.VULTURE] * em.sz[i])
+
+
+func _drop_state(u: int) -> void:
+	var s: Dictionary = _v.get(u, {})
+	if not s.is_empty():
+		_free_disc(s)
+		_v.erase(u)
+
+
+func _free_disc(s: Dictionary) -> void:
+	var d := s["disc"] as GroundDisc
+	if d != null and is_instance_valid(d):
+		d.queue_free()
+	s["disc"] = null
+
+
+func _touch_down(s: Dictionary, u: int, p: Vector3, sc: float) -> void:
+	s["s"] = V_GROUND
+	s["t"] = 0.0
+	s["pcd"] = maxf(float(s["pcd"]), 0.3)
+	s["p"] = p
+	_alt[u] = VULTURE_STAND * sc
+
+
+func _take_off(s: Dictionary, p: Vector3, sc: float) -> void:
+	_free_disc(s)
+	s["s"] = V_TAKEOFF
+	s["t"] = 0.0
+	s["cd"] = VULTURE_RELAND
+	s["from"] = p
+	s["p"] = Vector3(p.x, p.y + VULTURE_STAND * sc, p.z)
+	s["c"] = p
+	_play("flap", p, 0.8)
+
+
+## Where the ground under a flying vulture counts from: near you it's your level (so it circles
+## above you up a pyramid), away from you the ground.
+func _floor_y(g: float, pp: Vector3, d: float, p_ok: bool) -> float:
+	return maxf(g, lerpf(pp.y, g, smoothstep(8.0, 30.0, d))) if p_ok else g
+
+
+## A vulture's life this frame (see VULTURE in the header): circling high on its thermal,
+## gliding down to land, walking on the ground (the hot loop walked its row at the player:
+## EnemyManager.t_speed), pecking, climbing away. Draws it.
+func _fly(i: int, dt: float, pp: Vector3, player: Node3D, held: bool, kind: int, sc: float, code: float) -> void:
+	var u := em.uid[i]
+	var p_ok := player != null
+	if not _v.has(u):
+		_v[u] = _new_state(em.pos[i])
+	var s: Dictionary = _v[u]
+	s["f"] = _frame
+	s["cd"] = float(s["cd"]) - dt
+	s["pcd"] = float(s["pcd"]) - dt
+	var st: int = s["s"]
+	var row := em.pos[i]   # where the hot loop put it (at the ground, walked toward you)
 	var alt: float = _alt.get(u, VULTURE_HIGH)
-	var p := em.pos[i]   # the hot loop flew it at the player and set y to the ground
-	var g := SwampWater.height_at(p.x, p.z)
-	var to := Vector3(pp.x - p.x, 0, pp.z - p.z)
-	var d := to.length()
-	var cycle := fmod(_t / VULTURE_CYCLE + float(u) * 0.377, 1.0)
-	# near you it flies at your level (up a pyramid), away from you it follows the ground
-	var floor_y := maxf(g, lerpf(pp.y, g, smoothstep(8.0, 30.0, d))) if p_ok else g
-	var want := VULTURE_HIGH
-	var anim := A_FLAP
+	var anim := A_GLIDE
 	var roll := 0.0
 	var pitch := 0.0
-	var held := em.is_held(i)
-	if held:
-		want = alt   # frozen / stunned in the air: hangs there
-		anim = A_GLIDE
-	elif p_ok and d < 24.0 and cycle < VULTURE_CIRCLE and not em.is_harmless(i) and em.kb_t[i] <= 0.0:
-		# circle above you on the thermal
-		var rr := 8.5 + float(u % 5)
-		var dir := 1.0 if u % 2 == 0 else -1.0
-		var sp := em.t_speed[EnemyManager.VULTURE]
-		var ang := atan2(p.z - pp.z, p.x - pp.x) + dir * (sp / rr) * dt
-		var target := Vector3(pp.x + cos(ang) * rr, 0, pp.z + sin(ang) * rr)
-		var step := Vector3(target.x - p.x, 0, target.z - p.z)
-		var max_step := sp * 1.4 * dt
-		if step.length() > max_step:
-			step = step.normalized() * max_step
-		p.x += step.x
-		p.z += step.z
-		em.vel[i] = Vector3(-sin(ang) * dir, 0, cos(ang) * dir) * sp
-		want = VULTURE_HIGH + 0.6 * sin(_t * 1.3 + float(u))
-		anim = A_GLIDE
-		roll = -dir * 0.45
-	else:
-		# swoop: straight at you, dropping to your chest as it closes in
-		want = lerpf(VULTURE_LOW, VULTURE_HIGH + 1.0, smoothstep(2.0, 15.0, d))
-		anim = A_DIVE if d > 3.5 else A_FLAP
-		pitch = 0.35 if d > 3.5 else -0.2
-	alt = move_toward(alt, want, (9.0 if want < alt else 5.0) * dt)
+	var pk := 0.0
+	var p := row
+	var face := Vector2.ZERO
+	var harmless := em.is_harmless(i)
+	if st == V_CIRCLE or st == V_LAND or st == V_TAKEOFF:
+		p = s["p"]
+		if Vector2(row.x - p.x, row.z - p.z).length() > 6.0:   # the hot loop moved a straggler back near you
+			p = Vector3(row.x, p.y, row.z)
+			s["c"] = p
+	if st == V_CIRCLE:
+		var g := SwampWater.height_at(p.x, p.z)
+		var d := Vector2(pp.x - p.x, pp.z - p.z).length()
+		if not held:
+			var c: Vector3 = s["c"]
+			if p_ok:   # the thermal drifts after you, but keeps its distance
+				var keep := VULTURE_KEEP + float(u % 4) * 1.5
+				var tc := Vector2(c.x - pp.x, c.z - pp.z)
+				var dc := tc.length()
+				if dc > keep + 1.0:
+					var mv := minf(dc - keep, (4.0 if dc < 32.0 else 10.0) * dt)
+					c.x -= tc.x / dc * mv
+					c.z -= tc.y / dc * mv
+					s["c"] = c
+			var dirn := 1.0 if u % 2 == 0 else -1.0
+			var a: float = float(s["a"]) + dirn * VULTURE_FLY_SPEED / VULTURE_RING * dt
+			s["a"] = a
+			var target := Vector2(c.x + cos(a) * VULTURE_RING - p.x, c.z + sin(a) * VULTURE_RING - p.z)
+			var mx := VULTURE_FLY_SPEED * 1.6 * dt
+			if target.length() > mx:
+				target = target.normalized() * mx
+			p.x += target.x
+			p.z += target.y
+			if dt > 0.0:
+				em.vel[i] = Vector3(target.x, 0, target.y) / dt
+			var want := VULTURE_HIGH + 0.6 * sin(_t * 1.3 + float(u))
+			anim = A_GLIDE if alt > want - 0.8 else A_FLAP
+			alt = move_toward(alt, want, (4.0 if want < alt else 3.0) * dt)
+			roll = -dirn * 0.45
+			if p_ok and d < VULTURE_LAND_RANGE and float(s["cd"]) <= 0.0 and not harmless:
+				# you've come close: glide down to land a few metres from you
+				var away := Vector2(p.x - pp.x, p.z - pp.z)
+				away = away.normalized() if away.length() > 0.01 else Vector2(1, 0)
+				away = away.rotated(randf_range(-0.6, 0.6))
+				var lim := em.arena_half - 1.0
+				var goal := Vector3(clampf(pp.x + away.x * VULTURE_LAND_DIST, -lim, lim), 0, clampf(pp.z + away.y * VULTURE_LAND_DIST, -lim, lim))
+				goal.y = SwampWater.height_at(goal.x, goal.z)
+				s["s"] = V_LAND
+				s["t"] = 0.0
+				s["from"] = Vector3(p.x, maxf(_floor_y(g, pp, d, p_ok) + alt, g + 0.45), p.z)
+				s["goal"] = goal
+				_play("screech", p, 0.7)
+		p.y = maxf(_floor_y(g, pp, d, p_ok) + alt, g + 0.45)
+		s["p"] = p
+		em.pos[i] = p
+	elif st == V_LAND:
+		if not held:
+			s["t"] = float(s["t"]) + dt
+		var f := clampf(float(s["t"]) / VULTURE_LAND_TIME, 0.0, 1.0)
+		var from: Vector3 = s["from"]
+		var goal: Vector3 = s["goal"]
+		var e := f * f * (3.0 - 2.0 * f)
+		var gy := goal.y + VULTURE_STAND * sc
+		p = Vector3(lerpf(from.x, goal.x, e), lerpf(from.y, gy, 1.0 - (1.0 - f) * (1.0 - f)), lerpf(from.z, goal.z, e))
+		face = Vector2(goal.x - from.x, goal.z - from.z)
+		anim = A_GLIDE if f < 0.55 else A_FLAP   # glides down, then flares and beats to land
+		pitch = 0.3 if f < 0.55 else -0.55
+		alt = p.y - SwampWater.height_at(p.x, p.z)
+		s["p"] = p
+		em.pos[i] = p
+		if f >= 1.0:
+			_touch_down(s, u, goal, sc)
+			alt = VULTURE_STAND * sc
+			em.pos[i] = goal
+			em.vel[i] = Vector3.ZERO
+			_burst(goal + Vector3(0, 0.2, 0), 0.8, Color(0.78, 0.66, 0.45))   # a puff of sand
+			_play("flap", goal, 0.6)
+			p = goal
+			anim = A_STRUT
+			st = V_GROUND
+	elif st == V_GROUND:
+		var to := Vector2(pp.x - p.x, pp.z - p.z)
+		var d := to.length()
+		anim = A_STRUT
+		alt = VULTURE_STAND * sc
+		if not held:
+			s["t"] = float(s["t"]) + dt
+			var spd := Vector2(em.vel[i].x, em.vel[i].z).length()
+			s["ph"] = fmod(float(s["ph"]) + dt * spd * 0.95, 1.0)
+			if p_ok and (d > VULTURE_FLEE or float(s["t"]) > VULTURE_GIVE_UP):
+				_take_off(s, p, sc)
+				st = V_TAKEOFF
+				p = s["p"]
+				alt = VULTURE_STAND * sc
+				anim = A_FLAP
+			elif p_ok and d < PECK_RANGE and absf(pp.y - p.y) < 1.8 and float(s["pcd"]) <= 0.0 and not harmless:
+				_start_peck(s, i, p, to)
+				st = V_PECK
+				anim = A_PECK
+	if st == V_PECK:
+		p = s["p"]
+		anim = A_PECK
+		var aim: Vector3 = s["aim"]
+		face = Vector2(aim.x, aim.z)
+		if held:   # frozen / stunned: the peck's off
+			_free_disc(s)
+			s["s"] = V_GROUND
+			s["pcd"] = PECK_CD * 0.5
+		else:
+			s["t"] = float(s["t"]) + dt
+			var tt: float = s["t"]
+			var disc := s["disc"] as GroundDisc
+			if tt < PECK_WARN:
+				pk = 0.7 * tt / PECK_WARN
+				if disc != null:
+					disc.set_fill(tt / PECK_WARN)
+			else:
+				if not bool(s["struck"]):
+					s["struck"] = true
+					_free_disc(s)
+					_strike(i, s, pp, player)
+				pk = minf(0.7 + 0.3 * (tt - PECK_WARN) / PECK_RECOVER, 1.0)
+				if tt >= PECK_WARN + PECK_RECOVER:
+					s["s"] = V_GROUND
+					s["t"] = 0.0
+					s["pcd"] = PECK_CD
+		em.pos[i] = p   # stands its ground while it pecks
+		em.vel[i] = Vector3.ZERO
+		alt = VULTURE_STAND * sc
+	elif st == V_TAKEOFF:
+		var from: Vector3 = s["from"]
+		if not held:
+			s["t"] = float(s["t"]) + dt
+			alt += VULTURE_CLIMB * dt
+			var aw := Vector2(p.x - pp.x, p.z - pp.z)
+			aw = aw.normalized() * 3.0 * dt if aw.length() > 0.01 else Vector2.ZERO
+			p.x += aw.x
+			p.z += aw.y
+			if dt > 0.0:
+				em.vel[i] = Vector3(aw.x, 0, aw.y) / dt
+		anim = A_FLAP
+		pitch = -0.35
+		p.y = from.y + alt
+		s["p"] = p
+		em.pos[i] = p
+		if alt >= VULTURE_HIGH - 0.5:   # back up on a thermal
+			var g := SwampWater.height_at(p.x, p.z)
+			alt = p.y - _floor_y(g, pp, Vector2(pp.x - p.x, pp.z - p.z).length(), p_ok)
+			s["s"] = V_CIRCLE
+			s["c"] = p
 	_alt[u] = alt
-	p.y = maxf(floor_y + alt, g + 0.45)
-	em.pos[i] = p
-	if alt < 1.2:
-		vultures_low += 1
-	return Vector3(anim, roll, pitch)
+	# draw it
+	var grounded := st == V_GROUND or st == V_PECK
+	var phase: float
+	if grounded:
+		vultures_grounded += 1
+		phase = float(s["ph"])
+	else:
+		phase = float(s["ph"])
+		if not held:
+			phase = fmod(phase + dt * (3.2 if anim == A_FLAP else 0.4), 1.0)
+			s["ph"] = phase
+	var fw := face
+	if fw.length() < 0.01:
+		var vv := em.vel[i]
+		fw = Vector2(vv.x, vv.z)
+		if fw.length() < 0.2 and p_ok:
+			fw = Vector2(pp.x - p.x, pp.z - p.z)
+	var yaw := atan2(fw.x, fw.y)
+	var xf: Transform3D
+	if grounded:
+		xf = Transform3D(Basis(Vector3.UP, yaw), Vector3(p.x, p.y + VULTURE_STAND * sc, p.z)).scaled_local(Vector3.ONE * sc)
+	else:
+		xf = Transform3D(Basis(Vector3.UP, yaw) * Basis(Vector3(1, 0, 0), pitch) * Basis(Vector3(0, 0, 1), roll), p).scaled_local(Vector3.ONE * sc)
+	_put(kind, xf, anim, phase, pk, code)
+
+
+## Within reach: it stops, rears back, and the wedge its beak will strike fills on the ground.
+func _start_peck(s: Dictionary, i: int, p: Vector3, to: Vector2) -> void:
+	var aim := Vector3(to.x, 0, to.y)
+	if aim.length() < 0.05:
+		var vv := em.vel[i]
+		aim = Vector3(vv.x, 0, vv.z) if Vector2(vv.x, vv.z).length() > 0.05 else Vector3.FORWARD
+	aim = aim.normalized()
+	s["s"] = V_PECK
+	s["t"] = 0.0
+	s["p"] = p
+	s["aim"] = aim
+	s["struck"] = false
+	_free_disc(s)
+	var d := GroundDisc.create(PECK_REACH, Color(MapBoss.WARN_COLOR, 0.55), false)
+	d.set_arc(PECK_ARC)
+	d.set_lift(0.15)
+	d.set_fill(0.0)
+	add_child(d)
+	d.global_position = Vector3(p.x, SwampWater.height_at(p.x, p.z), p.z)
+	d.rotation.y = atan2(-aim.x, -aim.z)
+	s["disc"] = d
+	pecks += 1
+	_play("screech", p, 0.5, 1.3)
+
+
+## The beak strikes: it hurts you if you're still in the wedge.
+func _strike(i: int, s: Dictionary, pp: Vector3, player: Node3D) -> void:
+	var o: Vector3 = s["p"]
+	var aim: Vector3 = s["aim"]
+	_play("peck", o, 0.9)
+	if player == null or not _in_wedge(o, aim, pp):
+		return
+	var phased: Variant = player.get("phase")
+	if phased is bool and phased:
+		return   # phased (Ghast): untouchable
+	peck_hits += 1
+	var mult := 1.0
+	var m := em.get_parent()
+	if m != null and m.has_method("enemy_damage_mult"):
+		mult = float(m.call("enemy_damage_mult"))
+	var dmg := em.t_damage[EnemyManager.ZOMBIE] * PECK_DAMAGE * mult * em.hit_mult(i)
+	if player.has_method("hurt"):
+		player.call("hurt", dmg, em.type_names[EnemyManager.VULTURE])
+	_burst(pp + Vector3(0, 0.9, 0), 0.7, Color(0.6, 0.08, 0.06))
+
+
+## Is `at` (your feet) inside the peck's wedge from `o` along `aim`?
+static func _in_wedge(o: Vector3, aim: Vector3, at: Vector3) -> bool:
+	if absf(at.y - o.y) > 1.8:
+		return false
+	var rel := Vector2(at.x - o.x, at.z - o.z)
+	var d := rel.length()
+	if d < 0.7:
+		return true
+	if d > PECK_REACH + 0.3:
+		return false
+	return absf(rel.angle_to(Vector2(aim.x, aim.z))) <= PECK_ARC + 0.3 / d
 
 
 ## A mummy touching you curses you: slowed for a moment (once a second per mummy).
@@ -651,7 +1017,14 @@ func _tick_corpses(dt: float) -> void:
 		var kind := _c_kind[i]
 		var sink := clampf((age - (CORPSE_LIFE - 1.0)) / 1.0, 0.0, 1.0)
 		var xf: Transform3D
-		if kind == M_VULTURE:
+		if kind == M_VULTURE and _c_from[i] < 0.6:
+			# shot on the ground: keels over onto its side, wings limp
+			var f := clampf(age / 0.35, 0.0, 1.0)
+			f = f * f
+			var side := 1.0 if (int(_c_yaw[i] * 100.0) & 1) == 0 else -1.0
+			xf = Transform3D(Basis(Vector3.UP, _c_yaw[i]) * Basis(Vector3(0, 0, 1), side * 1.4 * f), Vector3(p.x, g + (VULTURE_STAND - 0.2 * f) * _c_scale[i] - sink * 0.5, p.z)).scaled_local(Vector3.ONE * _c_scale[i])
+			_put(kind, xf, 0.75, 0.0, 0.0, 0.0)
+		elif kind == M_VULTURE:
 			# tumbles out of the sky, wings limp, and lands on its back
 			var fall_t := sqrt(2.0 * maxf(_c_from[i], 0.0) / 14.0) + 0.05
 			var f := clampf(age / fall_t, 0.0, 1.0)

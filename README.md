@@ -29,7 +29,7 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 
 The game opens with the **AtomAI** studio logo (`video/atomai_logo.ogv`, converted to Ogg Theora for Godot), then the **anime intro** (`video/intro_anime.ogv`, played by `scenes/intro.tscn` / `scripts/intro.gd`, about 30 s, sound effects on the SFX bus). Made with Higgsfield from the game's own character models: the Fire Wizard, Ogre, Vicki, Gaiden and Dr. Croc are asleep in the castle barracks when a stampede shakes the walls; the wizard whistles everyone awake, they rush to the battlements, see Thog the Troll leading the goblin horde, leap into battle, and the wizard ends it as the Meteor. Any key, click or gamepad button skips the logo and the intro. The intro plays on the **first launch only**: once shown it switches **Settings > Gameplay > Play intro on startup** off, and turning that back on replays it next launch. Pass `-- --skip-intro` to go straight to the title (tests and screenshots skip both automatically).
 
-Then the **title screen**: a living swamp diorama at night. The camera slowly orbits the fire wizard on a mossy stone dais while goblin silhouettes with glowing eyes lurk, creep in and grunt in the fog. "DARK REPUBLIC" burns in Cinzel lettering (`fonts/Cinzel.ttf`, SIL Open Font License) over a Play / Settings / Quit menu (mouse, keyboard or gamepad). The pause menu and end screen have **Main menu** to return here.
+Then the **title screen**: a living swamp diorama at night. The camera slowly orbits the fire wizard on a mossy stone dais while goblin silhouettes with glowing eyes lurk, creep in and grunt in the fog. "DARK REPUBLIC" burns in Cinzel lettering (`fonts/Cinzel.ttf`, SIL Open Font License) over a Play / Settings / Quit menu (mouse, keyboard or gamepad). The pause menu and end screen have **Main menu** to return here, and the end screen also has **Characters** to go straight back to character select.
 
 **Play** opens the mode menu (`scripts/mode_menu.gd`). A burning fuse races out of the button and three cards (Classic, Quickplay, Unrelenting) drop in behind it, each with a flip, a flash and a puff of embers, plus a whoosh-and-thump sound (`audio/ui/menu_reveal.wav`). Esc folds them back.
 - **Classic:** character select, then the map. Survive 10 minutes.
@@ -45,23 +45,73 @@ Then the **title screen**: a living swamp diorama at night. The camera slowly or
 
 **Run clock:** in Classic it counts **down** from 10:00. During the entrance it spins up from 00:00 to 10:00 with digital blips that rise in pitch (`audio/ui/timer_tick.wav`), then locks in with two beeps (`timer_set.wav`), and a **SURVIVE** banner appears and starts counting down when you land.
 
+## Loading screen
+
+Every scene change goes through one autoload, `Loader` (`scripts/loader.gd`): `Loader.go(path)` replaces `change_scene_to_file` everywhere (title, character select / map picker, Quickplay, the end screen's Restart, **Characters** and Main menu buttons, the pause menu's Restart run and Main menu, the logo and intro into the title).
+- **When it shows:** straight away for transitions known to be slow (into a run, which builds the whole map; into the title, which builds its swamp diorama; leaving a run; any scene that took over 1 s last time). Anything else only shows it if the background load is still going after 0.25 s, so quick changes never flash it. Once up it stays at least 0.8 s, fades in over 0.15 s and out over 0.3 s.
+- **How:** the scene loads on a background thread (`ResourceLoader.load_threaded_request`) while the overlay animates; it's drawn before the scene swap, stays up while the new scene builds in `_ready` (the map builders run synchronously, so it freezes but never shows a black screen) and for 3 more frames, then fades out.
+- **What's on it** (a CanvasLayer at layer 128, above the coin counter): into a run, the map's preview picture (`images/maps/<map>.png`, blurred and dimmed) under its name in Cinzel and the character's name; a spinning circle of runes with an ember arc, drifting embers and a dark vignette; and a **TIP** box at the bottom.
+- **Tips:** 32 of them in `data/tips.json` (a plain array of strings; edit freely): shards and the Forge, abilities and cooldowns, chests, keys and the slot machine, potions and power-ups, Luck, bans, coins, bosses and their ultimates, map and champion unlocks, skill trees, burning woods, movement tech and Unrelenting. They rotate every 4.5 s with a crossfade in shuffled order (every tip before any repeats, never the same twice in a row); any key, click or pad button skips to the next. They're translated like everything else (`tools/i18n_extract.py` reads `tips.json`; translations in `data/i18n/src/tips.json`).
+- **Tests:** `godot --headless --path . res://tools/test_loading.tscn`. Screenshot: `xvfb-run -a -s "-screen 0 1600x900x24" godot --rendering-driver opengl3 --path . res://tools/shot_loading.tscn -- --out=/tmp/load.png [--map=forest] [--char=ice_wizard] [--to=title] [--lang=es]` (`Loader.hold`, or `-- --loader-hold` in a normal session, keeps the overlay up).
+
 ## Character select
 
-**Play** on the title opens a roster of 25 champions plus 5 mystery slots (shown only as "?"): a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. **The Fire Wizard** plays from the start; the **Ice, Thunder and Dark Wizards** are playable once bought. Characters with a model preview as it in 3D, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. **Unlocking with coins:** each locked tile shows its price: 2,000 for the Ice, Thunder and Dark Wizards, 7,000 for Merlin and 10,000 for everyone else. Selecting a locked character shows its unlock requirements as chips with a tick or a cross under "LOCKED · to unlock:" (coins for everyone; **Thog the Troll** also needs beating him in the Swamp, and the **Ghast** needs 15:00 in the Swamp on Unrelenting), and turns Play into **Unlock**, which works once every requirement is met and spends the coins. Bought characters get their skill tree and level straight away. Only characters with a model and abilities can be played: the four wizards, Merlin, Ogre, Ghast, Vampire Hunter, Vicki, the Rogue, Gaiden, Dr. Croc, Thog (on the Ogre's model for now), An Argyle Sock, Loco Robotico, the Blob, the Arachnid and the Toadstool Knight (the last five built in code; the Arachnid also needs beating her in the Castle, and can't pick the Castle; the Toadstool Knight needs beating him in the Magical Forest, and can't pick the Forest). The rest show "playable soon" until they're built.
+**Play** on the title opens a roster of 30 slots: 25 champions, the map bosses who have joined them (the Pharaoh and the Necromancer; locked behind their own defeats, then playable once bought) and the mystery slots still left (shown only as "?"): a 6-wide grid of portraits plus a preview panel with name, epithet, bio and kit. **The Fire Wizard** plays from the start; the **Ice, Thunder and Dark Wizards** are playable once bought. Characters with a model preview as it in 3D, and Play starts a run. The other 22 (Ice Wizard, Merlin, Thunder Wizard, Dark Wizard, Ogre, Ghast, Vampire Hunter, Vicki, The Rogue, Gaiden, Dr. Croc, The Arachnid, Blob, Death, Billy Bulldog, Cowboy, Loco Robotico, Singe, An Argyle Sock, Sentient Platypus, Kong, Thog the Troll, Bog Witch, Toadstool Knight) show a padlock and a large portrait. Portraits are drawn in code (`character_icon.gd`) from each character's traits in `data/characters.json` (body, head, headgear, beard/hair, eyes, signature item, particle motif), so adding a character is a JSON entry. **Unlocking with coins:** each locked tile shows its price: 2,000 for the Ice, Thunder and Dark Wizards, 7,000 for Merlin and 10,000 for everyone else. Selecting a locked character shows its unlock requirements as chips with a tick or a cross under "LOCKED · to unlock:" (coins for everyone; **Thog the Troll** also needs beating him in the Swamp, **Singe** beating him in the Ashen Caldera, and the **Ghast** needs 15:00 in the Swamp on Unrelenting), and turns Play into **Unlock**, which works once every requirement is met and spends the coins. Bought characters get their skill tree and level straight away. Only characters with a model and abilities can be played: the four wizards, Merlin, Ogre, Ghast, Vampire Hunter, Vicki, the Rogue, Gaiden, Dr. Croc, Thog (on the Ogre's model for now), An Argyle Sock, Loco Robotico, the Blob, the Arachnid, the Toadstool Knight, the Pharaoh, the Necromancer and Singe (the last eight built in code; the Arachnid also needs beating her in the Castle, and can't pick the Castle; the Toadstool Knight needs beating him in the Magical Forest, and can't pick the Forest; the Pharaoh, the Necromancer and Singe need beating them on their maps, the Desert, the Graveyard and the Ashen Caldera, and can't pick those). The rest show "playable soon" until they're built.
 
-The preview panel shows the character's level (**LVL N**) in its top-left corner with the EXP towards the next level and a thin bar under it, and the signature weapon's icon and name in the top-right corner; hover the weapon for its damage, attack rate and what it does. Ability names live in the hover tooltips. Each character has a saved level (`lvl`, kept with the coins in `user://progress.cfg`). Tiles show **lvl N** in the bottom-left corner when it's 1 or more, and nothing at 0. Mouse, keyboard and gamepad all work; Esc goes back.
+The preview panel shows the character's level (**LVL N**, LVL 0 for characters still locked, bosses included) in its top-left corner with the EXP towards the next level and a thin bar under it, then the character's **starting bonuses** (see **Character bonuses**), and the signature weapon's icon and name in the top-right corner; hover the weapon for its damage, attack rate and what it does. Ability names live in the hover tooltips. Each character has a saved level (`lvl`, kept with the coins in `user://progress.cfg`). Tiles show **lvl N** in the bottom-left corner when it's 1 or more, and nothing at 0. Mouse, keyboard and gamepad all work; Esc goes back.
+
+## Character bonuses
+
+Every character with a roster card starts each run with three stat bonuses of its own (`"bonuses"` in `data/characters.json`, applied by `scripts/char_bonuses.gd` at run start, after the skill tree). Each is `{"stat", "value", "mode"}`: `mult` multiplies the stat (Move Speed x1.2), `set` replaces its starting value (Critical Hit Chance 6% instead of 3%), `flat` adds to it (for stats that start at 0: Armor +5). **Jump Height** is a stat too (`jump_height`, 1.0 in `BASE_STATS`): the jump's apex scales by it (the take-off speed by its square root).
+
+**On the select screen** they sit under the level, left of the character, as **STARTING BONUSES**: stat name, value, and a bar (shown for locked characters too, so you can see what you'd get). The bar's length is the size of the boost (full at 2x) and its colour the tier:
+- **Red, small:** under 1.3x.
+- **Yellow, medium:** 1.3x to 1.5x.
+- **Green, big:** 1.5x and up.
+
+A boost is measured against the stat's base: x1.2 is 1.2x, crit 6% against 3% is 2x, and Ability Cooldown -20% is 1.25x (shorter is better). For stats that start at 0, a flat bonus counts against a reference amount: Armor 10, HP Regen 1/s, Luck 25%, Extra Jumps 1.5 (so Armor +5 is 1.5x, big). Each character has one signature (big) bonus and two smaller ones; Gaiden's three are exactly as requested (crit 6%, move speed x1.2, jump height x1.6).
+
+| Character | Bonus 1 | Bonus 2 | Bonus 3 |
+|---|---|---|---|
+| The Fire Wizard | Area x1.5 (big) | Attack Speed x1.2 (small) | Projectile Speed x1.15 (small) |
+| Ice Wizard | Armor +5 (big) | Area x1.25 (small) | Projectile Speed x1.2 (small) |
+| Thunder Wizard | Attack Speed x1.5 (big) | Move Speed x1.2 (small) | Critical Hit Chance 4% (medium) |
+| Merlin | XP Gain x1.5 (big) | Ability Cooldown -20% (small) | Area x1.2 (small) |
+| Dark Wizard | Damage x1.5 (big) | Luck +10% (medium) | Ability Cooldown -15% (small) |
+| Ogre | Max HP x1.6 (big) | Armor +3 (medium) | Area x1.2 (small) |
+| Ghast | Extra Jumps +1 (big) | Pickup Range x1.3 (medium) | Move Speed x1.15 (small) |
+| Vampire Hunter | Projectile Speed x1.5 (big) | Critical Hit Chance 4% (medium) | HP Regen/s +0.2 (small) |
+| Vicki | Jump Height x1.5 (big) | Damage x1.3 (medium) | Move Speed x1.1 (small) |
+| The Rogue | Critical Hit Chance 6% (big) | Critical Damage 195% (medium) | Luck +5% (small) |
+| Gaiden | Critical Hit Chance 6% (big) | Move Speed x1.2 (small) | Jump Height x1.6 (big) |
+| Dr. Croc | HP Regen/s +0.6 (big) | Max HP x1.2 (small) | Armor +2 (small) |
+| The Arachnid | Max HP x1.5 (big) | Move Speed x1.3 (medium) | Attack Speed x1.15 (small) |
+| Blob | HP Regen/s +0.5 (big) | Max HP x1.3 (medium) | Pickup Range x1.2 (small) |
+| Death | Critical Damage 225% (big) | Critical Hit Chance 4% (medium) | XP Gain x1.1 (small) |
+| Billy Bulldog | Max HP x1.5 (big) | Armor +4 (medium) | Damage x1.1 (small) |
+| Cowboy | Attack Speed x1.5 (big) | Critical Hit Chance 4% (medium) | Projectile Speed x1.2 (small) |
+| Loco Robotico | Armor +6 (big) | Attack Speed x1.2 (small) | Pickup Range x1.2 (small) |
+| Singe | Area x1.5 (big) | Damage x1.3 (medium) | Max HP x1.2 (small) |
+| An Argyle Sock | Luck +15% (big) | Coin Gain x1.2 (small) | Move Speed x1.15 (small) |
+| Sentient Platypus | Pickup Range x1.5 (big) | XP Gain x1.25 (small) | Ability Cooldown -20% (small) |
+| Bog Witch | Area x1.5 (big) | Ability Cooldown -20% (small) | Luck +5% (small) |
+| Toadstool Knight | Armor +5 (big) | Max HP x1.3 (medium) | HP Regen/s +0.2 (small) |
+| Kong | Damage x1.5 (big) | Max HP x1.3 (medium) | Jump Height x1.2 (small) |
+| Thog the Troll | HP Regen/s +0.6 (big) | Damage x1.3 (medium) | Area x1.2 (small) |
+| The Pharaoh | Luck +15% (big) | Area x1.3 (medium) | Armor +2 (small) |
+| The Necromancer | Ability Cooldown -35% (big) | Pickup Range x1.3 (medium) | Damage x1.15 (small) |
 
 ## Character kits
 
 Every character has a designed kit in `data/abilities.json`: a starting weapon plus three abilities on the same keys and unlock levels as the Fire Wizard (**1** from the start, **2** at run level 5, **3** the ultimate at level 10). Cooldowns and numbers are balanced against his kit (about 30 s / 45 s / 2 min; 80-160 damage for the level-5 ability, 200-400 for ultimates).
 
-**On the select screen**, every character shows its weapon and its three ability squares. Hover one for the full description with cooldown and numbers (`KitDB.describe_lines`; `{braces}` in the JSON mark highlighted numbers). Icons are drawn in code by `scripts/ability_glyphs.gd` from each ability's `"icon": {"glyph", "color"}` (36 glyphs). To preview them all: `godot --path . --script res://tools/render_ability_icons.gd -- /out.png`.
+**On the select screen**, every character shows its weapon and its three ability squares. Hover one for the full description with cooldown and numbers (`KitDB.describe_lines`; `{braces}` in the JSON mark highlighted numbers). Icons are drawn in code by `scripts/ability_glyphs.gd` from each ability's `"icon": {"glyph", "color"}` (39 glyphs, among them the ankh, the grave and the volcano). To preview them all: `godot --path . --script res://tools/render_ability_icons.gd -- /out.png`.
 
-**In runs**, every character with a body is playable: the four wizards, Merlin, Ogre, Ghast, Vampire Hunter, Vicki, the Rogue, Gaiden, Dr. Croc, Thog, An Argyle Sock, Loco Robotico, the Blob, the Arachnid and the Toadstool Knight. The others are designs until each character is built (they show "playable soon" once bought).
+**In runs**, every character with a body is playable: the four wizards, Merlin, Ogre, Ghast, Vampire Hunter, Vicki, the Rogue, Gaiden, Dr. Croc, Thog, An Argyle Sock, Loco Robotico, the Blob, the Arachnid, the Toadstool Knight, the Pharaoh, the Necromancer and Singe. The others are designs until each character is built (they show "playable soon" once bought).
 
 ## The Ice, Thunder and Dark Wizards
 
-Each plays as its own rigged Higgsfield model (`models/<id>/`, Lean clip set: idle, run, hit, attack, ability) driven by `RosterHero` (`scripts/roster_hero.gd`): idle/run blend by speed, and the staff thrust, hit flinch and ability casts play on the upper body so the legs keep running. The staff comes from `RosterWeapons`, and shots leave from its head. Each arrives as a comet in its own colours instead of the flaming head, and only the Fire Wizard leaves ash footprints.
+Each plays as its own rigged Higgsfield model (`models/<id>/`, Lean clip set: idle, run, hit, attack, ability) driven by `RosterHero` (`scripts/roster_hero.gd`): idle/run blend by speed, and the staff thrust, hit flinch and ability casts play on the upper body so the legs keep running. The staff comes from `RosterWeapons`, and shots leave from its head. **Weapons are put away when not in use:** every character carries its weapon on its back or belt (`RosterWeapons.STOW`) and only draws it to attack or cast: a quick pop into the hand (0.12 s), out through the move, put back 0.6 s after the clip ends (at least 1 s after the move starts; `RosterHero.HOLSTER_DELAY` / `HOLSTER_MIN`), so it stays out through steady fire and goes away between bursts and when nothing is in range. Getting hit doesn't draw it. Two copies are built once (hand and back/belt `BoneAttachment3D`s) and toggled, and shots always leave from the hand copy's head, even mid-draw. Where each goes: staffs (Ice, Thunder, Dark Wizards, Merlin) and Vicki's spear slung diagonally across the back, head over the right shoulder; the Ogre's and Thog's club across the back, heavy end over the right shoulder; the Vampire Hunter's crossbow on the back; the Rogue's daggers in leather sheaths on both hips; Gaiden's katana in a black scabbard on his back, hilt over the right shoulder (the scabbard stays when he draws); Dr. Croc's flask on his belt at the right hip; the Toadstool Knight's sword sheathed at his left hip (`ToadstoolBody`); Loco Robotico's maracas tucked in his belt at the back (`LocoBody`; they stay out through Party and DESTROY Mode); the Fire Wizard's flaming staff across his back (`HeroModel` moves the one staff between hand and back). The Pharaoh's crook and flail go through his belt (crook across the small of his back, flail at his right hip) and the Necromancer's staff is slung diagonally across his back (`PharaohBody` / `NecromancerBody`). The Ghast, Argyle Sock, Blob, Arachnid and Singe fight with their bodies and have nothing to put away. Entrances start with the weapon put away (a cast in the entrance draws it), and the character select preview shows everyone relaxed with weapons away (the Knight's practice cut and Loco's maraca burst draw theirs briefly). **Tests:** `godot --headless --path . res://tools/test_holster.tscn`. Pictures: `res://tools/render_holster.tscn -- vicki,gaiden,ogre /out.png [rest|attack|cast]` (back, side and front of each). The Thunder Wizard arrives as a comet in his own colours; every other character has an entrance of its own (see **Entrances** below), and only the Fire Wizard leaves ash footprints.
 
 **Weapons** (the starting `weapon_orb` card is renamed and re-iconed per character, and levels up the same way):
 
@@ -76,12 +126,12 @@ Each plays as its own rigged Higgsfield model (`models/<id>/`, Lean clip set: id
 | | 1 (start) | 2 (level 5) | 3 Ultimate (level 10) |
 |---|---|---|---|
 | **Ice** | **Flash Freeze** (30 s): goblins within 15 m frozen solid for 3 s; frozen goblins can't hurt you, take +50% damage and shatter on death for 40% of their max HP within 2 yd (chains) | **Glacial Path** (45 s): +60% speed for 6 s; your ice trail lasts 5 s, slows 60% and deals 15/s | **Absolute Zero** (2 min): 25 m blizzard on you for 8 s (80% slow, 4% max HP/s), then everything inside freezes for 2 s and shatters for 200 |
-| **Thunder** | **Overcharge** (30 s): +40% speed for 8 s; every jump and landing shocks 6 m for 40 | **Thunderclap** (30 s): 12 bolts on the goblins with the most HP within 25 m: 120 each, 1.5 s stun; a boss within 40 m can take up to 4 of them | **Storm Lord** (2 min): a thundercloud follows you for 10 s, striking a goblin within 18 m every 0.25 s for 90, chaining to 3 more; every 3rd strike goes to a boss in range |
+| **Thunder** | **Overcharge** (30 s): +40% speed and **invincible** for 8 s; every jump and landing shocks 6 m for 40 | **Thunderclap** (30 s): 12 bolts on the goblins with the most HP within 25 m: 120 each, 1.5 s stun; a boss within 40 m can take up to 4 of them | **Storm Lord** (2 min): a thundercloud follows you for 10 s, striking a goblin within 18 m every 0.25 s for 90, chaining to 3 more; every 3rd strike goes to a boss in range |
 | **Dark** | **Siphon** (30 s): goblins within 12 m lose 6% max HP/s for 4 s; you heal 1 HP per goblin per second (max 5% of max HP/s) | **Raise Dead** (50 s): 15 dead goblins (fresh corpses first, the rest claw out of the bog) fight for you for 15 s (25 per hit), then explode for 60 in 3 m | **Eclipse** (2 min): the world goes dark for 8 s; goblins lose track of you and wander, you deal +100% damage, and every kill sends a shadow wisp at a goblin for 60 |
 
 **Goblin statuses** (`enemy_manager.gd`): slow, freeze, stun, curse, the Eclipse wander, and shatter explosions, shown in the goblin shader as icy, frosted or shadowed. Frozen and stunned goblins stand still and deal no contact damage. Raise Dead's allies (`ally_crowd.gd`) reuse the goblin's baked mesh and animations, shadow-tinted. Lightning everywhere is `lightning_fx.gd` (one additive MultiMesh of jagged segments).
 
-## Merlin, Ogre, Ghast, Vampire Hunter, Vicki, Rogue, Gaiden, Dr. Croc, Thog, An Argyle Sock, Loco Robotico, the Blob, the Arachnid and the Toadstool Knight
+## Merlin, Ogre, Ghast, Vampire Hunter, Vicki, Rogue, Gaiden, Dr. Croc, Thog, An Argyle Sock, Loco Robotico, the Blob, the Arachnid, the Toadstool Knight, the Pharaoh, the Necromancer and Singe
 
 These run on the same `RosterHero` model player (clip segments per character in `RosterHero.CFG`). The Ghast's model has no skeleton, so it hovers and sways, lunges when it attacks and swells when it casts. **Thog** has no model of his own yet: he plays on the Ogre's rig (`"model": "ogre"` in his CFG entry) with the troll-blue skin the Swamp boss uses, 20% bigger, holding a bigger club; giving him a real model later is a matter of adding `models/thog/` and dropping that line. He's bought for 10,000 coins after beating him in the Swamp, and can't pick the Swamp (it's his home turf).
 
@@ -95,6 +145,13 @@ These run on the same `RosterHero` model player (clip segments per character in 
 
 **The Toadstool Knight** plays as the Forest boss's own body: `ToadstoolBody` (`scripts/toadstool_body.gd`) is `ToadstoolModel` (`scripts/toadstool_model.gd`: silver plate, a huge glossy red toadstool cap with white spots, a sword glowing violet with spores) at player size - he's small, about 1.45 m to the top of his cap. Where the boss plays whole clips, the knight's body runs its own AnimationTree on the same rig, so his legs keep running while he fights: idle and run blended by speed, an upper-body overhead cut with every Spore Blade swing (the torso twists toward the target), a low sweep-and-thrust when he casts, a flinch when hit, and a death where he staggers and topples over backwards. Spores drift up off his cap. `RosterHero.CFG` marks him `"procedural": "toadstool"`.
 
+**The Pharaoh, the Necromancer and Singe** play as their map bosses' own code-built bodies at player size (`PlayableBoss`, `scripts/playable_boss.gd`; `RosterHero.CFG` marks them `"procedural": "pharaoh" / "necromancer" / "singe"`), posed by hand every frame:
+- **The Pharaoh** (`PharaohBody`, `scripts/pharaoh_body.gd`): `PharaohModel` at 0.95x, about 1.8 m. He stands with his arms crossed on his chest (the Osiride pose); running, it's a stiff mummy's jog, leaning in, arms pumping, cloak and bandage ends streaming. He thrusts the crook at each target (the scarabs leave from its hook) while his legs keep running, flings both arms up to cast, rises off the ground for Wrath of the Sands, jolts back and flashes when hit, and when the run ends his knees buckle and he crumbles into sand.
+- **The Necromancer** (`NecromancerBody`, `scripts/necromancer_body.gd`): `NecromancerModel` at 0.62x, about 1.85 m to the hood's peak. The boss model holds his staff baked into his arm; here the arm is built empty (an inner `Rig` subclass) and the staff is a separate piece, so it can be slung on his back. He hovers and glides, leaning into a run, levels the staff at each target (the soul bolts leave from its soul-flame) and holds it levelled for Soul Drain, flings his arms up to cast, rises arms spread for The Graves Open, and his robe collapses empty when he dies.
+- **Singe** (`SingeBody`, `scripts/singe_body.gd`): `SingeModel` back down to his roster size (0.26x), a little imp about 1.55 m to the crown of his head, flame hair above (its fire and embers sized down). He rubs his hands and hops from foot to foot when idle, capers along, and flat out (over 5 m/s) scampers bent low with his arms flung back; each Fireflick is a claw flick from his right hand, he cackles arms-up to cast, bounces cackling for the eruption, tucks into a spinning ball of coals for Lava Cannonball, and fizzles into a heap of coals when he dies.
+
+Their risen dead (the Pharaoh's mummies, the Necromancer's skeletons) are the Dark Wizard's `AllyCrowd` allies, tinted (`AllyCrowd.tint`): sand-gold and grave-green.
+
 **Weapons** (`weapon_system.gd`). Damage and fire rate are the orb stats scaled by the weapon's own `damage` / `every` in `data/abilities.json`, so every weapon levels up through the same card. On melee weapons, extra count widens the reach.
 
 | Character | Weapon | Effect |
@@ -105,7 +162,7 @@ These run on the same `RosterHero` model player (clip segments per character in 
 | Vampire Hunter | Silver Bolts | Fast bolts that pierce 3 enemies, double damage to epics and bosses |
 | Vicki | Valkyrie Spear | 6 m piercing thrust; every 4th throw is a javelin flying 25 m |
 | Rogue | Twin Daggers | Short-range throws in pairs; hits bleed 3% of max HP/s for 3 s |
-| Gaiden | Katana (only drawn while he attacks) | 3-hit combo in a 3 m arc; the 3rd cut sends a 10 m wind slash |
+| Gaiden | Katana (sheathed on his back, drawn while he attacks) | 3-hit combo in a 3 m arc; the 3rd cut sends a 10 m wind slash |
 | Dr. Croc | Volatile Flasks | Lobbed vials that shatter with breaking glass: 3 m burst, then a lumpy, bubbling acid puddle (4% of max HP/s) |
 | Thog | Big Club | Slow overhead smash in a long 9 m, 100° cone for 90 damage, throws enemies back 8 m. Thog starts with **250 max HP** (everyone else 100): with no projectile he fights up close |
 | An Argyle Sock | Static Cling | Zaps the 3 nearest enemies (18 each, every 0.6 s); moving builds a charge up to 2x |
@@ -113,6 +170,9 @@ These run on the same `RosterHero` model player (clip segments per character in 
 | The Blob | Acid Body | Burns every enemy touching you (2.5 m) for 30 a second, in pulses every 0.5 s; each kill grows you (and the burn) 1%, up to +50% |
 | The Arachnid | Venom Spit | Fast globs of venom (12 each, every 0.5 s) that poison for 3% of max HP a second for 4 s, stacking 3 times (`EnemyManager.poison`) |
 | Toadstool Knight | Spore Blade | Sword slash in a 3 m, 140° arc (30 damage, every 0.8 s); leaves a 2 m spore cloud for 3 s that poisons for 2% of max HP a second |
+| The Pharaoh | Scarab Bolts | Golden scarabs that seek their target (14 each, every 0.6 s), then burrow in for 2% of max HP a second for 2 s |
+| The Necromancer | Soul Bolts | Green skull bolts of soul-fire (20 each, every 0.8 s) that pierce 2 more enemies |
+| Singe | Fireflick | Embers flicked in pairs, 14 m (8 each, every 0.5 s); each sets what it hits burning for 3% of max HP a second for 2 s |
 
 Once bought, every character's weapon can also turn up for the others as a rare Legendary level-up reward. The odds are shared out, so the rewards stay rare however many characters you own.
 
@@ -134,8 +194,11 @@ Once bought, every character's weapon can also turn up for the others as a rare 
 | **The Blob** | **Engulf**: swallows up to 20 enemies within 6 m (not the boss); they shrink and swirl inside the jelly for 6 s, digested for 8% max HP/s; heal 1% max HP per enemy; survivors are spat out | **Split**: 2 half-size mini-blobs chase enemies for 10 s, each with its own Acid Body at 60% | **The Great Puddle**: spread into a 20 m puddle for 6 s: can't move but invulnerable; enemies in it are slowed 90% and take 6% max HP/s; then survivors are flung out 6 yd |
 | **The Arachnid** | **Web Trap**: a 10 m web lands where you aim (25 m); for 4 s everything in it is stuck fast (the boss slowed by half) and takes +30% damage from poison | **Brood**: an egg sac hatches 12 spiderlings that leap onto enemies (a boss in range first) for 15 s, 20 damage a second each, poisoning what they cling to | **Cocoon**: every enemy within 25 m is wrapped in silk for 5 s (can't move or attack) and takes 25% of its max HP; heal 1% max HP per cocoon; the boss is only slowed |
 | **Toadstool Knight** | **Fungal Shield**: a shield worth 20% of max HP for 8 s (a translucent toadstool cap over him); when it breaks or runs out it bursts into spores: 60 within 8 m, plus poison | **Fairy Ring**: a 10 m ring of mushrooms springs up around you for 10 s; enemies that cross it take 50 and wander confused for 3 s (harmless; `EnemyManager.confuse`, not the bosses) | **The Fungus Court**: 6 giant toadstool guardians rise in a 12 m ring around you for 15 s; each draws enemies within 9 m to it and slams every 1.5 s: 80 within 4 m |
+| **The Pharaoh** | **Curse of the Sands** (30 s): a beam of cursed green-gold light runs 22 m down where you aim (3 m wide): 60, then cursed (+25% damage taken) for 6 s, slowed 50% and withering for 3% of max HP a second for 4 s | **Sandstorm** (45 s): a storm whirls round you for 8 s out to 8 m: slowed 50%, 20 a second, and blinded (`EnemyManager.confuse`: they wander, harmless) for 2 s when it first catches them | **Wrath of the Sands** (2 min): a spectral Sphinx's head rises 16 m ahead of you, looking back over you, and its eyes blaze, two beams sweeping the field; 1.4 s later a great storm tears through every enemy within 25 m for 300 (and slows them); up to 10 of the fallen rise as mummies that fight for you for 12 s, 20 a hit |
+| **The Necromancer** | **Raise the Dead** (30 s): up to 8 of the dead (fresh corpses first, then older dead clawing up out of the ground, each from a green-lit grave) fight for you for 12 s, 18 a hit | **Soul Drain** (45 s): a green beam from the staff drains everything in a 16 m line (2.4 m wide) for 4 s, following your aim: 40 a second; you heal 20% of what it does (up to 4% of max HP a second) | **The Graves Open** (2 min): a grave cracks open under every enemy within 25 m; 0.55 s later bone spikes burst out of them: 300, rooted 1.5 s; then up to 16 of the dead rise and fight for you for 10 s |
+| **Singe** | **Scorch Trail** (25 s): +30% speed for 6 s, leaving burning scorch marks every 0.9 m that last 4 s; enemies on them take 15 (at most every 0.5 s) and burn for 5% of max HP a second for 3 s | **Lava Cannonball** (45 s): he tucks into a ball of coals and dives up to 18 m where you aim, untouchable in the air (0.8 s), crashing down for 150 within 6 m with knockback and leaving a 4 m lava pool for 3 s (4% of max HP a second) | **Caldera Eruption** (2 min): the ground cracks open round him (22 m) and 36 lava bombs rain down over 6 s, most of them on enemies: each 110 within 3.5 m plus a burn (4% of max HP a second for 3 s) |
 
-New goblin statuses for these: flee, frog, possessed and bleed/acid (`EnemyManager.scare / frog / afflict`, `ally_t`). Frogs, possessed and fleeing goblins can't hurt you. Sounds come from `tools/gen_kit_sounds.py`. **Test:** `godot --headless --path . res://tools/test_kits.tscn [-- --only=<id>]` plays each of the nine and checks its model, weapon and all three abilities. Thog's sounds come from `tools/gen_thog_kit_sounds.py`, the sock's from `tools/gen_sock_sounds.py`, Loco Robotico's (and his maraca shake) from `tools/gen_loco_sounds.py`, the Blob's from `tools/gen_blob_sounds.py`, the Arachnid's (and her spit) from `tools/gen_arachnid_sounds.py`, the Toadstool Knight's (and his sword's swish) from `tools/gen_toadstool_sounds.py`.
+New goblin statuses for these: flee, frog, possessed and bleed/acid (`EnemyManager.scare / frog / afflict`, `ally_t`). Frogs, possessed and fleeing goblins can't hurt you. Sounds come from `tools/gen_kit_sounds.py`. **Test:** `godot --headless --path . res://tools/test_kits.tscn [-- --only=<id>]` plays each of the nine and checks its model, weapon and all three abilities. Thog's sounds come from `tools/gen_thog_kit_sounds.py`, the sock's from `tools/gen_sock_sounds.py`, Loco Robotico's (and his maraca shake) from `tools/gen_loco_sounds.py`, the Blob's from `tools/gen_blob_sounds.py`, the Arachnid's (and her spit) from `tools/gen_arachnid_sounds.py`, the Toadstool Knight's (and his sword's swish) from `tools/gen_toadstool_sounds.py`, the Pharaoh's, the Necromancer's and Singe's (and their weapons' shots) from `tools/gen_playable_boss_sounds.py`. **Test:** `godot --headless --fixed-fps 60 --path . res://tools/test_playable_bosses.tscn [-- --only=pharaoh|necromancer|singe]` checks their bodies (size, holstering, poses), weapons, all three abilities and their cooldowns, the forge recipe and special, the character select preview, the unlock rules and a run on a map that isn't home.
 
 **Sounds** are synthesised by `tools/gen_roster_sounds.py` into `audio/abilities/`. **Tests:** `godot --headless --path . res://tools/test_roster.tscn` plays a run as each character and checks the model, entrance, weapon and all nine abilities. Screenshot runs take `--char=<id>` to play as someone else, and `--shot-slow=T` to slow to a crawl at T seconds so short effects like bolts are caught.
 
@@ -158,13 +221,43 @@ New goblin statuses for these: flee, frog, possessed and bleed/acid (`EnemyManag
 | Billy Bulldog | Scrappy melee dog with taunts and stuns | Bite | Fetch! | Zoomies | Who's a Good Boy |
 | Cowboy | Gunslinger with bursts of precise damage | Six-Shooter | Lasso | Dynamite | High Noon |
 | Loco Robotico | Party robot that stuns crowds, then lasers them | Maraca Blasters | Party Mode | Piñata Drop | DESTROY Mode |
-| Singe | Fast fire imp who sets the ground ablaze | Cinder Toss | Hotfoot | Flashover | Supernova |
+| Singe | Fast fire imp who sets the ground ablaze | Fireflick | Scorch Trail | Lava Cannonball | Caldera Eruption |
+| The Pharaoh | Cursed king who commands the sand and the dead | Scarab Bolts | Curse of the Sands | Sandstorm | Wrath of the Sands |
+| The Necromancer | Grave-lord who drains souls and raises the dead | Soul Bolts | Raise the Dead | Soul Drain | The Graves Open |
 | An Argyle Sock | Odd little whirlwind with static shocks | Static Cling | Spin Cycle | Lost Pair | Laundry Day |
 | Sentient Platypus | Poison-kicking scholar with sleep and eggs | Venom Spur | Electro-Bill | Egg Clutch | The Lecture |
 | Bog Witch | Hexer who curses and drowns the horde | Ladle of Bile | Bubbling Cauldron | Hex of Silence | Swamp's Fury |
 | Toadstool Knight | Brave little defender with spores and summons | Spore Blade | Fungal Shield | Fairy Ring | The Fungus Court |
 | Kong | Brawler who throws the swamp at goblins | Shackle Swing | Chest Pound | Log Toss | Rampage |
 | Thog the Troll | Slow, heavy smasher who controls space | Big Club | Toll Booth | Goat Charge | Bridge Collapse |
+
+## Entrances
+
+Every playable character starts a run its own way, tied to who they are; nobody else gets the glowing ball from the sky. The **Fire Wizard** still crashes down as a giant flaming copy of his own head and the **Thunder Wizard** keeps his comet (both in `Abilities.entrance_meteor`). A kit can bring its own (`RosterKit.entrance`: the Sock's washing machine), which comes first; everyone else plays one of `HeroEntrances` (`scripts/hero_entrances.gd`, one function per character named after its id), started from `Abilities.entrance_meteor` and ticked by `Abilities.tick`; a character with no entry there falls back to the comet.
+
+| Character | Entrance |
+|---|---|
+| Ice Wizard | **Frost spire:** frost races out over the ground in a six-pointed star, ice spikes jut up along its rays, a crystal spire grows up around him (frozen inside, glowing), cracks twice and shatters outward in a spray of shards |
+| Dark Wizard | **Shadow rise:** a pool of living shadow spreads, tendrils curl up out of it, a murder of crows bursts out and scatters, and he rises slowly out of the dark; a pulse of shadow rolls out |
+| Merlin | **Rewind** ("mostly in reverse"): time runs backwards. Dust and sparkles rush inward, accelerating like an explosion played backwards, and reassemble into him as a rune circle draws itself backwards round the ground; he settles with a twinkle and an owl flaps off |
+| Ogre | **Bog geyser:** the ground bulges, trembles and cracks, then bursts in a fountain of bog mud with him in it; mud splatters everywhere, he lands with a thud and shakes himself off like a wet dog |
+| Ghast | **Fog wail:** thick fog rolls in from every side, a wail rises, and it fades in out of the mist, see-through and glowing, chains rattling; the wail blasts the fog back out |
+| Vampire Hunter | **Bat whirlwind:** a swarm of bats spirals down into a whirlwind; he bursts out of it, crossbow up, the bats scatter, and he puts a bolt into the ground with a thunk |
+| Vicki | **Valkyrie descent:** a shaft of golden light parts the sky and she glides down it on wings of light, plants her spear, and a golden ring of force rolls out |
+| Rogue | **Smoke bomb:** a smoke bomb lobbed in from the side bounces to a stop, fizzes and goes off in a thick grey cloud; as it thins he's crouched there, stands, and flips a dagger |
+| Gaiden | **Leaf slash:** a whirl of leaves and reeds whips round the spot, three slashes cut across it in a blink, the leaves burst apart and he's simply there, kneeling; he rises and sheathes with a click |
+| Dr. Croc | **Chemical lurk:** the ground turns into a bubbling green chemical pool; his eyes and snout surface and glide across it like a lurking crocodile, then he surges up in a green splash and adjusts his goggles |
+| An Argyle Sock | **Lost in the Wash:** its own entrance from its kit (`KitSock.entrance`): a washing machine drops in, the door flies open, the sock pops out and the machine sinks away |
+| Blob | **Ooze seep:** a little ooze puddle seeps up through the ground and spreads, bubbling and gurgling, then swells up into the full Blob, wobbles, and lands a wet splort |
+| The Arachnid | **Silk drop:** it lowers itself on a silk thread from high above, swinging, hangs a moment, lets go and drops the last bit, legs splaying, and a web puffs out across the ground |
+| Loco Robotico | **Piñata party:** a piñata swings in on a rope and bursts into confetti and streamers; a cardboard box drops out of it, its flaps pop open and the robot springs up out of it with the disco lights on |
+| Toadstool Knight | **Fairy ring:** a ring of mushrooms pops up one by one, a giant toadstool grows in the middle with him riding up on its cap, and he somersaults off it into a burst of spores |
+| Thog the Troll | **Troll leap:** one enormous leap from far across the field, club up, coming down club-first: the ground cracks into a crater and rocks fly |
+| The Pharaoh | **Sarcophagus rise:** the sand turns into a whirlpool and a gilded sarcophagus rises out of it, sand pouring off; the lid falls open with a thud, scarabs scatter, and it sinks back down leaving him standing there |
+| The Necromancer | **Grave rise:** green ghost-fire rings the spot, skeletal hands claw up out of the earth, a headstone heaves up, its cracks glow green and it bursts apart: he's standing where it was |
+| Singe | **Fuse flare:** a lit fuse burns its way in over the ground in a spiral, scorching a trail, the spot glows and cracks, and a pillar of flame erupts that the little imp hops out of (the bushes nearby catch) |
+
+Each lasts 3.0-3.4 s (`HeroEntrances.SPECS`: duration, impact time, shake, camera framing). The world holds still meanwhile (`main.intro`), the camera frames the event (riding down with Vicki and the Arachnid), and the hero is seen arriving, using the real model and its clips. At the impact moment the arrival does what the comet did: 250 damage (Damage stat and Meteor ability level apply) and knockback to every enemy within 8 m. It ends with the hero standing on the spot, `entrance_landed` fires once and the run starts. Leftover debris fades for 3 s, then the entrance frees itself. Everything is built in code (particles, MultiMesh swarms for shards, crows, bats, leaves, confetti and rocks, ground decals that drape over the terrain, lights), so it works on every outdoor map. **Sounds:** `tools/gen_entrance_sounds.py` writes `audio/entrances/<id>.wav`, timed to each entrance. **Test:** `godot --headless --fixed-fps 60 --path . res://tools/test_entrances.tscn [-- --only=<id>]` runs every character's entrance on the outdoor maps in turn. **Screenshots:** `godot --fixed-fps 60 --path . res://tools/shot_entrance.tscn -- <id> <map> /out/prefix 1.0,2.0` captures frames mid-entrance.
 
 ## Character levels and skills
 
@@ -218,7 +311,7 @@ A second, persistent currency for upgrading your main weapon in the Forge. There
 | The Graveyard | Dark, Light | The restless dead and holy ground |
 | The Ashen Caldera | Fire, Dark | Lava and obsidian |
 
-Each map card in the picker shows its two shards over the corner of the picture. The drop is banked at once (`Wallet.shards`, saved in `user://progress.cfg`), flashed on screen, and listed under **Shards won** on the end screen. Any kind can still be bought with coins in the Forge.
+Each map card in the picker shows its two shards over the corner of the picture. The boss **drops them on the ground** as glowing crystals round his body (see **Boss rules: after the boss**); each one is banked the moment you walk over it (`Wallet.shards`, saved in `user://progress.cfg`), with a chime and the counter popping, and listed under **Shards won** on the end screen. Any kind can still be bought with coins in the Forge.
 
 ## The Forge (weapon upgrades)
 
@@ -235,6 +328,8 @@ Shards forge a character's signature weapon, up to **level 10** (`scripts/forge.
 | Wail (Ghast) | 1 ice, 4 dark | Valkyrie Spear (Vicki) | 3 light, 2 lightning |
 | Maraca Blasters (Loco Robotico) | 2 fire, 3 lightning | Acid Body (The Blob) | 2 fire, 3 dark |
 | Venom Spit (The Arachnid) | 1 ice, 1 lightning, 3 dark | Spore Blade (Toadstool Knight) | 1 fire, 1 ice, 3 dark |
+| Scarab Bolts (The Pharaoh) | 2 fire, 1 lightning, 2 light | Soul Bolts (The Necromancer) | 1 ice, 3 dark, 1 light |
+| Fireflick (Singe) | 3 fire, 2 dark | | |
 
 - **On the character select,** the next level's shards sit under the weapon icon. For small costs that's one crystal per shard, lit as you collect them; for bigger ones, one crystal per kind with the count, lit when you have that many. When you have them all, the weapon **pulses** while **green plus signs** pop in and out around it. Click it to open the Forge.
 - **The Forge** shows the weapon, the shards the next level costs, the weapon's stats now and after forging, and a **Forge Weapon** button (an anvil clang and sparks).
@@ -261,14 +356,19 @@ Shards forge a character's signature weapon, up to **level 10** (`scripts/forge.
   | Acid Body | Enemies it kills burst for 25% of their max HP within 3 m |
   | Venom Spit | Poison stacks 5 times instead of 3 |
   | Spore Blade | Spore clouds are twice as big |
+  | Scarab Bolts | Each scarab seeks on to 1 more enemy |
+  | Soul Bolts | Each hit heals you 1 HP (up to 4 a second) |
+  | Fireflick | Burns deal double damage |
 - **Everywhere:** forging applies to the weapon wherever it's used. That means your own starting weapon, and also its **Legendary card** when another character pulls it in a run. Forge levels are saved (`Wallet.forge`).
 - **Tests:** `godot --headless --path . res://tools/test_forge.tscn`. Screenshots: `res://scenes/character_select.tscn -- --shot-char=argyle_sock --shot-shards=fire,ice,lightning,dark,light [--shot-forge]`.
 
 ## Pause menu and settings
 
+**Muffled music in menus:** while a level-up, a chest or the pause menu holds the run, the music sounds muffled, as if heard from a cave: a low-pass filter closes to 900 Hz with a touch of echo, easing in and out over 0.35 s (`Settings.update_muffle`, effects on the Music bus).
+
 **Esc** opens the pause menu: Resume, Settings, Restart run, Quit to desktop. Changes apply live so you can try them, but they're only saved (to `user://settings.cfg`, applied on startup) when you press **Apply**. Leaving with Back or Esc puts everything back as it was.
 
-- **Gameplay:** a **Language** dropdown with English, Español, Français, العربية, Deutsch, 中文 (简体) and 日本語. It takes effect on Apply, and all game text switches: menus, the HUD, cards, tooltips, character bios, ability and weapon text, and the title taglines. Also **Play intro on startup**.
+- **Gameplay:** a **Language** dropdown with English, Español, Français, العربية, Deutsch, 中文 (简体) and 日本語. It takes effect on Apply, and all game text switches: menus, the HUD, cards, tooltips, character bios, ability and weapon text, and the title taglines. Also **Play intro on startup** and **Show minimap**.
 - **Video:** display mode (windowed / fullscreen / borderless), VSync, render scale, field of view, FPS limit, show FPS.
 - **Sound:** Music volume and All other audio volume (goblin voices, hits, effects), each with its own Mute checkbox. They use separate audio buses, `Music` and `SFX`.
 - **Controls:** mouse sensitivity, invert Y, and rebindable keys for movement, jump, slide, the three abilities and pause (click a key, press the new one; Esc cancels).
@@ -317,7 +417,7 @@ To add a clip: generate it on the same rig in Higgsfield, then run `godot --head
 
 Potions lean and spin slowly so they're easy to spot. They never despawn and there's no limit on how many can lie around: they wait until you pick them up.
 
-**Power-ups:** each elite kill also has a 2% chance to drop one of these, plus 10% per point of Luck (+1% per Tome of Luck level):
+**Power-ups:** each elite kill also has a 2% chance to drop one of these, plus 10% per point of Luck (+1% per Tome of Luck level). The NUKE is half as likely as each of the others (`PowerupManager.WEIGHTS`: 2 / 2 / 2 / 2 / 1, so about 11% of drops):
 
 | Power-up | Effect |
 |---|---|
@@ -325,12 +425,34 @@ Potions lean and spin slowly so they're easy to spot. They never despawn and the
 | Fear Idol | All goblins run away from you for 15 s |
 | 5x Damage | All damage you deal is multiplied by 5 for 10 s |
 | Movement Enhancer | +80% move speed for 15 s |
+| **NUKE** | Every enemy alive at that moment dies; bosses lose 15% of their max HP instead |
 
 Picking one up while it's active refreshes its timer; active power-ups and their timers show under the run timer.
 
+**The NUKE** (`scripts/nuke_blast.gd`, pickup model `scripts/nuke_model.gd`): it lies on the ground as a cartoon atomic bomb, a fat rounded olive casing with a seam, a red nose band, a tapered tail into a boxy fin cage and a yellow-and-black radiation trefoil on each flank and on top (a texture drawn in code), glowing yellow-green and bobbing and spinning like the others. Press E and:
+- **Who dies:** every enemy alive at that instant is marked (by uid); anything that spawns afterwards is spared. A shockwave runs out from you and each marked enemy dies as it arrives, nearest first, so the horde falls in a wave over **0.6 s**. **Bosses** (Thog, the map bosses, the Goblin Warlord) aren't killed: each loses exactly **15% of its max HP** (whatever damage buffs are running) and nothing else.
+- **Rewards:** kills count and drop XP gems as usual (the gem cap merges them), then every gem on the map flies to you. Elites can still drop keys, potions and power-ups.
+- **Safe:** it never hurts you; bomber skeletons it kills don't drop their barrels.
+- **Untouchable enemies too:** it kills enemies directly rather than through `damage()`, so vultures circling out of reach on the Desert (`EnemyManager.is_airborne`) die with the rest.
+- **Spectacle:** a blinding white flash fading to a warm glow, a fireball at your feet, a **mushroom cloud** of churning puffs (a stem, a cap rolling over on itself and a ground skirt; white-hot fire cooling to smoke, its underside glowing) rising 30 m over you, a condensation ring round the stem, a **shockwave** racing out along the ground (a bright ring draped over the hills with a glowing wall), a big light, heavy camera shake and a deep synthesised boom with a rush of wind (`audio/powerups/nuke*.wav`, from `tools/gen_nuke_sounds.py`). Indoors (the Castle) the cloud is squashed under the ceiling (`Abilities.ceiling`) and spreads wider.
+- **Icon:** `PowerupIcon` (`scripts/powerup_icon.gd`) draws every power-up in 2D (the NUKE as a little bomb with the trefoil); the minimap uses it for power-up blips. Screenshots: `--shot-powerups` lays out all five, `--shot-nuke=T` sets one off at T seconds.
+
+## The minimap
+
+`scripts/minimap.gd`, in the HUD's **top-right corner** just under the coin and shard counters (the kills / enemies counter moved down below it). A round, semi-transparent dark map with a gold rim, 216 px across, showing **65 m** around you. It **turns with the camera**: you're the white arrow in the middle, always pointing the way the camera looks, and a gold **N** on the rim shows north.
+- **Blips:** enemies as tiny dim red dots (sampled, at most 300), elites purple, bosses a big red diamond with a skull; unopened chests in their tier's colour (opened ones disappear); power-ups as their own icons in a pulsing ring; dropped keys and potions; the portal out once the boss is down (a violet swirl, or a violet arrow on the rim).
+- **Map context:** the arena edge, the swamp pools, the Caldera's lava pools and rivers, and the Castle's walls with their doorways.
+- **Boss ultimates:** while one is coming, the places to stand **pulse bright green**: Thog's quake ponds, the Pharaoh's three golden safe spots (Wrath of the Sands), the Necromancer's churchyard and holy-light circles (The Graves Open) and Singe's basalt islands (Caldera Eruption). The Arachnid's web swath is the reverse: the webbed half of the keep is **tinted red**. Bosses report these through `map_safe_zones()` / `map_danger_zones()` (default empty in `MapBoss`; `ThogBoss` has the same pair), returning `{pos, radius}` circles or `{rect}` areas.
+- **The boss off the map:** whenever a boss is alive beyond the map's range, a **big, bright red, pulsing double arrow** sits on the rim pointing toward him (it turns with the map: lower left means behind you, to your left); once he's in range his skull blip shows instead.
+- **Past the edge:** safe zones (the nearest four), power-ups and chests you hold the key for sit on the rim as small arrows pointing their way.
+- **Cost:** the map content redraws 20 times a second (about 1.5 ms per redraw with 1,400 enemies, headless); between redraws the layer is only turned and slid, so it stays smooth.
+- **Settings > Gameplay > Show minimap** (on by default, saved). Hidden during the entrance and with `--shot-nohud`.
+- **Screenshots:** `res://tools/shot_minimap.tscn -- play|quake|bossarrow|pickup|cloud[:T] OUT.png` (play / quake / bossarrow with the HUD; pickup and cloud with their own camera and no HUD).
+- **Tests:** `godot --headless --path . --fixed-fps 60 res://tools/test_minimap.tscn` (layout and overlaps, blip positions as the map turns, opened chests, the dot cap, the toggle, the boss's red rim arrow, Thog's quake ponds, the Pharaoh's Wrath, the NUKE taking airborne vultures on the Desert, and the NUKE in a Castle run). The NUKE's numbers (drop odds, the wave, bosses' 15%, later spawns spared, you unhurt) are also in `test_abilities`.
+
 ## Maps
 
-**Play** (on the title screen or character select) first asks which map: **The Swamp**, the **Magical Forest** or **The Castle** (`scripts/map_picker.gd`, previews in `images/maps/`). The Forest is **locked until you beat Thog the Troll**, the Swamp's boss, and the Castle until you beat **the Toadstool Knight**, the Forest's boss; locked cards are darkened, carry a gold padlock and say what's needed. The first time the picker opens after a map is unlocked, its card starts locked, then the padlock rattles, the shackle springs open and the lock tumbles off the bottom of the screen as the card lights up and becomes selectable (each reveal plays once: `Wallet.seen_unlocks`). A character can be barred from a map (`banned_maps` in `data/characters.json`): each boss can't play its own map, since it's their home turf (Thog the Swamp, the Toadstool Knight the Forest, the Arachnid the Castle). The choice is kept for Restart and the next Play (`Settings.selected_map`). Test and screenshot runs take `--map=swamp|forest|castle|desert`, `--shot-nohud` hides the HUD for clean pictures and `--shot-pos=x,y,z[,yaw]` puts the wizard somewhere.
+**Play** (on the title screen or character select) first asks which map: **The Swamp**, the **Magical Forest**, **The Castle**, **The Desert**, **The Graveyard** or **The Ashen Caldera** (`scripts/map_picker.gd`, previews in `images/maps/`). The Forest is **locked until you beat Thog the Troll**, the Swamp's boss, the Castle until you beat **the Toadstool Knight**, the Forest's boss, and so on down the line: the Desert needs the Arachnid, the Graveyard the Pharaoh, the Ashen Caldera the Necromancer; locked cards are darkened, carry a gold padlock and say what's needed. The first time the picker opens after a map is unlocked, its card starts locked, then the padlock rattles, the shackle springs open and the lock tumbles off the bottom of the screen as the card lights up and becomes selectable (each reveal plays once: `Wallet.seen_unlocks`). A character can be barred from a map (`banned_maps` in `data/characters.json`): each boss can't play its own map, since it's their home turf (Thog the Swamp, the Toadstool Knight the Forest, the Arachnid the Castle, the Pharaoh the Desert, the Necromancer the Graveyard, Singe the Caldera). The choice is kept for Restart and the next Play (`Settings.selected_map`). Test and screenshot runs take `--map=swamp|forest|castle|desert|graveyard|caldera`, `--shot-nohud` hides the HUD for clean pictures and `--shot-pos=x,y,z[,yaw]` puts the wizard somewhere.
 
 The two outdoor maps share the same 440 m arena, terrain generator (hills, berm, level pads, 1 m height grid), counts and placement rules, so they play the same: 180 trees, 72 fallen logs, 24 landmarks, 14 pools, grass, walls and the chest pads. `WorldBuilder.build(..., map)` picks the look.
 
@@ -393,8 +515,8 @@ Trees, fallen logs and bushes all burn (`TreeFire`, `BushField.ignite`). The Fir
   - **Zombie** (the goblins' place): hunched and shambling, one leg dragging, arms out in front, torn shirt, rotting skin, ribs and bone showing, dimly glowing eyes. **Sprinting Zombie** (the scamps'): lean, bare-chested, arms pumping. **Zombie Brute** (the brutes'): bloated, in torn overalls, lumbering. Epic zombies are **Plague Zombies** with glowing boils.
   - **Climbing:** walkers follow the height grid up the pyramids; on the steps they slow (45% slower), lean in and claw up hand over hand.
   - **Mummy**: slow and tanky (36 HP), bound in bandages that flutter, one eye burning through the wraps; it claws its way out of the sand when it spawns (harmless for 1.4 s) and its touch **curses** you: half speed for 1.6 s. Epic: a **Mummy Priest** in a gold-and-lapis nemes and collar, with a crook.
-  - **Vulture**: flies. It circles above you on a thermal (5 m up, banking), then swoops down to chest height to rake you and climbs away again (a 6.5 s cycle). Near you it flies at **your** height, so it reaches you on a pyramid summit; its crowd row sits at its real height, so every weapon still hits it.
-  - Deaths: zombies pitch over and sink into the sand, mummies crumble to dust, vultures tumble out of the sky in a puff of feathers. Voices: zombie groans, mummy rasps, vulture screeches and wingbeats (`tools/gen_desert_sounds.py`).
+  - **Vulture**: circles 5 m up on a thermal that drifts after you but keeps its distance (15-19.5 m, so a bird never comes within landing range on its own). While it's up there it's harmless and out of reach: nothing can hit, target or damage it (`EnemyManager.is_airborne`). Come within **9.5 m** of one and it glides down over 1.2 s, flaring its wings, to land 3 m from you (on a pyramid's steps too; still out of reach until it touches down). On the ground it folds its wings and waddles after you, head bobbing, at 2.4 m/s (slower than a zombie); now it can be hit. It does no contact damage: within 2 m it stops, rears back and a **red wedge** (2.7 m, about 63 degrees wide) fills on the ground in front of it for 0.8 s, then it lunges and pecks: 1.5 zombie hits (24, times the run's enemy damage) if you're still in the wedge, nothing if you stepped out. 1.5 s between pecks. If you get more than 16 m away, or it has been on foot 8 s without pecking you, it takes off again (out of reach once it's 1.6 m up) and won't land for 4 s. Frozen or stunned on the ground it stays put (and a peck being wound up is called off); frozen in the air it hangs there.
+  - Deaths: zombies pitch over and sink into the sand, mummies crumble to dust, a vulture shot on the ground keels over onto its side in a puff of feathers (one caught in the air, by the nuke or a burn, tumbles out of the sky). Voices: zombie groans, mummy rasps, vulture screeches, wingbeats and pecks (`tools/gen_desert_sounds.py`).
 
 ## The Graveyard
 
@@ -408,6 +530,26 @@ Trees, fallen logs and bushes all burn (`TreeFire`, `BushField.ignite`). The Fir
 - **Sky and air:** a big moon in a starry sky with clouds drifting across it (a cloud layer with a silver lining near the moon), cold blue moonlight with long shadows, height fog and two layers of **ground fog** draped over the hills, rolling slowly; **will-o'-wisps** drifting over graves, crypt doors and trees; crows wheeling overhead and cawing; the chapel bell tolls in the distance now and then. Only 14 real lights (the chapel, some crypt doors, the plaza lanterns), flickering.
 - **The edge** (`GraveyardEdge`): a high cemetery wall all round (a stone plinth wall, tall iron railings between piers, urns on every eighth pier) with the great cemetery gate on the south side, dead woods beyond.
 - **The dead** (`scripts/undead_crowd.gd`, `UndeadCrowd`, code-built models animated in the vertex shader like the skeletons). `EnemyManager.type_remap` turns goblin spawns into **ghouls** (the goblins' places: gaunt hunched grey-green corpse-eaters loping fast and raking with long claws; they pitch into the dirt and sink when killed), **ghosts** (the scamps': hooded tattered wraiths floating 0.75 m up with streaming tails, drawn see-through and flickering; they drift through headstones, railings and crypt walls, their touch **chills** you (60% speed for 1.6 s), and their hit box reaches their floating bodies; they rise and fade with a wail) and **skeletons** (the brutes'). **The swarm** is the dead climbing out of the graves round you (skeletons, ghouls and ghosts, harmless until they're out; clods of earth fly), no on-screen message. Voices: ghost wails, ghoul snarls, crumbling earth (`tools/gen_graveyard_sounds.py`).
+
+## The Ashen Caldera
+
+`scripts/caldera_builder.gd` (layout, terrain, lava, ground shader, crossings, placement, ground scatter), `caldera_props.gd` (the rock shader, every prop, landmark and set piece), `caldera_edge.gd` (the crater cliffs, the great volcano, the cinder cone), `caldera_ambience.gd` (ash and embers round the camera, rumbles, the lava's burn, eruptions). Locked until **the Necromancer** is beaten. Same 440 m footprint and terrain generator as the other outdoor maps (`SwampWater`: hills, level pads, chest sites, the 1 m height grid), built entirely in code. A volcanic crater floor under a smouldering red-orange sky (a black, lava-lit night now and then; `--caldera-time=ember|night`), the haze thick with drifting ash. Music: the Castle's track.
+
+- **Lava instead of water.** Three rivers of lava wind across the caldera: one pours from the **lava falls** on the northern ridge into the **great lava pool** north of the start (Singe's lair), one runs out of the pool to the eastern cliffs, one winds west to east across the south; plus a few side pools. Lava is carved into the height grid (a channel 0.35 m deep under the lava's surface, banks easing to walkable slopes, levees where the ground was lower), so everything follows it for free, and its surface is drawn on top (`LAVA_SHADER`: dark crust plates drifting on the flow, cracked finer, molten rock glowing between them, bright upwellings; the falls stream down). **Standing in lava burns:** 7 damage every 0.5 s and a brief burn (`Player.ignite`), and it doesn't slow you; enemies wade through unharmed. There's **no swamp water anywhere**: `SwampWater` keeps no pools, and the whole ground is lifted so even the lava beds sit well above 0.
+- **Crossings:** each river has **natural rock bridges** (the channel left uncut and the ground humped over it, a rough arch of boulders on both faces with the lava pouring into its dark mouth) and **basalt stepping stones** (lines of solid hexagonal columns, tops just over the lava, close enough to walk across).
+- **The ground** (`GROUND_SHADER`): black basalt and grey ash drifts, cooled **pahoehoe** ropes (a bump normal), scorched and rusty patches, sulphur-yellow crusts, and a network of **glowing cracks** that pulse, broken and patchy out in the open, wider and hotter toward the lava, which glows along its banks.
+- **Set pieces:** the dwarves' road of hexagonal basalt paving runs from the start down to the great pool between stone posts with burning braziers. The **ruined dwarven forge-temple** (walls of squared basalt broken to jagged tops, rune-lit door jambs, bronze-banded octagonal columns, a hearth of glowing coals under a hood and chimney with bellows, a quenching trough of lava, hanging braziers, stout dwarf statues at the door) has a **giant anvil** in the middle with a hammer leaning on it. The **smith-god's colossus** lies half sunk in the biggest side pool: a bearded head in a crested helm, a shoulder and an arm thrust up out of the lava still gripping a broken hammer, cracks glowing where the lava eats it. The **lava falls** pour over a ridge of black rock. A **cinder cone** (baked into the ground in a corner) smokes, its crater glowing, lava streaming down its flank.
+- **Props** (the swamp's counts): 180 standing (charred trees that burn, petrified trees, basalt column clusters, obsidian shards, scoria boulders with glowing cracks, steaming sulphur vents, hornitos), 72 lying (toppled basalt columns, charred logs, pahoehoe lobes, the bones of huge beasts, wrecked forge gear, volcanic bombs), and 24 landmarks: **basalt column fields** (honeycombs of hexagonal columns whose tops climb in 0.45 m steps to 5.8 m: jump up them), **obsidian spires** (towering blades of black glass), **chained braziers** (rune-carved pillars, braziers hanging on chains), **fumarole fields** (crusted vents pouring steam), **sulphur crystal clusters** and the **skeleton of some enormous beast** (an 8 m ribcage, a horned skull). Ground scatter in 40 m chunks drawn within 75 m: pumice, scoria, ash drifts, singed tufts, glowing embers and little glowing fissures (mostly near the lava), sulphur crumbs, stones.
+- **The air** (`CalderaAmbience`): ash drifting down round the camera, embers rising, a bubbling lava sound from the nearest lava, and now and then a distant **rumble**: the camera trembles and the cinder cone flares and puffs ash.
+- **The edge** (`CalderaEdge`): towering crater cliffs of banded basalt and red scoria, lava seeping down them in places, beyond invisible walls; on the horizon a **great active volcano** with a glowing crater, lava streaking its flanks and a column of ash boiling up.
+- **Eruptions:** the minute's swarm here is the volcano erupting (no on-screen text): a rumble, the cinder cone blows, and **lava bombs** arc from it onto **marked circles** round you (6 + 1 a minute, up to 14; one where you're heading; each circle fills for at least 1 s, most for 2-3 s): 22 damage (rising through the run) and a burn if you're inside. They only hurt the player. A ring of magma imps claws up out of the cracks round you (harmless while they climb out) with cinder bats among them.
+- **The creatures** (`scripts/caldera_crowd.gd`, `CalderaCrowd`; code-built models animated in the vertex shader, MultiMeshes like the Desert's). No goblins come to the Caldera: `EnemyManager.type_remap` turns them into:
+  - **Magma Imp** (the goblins' place): a small hunched imp of cracked black rock with lava glowing in its seams, curling horns, ember eyes, a spade tail; it scuttles fast, **in packs** (imps spawned close together join up). It bursts into a puff of embers and a scatter of rock chunks that cool from orange to black, and crumbles away. Its epic is the **Ember Fiend**: bigger, seams blazing, a mane of flame.
+  - **Cinder Bat** (the scamps'): smouldering cinders, glowing wing veins and a tail of flame; it flies loose **figure-eights** above you, then **dives** at you and climbs away, leaving a trail of embers. Near you it flies at your height, so it reaches you on top of a basalt column; its row is at its real height, so every weapon hits it. It tumbles out of the air in a burst of sparks.
+  - **Obsidian Golem** (the brutes'): slow and huge, glossy black glass with a lava core glowing through a split in its chest; its heavy steps shake the ground near you; it **shatters** into a spray of glass shards. Its epic is the **Molten Golem**, glowing hot through and through.
+  - **Lava Slug** (new): slow and soft, crusted on top and molten underneath, eye stalks waving; it leaves a **trail of burning lava** that hurts you for 4 s after (enemies don't mind it), and melts into a cooling puddle when it dies.
+  - Voices and deaths: imp chitters and crackling pops, bat screeches and wingbeats, golem footfalls and shattering glass, slug squelches and sizzles (`tools/gen_caldera_sounds.py`, `audio/caldera/`).
+- **Tests:** `godot --headless --path . res://tools/test_caldera.tscn`. Contact sheets: `res://tools/render_caldera.tscn -- crowd|props|landmarks|forge|statue|singe /out.png`; Singe's moments: `res://tools/shot_caldera.tscn -- crowd|rise|singe|breath|scamper|ult|dead /out/prefix [seed]`.
 
 ## The swamp
 
@@ -423,10 +565,10 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **14 big pools of swamp water:** irregular ponds 18-36 m across, at least 66 m apart, recessed into the ground with uneven beds, never deeper than the character. Reeds and cattails grow around the edges. **In water, move speed and jump height are halved** (goblins wade at half speed too).
 - **24 mossy stone ruins** as landmarks.
 - **Camera zoom:** the mouse wheel zooms the camera in and out (up to 16 m away). All the way in is first person: the camera sits at the wizard's eyes and he's hidden from view, though his shadow stays. The chosen distance is kept between runs (`Player.zoom`).
-- **Entrance:** each run opens with the wizard arriving as his own Meteor. For the 3 s it takes to fall, the clock, the spawns and the goblins all hold still and nobody can act. It falls silently and lands with the full impact (explosion sound, no scorched ground), and the run starts (`Abilities.entrance_meteor`, `main.intro`). Screenshot and smoke runs skip it unless you pass `--shot-intro`.
+- **Entrance:** each run opens with the Fire Wizard arriving as his own Meteor (every other character has its own entrance: see **Entrances**). For the 3 s it takes to fall, the clock, the spawns and the goblins all hold still and nobody can act. It falls silently and lands with the full impact (explosion sound, no scorched ground), and the run starts (`Abilities.entrance_meteor`, `main.intro`). Screenshot and smoke runs skip it unless you pass `--shot-intro`.
 - **Title tagline:** 44 Dungeons & Dragons puns (none about dice) (`data/taglines.json`) rotate under the logo every 5 s with a crossfade. They play in shuffled order, all of them before any repeats. To add your own, edit the list.
 - **Upgrade overlay:** the bottom-left corner shows everything you own as icons with their level: weapons and items on the top row, tomes underneath, in the order you got them. On a reward card, the level it will become (for example "Lv 2") sits to the right of its icon.
-- **Signature weapons:** every unlocked character's weapon can turn up for the other characters as a rare Legendary level-up reward, under 1% of cards. It fires alongside your own weapon, levels up to 5 and counts as one of your 3 weapons (`WeaponSystem.add_signature_weapons`). **One per run:** once you take one, its level-up cards come up as often as any other weapon's (`UpgradeDB.weight_of`), and no other character's weapon can be pulled for the rest of the run.
+- **Signature weapons:** every unlocked character's weapon can turn up for the other characters as a rare Legendary level-up reward, under 1% of cards. It fires alongside your own weapon, levels up to 5 and counts as one of your 4 weapons (`WeaponSystem.add_signature_weapons`). **One per run:** once you take one, its level-up cards come up as often as any other weapon's (`UpgradeDB.weight_of`), and no other character's weapon can be pulled for the rest of the run.
 - **Unlock reveal:** buying a character shows "UNLOCKED <weapon>" over a collectible-style card of their weapon, with a fanfare. Click or press any key to continue (`scripts/unlock_reveal.gd`, `scripts/weapon_card.gd`).
 - **BAN:** under each reward card a BAN button (100 coins) throws that reward out of this draft and every later draft in the run. You lose that choice, and you get 3 bans per run. Banning plays a stamp-and-"denied" sound. You can't ban the last card left (`BANS_PER_RUN`, `BAN_COST` in `scripts/main.gd`).
 - **Level-up sounds:** a "power surge" (a low punch and a bright synth stab) plays when you level up and a soft tick when you hover over a reward card. Picking a tome slams a book shut, and picking anything else rings a magic "shing". Choose them in `UI_SOUNDS` in `scripts/hud.gd`. `tools/gen_ui_sounds.py` synthesises the candidates in `audio/ui/`.
@@ -441,7 +583,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 `scripts/thog_boss.gd`, body in `scripts/thog_model.gd`. With **2 minutes left (8:00)** a 10 m blue troll with a studded club walks out of the swamp (the Goblin Warlord no longer comes on the Swamp). A health bar appears under the timer with a countdown to his enrage.
 
-- **Must be killed to win:** the 10:00 mark no longer ends a Swamp run; you win when Thog falls (he topples backwards into the bog, gems fly to you, and the end screen says **THOG DEFEATED!**). Any level-up choice still open then is skipped.
+- **Must be killed to win:** the 10:00 mark no longer ends a Swamp run. When Thog falls (he topples backwards into the bog and gems fly to you) he drops his shards and a portal opens; step through it and the end screen says **THOG DEFEATED!** (see **Boss rules: after the boss**). Any level-up choice still open then is skipped.
 - **Enrage:** if he's alive 2 minutes after arriving (10:00) he **enrages**: his attacks come **twice as fast** (animations, wind-ups and the pauses between them), though every telegraph still gives at least 1 s of warning, his skin smoulders red and flames pour off him, and the bar turns red.
 - **Three attacks,** each telegraphed on the ground in red that fills up until it lands:
   - **Slam** (close): both fists overhead and down into the ground in front of him: 40 damage in the marked circle, then a **shockwave ring** rolls out to 20 m (22 damage; **jump over it**).
@@ -456,7 +598,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 ## The Toadstool Knight (the Magical Forest boss)
 
-`scripts/toadstool_boss.gd`, body in `scripts/toadstool_model.gd`. At **8:00** a 6 m mushroom-capped knight marches out of the trees. He enrages **3 minutes** after arriving (other bosses: 2; `MapBoss.enrage_after`) and must be killed to win the Forest. Base health 2,400 (x the run's HP multiplier: about 15,300 at 8:00). While he's up the fight is a duel: the steady goblin trickle stops at **120 alive** (`MapBoss.crowd_cap`, normally 250) and no swarm rings come. Touching him deals 30.
+`scripts/toadstool_boss.gd`, body in `scripts/toadstool_model.gd`. At **8:00** a 6 m mushroom-capped knight marches out of the trees. He enrages **3 minutes** after arriving (other bosses: 2; `MapBoss.enrage_after`) and must be killed to win the Forest. Base health 2,400 (x the run's HP multiplier: about 15,300 at 8:00). While he's up the fight is a duel: the steady goblin trickle stops at **90 alive** (the all-boss cap, `Main.BOSS_LIVE_CAP`; normally 250) and no swarm rings come. Touching him deals 30.
 
 - **Spore Slash** (close): an overhead cut across a 120° wedge in front of him (26 damage). It leaves a violet spore cloud that hurts while you stand in it.
 - **Fairy Ring:** a ring of mushrooms bursts out of the ground around you (24 damage). The red band shows where it will burst, so step into the middle or out past it.
@@ -489,7 +631,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **Look:** a gold death mask in a gold-and-lapis nemes with burning green-gold eyes, the uraeus and the plaited beard; yellowed bandages (a woven, grimy linen shader) wound round every limb, loose ends trailing; a broad collar of gold, lapis and carnelian beads, a scarab pectoral, a gold belt and pleated kilt, gold arm bands and anklets, a tattered royal-blue cloak; the crook and the flail, held crossed on his chest as he walks (the flail's beaded strands swing).
 - **Flail Slam** (close): a circle in front of him fills as the flail rises, then it comes down on the mark. **Curse Beam**: a lane toward you fills, then green-gold light leaves his crook down it: damage, and you're cursed (half speed for 3 s). **Sandstorm**: a whirling storm settles on a marked circle at you for 6 s, slowing you to half speed and scouring you. **Scarab Swarm**: three marked lanes fan out at you and black scarabs pour down them. **Raise the Dead**: four (enraged six) marked circles round you; mummies claw up out of them. **Sand Walk**: run too far and he sinks into the sand and bursts out of a marked circle beside you.
 - **Wrath of the Sands** (his ultimate, at 75%, 50% and 10% health): he rises into the air, the Sphinx's eyes blaze and two beams of light fall from them, a great sandstorm is marked over everything round you (32 m, 3.2 s of warning) except **three golden safe spots**; be in one when it lands or take 55 damage and a slow, as the sand howls round you.
-- **Death:** his knees buckle, he slumps and crumbles into a heap of sand; the tomb's glow dies. Beating him the first time makes him buyable (10,000 coins; not playable yet). He can't play the Desert.
+- **Death:** his knees buckle, he slumps and crumbles into a heap of sand; the tomb's glow dies. Beating him the first time makes him buyable (10,000 coins), and then he's playable (see the roster kits). He can't play the Desert.
 
 ## The Necromancer (the Graveyard boss)
 
@@ -498,9 +640,20 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **Look:** a long tattered robe of black and grave-purple with gold-trimmed edges and faint glowing runes, a deep hood over a bare skull with burning green eyes and a circlet of bone spikes, a mantle of bone plates and little skulls, a belt of skull trinkets and a chained grimoire, long bony hands, and a twisted staff crowned with a horned skull clutching a green soul-flame (it lights the ground round him). He hovers, the ragged hem streaming; souls circle him.
 - **Staff Slam** (close): a circle round him fills, then bone spikes burst out of the ground all round. **Bone Lines**: three lanes fanned at you; spikes erupt along each from his feet outward. **Bone Ring**: a band round you fills; spikes burst up in it. **Raise the Dead**: green circles over graves round you; when each fills skeletons and ghouls claw out of it and hands grab whoever stands there (hurt and rooted). **Soul Drain**: a lane marks where the beam starts, then a green beam pours from his staff for 2.8 s, swinging after you slowly enough to outrun; it drains you and heals him. **Cursed Circle**: a big circle where you're heading becomes a ring of slowly turning curse runes for 6 s that hurts and slows you.
 - **The Graves Open** (his ultimate, at 75%, 50% and 10% health): he rises into the air laughing and the whole graveyard glows a sickly green, cracks crawling over it, for 9 s. Only **consecrated ground** is safe: the chapel's churchyard and four circles of holy light (each under a pillar of light) round you. Anyone anywhere else loses 40% of their max HP, straight through shields; bone spikes erupt and the dead rise from the graves all round.
-- **Death:** he shrieks, the soul-flame gutters out and the robe collapses empty into the dirt in a burst of escaping souls; the dead he raised fall back. Beating him the first time records his defeat and makes him buyable (10,000 coins; not playable yet). He can't play the Graveyard. Sounds: `tools/gen_graveyard_sounds.py`.
+- **Death:** he shrieks, the soul-flame gutters out and the robe collapses empty into the dirt in a burst of escaping souls; the dead he raised fall back. Beating him the first time records his defeat and makes him buyable (10,000 coins), and then he's playable (see the roster kits). He can't play the Graveyard. Sounds: `tools/gen_graveyard_sounds.py`.
+
+## Singe (the Ashen Caldera boss)
+
+`scripts/singe_boss.gd`, body in `scripts/singe_model.gd`. Singe, the Living Cinder from the roster ("a little imp made of hot coals"), swollen into a giant. At **8:00** the great lava pool bubbles and he **bursts up out of the lava** like a jack-in-the-box, cackling. He enrages after 2 minutes and must be killed to win the Caldera.
+
+- **Look** (built in code): about 6 m tall, a pot-bellied heap of cracked black coals with glowing orange seams that pulse, hotter lumps of coal stuck all over him; a big round head with long pointed ears, heavy mischievous brows over glowing yellow eyes with slit pupils, a snub nose and a wide impish grin of jagged charred teeth around a glowing furnace (a hinged jaw that cackles); a crown of roaring flame hair (licking flame cones and fire), spindly arms with long three-clawed hands, spindly backward-kneed legs with clawed toes, a long pointy tail with a spade tip that never stops swishing; embers stream off him and his belly lights the ground. He hops and capers when he walks, rubs his hands with glee when he stops, and cackles, head thrown back, at every trick. The **Magma Imps** are his minions: a sixth his size, rocky, darker and horned, with no flaming crown or glowing grin.
+- **Claw Swipe** (close): a wedge in front of him fills while he cocks his claws back, then he rakes them through it (damage and a burn). **Fire Breath**: he rears back drawing breath while a cone from his grin fills, then spews fire down it (damage and a burn), and the ground in the cone burns for 4 s. **Lava Dive**: he leaps, tucked into a cannonball, into the nearest lava (or straight through the crust if there's none within 30 m) with a SPLOOSH, then pops out under a circle marked by you (also when you run too far from him), leaving burning ground. **Meteor Call**: he juggles lava bombs over his head, then flings them onto five (enraged seven) marked circles round you. **Summon**: his magma imps claw out of marked cracks round you, every other time with an obsidian golem. **Scorch Run** (scorch marks on everything): he crouches cackling, then scampers in a loop round you; every footfall is marked on the ground first, filling until he gets there (the first at least 1.1 s ahead), and leaves a **scorch mark** for 6 s: step on one and you burn for 3 s.
+- **Caldera Eruption** (his ultimate, at 75%, 50% and 10% health, like Thog's quake): he flings up his arms cackling, the volcano erupts and the ground's cracks race open and pulse for **10 seconds**, while four **raised basalt islands** burst up out of the ground round you, each under a big glowing arrow pointing down at it. Then the **whole floor floods with lava** for 8.5 s. On an island you're safe; anywhere else it takes 35% of your max HP straight through your shield when it floods and 6% every second you stay in it, and sets you burning. Then the islands sink again.
+- **Death:** he sputters and staggers, his flame hair dies down and he fizzles and shrinks, guttering out into a small heap of cooling coals with one last puff of smoke; every lava surface on the map dims. Beating him the first time records his defeat (`"singe"`), which (with 10,000 coins) unlocks **Singe** on the roster. He can't play the Caldera. Sounds (a synthesised cackle and giggle, spew, splash, scamper, fizzle and puff): `tools/gen_caldera_sounds.py`.
 
 ## Boss rules (all bosses)
+
+- **A quieter fight:** while any map boss is out, the steady trickle runs at a fifth of its usual rate (`Main.BOSS_SPAWN_MULT`), never more than **90 enemies alive** at once (`Main.BOSS_LIVE_CAP`; a boss can ask for fewer with `MapBoss.crowd_cap`), and **no swarm waves** come at all: no rings, no Castle bombers, no Caldera eruptions, no Graveyard risings. The boss's own summons still come.
 
 `scripts/map_boss.gd` (`MapBoss`) holds what the Forest and Castle bosses share: the crowd row (type `TROLL` with each boss's own numbers), the HUD health bar and enrage countdown, sounds, and the attack helpers.
 - **Fair warning:** every attack that lands somewhere is marked on the ground first (circles, wedges, lanes and rings), filling up red until the hit lands. It never fills in less than **1 second** (`MapBoss.MIN_WARN`), even when enraged; enraged bosses are faster, but never faster than that. Thog follows the same rule.
@@ -511,9 +664,22 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **Tests:** `godot --headless --path . res://tools/test_bosses.tscn`.
 - **Screenshots:** `--map=forest|castle --boss-at=0.3 --shot-thog=distance,angle`.
 
+### After the boss: shards and the portal
+
+Killing a map's boss **doesn't end the run** on any map (`scripts/boss_aftermath.gd`, `BossAftermath`, called from `main._on_boss_defeated`):
+- **At once:** his defeat is recorded (`Wallet.defeat_boss`, so unlocks are kept even if you die afterwards), XP gems fly to you, and **no more monsters come**: the trickle, the swarm rings, the Castle's bomber skeletons, the Caldera's eruptions and the Graveyard's rising dead all stop (`main.boss_down`). Whatever is still alive stays and can be fought. The run's time (and its coins) stop at the moment he fell.
+- **His shards drop** (`scripts/shard_drops.gd`, `ShardDrops`): one faceted crystal per shard (1-5 of the map's two kinds, `Wallet.roll_boss_shards`) bursts out of the body with a crystalline crack and arcs onto the ground round it, tumbling, then hovers, bobs and spins, glowing in its element's colours (`ShardIcon.COLORS`) with a halo, a light and a ring on the ground. If he fell somewhere you can't stand (in lava, up a wall) they land on the nearest good ground toward you. **Walk over one** (1.5 m; within your pickup range they drift to you) and it's banked at once with a chime, a burst, "+1 Fire Shard" and the counter popping.
+- **The portal** (`scripts/boss_portal.gd`, `BossPortal`): **2.5 s** after he falls a ring of carved stone (4.3 m tall, glowing runes, a low round dais, violet-flamed braziers) grinds up out of the ground, then a swirling violet vortex ignites inside it (shader), with motes, sparks spiralling in, a light, a soft hum loop and, on the outdoor maps, a **pillar of light into the sky** you can see from anywhere. The clock gives way to **PORTAL OPEN**, "THE PORTAL IS OPEN" flashes, an arrow on screen points to it (with the distance), and the minimap shows it (a violet swirl, or an arrow on the rim).
+- **Where it opens** (`BossPortal.preferred`, then the nearest flat, dry spot clear of props, walls and chests): **the Desert** on the causeway in front of the Sphinx (8 m before its plinth); **the Castle** the middle of the keep (the dining hall, facing the front doors); **the Ashen Caldera** at the foot of the dwarves' road, on the basalt beside the great lava pool Singe rose from; **the Swamp, the Forest and the Graveyard** the clearing, glade or plaza where the run began.
+- **Step into it** and you're drawn into the vortex with a whoosh and a flash; any shards still lying about are banked for you (nothing is lost), and the run is won as before: "<BOSS> DEFEATED!", coins, EXP and the unlock cards.
+- **Unrelenting:** the monsters keep coming (that's the mode), but the boss still drops his shards and the portal still opens, as a way out with a win; or keep going.
+- **Sounds:** `tools/gen_portal_sounds.py` (`audio/portal/`: the portal rising, its hum, the whoosh, the shard chime and burst).
+- **Tests:** `godot --headless --path . --fixed-fps 60 res://tools/test_portal.tscn [-- --maps=desert,castle]` (every map: no end screen at the kill, no more spawns, the shards' count, kinds and spots, picking one up, where the portal opens, walking in wins and banks the rest). The playtest bot picks up the shards and walks to the portal (round the walls indoors: `BossPortal.way_from`).
+- **Screenshots:** `--portal-at=T` drops shards in front of you and opens the portal at T seconds without a boss (nothing is banked), e.g. `--map=desert --shot-pos=0,4,-22,0 --portal-at=0.3 --shot-at=2`.
+
 ## Chests, keys and the slot machine
 
-Each run places **8-28 chests** on level pads around the map: **Bronze** most often (60%), **Silver** sometimes (30%), **Gold** rarely (10%). A chest only opens with a **key of its tier**: walk up to it with the key and it opens; without one it says which key it needs. **Elites drop keys** (12% of them): bronze usually (65%), silver sometimes (27%), gold rarely (8%). Keys spin on the ground until you pick them up, show at the top of the screen while you hold them, and don't carry over between runs. The **key counter** sits at the bottom left, above your upgrades: a bronze, silver and gold key with how many you hold.
+Each run places **18-28 chests** on level pads around the map: **Bronze** most often (60%), **Silver** sometimes (30%), **Gold** rarely (10%). A chest only opens with a **key of its tier**: walk up to it with the key and it opens; without one it says which key it needs. **Elites drop keys** (24% of them): bronze usually (65%), silver sometimes (27%), gold rarely (8%). Keys spin on the ground until you pick them up, show at the top of the screen while you hold them, and don't carry over between runs. The **key counter** sits at the bottom left, above your upgrades: a bronze, silver and gold key with how many you hold.
 
 **Level-up cards:** under each card, a small **BAN 100** button (with a coin) throws the reward out of this and every later draft. Legendary cards also get **Convert**: skip the upgrade for one chest key, **60% bronze, 30% silver, 10% gold**. The key pops up big in the middle of the screen, then flies down into the key counter.
 
@@ -530,6 +696,8 @@ Opening a chest pauses the game (like a level-up) and brings up a **slot machine
 Like a real machine, the result is rolled the moment you pull, then the reels stop to show it. The chest's tier sets the odds of three of a kind: **Bronze 8%, Silver 15%, Gold 30%** (shown on the machine). Abilities already at max level can appear on the reels but are never the one levelled; if all three are maxed, a chest fully heals you instead. Code: `chest_manager.gd`, `chest.gd`, `key_manager.gd`, `slot_machine.gd`; sounds from `tools/gen_slot_sounds.py`.
 
 ## Ability levels
+
+**Abilities deal double their listed damage** (`EnemyManager.ABILITY_DAMAGE_MULT`, matched by the three ability names as damage sources). When a chest's slot machine stops, the result spells out the upgrade: the ability and its new level, each stat it raises (+% and its total multiplier) and the cooldown in seconds before and after (`Abilities.level_change_lines`).
 
 Every ability starts at **level 1** (as designed) and goes up to **level 10**, only through chests; levels reset each run. Each level adds a third of the ability's base strength to its main stat, so **level 4 is 2x, level 7 is 3x and level 10 is 4x**, and cuts its cooldown, down to **-40% at level 10**. The ability bar shows a level badge, and the tooltip lists the level, which stats it raises, and the current and next level's numbers.
 
@@ -568,6 +736,10 @@ Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): abo
 
 **Sounds:** goblins are silent while alive, with no voices or grunts. When one dies within 30 m, a short "splat-pop" plays from where it fell. There are 4 variants, and bigger goblins sound deeper. Death sounds are limited to about 20 per second, so mass kills sound like a crunchy volley. The clips (`audio/goblin/death_*.wav`) are synthesised by `tools/gen_goblin_death_sounds.py`, and the player is `scripts/goblin_audio.gd`.
 
+## Shots on slopes
+
+Straight (non-homing) projectiles follow the slope they're fired along: each keeps the height above the ground it left the weapon at (`WeaponSystem.p_clear`), climbing uphill and dipping downhill instead of flying level into a hillside or off into the air. Homing shots (Arcane Bolts, scarabs, hunting shots) steer themselves, Singe's flicked embers keep their arc, and indoors (the Castle) the floor is flat so nothing changes. Melee sweeps (Maraca Blasters' sound rings and the other fans) lean with the ground they sweep over too.
+
 ## Combat feedback
 
 - **Health bars** over every goblin (green → yellow → red; purple border on epics), hidden beyond 45 m.
@@ -576,7 +748,7 @@ Every enemy is a goblin (contact damage was doubled: 16 / 12 / 32, boss 70): abo
 ## What's in the slice
 
 - **Run structure:** 10-minute run, spawn rate and enemy HP scale with time, a swarm ring every minute (bomber skeletons rising on the Castle). On the Swamp, **Thog the Troll** arrives at 8:00 and the run is won by killing him (see *Thog the Troll*); on the other maps a Goblin Warlord comes at 5:00 (his death vacuums all XP) and surviving 10:00 wins.
-- **5 weapons:** Fireballs (auto-targeted, pierce), Stink Aura (damage field), Ground Slam (knockback nova), **Thorns** (anything that hits you takes 2x its damage back, +35% a level) and **Ice Aura** (everything within 5.5 m is slowed 40%, wider and colder each level). Thorns and Ice Aura come up as often as tomes and have their own icons (`skill_icon.gd`: `thorns`, `frost_aura`). Max 3 weapons per run.
+- **5 weapons:** Fireballs (auto-targeted, pierce), Stink Aura (damage field), Ground Slam (knockback nova), **Thorns** (anything that hits you takes 2x its damage back, +35% a level) and **Ice Aura** (everything within 5.5 m is slowed 40%, wider and colder each level). Thorns and Ice Aura come up as often as tomes and have their own icons (`skill_icon.gd`: `thorns`, `frost_aura`). **Max 4 weapons and 4 tome types per run** (`Main.MAX_WEAPONS`, `UpgradeDB.MAX_TOMES`): once your slots are full, only the ones you have come up in level-up drafts. The bottom-left HUD shows a row of 4 weapon slots and a row of 4 tome slots (empty slots outlined until filled), and items on a row below.
 - **13 tomes** (stat upgrades) and **3 items** (explode on kill, heal on kill, extra jumps).
 - **Rarity rolls** (Common → Legendary, x1–x3 effect): Luck raises the weight of Rare, Epic and Legendary by its value (0.1 per Tome of Luck level).
 - **Arena:** procedurally scattered platforms, ramps and pillars.
@@ -622,17 +794,22 @@ scripts/
   corpse_manager.gd  fallen goblins (topple, linger, sink) in one MultiMesh
   settings.gd        autoload: audio buses, video/controls options, key remaps, save/load
   settings_menu.gd   Video / Sound / Controls settings screen
-  chest_manager.gd   places 8-28 bronze/silver/gold chests per run, opens them with keys
+  chest_manager.gd   places 18-28 bronze/silver/gold chests per run, opens them with keys
   key_manager.gd     chest keys dropped by elites
   slot_machine.gd    the chest slot machine (three reels of your abilities, real odds)
   chest.gd           Bronze / Silver / Gold chest (placeholder: rewards TBD)
   powerup_manager.gd elite power-up drops and timed effects
+  nuke_blast.gd      the NUKE power-up's wave of kills, mushroom cloud, flash and shockwave
+  nuke_model.gd      the NUKE pickup (cartoon atomic bomb, radiation trefoil texture)
+  powerup_icon.gd    2D power-up icons (minimap, HUD)
+  minimap.gd         the HUD minimap: blips, map context, boss safe / danger zones
   tree_fire.gd       trees set alight by the Meteor, charring over 15 s
   splash.gd          startup logo video, skippable
   title.gd           title screen: swamp diorama, burning title, menu
   character_select.gd  roster grid + preview panel (data/characters.json)
   character_icon.gd  procedural character portraits
   hud.gd             all UI, built in code
+  loader.gd          autoload: every scene change, behind the loading screen with rotating tips
 data/upgrades.json   every weapon/tome/item and rarity, as data
 tools/               headless micro-benchmarks
 ```
@@ -661,8 +838,12 @@ godot --headless --path . res://tools/test_abilities.tscn
 godot --path . -- --shot=/tmp/shot.png --shot-at=4 --shot-cast=0@1 --shot-spawn=120
 
 # Desert tests (sphinx, pyramids baked into the ground and climbable, zombies instead of goblins
-# and climbing, vultures reaching you on a summit, mummies' curse, the Pharaoh's attacks and Wrath)
+# and climbing, vultures landing, walking and pecking (on a summit too), mummies' curse, the Pharaoh's attacks and Wrath)
 godot --headless --path . res://tools/test_desert.tscn
+
+# Ashen Caldera tests (lava carved into the ground and burning you, stepping stones and bridges,
+# eruption bombs, imps/bats/golems/slugs instead of goblins, Singe's attacks and Caldera Eruption)
+godot --headless --path . res://tools/test_caldera.tscn
 
 # Graveyard tests (headstones, crypts, chapel, railings; ghouls instead of goblins; ghosts float,
 # drift through crypts, chill you and can be shot; the dead rise from graves; the Necromancer)
@@ -677,11 +858,20 @@ godot --headless --path . res://tools/test_settings.tscn
 # Run clock spin-up/countdown, Play mode cards, Quickplay, Unrelenting, Ghast's feat, weapon hover
 godot --headless --path . res://tools/test_modes.tscn
 
+# Run-start entrances: every character on the outdoor maps, its own entrance, lands once, hurts nearby goblins
+godot --headless --fixed-fps 60 --path . res://tools/test_entrances.tscn
+
 # Intro cinematic (splash -> intro -> title, cast, skip)
 godot --headless --path . res://tools/test_intro.tscn
 
+# Minimap (layout, blips, toggle, boss safe zones) and the NUKE power-up in a run
+godot --headless --path . --fixed-fps 60 res://tools/test_minimap.tscn
+
 # Chests, keys, the slot machine (odds, reels, rewards) and ability levels
 godot --headless --path . --fixed-fps 60 res://tools/test_chests.tscn
+
+# Loading screen (autoload, shown into a run and back, tips rotate and are translated)
+godot --headless --path . res://tools/test_loading.tscn
 
 # Title flow (splash -> title -> settings -> play -> main menu)
 godot --headless --path . res://tools/test_title.tscn
@@ -692,11 +882,17 @@ godot --headless --path . res://tools/test_bosses.tscn
 # Thog the Troll (arrives at 8:00, attacks, enrage, must die to win, unlocks)
 godot --headless --path . res://tools/test_boss.tscn
 
+# After the boss: shards on the ground, no more spawns, the portal per map, walking in wins
+godot --headless --path . --fixed-fps 60 res://tools/test_portal.tscn
+
 # Castle (layout and reachability, door walk-in, feast physics, skeletons throwing bones)
 godot --headless --path . res://tools/test_castle.tscn
 
 # Character select (roster data, locked/unlocked, preview, back, play)
 godot --headless --path . res://tools/test_character_select.tscn
+
+# Character bonuses (3 per card, Gaiden's numbers, applied in a run, jump apex, bar tiers, LVL on every card)
+godot --headless --fixed-fps 60 --path . res://tools/test_bonuses.tscn
 
 # Re-bake the goblin animations from Higgsfield GLBs
 godot --headless --path . --script res://tools/bake_vat.gd -- <glb dir> res://models/goblin "run=Male_Head_Down_Charge:16:loop,attack=Punch_Combo:50:loop,death=Shot_and_Fall_Backward:40:hold"

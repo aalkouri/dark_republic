@@ -8,7 +8,7 @@ extends Node3D
 
 signal open_requested(chest: Chest)
 
-const MIN_CHESTS := 8
+const MIN_CHESTS := 18   # (was 8) more chests on every map
 const MAX_CHESTS := 28
 const SITE_RADIUS := 3.0              # level pad kept clear around each chest site
 const TIER_WEIGHTS := [60.0, 30.0, 10.0]   # bronze, silver, gold

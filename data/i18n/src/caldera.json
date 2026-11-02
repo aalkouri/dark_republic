@@ -1,0 +1,98 @@
+{
+ "CALDERA ERUPTION! GET ONTO THE ROCKS!": [
+  "¡ERUPCIÓN DE LA CALDERA! ¡SUBE A LAS ROCAS!",
+  "ÉRUPTION DE LA CALDEIRA ! MONTE SUR LES ROCHERS !",
+  "ثوران الفوهة! اصعد إلى الصخور!",
+  "CALDERA-AUSBRUCH! RAUF AUF DIE FELSEN!",
+  "火山口喷发！快上岩石！",
+  "カルデラ噴火！岩の上へ逃げろ！"
+ ],
+ "Cinder Bat": [
+  "Murciélago de Ceniza",
+  "Chauve-souris de braise",
+  "خفاش الجمر",
+  "Glutfledermaus",
+  "余烬蝙蝠",
+  "燃えさしコウモリ"
+ ],
+ "Lava Slug": [
+  "Babosa de Lava",
+  "Limace de lave",
+  "بزّاقة الحمم",
+  "Lavaschnecke",
+  "熔岩蛞蝓",
+  "溶岩ナメクジ"
+ ],
+ "Magma Imp": [
+  "Diablillo de Magma",
+  "Diablotin de magma",
+  "عفريت الصهارة",
+  "Magmawicht",
+  "岩浆小鬼",
+  "マグマインプ"
+ ],
+ "Obsidian Golem": [
+  "Gólem de Obsidiana",
+  "Golem d'obsidienne",
+  "غولم الزجاج البركاني",
+  "Obsidiangolem",
+  "黑曜石魔像",
+  "黒曜石ゴーレム"
+ ],
+ "The Ashen Caldera": [
+  "La Caldera de Ceniza",
+  "La Caldeira de cendres",
+  "فوهة الرماد",
+  "Die Aschecaldera",
+  "灰烬火山口",
+  "灰のカルデラ"
+ ],
+ "SINGE": [
+  "SINGE",
+  "SINGE",
+  "سِنج",
+  "SINGE",
+  "焦焦",
+  "シンジ"
+ ],
+ "SINGE BURSTS FROM THE LAVA!": [
+  "¡SINGE SURGE DE LA LAVA!",
+  "SINGE JAILLIT DE LA LAVE !",
+  "سِنج ينفجر من الحمم!",
+  "SINGE SPRINGT AUS DER LAVA!",
+  "焦焦从熔岩中蹦了出来！",
+  "シンジが溶岩から飛び出した！"
+ ],
+ "SINGE GUTTERS OUT!": [
+  "¡SINGE SE EXTINGUE!",
+  "SINGE S'ÉTEINT !",
+  "سِنج ينطفئ!",
+  "SINGE ERLISCHT!",
+  "焦焦熄灭了！",
+  "シンジが燃え尽きた！"
+ ],
+ "Singe in the Ashen Caldera": [
+  "a Singe en la Caldera de Ceniza",
+  "Singe dans la Caldeira de cendres",
+  "سِنج في فوهة الرماد",
+  "Singe in der Aschecaldera",
+  "灰烬火山口中的焦焦",
+  "灰のカルデラのシンジ"
+ ],
+ "Defeat Singe in the Ashen Caldera": [
+  "Derrota a Singe en la Caldera de Ceniza",
+  "Vaincre Singe dans la Caldeira de cendres",
+  "اهزم سِنج في فوهة الرماد",
+  "Besiege Singe in der Aschecaldera",
+  "在灰烬火山口击败焦焦",
+  "灰のカルデラでシンジを倒す"
+ ],
+ "Rivers of lava, eruptions, magma imps and their cackling king.": [
+  "Ríos de lava, erupciones, diablillos de magma y su rey carcajeante.",
+  "Rivières de lave, éruptions, diablotins de magma et leur roi ricanant.",
+  "أنهار من الحمم، وثورانات، وعفاريت الصهارة، وملكها الضاحك.",
+  "Lavaströme, Ausbrüche, Magmawichte und ihr kichernder König.",
+  "熔岩之河、火山喷发、岩浆小鬼，还有它们狂笑的国王。",
+  "溶岩の川、噴火、マグマインプ、そして高笑いするその王。"
+ ]
+}

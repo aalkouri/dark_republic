@@ -9,7 +9,8 @@ extends Node
 ## sidesteps when it's stuck on a tree. It casts abilities when a crowd is close (or the boss
 ## is), aims the Fire Wizard's Meteor at the thickest crowd, and picks level-up cards from a
 ## priority list: its weapon, then damage, health, armour, regen, area, attack speed, speed.
-## A run ends when it dies (time of death reported) or wins (kills the map's boss).
+## A run ends when it dies (time of death reported) or wins (kills the map's boss, picks up his
+## shards and walks into the portal that opens).
 ## Each run's details (upgrades taken in order, potions and power-ups picked up) are also
 ## appended as one JSON line to <out>.jsonl.
 
@@ -369,6 +370,23 @@ func _steer(dt: float) -> void:
 	var from_c := Vector2(p.x, p.z).length()
 	if from_c > 120.0:
 		v -= Vector3(p.x, 0, p.z).normalized() * (from_c - 120.0) * 0.05
+	# The boss is down: pick up his shards, then head for the portal (round walls indoors)
+	var aft = main.get("aftermath")
+	if aft != null and aft.active:
+		var goal := Vector3.INF
+		var bd3 := 40.0
+		for sp in aft.drops.positions():
+			var dd := p.distance_to(sp)
+			if dd < bd3:
+				bd3 = dd
+				goal = sp
+		var way := Vector3.ZERO
+		if goal != Vector3.INF:
+			way = Vector3(goal.x - p.x, 0, goal.z - p.z).normalized()
+		elif aft.portal != null and is_instance_valid(aft.portal):
+			way = aft.portal.way_from(p)
+		if way != Vector3.ZERO:
+			v = v * (0.3 if threat < 3.0 else 1.0) + way * 2.0
 	# Nothing pressing: circle the middle of the map at a steady pace
 	if v.length() < 0.15:
 		_wander += dt * 0.15

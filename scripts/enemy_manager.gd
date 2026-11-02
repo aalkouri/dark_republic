@@ -65,6 +65,8 @@ var bonus_mult := 1.0           # ability damage buffs (Eclipse), on top of dama
 var crit_chance := 0.03         # every hit on an enemy can crit (Tome of Critical Hit raises it)...
 var crit_mult := 1.5            # ...for this much damage (Tome of Critical Damage raises it)
 var crits := 0                  # critical hits landed (tests)
+const ABILITY_DAMAGE_MULT := 2.0   # abilities (1/2/3) hit twice as hard as their listed numbers
+var ability_names := {}         # the run's three ability names (credited sources): they get the bonus
 # Status effects from roster abilities (per goblin, seconds left):
 #   slow   moves at slow_f of its speed            (Frost Shards, Glacial Path, Absolute Zero)
 #   freeze frozen solid: can't move or hit you, takes +freeze_bonus damage, shatters on death
@@ -73,6 +75,7 @@ var crits := 0                  # critical hits landed (tests)
 var skeletons: SkeletonCrowd     # draws skeletons, throws their bones, scatters them on death
 var desert: DesertCrowd          # the Desert: draws zombies, mummies and vultures (null elsewhere)
 var undead: UndeadCrowd          # the Graveyard: draws ghouls and ghosts, raises the dead (null elsewhere)
+var caldera: CalderaCrowd        # the Caldera: draws imps, bats, golems and slugs (null elsewhere)
 var type_remap := PackedInt32Array()   # spawn type -> the type that actually spawns (the Desert: goblins -> zombies)
 var troll_busy := false          # the map boss (Thog etc.) is mid-attack: he stands still
 var boss_contact := true         # false: touching the map boss doesn't hurt (the Arachnid up a wall)
@@ -234,7 +237,7 @@ var buf := PackedFloat32Array()
 var bar_mm: MultiMesh
 var bar_buf := PackedFloat32Array()
 
-enum { GRUNT, RUNNER, TANK, BOSS, SKELETON, TROLL, ZOMBIE, ZOMBIE_RUNNER, ZOMBIE_BRUTE, MUMMY, VULTURE, GHOUL, GHOST }   # SKELETON: castle (epic: Armored Skeleton); TROLL: Thog, the Swamp boss (drawn by ThogBoss); ZOMBIE..VULTURE: the Desert (DesertCrowd); GHOUL, GHOST: the Graveyard (UndeadCrowd)
+enum { GRUNT, RUNNER, TANK, BOSS, SKELETON, TROLL, ZOMBIE, ZOMBIE_RUNNER, ZOMBIE_BRUTE, MUMMY, VULTURE, GHOUL, GHOST, MAGMA_IMP, CINDER_BAT, OBSIDIAN_GOLEM, LAVA_SLUG }   # SKELETON: castle (epic: Armored Skeleton); TROLL: Thog, the Swamp boss (drawn by ThogBoss); ZOMBIE..VULTURE: the Desert (DesertCrowd); GHOUL, GHOST: the Graveyard (UndeadCrowd); MAGMA_IMP..LAVA_SLUG: the Caldera (CalderaCrowd)
 
 
 func _ready() -> void:
@@ -290,6 +293,7 @@ func _ready() -> void:
 	_add_type("Thog the Troll", THOG_HP, 3.4, 3.4, 10.5, 55.0, 400.0, Color(0.3, 0.5, 0.8))
 	_add_desert_types()   # ZOMBIE..VULTURE (indices 6-10); any types after them append from 11
 	_add_graveyard_types()   # GHOUL, GHOST (indices 11-12)
+	_add_caldera_types()   # MAGMA_IMP..LAVA_SLUG (indices 13-16)
 	for k in type_names.size():   # calmer legs per kind
 		t_stride[k] = float(STRIDE_BY_TYPE.get(type_names[k], STRIDE_LEN))
 	skeletons = SkeletonCrowd.new()
@@ -361,7 +365,7 @@ func _add_desert_types() -> void:
 	_put_type(ZOMBIE_RUNNER, "Sprinting Zombie", 7.0, 6.4, 0.38, 0.95, 12.0, 1.0, Color(0.3, 0.36, 0.44))
 	_put_type(ZOMBIE_BRUTE, "Zombie Brute", 60.0, 2.8, 0.8, 1.45, 32.0, 5.0, Color(0.25, 0.3, 0.38))
 	_put_type(MUMMY, "Mummy", 36.0, 2.9, 0.45, 1.08, 22.0, 3.0, Color(0.78, 0.72, 0.58))
-	_put_type(VULTURE, "Vulture", 8.0, 7.5, 0.6, 1.0, 11.0, 1.5, Color(0.32, 0.24, 0.17))
+	_put_type(VULTURE, "Vulture", 8.0, 2.4, 0.6, 1.0, 0.0, 1.5, Color(0.32, 0.24, 0.17))   # speed: walking, once it lands; dmg 0: it only hurts with its beak (DesertCrowd)
 	for t in [ZOMBIE, ZOMBIE_RUNNER, ZOMBIE_BRUTE, MUMMY]:
 		t_height[t] = DesertCrowd.HEIGHT * t_scale[t]
 	t_height[VULTURE] = 0.9
@@ -386,6 +390,26 @@ func _add_graveyard_types() -> void:
 		undead = UndeadCrowd.new()
 		undead.em = self
 		add_child(undead)
+
+
+## The Ashen Caldera's creatures: magma imps (in the goblins' places), cinder bats (the scamps'),
+## obsidian golems (the brutes') and lava slugs. Drawn by CalderaCrowd on the Caldera only. A
+## bat's hit box is at its real (flying) height, like the vultures'.
+func _add_caldera_types() -> void:
+	#                       id              name              hp    speed radius scale  dmg   xp   tint
+	_put_type(MAGMA_IMP, "Magma Imp", 10.0, 5.0, 0.4, 1.0, 15.0, 1.0, Color(0.3, 0.12, 0.06))
+	_put_type(CINDER_BAT, "Cinder Bat", 6.0, 7.2, 0.5, 1.0, 11.0, 1.2, Color(0.4, 0.15, 0.06))
+	_put_type(OBSIDIAN_GOLEM, "Obsidian Golem", 70.0, 2.6, 0.95, 1.6, 34.0, 6.0, Color(0.1, 0.1, 0.14))
+	_put_type(LAVA_SLUG, "Lava Slug", 26.0, 2.2, 0.6, 1.1, 14.0, 2.5, Color(0.5, 0.2, 0.06))
+	t_height[MAGMA_IMP] = CalderaCrowd.IMP_HEIGHT
+	t_height[CINDER_BAT] = CalderaCrowd.BAT_HEIGHT
+	t_height[OBSIDIAN_GOLEM] = CalderaCrowd.GOLEM_HEIGHT * t_scale[OBSIDIAN_GOLEM]
+	t_height[LAVA_SLUG] = CalderaCrowd.SLUG_HEIGHT * t_scale[LAVA_SLUG]
+	if CalderaBuilder.active:
+		type_remap = PackedInt32Array([MAGMA_IMP, CINDER_BAT, OBSIDIAN_GOLEM])   # GRUNT, RUNNER, TANK
+		caldera = CalderaCrowd.new()
+		caldera.em = self
+		add_child(caldera)
 
 
 ## Like _add_type, but at index `id` (the type tables grow to fit).
@@ -470,15 +494,27 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 		_trolls += 1
 	if desert != null:
 		desert.on_spawn(i)
+	elif caldera != null:
+		caldera.on_spawn(i)
 	return i
 
 
 ## Returns true if this hit killed the enemy. Kill events fire immediately;
 ## the row is removed at the start of the next tick.
+## A vulture up in the air (circling on its thermal, gliding down to land, or climbing away
+## above this height): nothing can hit or target it until it lands. That's when you strike back.
+const VULTURE_HITTABLE_ALT := 1.6
+
+func is_airborne(i: int) -> bool:
+	return typ[i] == VULTURE and desert != null and desert.airborne(uid[i])
+
+
 func damage(i: int, amount: float, knockback := Vector3.ZERO, source := "") -> bool:
-	if dead[i]:
+	if dead[i] or is_airborne(i):
 		return false
 	amount *= damage_mult * taken_mult(i)
+	if ability_names.has(source if source != "" else src):
+		amount *= ABILITY_DAMAGE_MULT
 	var crit := crit_chance > 0.0 and randf() < crit_chance
 	if crit:
 		amount *= crit_mult
@@ -646,6 +682,8 @@ func _kill(i: int) -> void:
 		desert.on_kill(i)
 	elif undead != null and (typ[i] == GHOUL or typ[i] == GHOST):   # ghouls pitch into the dirt, ghosts fade upward
 		undead.on_killed(i)
+	elif caldera != null and CalderaCrowd.owns(typ[i]):   # imps burst, golems shatter, slugs melt, bats tumble
+		caldera.on_kill(i)
 	elif corpses != null:
 		var t := typ[i]
 		var col: Color = t_color[t]
@@ -769,6 +807,8 @@ func query_radius(c: Vector3, r: float, vertical := true) -> PackedInt32Array:
 				var dx := p.x - c.x
 				var dz := p.z - c.z
 				if dx * dx + dz * dz > rr * rr:
+					continue
+				if t == VULTURE and is_airborne(i):   # circling overhead: out of reach until it swoops
 					continue
 				if vertical and (c.y < p.y - 0.5 or c.y > p.y + t_height[t] * sz[i] + 0.5):
 					continue
@@ -1164,6 +1204,8 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		buf = desert.sync(dt, buf, player)
 	if undead != null:
 		buf = undead.sync(dt, buf, player)
+	if caldera != null:
+		buf = caldera.sync(dt, buf, player)
 	frog_count = frogs
 	if _trolls > 0 or frogs > 0:   # Thog is drawn by ThogBoss and frogs by RosterKit, not as goblins
 		for i in n:

@@ -35,7 +35,7 @@ func _ready() -> void:
 	for c in menu._tabs.get_children():
 		tabs.append(String(c.name))
 	_check("Settings opens", menu.visible and not hud.pause_root.visible, "")
-	_check("tabs are Gameplay (first), Video, Sound, Controls", tabs == ["Gameplay", "Video", "Sound", "Controls"], str(tabs))
+	_check("tabs are Gameplay (first), Video, Sound, Controls (+ Developer when run from the editor)", tabs.slice(0, 4) == ["Gameplay", "Video", "Sound", "Controls"] and (tabs.size() == 4 or (tabs.size() == 5 and tabs[4] == "Developer")), str(tabs))
 	_check("Apply is greyed out until something changes", menu._apply.disabled, "")
 	var langs := []
 	for i in menu._lang.item_count:

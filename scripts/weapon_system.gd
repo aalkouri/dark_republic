@@ -27,6 +27,9 @@ extends Node3D
 ##   acid     Acid Body        (The Blob) burns every enemy touching you (2.5 m), 30/s; grows with kills up to +50%
 ##   venom    Venom Spit       (The Arachnid) fast globs; hits poison 3% max HP/s for 4 s, stacking 3 times
 ##   spore    Spore Blade      (Toadstool Knight) sword slash in a 3 m arc; leaves a spore cloud (2% max HP/s)
+##   scarab   Scarab Bolts     (The Pharaoh) golden scarabs that seek their target and burrow in (2% max HP/s for 2 s)
+##   soul     Soul Bolts       (The Necromancer) green skull bolts that pierce 2 more enemies
+##   ember    Fireflick        (Singe) embers flicked in pairs that set what they hit burning (3% max HP/s for 2 s)
 ## On melee weapons "count" widens the reach (+20% each) instead of adding projectiles.
 ## Forged to level 1 (Forge), each weapon gains its special (Forge.SPECIALS, `special`): checked
 ## by style, so it works for the starting weapon and the Legendary card alike.
@@ -38,7 +41,7 @@ extends Node3D
 const P_MAX := 500
 const P_STRIDE := 16      # 12 transform + 4 colour (per-projectile colour)
 ## Projectile kinds (p_kind indexes this).
-const P_KINDS := ["fire", "ice", "thunder", "dark", "arcane", "silver", "javelin", "dagger", "wind", "stake", "shuriken", "venom"]
+const P_KINDS := ["fire", "ice", "thunder", "dark", "arcane", "silver", "javelin", "dagger", "wind", "stake", "shuriken", "venom", "scarab", "soul", "ember"]
 ## Weapon style -> character. Order = signature weapon order.
 const STYLE_CHAR := {
 	"fire": "fire_wizard", "ice": "ice_wizard", "thunder": "thunder_wizard", "dark": "dark_wizard",
@@ -47,8 +50,11 @@ const STYLE_CHAR := {
 	"static": "argyle_sock", "maracas": "loco_robotico", "acid": "blob",
 	"spore": "toadstool_knight",
 	"venom": "arachnid",
+	"scarab": "pharaoh",
+	"soul": "necromancer",
+	"ember": "singe",
 }
-const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static", "maracas", "acid", "spore", "venom"]
+const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static", "maracas", "acid", "spore", "venom", "scarab", "soul", "ember"]
 const MELEE := ["trunk", "spear", "katana", "club", "maracas", "acid", "spore"]
 const SIG_WEIGHT := 0.45        # vs 3-10 for normal rewards: a rare find...
 const SIG_WEIGHT_TOTAL := 1.35  # ...and all of them together stay rare
@@ -60,13 +66,15 @@ const BASE_EVERY := 0.9
 const CORE_COLORS := {"fire": Color(1.0, 0.78, 0.3), "ice": Color(0.85, 0.97, 1.0), "thunder": Color(1.0, 0.95, 0.5),
 	"dark": Color(0.35, 0.08, 0.5), "arcane": Color(0.85, 0.92, 1.0), "silver": Color(0.95, 0.96, 1.0),
 	"javelin": Color(1.0, 0.95, 0.75), "dagger": Color(0.85, 0.88, 0.92), "wind": Color(0.9, 1.0, 1.0),
-	"stake": Color(0.62, 0.42, 0.24), "shuriken": Color(0.8, 0.82, 0.88), "venom": Color(0.75, 1.0, 0.35)}
+	"stake": Color(0.62, 0.42, 0.24), "shuriken": Color(0.8, 0.82, 0.88), "venom": Color(0.75, 1.0, 0.35),
+	"scarab": Color(1.0, 0.78, 0.25), "soul": Color(0.7, 1.0, 0.75), "ember": Color(1.0, 0.75, 0.3)}
 const TAIL_COLORS := {"fire": Color(1.0, 0.32, 0.05, 0.75), "ice": Color(0.3, 0.7, 1.0, 0.6), "thunder": Color(1.0, 0.9, 0.3, 0.6),
 	"dark": Color(0.6, 0.15, 1.0, 0.7), "arcane": Color(0.3, 0.45, 1.0, 0.75), "silver": Color(0.7, 0.75, 0.9, 0.35),
 	"javelin": Color(1.0, 0.8, 0.35, 0.55), "dagger": Color(0.5, 0.8, 0.4, 0.3), "wind": Color(0.6, 0.9, 1.0, 0.45),
-	"stake": Color(1.0, 0.9, 0.7, 0.25), "shuriken": Color(0.9, 0.2, 0.25, 0.35), "venom": Color(0.35, 0.9, 0.1, 0.55)}
+	"stake": Color(1.0, 0.9, 0.7, 0.25), "shuriken": Color(0.9, 0.2, 0.25, 0.35), "venom": Color(0.35, 0.9, 0.1, 0.55),
+	"scarab": Color(0.45, 0.7, 0.55, 0.4), "soul": Color(0.25, 1.0, 0.45, 0.6), "ember": Color(1.0, 0.3, 0.05, 0.6)}
 ## Per projectile kind: hit radius, speed multiplier
-const P_RADIUS := {"wind": 1.4, "javelin": 0.6, "silver": 0.45, "shuriken": 0.5, "stake": 0.45}
+const P_RADIUS := {"wind": 1.4, "javelin": 0.6, "silver": 0.45, "shuriken": 0.5, "stake": 0.45, "soul": 0.42, "scarab": 0.38}
 
 var stats: Stats
 var db: UpgradeDB
@@ -84,6 +92,8 @@ var p_pierce := PackedInt32Array()
 var p_hits: Array = []     # PackedInt32Array of enemy uids already hit, per projectile
 var p_style := PackedByteArray()   # index into P_KINDS
 var p_target := PackedInt32Array() # homing: uid of the target (0 = none)
+var p_clear := PackedFloat32Array() # height above the ground it was fired at (non-homing shots
+                                    # keep it, following the slope: never ploughing into a hill)
 var p_tidx := PackedInt32Array()   # ...and its row last time we looked
 var p_src := PackedStringArray()   # the weapon / ability that fired it (EnemyManager.damage_by)
 
@@ -164,6 +174,16 @@ const VENOM_SPEED := 1.5         # Venom Spit: fast globs...
 const VENOM_FRAC := 0.03         # ...that poison for 3% of max HP per second per stack...
 const VENOM_TIME := 4.0          # ...for 4 s...
 const VENOM_STACKS := 3          # ...stacking 3 times
+const SCARAB_SPEED := 0.8        # Scarab Bolts: golden scarabs that seek their target...
+const SCARAB_FRAC := 0.02        # ...and burrow in, chewing 2% of max HP per second...
+const SCARAB_TIME := 2.0         # ...for 2 s
+const SCARAB_BOUNCE_RANGE := 9.0 # forged: they seek on to another enemy this close
+const SOUL_SPEED := 0.9          # Soul Bolts: green skull bolts...
+const SOUL_PIERCE := 2           # ...that pierce 2 more enemies
+const EMBER_SPEED := 1.3         # Fireflick: embers flicked in pairs...
+const EMBER_RANGE := 14.0
+const EMBER_FRAC := 0.03         # ...that set what they hit burning for 3% of max HP per second...
+const EMBER_TIME := 2.0          # ...for 2 s
 const MELEE_SEEK := 1.6          # melee weapons swing once an enemy is within reach x this
 
 ## Level-up card for the starting weapon, per style (the rest come from data/abilities.json).
@@ -209,6 +229,12 @@ var _spitter: AudioStreamPlayer  # Venom Spit: a wet ptoo per volley
 var _clouds: Array = []          # Spore Blade: {pos, t, r, tick, disc: GroundDisc, puff: CPUParticles3D}
 var spore_clouds := 0            # Spore Blade clouds left (tests)
 var _slasher: AudioStreamPlayer
+var _shot_sfx := {}              # Scarab Bolts / Soul Bolts / Fireflick: one player per sound
+var scarab_hits := 0             # tests
+var soul_hits := 0
+var ember_hits := 0
+var _soul_heal := 0.0            # forged Soul Bolts: healing left this second
+var _soul_heal_t := 0.0
 
 var mm: MultiMesh
 var tail_mm: MultiMesh
@@ -254,6 +280,7 @@ func _ready() -> void:
 	p_style.resize(P_MAX)
 	p_target.resize(P_MAX)
 	p_tidx.resize(P_MAX)
+	p_clear.resize(P_MAX)
 	p_src.resize(P_MAX)
 	buf.resize(P_MAX * P_STRIDE)
 
@@ -770,6 +797,8 @@ func _fire_orbs(origin: Vector3, dmg_mult: float, sty := "fire", pre := "orb", m
 	var reach := 28.0
 	if sty == "daggers":
 		reach = DAGGER_RANGE + 2.0
+	elif sty == "ember":
+		reach = EMBER_RANGE + 2.0
 	var hunting := sty == "silver" and pre == "orb" and kit != null and kit.hunt_active()
 	var targets := _top_hp(origin, 30.0, RosterKit.HUNT_TARGETS) if hunting else enemies.nearest_k(origin, reach, n)
 	if targets.is_empty():
@@ -804,25 +833,69 @@ func _fire_orbs(origin: Vector3, dmg_mult: float, sty := "fire", pre := "orb", m
 		"venom":
 			speed *= VENOM_SPEED
 			life = 1.3
+		"scarab":
+			speed *= SCARAB_SPEED
+			life = 2.6
+			pierce += Forge.SCARAB_BOUNCES if special.has("scarab") else 0
+		"soul":
+			speed *= SOUL_SPEED
+			pierce += SOUL_PIERCE
+			life = 1.9
+		"ember":
+			speed *= EMBER_SPEED
+			life = EMBER_RANGE / speed
 	# The wizard swings his staff at the first target; every orb leaves from the staff tip.
 	if model != null and model.has_method("attack"):
 		origin = model.attack(enemies.center_of(targets[0]))
-	var shots := n * (2 if sty == "daggers" else 1)
+	var shots := n * (2 if sty == "daggers" or sty == "ember" else 1)
 	if hunting:
 		shots = maxi(shots, targets.size())
 	for k in shots:
 		var ti := targets[k % targets.size()]
 		var dir := (enemies.center_of(ti) - origin).normalized()
-		if sty == "daggers":   # a pair, a little apart
-			dir = dir.rotated(Vector3.UP, 0.09 * (1.0 if k % 2 == 0 else -1.0))
+		if sty == "daggers" or sty == "ember":   # a pair, a little apart
+			dir = dir.rotated(Vector3.UP, (0.09 if sty == "daggers" else 0.16) * (1.0 if k % 2 == 0 else -1.0))
+			if sty == "ember":   # flicked: they arc up a little
+				dir = (dir + Vector3(0, 0.12, 0)).normalized()
 		elif k >= targets.size():  # more orbs than targets: fan out
 			var spread := 0.22 * float(k - targets.size() + 1) * (1.0 if k % 2 == 0 else -1.0)
 			dir = dir.rotated(Vector3.UP, spread)
-		var homing := enemies.uid[ti] if (sty == "arcane" or hunting) else 0
+		var homing := enemies.uid[ti] if (sty == "arcane" or sty == "scarab" or hunting) else 0
 		spawn_projectile(origin, dir * speed, life, dmg, pierce, P_KINDS.find(kind), homing)
 	if sty == "venom":
 		_play_spit()
+	elif sty == "scarab" or sty == "soul" or sty == "ember":
+		_play_shot({"scarab": "scarab_bolt", "soul": "soul_bolt", "ember": "fireflick"}[sty])
 	return true
+
+
+## One shot's sound (Scarab Bolts' chittering buzz, Soul Bolts' wail, Fireflick's flick).
+func _play_shot(key: String) -> void:
+	if not _shot_sfx.has(key):
+		var p := AudioStreamPlayer.new()
+		p.bus = Settings.SFX_BUS
+		p.max_polyphony = 3
+		p.volume_db = -11.0
+		var path := "res://audio/abilities/%s.wav" % key
+		if ResourceLoader.exists(path):
+			p.stream = load(path)
+		add_child(p)
+		_shot_sfx[key] = p
+	var sp: AudioStreamPlayer = _shot_sfx[key]
+	if sp.stream != null:
+		sp.pitch_scale = randf_range(0.92, 1.1)
+		sp.play()
+
+
+## Forged Soul Bolts: each hit heals 1 HP, up to Forge.SOUL_HEAL_CAP a second.
+func _soul_drain_heal() -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _soul_heal_t >= 1.0:
+		_soul_heal_t = now
+		_soul_heal = Forge.SOUL_HEAL_CAP
+	if _soul_heal >= Forge.SOUL_HEAL and player != null and player.hp < player.max_hp:
+		_soul_heal -= Forge.SOUL_HEAL
+		player.heal(Forge.SOUL_HEAL)
 
 
 ## How many times Venom Spit's poison stacks (forged: more). Brood's spiderlings use it too.
@@ -1343,6 +1416,15 @@ func _sector(at: Vector3, dir: Vector3, radius: float, arc: float, col: Color, l
 	mi.top_level = true
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
+	# On a slope the fan leans with the ground it sweeps over (uphill or downhill), so it never
+	# cuts into the hillside
+	if CastleNav.current == null:
+		var flat := Vector3(dir.x, 0.0, dir.z)
+		if flat.length() > 0.01:
+			flat = flat.normalized()
+			var g0 := SwampWater.height_at(at.x, at.z)
+			var g1 := SwampWater.height_at(at.x + flat.x * radius, at.z + flat.z * radius)
+			dir = (flat * radius + Vector3(0, g1 - g0, 0)).normalized()
 	var b := Basis.looking_at(dir, Vector3.UP).rotated(dir, tilt)
 	mi.global_transform = Transform3D(b.scaled(Vector3(radius * 0.4, 1, radius * 0.4)), at)
 	var tw := mi.create_tween()
@@ -1429,6 +1511,7 @@ func spawn_projectile(p: Vector3, v: Vector3, life: float, dmg: float, pierce: i
 	p_hits[pc] = PackedInt32Array()
 	p_target[pc] = homing
 	p_tidx[pc] = -1
+	p_clear[pc] = clampf(p.y - SwampWater.height_at(p.x, p.z), 0.3, 3.0)
 	p_src[pc] = enemies.src
 	pc += 1
 
@@ -1458,6 +1541,13 @@ func _update_projectiles(dt: float) -> void:
 				var want := (enemies.center_of(ti) - p_pos[i]).normalized() * sp
 				p_vel[i] = p_vel[i].lerp(want, minf(1.0, ARCANE_TURN * dt * 3.0)).normalized() * sp
 		var p := p_pos[i] + p_vel[i] * dt
+		# Straight shots follow the slope they're fired along: they keep their height above the
+		# ground (uphill they climb, downhill they dip) instead of flying level into a hillside.
+		# Homing shots steer themselves; flicked embers arc on purpose; indoors the floor is flat.
+		if p_target[i] == 0 and kind != "ember" and CastleNav.current == null:
+			# its own climb or drop (aimed at the target's chest) is kept, measured from the ground
+			p_clear[i] = maxf(0.3, p_clear[i] + p_vel[i].y * dt)
+			p.y = SwampWater.height_at(p.x, p.z) + p_clear[i]
 		p_pos[i] = p
 		var alive := p_life[i] > 0.0
 		if alive:
@@ -1498,12 +1588,22 @@ func _update_projectiles(dt: float) -> void:
 					"venom":
 						enemies.poison(e, VENOM_FRAC, VENOM_TIME, venom_stacks())
 						venom_hits += 1
+					"scarab":
+						enemies.afflict(e, SCARAB_FRAC, SCARAB_TIME)
+						scarab_hits += 1
+					"soul":
+						soul_hits += 1
+						if special.has("soul"):
+							_soul_drain_heal()
+					"ember":
+						enemies.afflict(e, EMBER_FRAC * (Forge.EMBER_BURN if special.has("ember") else 1.0), EMBER_TIME)
+						ember_hits += 1
 				p_pierce[i] -= 1
 				if p_pierce[i] < 0:
 					alive = false
 					break
-				if kind == "arcane":   # bounce on to the next enemy
-					var nx := _next_target(p, hl, ARCANE_BOUNCE_RANGE)
+				if kind == "arcane" or kind == "scarab":   # bounce on to the next enemy
+					var nx := _next_target(p, hl, ARCANE_BOUNCE_RANGE if kind == "arcane" else SCARAB_BOUNCE_RANGE)
 					if nx < 0:
 						alive = false
 						break
@@ -1524,6 +1624,7 @@ func _update_projectiles(dt: float) -> void:
 			p_style[i] = p_style[last]
 			p_target[i] = p_target[last]
 			p_tidx[i] = p_tidx[last]
+			p_clear[i] = p_clear[last]
 			p_src[i] = p_src[last]
 			pc -= 1
 			continue
@@ -1554,6 +1655,12 @@ func _update_projectiles(dt: float) -> void:
 				tb = Basis(side * 0.16, up * 0.16, fwd * 0.7)
 			"fire", "dark", "arcane":   # smaller orbs: a short glow (their puff trail does the rest)
 				tb = Basis(side * 0.3 * flick, up * 0.3 * flick, fwd * 0.9)
+			"scarab":   # a faint shimmer of wings
+				tb = Basis(side * (0.5 + 0.2 * sin(p_life[i] * 70.0)), up * 0.12, fwd * 0.7)
+			"soul":   # a long wailing wisp
+				tb = Basis(side * 0.4, up * 0.4, fwd * 2.2)
+			"ember":   # a short spark trail
+				tb = Basis(side * 0.16, up * 0.16, fwd * 1.0)
 		var small := kind in ["ice", "fire", "dark", "arcane"]
 		var tc := p - fwd * (0.3 if small else 0.55)
 		if TRAILS.has(kind):
@@ -1584,6 +1691,12 @@ func _update_projectiles(dt: float) -> void:
 			"venom":   # a wobbling glob, stretched along its flight
 				var wob := 0.08 * sin(p_life[i] * 40.0 + float(i))
 				cb = Basis(side * (0.62 + wob), up * (0.62 - wob), fwd * 0.95)
+			"scarab":   # a flat golden beetle, wobbling as it flies
+				cb = Basis(side * 0.55, up * 0.28, fwd * 0.78).rotated(fwd, 0.35 * sin(p_life[i] * 18.0 + float(i)))
+			"soul":   # a pulsing green skull of soul-fire
+				cb = Basis.IDENTITY.scaled(Vector3.ONE * (0.95 + 0.15 * sin(p_life[i] * 22.0)))
+			"ember":   # a little flickering coal
+				cb = Basis.IDENTITY.scaled(Vector3.ONE * (0.42 + 0.1 * sin(p_life[i] * 50.0 + float(i))))
 		buf[b] = cb.x.x; buf[b + 1] = cb.y.x; buf[b + 2] = cb.z.x; buf[b + 3] = p.x
 		buf[b + 4] = cb.x.y; buf[b + 5] = cb.y.y; buf[b + 6] = cb.z.y; buf[b + 7] = p.y
 		buf[b + 8] = cb.x.z; buf[b + 9] = cb.y.z; buf[b + 10] = cb.z.z; buf[b + 11] = p.z

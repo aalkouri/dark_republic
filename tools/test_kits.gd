@@ -912,10 +912,9 @@ func _ghast() -> void:
 	var b := _spawn(EnemyManager.TANK, 7.0, 0.15, 10.0)
 	var c := _spawn(EnemyManager.TANK, 5.0, PI, 10.0)
 	await _secs(0.05)
-	ws.fire("wail", "orb", 1.0)
-	_check("Wail: a cone hits everything in it", em.hp[a] < em.hp_max[a] and em.hp[b] < em.hp_max[b], "")
-	_check("...slowing them", em.slow_t[a] > 0.0 and em.slow_f[a] <= 0.76, "")
-	_check("...not behind", em.hp[c] >= em.hp_max[c], "")
+	ws.fire("wail", "orb", 1.0)   # Soul Leech (replaced the Wail cone): an orb latches on and drains
+	await _secs(1.5)
+	_check("Soul Leech: an orb latches onto a nearby enemy and drains it", em.hp[a] < em.hp_max[a] or em.hp[b] < em.hp_max[b] or em.hp[c] < em.hp_max[c], "")
 	_clear()
 	await _secs(0.05)
 	_cast(0)
@@ -949,7 +948,8 @@ func _ghast() -> void:
 	var wu := em.uid[weak]
 	_cast(2)
 	await _secs(0.1)
-	_check("Banshee Scream: 15% of max HP and flee", _all(func(i): return absf(em.hp[i] - em.hp_max[i] * 0.85) < 1.0 and em.fear_t[i] > 5.0), "")
+	var bs_frac := 1.0 - 0.15 * EnemyManager.ABILITY_DAMAGE_MULT   # 15% of max HP, doubled as an ability
+	_check("Banshee Scream: 15% of max HP (x2 as an ability) and flee", _all(func(i): return absf(em.hp[i] - em.hp_max[i] * bs_frac) < 1.0 and em.fear_t[i] > 5.0), "")
 	_check("...enemies left under 20% die", em.index_of(wu) < 0, "")
 
 
@@ -1029,15 +1029,23 @@ func _vicki() -> void:
 	var n := _spawn_at(EnemyManager.TANK, land + Vector3(2, 0, 0), 10.0)
 	_check("...glides for up to 4 s, then dives", t < 5.0 and not player.glide, "%.1f s" % t)
 	_clear()
+	var ride_uids: Array[int] = []
 	for k in 10:
-		_spawn_at(EnemyManager.TANK, player.global_position + ab.roster.part.aim_dir() * (3.0 + k * 2.0), 10.0)
+		var ri := _spawn_at(EnemyManager.TANK, player.global_position + ab.roster.part.aim_dir() * (3.0 + k * 2.0), 10.0)
+		if ri >= 0:
+			ride_uids.append(em.uid[ri])
 	await _secs(0.05)
 	_cast(2)
 	await _secs(3.7)
 	var max_hits := 0.0
-	for i in em.count:
-		max_hits = maxf(max_hits, em.hp_max[i] - em.hp[i])
-	_check("Ride of the Valkyries: the horse tramples enemies in its path", max_hits >= 180.0 * main.stats.value("damage") * 2.0, "%.0f" % max_hits)
+	var trampled_dead := 0
+	for u in ride_uids:
+		var ri := em.index_of(u)
+		if ri < 0:
+			trampled_dead += 1   # trampled to death (abilities hit twice as hard now)
+		else:
+			max_hits = maxf(max_hits, em.hp_max[ri] - em.hp[ri])
+	_check("Ride of the Valkyries: the horse tramples enemies in its path", trampled_dead > 0 or max_hits >= 180.0 * main.stats.value("damage") * 2.0, "%.0f, %d trampled to death" % [max_hits, trampled_dead])
 
 
 func _rogue() -> void:

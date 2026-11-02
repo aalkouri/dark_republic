@@ -478,6 +478,14 @@ func _tick_wrath(dt: float) -> void:
 		_done(0.6)
 
 
+## Minimap: the Wrath of the Sands' golden safe spots while it's coming (MapBoss API).
+func map_safe_zones() -> Array:
+	var out: Array = []
+	for s in _safe:
+		out.append({"pos": s["at"], "radius": WRATH_SAFE})
+	return out
+
+
 func in_safe_spot(p: Vector3) -> bool:
 	for s in _safe:
 		if flat_dist(p, s["at"]) < WRATH_SAFE:

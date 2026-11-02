@@ -21,9 +21,10 @@ const MAPS := [
 	{"id": "castle", "name": "The Castle", "blurb": "Torch-lit halls, a feast to trample, skeletons.", "image": "res://images/maps/castle.png", "requires": "toadstool_knight"},
 	{"id": "desert", "name": "The Desert", "blurb": "Pyramids to climb, the Great Sphinx, mummies and vultures.", "image": "res://images/maps/desert.png", "requires": "arachnid"},
 	{"id": "graveyard", "name": "The Graveyard", "blurb": "Moonlit tombs, ground fog, ghosts, ghouls and the restless dead.", "image": "res://images/maps/graveyard.png", "requires": "pharaoh"},
+	{"id": "caldera", "name": "The Ashen Caldera", "blurb": "Rivers of lava, eruptions, magma imps and their cackling king.", "image": "res://images/maps/caldera.png", "requires": "necromancer"},
 ]
 
-const BOSS_NAMES := {"thog": "Thog the Troll in the Swamp", "toadstool_knight": "the Toadstool Knight in the Magical Forest", "arachnid": "the Arachnid in the Castle", "pharaoh": "the Pharaoh in the Desert", "necromancer": "the Necromancer in the Graveyard"}
+const BOSS_NAMES := {"thog": "Thog the Troll in the Swamp", "toadstool_knight": "the Toadstool Knight in the Magical Forest", "arachnid": "the Arachnid in the Castle", "pharaoh": "the Pharaoh in the Desert", "necromancer": "the Necromancer in the Graveyard", "singe": "Singe in the Ashen Caldera"}
 
 var _font: Font
 var _card_w := 380.0      # cards shrink to fit the screen as maps are added
@@ -61,7 +62,7 @@ func _ready() -> void:
 	row.add_theme_constant_override("separation", 28)
 	v.add_child(row)
 	var vw := get_viewport_rect().size.x if is_inside_tree() else 1600.0
-	_card_w = clampf((vw - 60.0 - 28.0 * (MAPS.size() - 1)) / MAPS.size(), 250.0, 380.0)
+	_card_w = clampf((vw - 60.0 - 28.0 * (MAPS.size() - 1)) / MAPS.size(), 200.0, 380.0)
 	for m in MAPS:
 		row.add_child(_card(m))
 	var hint := _label("Enter: choose   ·   Esc: back", 18, Color(0.8, 0.75, 0.68, 0.7))
@@ -206,7 +207,7 @@ func _card(m: Dictionary) -> Button:
 		lock.pivot_offset = Vector2(48, 30)   # hangs from the shackle when it rattles
 		b.set_meta("lock", lock)
 		b.add_child(lock)   # after the picture and text, so it draws on top, undimmed
-	var name := _label(tr(str(m["name"])).to_upper(), 26 if _card_w > 330.0 else 22, Color(0.95, 0.88, 0.75) if not locked else Color(0.6, 0.55, 0.5))
+	var name := _label(tr(str(m["name"])).to_upper(), 26 if _card_w > 330.0 else (22 if _card_w > 262.0 else 19), Color(0.95, 0.88, 0.75) if not locked else Color(0.6, 0.55, 0.5))
 	v.add_child(name)
 	var blurb := _label(tr(m["blurb"]) if not locked else reason + ".", 17, Color(0.82, 0.76, 0.68) if not locked else Color(1.0, 0.55, 0.4))
 	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

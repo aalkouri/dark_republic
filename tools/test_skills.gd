@@ -199,6 +199,45 @@ func _ready() -> void:
 	db.banned.clear()
 	_check("every weapon and item has an icon too", missing.is_empty(), str(missing))
 
+	# Slots: 4 weapons and 4 tome types; once full, only those come up
+	var cdb := UpgradeDB.new("res://data/upgrades.json", RandomNumberGenerator.new())
+	var tome_list := []
+	var weapon_list := []
+	for id in cdb.order:
+		if cdb.defs[id]["kind"] == "tome":
+			tome_list.append(id)
+		elif cdb.defs[id]["kind"] == "weapon" and not cdb.defs[id].has("signature"):
+			weapon_list.append(id)
+	for k in 4:
+		cdb.levels[tome_list[k]] = 1
+	var other_tome := false
+	var own_tome := false
+	for k in 600:
+		for pk in cdb.draft(3, 0.0, 4):
+			if cdb.defs[pk["id"]]["kind"] == "tome":
+				if tome_list.slice(0, 4).has(pk["id"]):
+					own_tome = true
+				else:
+					other_tome = true
+	_check("with 4 tome types, no new tome type is offered (only those 4 level up)", own_tome and not other_tome, "own %s, other %s" % [own_tome, other_tome])
+	for k in mini(4, weapon_list.size()):
+		cdb.levels[weapon_list[k]] = 1
+	var other_weapon := false
+	for k in 600:
+		for pk in cdb.draft(3, 0.0, 4):
+			if cdb.defs[pk["id"]]["kind"] == "weapon" and not cdb.levels.has(pk["id"]):
+				other_weapon = true
+	_check("with 4 weapons, no new weapon is offered", not other_weapon, "")
+	var cdb3 := UpgradeDB.new("res://data/upgrades.json", RandomNumberGenerator.new())
+	for k in 3:
+		cdb3.levels[tome_list[k]] = 1
+	var new_tome := false
+	for k in 600:
+		for pk in cdb3.draft(3, 0.0, 4):
+			if cdb3.defs[pk["id"]]["kind"] == "tome" and not cdb3.levels.has(pk["id"]):
+				new_tome = true
+	_check("with 3 tome types a 4th can still come up", new_tome, "")
+
 	# Critical hits: 3% for 1.5x to start; two tomes raise them; Offense trees end with the two crit skills
 	var base_stats: Dictionary = load("res://scripts/main.gd").BASE_STATS
 	_check("base crit: 3% chance for 1.5x damage", is_equal_approx(float(base_stats["crit_chance"]), 0.03) and is_equal_approx(float(base_stats["crit_damage"]), 1.5), "")

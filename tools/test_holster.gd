@@ -7,7 +7,7 @@ extends Node
 
 const RIGGED := ["ice_wizard", "thunder_wizard", "dark_wizard", "merlin", "ogre", "vampire_hunter",
 	"vicki", "rogue", "gaiden", "dr_croc", "thog"]
-const NO_WEAPON := ["ghast", "argyle_sock", "blob", "arachnid"]
+const NO_WEAPON := ["ghast", "argyle_sock", "blob", "arachnid", "singe"]
 var fails := 0
 var stage: Node3D
 
@@ -20,6 +20,8 @@ func _ready() -> void:
 		await _rigged(id)
 	await _knight()
 	await _loco()
+	for id in ["pharaoh", "necromancer"]:
+		await _playable_boss(id)
 	await _wizard()
 	for id in NO_WEAPON:
 		var h := RosterHero.create(id)
@@ -122,6 +124,26 @@ func _loco() -> void:
 	_check("...pulses leave from the maraca", tip.distance_to(l._hand_maracas[l._side].global_transform * Vector3(0, 0.25, 0)) < 0.05, "")
 	await _secs(2.5)
 	_check("...back in his belt after", not h.is_drawn() and l._belt_maracas[0].visible, "")
+	h.free()
+
+
+## The Pharaoh's crook and flail tucked through his belt, the Necromancer's staff slung across
+## his back (PlayableBoss bodies): drawn to attack or cast, put back after.
+func _playable_boss(id: String) -> void:
+	print("--- ", id)
+	var h := RosterHero.create(id)
+	stage.add_child(h)
+	await _frames(3)
+	var b: Node3D = h.boss
+	var st: Array = b.get("stowed")
+	var hand := func() -> bool:
+		return (b as PharaohBody).model.hand_r.visible if b is PharaohBody else (b as NecromancerBody).staff.visible
+	_check("%s: weapon put away at rest" % id, not h.is_drawn() and not hand.call() and st.all(func(n): return (n as Node3D).visible), "")
+	var tip := h.attack(h.global_position + Vector3(0, 1, -5))
+	_check("...an attack draws it", h.is_drawn() and hand.call() and st.all(func(n): return not (n as Node3D).visible), "")
+	_check("...shots leave from its head", tip.distance_to(b.call("tip")) < 0.01, "")
+	await _secs(2.5)
+	_check("...put away again after", not h.is_drawn() and not hand.call(), "")
 	h.free()
 
 

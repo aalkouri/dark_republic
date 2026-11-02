@@ -326,14 +326,22 @@ func _reveal() -> void:
 	var before := abilities.ab_level[winner]
 	var gained := abilities.level_up(winner, levels)
 	var now := abilities.ab_level[winner]
+	# Spell out what the upgrade does: the ability and its level, then each stat it raises and
+	# by how much, and the new cooldown (instead of just "+1 level")
+	var lines: Array[String] = ["%s   Lv %d -> %d" % [name.to_upper(), before, now]]
+	if gained > 0 and abilities.has_method("level_change_lines"):
+		lines.append_array(abilities.level_change_lines(winner, before, now))
+	_odds.visible = false   # make room for the details
+	_result_label.position = Vector2(0, 334)
+	_result_label.size = Vector2(_result_label.size.x, 118)
+	_result_label.add_theme_font_size_override("font_size", 22)
+	_result_label.text = "\n".join(lines)
 	if levels >= JACKPOT_LEVELS:
 		_sub.text = tr("JACKPOT!")
-		_result_label.text = tr("%s  +%d levels  (Lv %d -> %d)") % [name, gained, before, now]
 		_result_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 		_play("slot_jackpot")
 	else:
 		_sub.text = tr("Winner!")
-		_result_label.text = tr("%s  +%d level  (Lv %d -> %d)") % [name, gained, before, now]
 		_play("slot_win")
 	_flash = 1.0
 	_continue.visible = true

@@ -96,23 +96,17 @@ func _test_select() -> void:
 			k = i
 	cs._show(k)
 	await get_tree().process_frame
-	_check("the Sock's weapon shows its forge cost: 5 shard crystals", cs._forge_style == "static" and cs._shard_row.get_child_count() == 5, "%s %d" % [cs._forge_style, cs._shard_row.get_child_count()])
-	var lit := 0
-	for ic in cs._shard_row.get_children():
-		if ic is ShardIcon and ic.modulate.v > 0.9:
-			lit += 1
-	_check("none lit with no shards", lit == 0, "%d" % lit)
+	# The cost: one crystal per kind the recipe uses, each with its count ("x3"), the count lit in
+	# the shard's colour once you have that many
+	var pips := _pips(cs)
+	_check("the Sock's weapon shows its forge cost: a lightning and a dark crystal (x3, x2)", cs._forge_style == "static" and pips.size() == 2
+		and _pip(pips, "lightning")[1] == "×3" and _pip(pips, "dark")[1] == "×2", "%s %s" % [cs._forge_style, str(pips)])
+	_check("none lit with no shards", pips.filter(func(e): return e[2]).is_empty(), str(pips))
 	Wallet.shards["dark"] = 2
 	cs._refresh_forge()
 	await get_tree().process_frame
-	lit = 0
-	var dark_lit := 0
-	for ic in cs._shard_row.get_children():
-		if ic is ShardIcon and ic.modulate.v > 0.9:
-			lit += 1
-			if ic.kind == "dark":
-				dark_lit += 1
-	_check("they light up one by one as you collect them", lit == 2 and dark_lit == 2, "%d lit" % lit)
+	pips = _pips(cs)
+	_check("a kind lights up once you have enough of it", _pip(pips, "dark")[2] and not _pip(pips, "lightning")[2], str(pips))
 	await get_tree().process_frame
 	_check("not ready yet: no pulse, no plus signs", not cs._pluses.active, "")
 	Wallet.shards["lightning"] = 3
@@ -147,10 +141,27 @@ func _test_select() -> void:
 	# Fire Wizard: 5 fire
 	cs._show(0)
 	await get_tree().process_frame
-	var fire_ok: bool = cs._forge_style == "fire" and cs._shard_row.get_child_count() == 5
-	for ic in cs._shard_row.get_children():
-		fire_ok = fire_ok and ic is ShardIcon and ic.kind == "fire"
-	_check("the Fire Wizard needs 5 fire shards", fire_ok, "")
+	var fp := _pips(cs)
+	_check("the Fire Wizard needs 5 fire shards", cs._forge_style == "fire" and fp.size() == 1 and fp[0][0] == "fire" and fp[0][1] == "×5", str(fp))
+
+
+## The forge cost row as [kind, "×N", lit] per crystal.
+func _pips(cs: Node) -> Array:
+	var out: Array = []
+	var kids: Array = cs._shard_row.get_children()
+	for i in kids.size():
+		if kids[i] is ShardIcon and i + 1 < kids.size() and kids[i + 1] is Label:
+			var l: Label = kids[i + 1]
+			var col: Color = l.get_theme_color("font_color")
+			out.append([(kids[i] as ShardIcon).kind, l.text, not col.is_equal_approx(Color(0.6, 0.56, 0.56))])
+	return out
+
+
+func _pip(pips: Array, kind: String) -> Array:
+	for e in pips:
+		if e[0] == kind:
+			return e
+	return ["", "", false]
 
 
 func _test_run() -> void:
@@ -289,10 +300,9 @@ func _test_specials() -> void:
 	t = _fresh(em, p, [Vector3(3, 0, 0)])[0]
 	ws._swing(p, 1.0, "orb", null, WeaponSystem.CLUB_REACH, WeaponSystem.CLUB_ARC, "club")
 	_check("forged Big Club: smashes stun for 0.6 s", em.stun_t[t] > 0.0 and em.hp[t] < em.hp_max[t], "%.2f s" % em.stun_t[t])
-	# Wail: enemies hit flee in fear
-	t = _fresh(em, p, [Vector3(3, 0, 0)])[0]
-	ws._swing(p, 1.0, "orb", null, WeaponSystem.WAIL_REACH, WeaponSystem.WAIL_ARC, "wail")
-	_check("forged Wail: enemies hit flee in fear", em.fear_t[t] > 0.0, "%.2f s" % em.fear_t[t])
+	# Soul Leech (the Ghast's weapon since the Wail cone was replaced): forged, a host's death
+	# sends nearby enemies fleeing
+	_check("forged Soul Leech: a host's death scares enemies nearby", WeaponSystem.LEECH_FEAR_R > 0.0 and Forge.SPECIALS.has("wail"), "")
 	# Tree Trunk: every 4th swing is a full 360 sweep (an enemy behind is only hit then)
 	ts = _fresh(em, p, [Vector3(2, 0, 0), Vector3(-2.2, 0, 0)])
 	ws.combo.erase("trunkorb")

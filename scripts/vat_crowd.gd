@@ -3,7 +3,9 @@ extends RefCounted
 ## Loads a vertex-animation bake (tools/bake_vat.gd) as a mesh + material for a MultiMesh.
 ##
 ## Per-instance data:
-##   COLOR (instance color)  r = clip index / 4, g = phase in the clip (0..1)
+##   COLOR (instance color)  r = clip index / 4, g = phase in the clip (0..1),
+##                           b = disintegration (0 = whole .. 1 = gone) only when a < 0.5 (the
+##                           title's goblins; everything else leaves a = 1, b ignored)
 ##   INSTANCE_CUSTOM         rgb = tint, a = burn (0..1) + 2 if hit-flashing + 4 if epic
 ##                           + 8 if frozen solid + 16 if chilled (slowed) + 32 if shadowed
 ## The shader looks up the two baked frames around the phase and blends them, so playback is
@@ -20,6 +22,7 @@ uniform int tex_w = 4096;
 uniform vec4 clips[4];          // start frame, frame count, loop (1/0), unused
 uniform float tint_amount = 0.35;
 uniform float ghost = 0.0;      // Raise Dead's allies: a strong violet glow
+uniform vec3 ghost_color = vec3(0.55, 0.25, 1.0);   // ...its colour (the Necromancer's dead glow green, the Pharaoh's mummies gold)
 
 varying vec3 tint;
 varying float burn;
@@ -28,6 +31,8 @@ varying float epic;
 varying float frozen;
 varying float chill;
 varying float shadow;
+varying float dissolve;
+varying vec3 opos;
 
 ivec2 texel(int frame, int vid) {
 	int idx = frame * verts + vid;
@@ -50,6 +55,8 @@ void vertex() {
 	vec3 n0 = texelFetch(vat_nrm, texel(start + f0, vid), 0).rgb * 2.0 - 1.0;
 	vec3 n1 = texelFetch(vat_nrm, texel(start + f1, vid), 0).rgb * 2.0 - 1.0;
 	VERTEX = mix(p0, p1, w);
+	dissolve = COLOR.a < 0.5 ? COLOR.b : 0.0;
+	opos = VERTEX;
 	vec3 nn = mix(n0, n1, w);
 	NORMAL = dot(nn, nn) > 1e-6 ? normalize(nn) : vec3(0.0, 1.0, 0.0);   // no NaN normals
 
@@ -70,7 +77,20 @@ void vertex() {
 	flash *= smoothstep(18.0, 12.0, length((MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz));
 }
 
+float dhash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float dnoise(vec3 p) {
+	vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(mix(dhash(i), dhash(i + vec3(1,0,0)), f.x), mix(dhash(i + vec3(0,1,0)), dhash(i + vec3(1,1,0)), f.x), f.y),
+	           mix(mix(dhash(i + vec3(0,0,1)), dhash(i + vec3(1,0,1)), f.x), mix(dhash(i + vec3(0,1,1)), dhash(i + vec3(1,1,1)), f.x), f.y), f.z);
+}
+
 void fragment() {
+	// Disintegrating: the body breaks up in random flecks until nothing is left (no glow, no
+	// effect added: it just comes apart, like a dream fading)
+	if (dissolve > 0.001) {
+		float n = dnoise(opos * 9.0) * 0.6 + dnoise(opos * 23.0) * 0.4;
+		if (n < dissolve * 1.05) { discard; }
+	}
 	vec3 col = texture(albedo_tex, UV).rgb;
 	col = mix(col, col * tint * 1.8, tint_amount);
 	// Epic: keep the full texture detail, just a light violet cast plus a glowing purple rim
@@ -85,7 +105,7 @@ void fragment() {
 	EMISSION = vec3(1.0, 0.32, 0.04) * burn * 0.9 + vec3(0.62, 0.18, 1.0) * epic * rim * 1.6
 		+ vec3(0.45, 0.8, 1.0) * (frozen * (0.25 + rim * 1.4) + chill * rim * 0.6)
 		+ vec3(0.6, 0.2, 1.0) * shadow * rim * 1.8
-		+ vec3(0.55, 0.25, 1.0) * ghost * (0.35 + rim * 2.5);
+		+ ghost_color * ghost * (0.35 + rim * 2.5);
 	// Hit: a brief reddish tint. (A pure-white flash read as bright white dots on goblins
 	// far away in the fog.)
 	ALBEDO = mix(col, col * vec3(1.45, 0.55, 0.45), flash * 0.6);

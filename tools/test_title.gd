@@ -25,7 +25,7 @@ func _ready() -> void:
 	var labels := []
 	for b in title._menu.get_children():
 		labels.append((b as Button).text.strip_edges())
-	_check("menu: Play / Settings / Quit (no separate Characters)", labels == ["PLAY", "SETTINGS", "QUIT"], str(labels))
+	_check("menu: Play / Settings / Stats / Quit (no separate Characters)", labels == ["PLAY", "SETTINGS", "STATS", "QUIT"], str(labels))
 	_check("Play has keyboard/gamepad focus", (title._menu.get_child(0) as Button).has_focus(), "")
 	_check("title text", title._title.text == "DARK REPUBLIC", title._title.text)
 	var puns: Array = title.load_taglines()
@@ -119,7 +119,11 @@ func _ready() -> void:
 	await get_tree().create_timer(1.0).timeout
 	_check("entrance: wizard is a falling meteor, clock and goblins held", game.intro and game.player.meteor_form and game.run_time == 0.0 and game.enemies.count == 0,
 		"intro %s form %s t %.2f enemies %d" % [game.intro, game.player.meteor_form, game.run_time, game.enemies.count])
-	await get_tree().create_timer(Abilities.METEOR_FALL_TIME).timeout
+	for f in 60 * 4:   # every character's entrance is over within 3.5 s
+		await get_tree().physics_frame
+		if not game.intro:
+			break
+	await get_tree().create_timer(0.1).timeout
 	_check("entrance: he lands, the run starts and SURVIVE shows", not game.intro and not game.player.meteor_form and game.run_time > 0.0 and game.hud.intro_banner.is_showing(),
 		"intro %s t %.2f" % [game.intro, game.run_time])
 

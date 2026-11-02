@@ -12,8 +12,9 @@ extends Node3D
 ##
 ## Other playable characters (`kit` = their id) keep the same slots, keys, unlock levels and
 ## cooldown handling here, but their abilities live in RosterKit (`roster`) and their names
-## and cooldowns come from data/abilities.json (defs()). Their entrance is a comet in their
-## own colours instead of the giant flaming head.
+## and cooldowns come from data/abilities.json (defs()). Their run-start entrances are their
+## own (HeroEntrances: frost spire, shadow pool, smoke bomb...); only the Thunder Wizard (and
+## any character without one there) still arrives as a comet in its colours.
 ## Cooldowns tick in the physics step, so they pause with the game.
 
 signal cast(index: int)
@@ -49,6 +50,9 @@ const LEVEL_STATS := {
 	"blob": [["digest damage"], ["mini-blob damage"], ["damage"]],
 	"arachnid": [["poison bonus"], ["spiderling damage"], ["damage"]],
 	"toadstool_knight": [["shield", "burst damage"], ["damage"], ["slam damage"]],
+	"pharaoh": [["damage"], ["damage"], ["damage", "mummy damage"]],
+	"necromancer": [["risen dead damage"], ["damage"], ["damage"]],
+	"singe": [["damage"], ["damage"], ["bomb damage"]],
 }
 
 # Ability slots (index into DEFS / cooldown; key = index + 1)
@@ -62,6 +66,7 @@ const ULT_FIRE_RADIUS := {
 	"ice_wizard": 25.0, "thunder_wizard": 18.0, "dark_wizard": 15.0, "merlin": 25.0, "ogre": 10.0,
 	"ghast": 30.0, "vampire_hunter": 20.0, "vicki": 25.0, "rogue": 20.0, "gaiden": 12.0, "dr_croc": 20.0,
 	"loco_robotico": 20.0, "blob": 20.0, "arachnid": 25.0, "toadstool_knight": 14.0,
+	"pharaoh": 25.0, "necromancer": 25.0, "singe": 22.0,
 }
 const METEOR_COOLDOWN := 120.0       # ultimate
 const METEOR_FALL_TIME := 3.0
@@ -141,6 +146,7 @@ var _scorches: Array = []  # {center, t, node, mat, light}
 var _scorch_shader: Shader
 var _shocks: Array = []    # {center, t, hit: Dictionary, ring, disc}
 var _fire_mat: StandardMaterial3D
+var entrance: HeroEntrances   # a roster character's own run-start entrance, while it plays
 
 
 func setup(p_stats: Stats, p_enemies: EnemyManager, p_player: Player, p_fx: FxManager) -> void:
@@ -370,11 +376,32 @@ func level_lines(i: int) -> Array[String]:
 	return out
 
 
+## What going from level `before` to `now` does to ability `i`, spelled out for the slot
+## machine: each stat it raises (by how much, and its total multiplier) and its cooldown in seconds.
+func level_change_lines(i: int, before: int, now: int) -> Array[String]:
+	var out: Array[String] = []
+	var stat_names: Array = LEVEL_STATS.get(kit, [["damage"], ["damage"], ["damage"]])[i]
+	var up := roundi((power_at(now) / power_at(before) - 1.0) * 100.0)
+	for n in stat_names:
+		var nm := tr(str(n))
+		out.append(tr("%s  +%d%%  (now x%s)") % [nm.substr(0, 1).to_upper() + nm.substr(1), up, _fmt_mult(power_at(now))])
+	var base: float = float(defs()[i]["cooldown"]) * (stats.value("ability_cdr") if stats != null and stats.has_stat("ability_cdr") else 1.0)
+	out.append(tr("Cooldown  %ss  ->  %ss") % [_fmt_secs(base * cd_mult_at(before)), _fmt_secs(base * cd_mult_at(now))])
+	return out
+
+
+static func _fmt_secs(t: float) -> String:
+	return ("%.1f" % t).rstrip("0").rstrip(".")
+
+
 static func _fmt_mult(m: float) -> String:
 	return ("%.2f" % m).rstrip("0").rstrip(".")
 
 
 func tick(dt: float) -> void:
+	if enemies.ability_names.is_empty():   # abilities get EnemyManager.ABILITY_DAMAGE_MULT
+		for d in defs():
+			enemies.ability_names[str(d["name"])] = true
 	for i in cooldown.size():
 		cooldown[i] = maxf(0.0, cooldown[i] - dt)
 	src(INFERNO)
@@ -389,6 +416,8 @@ func tick(dt: float) -> void:
 			_erupt_shockwave()
 	src(METEOR)
 	_update_meteors(dt)
+	if is_instance_valid(entrance):
+		entrance.tick(dt)
 	_update_scorches(dt)   # the Meteor's burning crater
 	src(SHOCKWAVE)
 	_update_shocks(dt)
@@ -439,10 +468,19 @@ func _cast_meteor() -> void:
 ## Run start: the wizard arrives as his own Meteor, falling onto `target` over
 ## METEOR_FALL_TIME seconds (same visuals and impact as the ultimate, but silent until the
 ## explosion; no scorched
-## ground, no cooldown). Emits entrance_landed when he hits the ground.
+## ground, no cooldown). Emits entrance_landed when he hits the ground. Roster characters
+## with a HeroEntrances entry play their own entrance instead (it emits entrance_landed too).
 func entrance_meteor(target: Vector3) -> void:
 	if roster and roster.entrance(target):   # a character with an entrance of its own
+		HeroEntrances.last_kind = "kit"
 		return
+	if roster != null and HeroEntrances.has_entrance(kit):   # everyone else has their own entrance
+		entrance = HeroEntrances.new()
+		add_child(entrance)
+		entrance.landed.connect(entrance_landed.emit)
+		entrance.start(self, kit, target)
+		return
+	HeroEntrances.last_kind = "giant_head" if roster == null else "comet"
 	# No cast sound for the entrance; only the explosion when he lands
 	var marker := _ground_disc(METEOR_RADIUS, Color(1.0, 0.15, 0.05, 0.22))
 	marker.global_position = target
@@ -489,7 +527,8 @@ func _make_giant_head() -> Node3D:
 	return root
 
 
-## A roster character's entrance: a comet of its own magic (ice, lightning, shadow).
+## The Thunder Wizard's entrance (and the fallback for a character with no HeroEntrances
+## entry): a comet of its own magic, in its colours.
 func _make_comet() -> Node3D:
 	var main := RosterHero.color(kit, "main")
 	var light_c := RosterHero.color(kit, "light")

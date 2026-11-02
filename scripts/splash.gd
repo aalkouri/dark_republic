@@ -20,7 +20,7 @@ func _ready() -> void:
 			get_tree().change_scene_to_file.call_deferred(GAME_SCENE)   # tests go straight in
 			return
 		if a == "--skip-intro":   # straight to the title (no logo, no cinematic)
-			get_tree().change_scene_to_file.call_deferred(TITLE_SCENE)
+			Loader.go.call_deferred(TITLE_SCENE)
 			return
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Wallet.set_shown(false)   # the coin counter appears from the title screen on
@@ -60,9 +60,9 @@ func _go() -> void:
 	if _player and _player.is_playing():
 		var tw := create_tween()
 		tw.tween_property(self, "modulate", Color.BLACK, FADE_OUT)
-		tw.tween_callback(func(): get_tree().change_scene_to_file(next_scene()))
+		tw.tween_callback(func(): Loader.go(next_scene()))
 	else:
-		get_tree().change_scene_to_file(next_scene())
+		Loader.go(next_scene())
 
 
 func next_scene() -> String:

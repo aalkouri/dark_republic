@@ -11,7 +11,12 @@ uniform float char_amount = 0.0;   // 0 = normal, 1 = burnt black
 uniform float burning = 0.0;       // ember glow while on fire
 uniform float glow = 0.0;          // self-lit parts (magical forest): emission = colour * glow
 uniform float up_normal = 0.0;     // 1 = light it as if facing the sky (grass, ferns: no dark back faces)
+uniform float occludes = 1.0;      // 0 = never thins out between the camera and the player
+// The camera and the player's chest (set every frame by the player): props in between thin out
+global uniform vec3 occl_cam;
+global uniform vec3 occl_target;
 varying vec3 lpos;
+varying vec3 wpos;
 float hash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float noise(vec3 p) {
 	vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -26,11 +31,33 @@ void vertex() {
 	float s = sin(t + VERTEX.y * 0.15) * 0.10 + sin(t * 2.3 + VERTEX.x) * 0.04;
 	VERTEX.x += s * w * wind;
 	VERTEX.z += s * 0.7 * w * wind;
+	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+// 4x4 ordered dither threshold (0..1) for this pixel
+float bayer(vec2 fc) {
+	ivec2 p = ivec2(mod(fc, 4.0));
+	int i = p.x + p.y * 4;
+	int m[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+	return (float(m[i]) + 0.5) / 16.0;
 }
 void fragment() {
 	// Never let a bad normal through (NaN pixels bloom into white flashes on some GPUs)
 	if (any(isnan(NORMAL)) || dot(NORMAL, NORMAL) < 1e-6) { NORMAL = vec3(0.0, 0.0, 1.0); }
 	if (up_normal > 0.5) { NORMAL = normalize((VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz); }
+	// See-through: anything between the camera and the player (a cone around the line from the
+	// camera to their chest) is dithered away to about a quarter, so trees never hide you. Only in
+	// the camera's own pass (perspective), so shadows stay whole.
+	if (occludes > 0.5 && up_normal < 0.5 && PROJECTION_MATRIX[3][3] == 0.0) {
+		vec3 seg = occl_target - occl_cam;
+		float len2 = max(dot(seg, seg), 1e-4);
+		float t = dot(wpos - occl_cam, seg) / len2;
+		if (t > 0.0 && t < 0.97) {
+			float d = length(wpos - (occl_cam + seg * t));
+			float r = mix(2.4, 1.3, t);
+			float fade = (1.0 - smoothstep(r * 0.65, r, d)) * smoothstep(0.0, 0.06, t);
+			if (fade * 0.75 > bayer(FRAGCOORD.xy)) { discard; }
+		}
+	}
 	// Vertex colors are authored in sRGB
 	vec3 col = pow(max(COLOR.rgb, vec3(0.0)), vec3(2.2));
 	// Charring creeps in patchily, then covers everything
@@ -58,11 +85,30 @@ var _idx := PackedInt32Array()
 
 static func prop_material() -> ShaderMaterial:
 	if _prop_material == null:
+		_register_occlusion()
 		var sh := Shader.new()
 		sh.code = PROP_SHADER
 		_prop_material = ShaderMaterial.new()
 		_prop_material.shader = sh
 	return _prop_material
+
+
+## The shader globals the see-through effect reads (registered once, before the shader compiles).
+static var _occl_registered := false
+
+static func _register_occlusion() -> void:
+	if _occl_registered:
+		return
+	_occl_registered = true
+	for n in ["occl_cam", "occl_target"]:
+		RenderingServer.global_shader_parameter_add(n, RenderingServer.GLOBAL_VAR_TYPE_VEC3, Vector3(0, -1000, 0))
+
+
+## Where the camera and the player are this frame, for the see-through effect.
+static func set_occlusion(cam_pos: Vector3, target: Vector3) -> void:
+	_register_occlusion()
+	RenderingServer.global_shader_parameter_set("occl_cam", cam_pos)
+	RenderingServer.global_shader_parameter_set("occl_target", target)
 
 
 ## The prop material with self-lit colours (glowing mushrooms, runes, lanterns).

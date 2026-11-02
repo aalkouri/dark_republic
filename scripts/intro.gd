@@ -70,7 +70,7 @@ func _finish() -> void:
 		return
 	_leaving = true
 	_fade.color = Color(1, 1, 1, 1)
-	get_tree().change_scene_to_file.call_deferred(NEXT_SCENE)
+	Loader.go.call_deferred(NEXT_SCENE)
 
 
 ## Skipped: stop the video and fade to black into the title.
@@ -83,4 +83,4 @@ func _go() -> void:
 	tw.tween_callback(func():
 		if _player:
 			_player.stop()
-		get_tree().change_scene_to_file(NEXT_SCENE))
+		Loader.go(NEXT_SCENE))

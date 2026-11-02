@@ -166,6 +166,7 @@ func _gameplay_tab() -> Control:
 	_lang.item_selected.connect(func(i: int): Settings.set_value("language", Settings.LANGUAGES[i][0]))
 	_row(vb, "Language", _lang)
 	_row(vb, "Play intro on startup", _check(Settings.play_intro, func(on: bool): Settings.set_value("play_intro", on)))
+	_row(vb, "Show minimap", _check(Settings.show_minimap, func(on: bool): Settings.set_value("show_minimap", on)))
 	var note := Label.new()
 	note.text = "Press Apply to switch the language."
 	note.modulate.a = 0.6
@@ -354,7 +355,46 @@ func _check(on: bool, cb: Callable) -> CheckBox:
 	var c := CheckBox.new()
 	c.button_pressed = on
 	c.toggled.connect(cb)
+	# A white box (with a gold tick when on) that stands out on the grey panels; Godot's default
+	# dark grey box all but vanished on them.
+	for st in ["unchecked", "unchecked_disabled"]:
+		c.add_theme_icon_override(st, _box_icon(false))
+	for st in ["checked", "checked_disabled"]:
+		c.add_theme_icon_override(st, _box_icon(true))
 	return c
+
+
+static var _box_icons := {}
+
+## A 26 px checkbox drawn in code: white border on a dark fill, gold tick when checked.
+static func _box_icon(ticked: bool) -> Texture2D:
+	if _box_icons.has(ticked):
+		return _box_icons[ticked]
+	var n := 26
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in n:
+		for x in n:
+			var edge := mini(mini(x, y), mini(n - 1 - x, n - 1 - y))
+			if edge < 2:
+				img.set_pixel(x, y, Color(1, 1, 1, 1))              # white border
+			elif edge < 3:
+				img.set_pixel(x, y, Color(0.75, 0.75, 0.75, 1))     # soft inner edge
+			else:
+				img.set_pixel(x, y, Color(0.08, 0.07, 0.07, 0.85))  # dark inside
+	if ticked:   # a thick gold tick
+		var pts := [Vector2(6, 13), Vector2(11, 18), Vector2(20, 7)]
+		for seg in 2:
+			var a: Vector2 = pts[seg]
+			var b: Vector2 = pts[seg + 1]
+			for k in 40:
+				var p := a.lerp(b, k / 39.0)
+				for dy in range(-1, 2):
+					for dx in range(-1, 2):
+						img.set_pixel(clampi(int(p.x) + dx, 0, n - 1), clampi(int(p.y) + dy, 0, n - 1), Color(1.0, 0.8, 0.25))
+	var t := ImageTexture.create_from_image(img)
+	_box_icons[ticked] = t
+	return t
 
 
 ## Slider with a live value label. `fmt` formats value * `mult` (e.g. "%d%%" with 100).

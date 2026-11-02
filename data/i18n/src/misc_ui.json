@@ -78,5 +78,29 @@
   "Kritische Treffer verursachen +0,5-fachen Schaden",
   "暴击伤害 +0.5倍",
   "クリティカルのダメージ +0.5倍"
+ ],
+ "Invincible the whole time": [
+  "Invencible todo el tiempo",
+  "Invincible tout du long",
+  "لا يُقهر طوال المدة",
+  "Die ganze Zeit unverwundbar",
+  "全程无敌",
+  "効果中ずっと無敵"
+ ],
+ "%s  +%d%%  (now x%s)": [
+  "%s  +%d%%  (ahora x%s)",
+  "%s  +%d %%  (désormais x%s)",
+  "%s  +%d%%  (الآن ×%s)",
+  "%s  +%d %%  (jetzt x%s)",
+  "%s  +%d%%（现在 x%s）",
+  "%s  +%d%%（現在 x%s）"
+ ],
+ "Cooldown  %ss  ->  %ss": [
+  "Enfriamiento  %s s  ->  %s s",
+  "Recharge  %s s  ->  %s s",
+  "زمن التهدئة  %s ث  ->  %s ث",
+  "Abklingzeit  %s s  ->  %s s",
+  "冷却  %s秒  ->  %s秒",
+  "クールダウン  %s秒  ->  %s秒"
  ]
 }

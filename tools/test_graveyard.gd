@@ -128,7 +128,7 @@ func _picker_checks() -> void:
 			necro = c
 	_check("the Necromancer is on the roster, locked behind his own defeat", not necro.is_empty() and necro.get("requires_boss", "") == "necromancer" and int(necro.get("price", 0)) == 10000 and not necro.get("unlocked", false), str(necro.keys()))
 	_check("...with a portrait, and banned from his own graveyard", necro.has("icon") and MapPicker.lock_reason("graveyard", "necromancer") != "", "")
-	_check("...not yet playable", not RosterHero.is_playable("necromancer"), "")
+	_check("...playable once beaten and bought (his own body, not the Graveyard)", RosterHero.is_playable("necromancer") and not WeaponSystem.char_unlocked("necromancer"), "")
 	_check("the Graveyard's boss is the Necromancer", _map_boss_ok(), "")
 	Wallet.bosses_defeated = []
 
@@ -392,7 +392,9 @@ func _boss_checks() -> void:
 	await _until_free(n)
 	em.damage(n.row(), 1e9)
 	await _secs(4.8)
-	_check("killing him wins the run", main.state == "won" and main.boss_won, main.state)
+	_check("killing him opens the portal (the run goes on)", main.state != "won" and main.boss_down, main.state)
+	await _through_portal()
+	_check("stepping through it wins the run", main.state == "won" and main.boss_won, main.state)
 	_check("the end screen names him", main.hud.end_title.text == "THE NECROMANCER DEFEATED!", main.hud.end_title.text)
 	_check("his defeat is recorded", Wallet.has_defeated("necromancer"), str(Wallet.bosses_defeated))
 	var names := []
@@ -460,6 +462,21 @@ func _finish() -> void:
 	GraveyardBuilder.active = false
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails > 0 else 0)
+
+
+## The boss is down: the run goes on until you step through the portal that opens (level-ups
+## from his XP are taken as they come). Returns once the end screen is up (or after 15 s).
+func _through_portal() -> void:
+	for f in 60 * 15:
+		await get_tree().physics_frame
+		if main.state == "levelup":
+			main.choose_upgrade(0)
+		var pt: BossPortal = main.aftermath.portal
+		if pt != null and pt.is_open() and main.state == "playing" and not main.aftermath.entering:
+			main.player.global_position = pt.global_position + Vector3(0, 0.4, 0)
+			main.player.velocity = Vector3.ZERO
+		if main.state == "won":
+			return
 
 
 func _check(what: String, ok: bool, detail: String) -> void:

@@ -7,7 +7,7 @@ extends RefCounted
 const NAMES := ["snowflake", "dash", "cloud", "hourglass", "frog", "swirl", "bolt", "burst", "drop",
 	"skull", "moon", "ring", "fist", "ghost", "eye", "arrow", "shield", "wing", "star", "blade",
 	"flask", "web", "egg", "wave", "bone", "paw", "bomb", "note", "flame", "sun", "sock", "book",
-	"cauldron", "mushroom", "crown", "chain"]
+	"cauldron", "mushroom", "crown", "chain", "ankh", "grave", "volcano"]
 
 
 static func draw(ci: CanvasItem, glyph: String, c: Vector2, col: Color, t := 0.0) -> void:
@@ -259,6 +259,32 @@ static func draw(ci: CanvasItem, glyph: String, c: Vector2, col: Color, t := 0.0
 					ci.draw_arc(p, 8, 0, TAU, 16, light, 4.0)
 			ci.draw_line(c + Vector2(20, -22), c + Vector2(26, -28), light, 3.0)
 			ci.draw_line(c + Vector2(18, -26), c + Vector2(24, -18), col, 3.0)
+		"ankh":   # the Pharaoh's curse: an ankh with a green-gold glow
+			ci.draw_arc(c + Vector2(0, -12), 10, 0, TAU, 20, col, 6.0)
+			ci.draw_rect(Rect2(c + Vector2(-4, -2), Vector2(8, 28)), col)
+			ci.draw_rect(Rect2(c + Vector2(-18, -2), Vector2(36, 7)), col)
+			ci.draw_arc(c + Vector2(0, -12), 6, 0, TAU, 16, light, 2.0)
+			for k in 3:
+				ci.draw_circle(c + Vector2(-16 + k * 16, 26), 2.0, light)
+		"grave":   # a tombstone with a bony hand clawing up in front of it
+			var stone := Color(0.55, 0.55, 0.58)
+			ci.draw_rect(Rect2(c + Vector2(-14, -8), Vector2(28, 30)), stone)
+			ci.draw_circle(c + Vector2(0, -8), 14, stone)
+			ci.draw_line(c + Vector2(0, -16), c + Vector2(0, 2), stone.darkened(0.4), 3.0)
+			ci.draw_line(c + Vector2(-6, -10), c + Vector2(6, -10), stone.darkened(0.4), 3.0)
+			ci.draw_rect(Rect2(c + Vector2(-24, 20), Vector2(48, 6)), dark)
+			for k in 4:   # the bony fingers
+				var x := -9.0 + k * 5.0
+				ci.draw_line(c + Vector2(x * 0.6 - 2, 24), c + Vector2(x - 2, 10 - absf(k - 1.5) * 3.0), col, 3.0)
+			ci.draw_circle(c + Vector2(-4, 22), 5, col)
+		"volcano":   # a cone erupting, lava bombs arcing out
+			_poly(ci, [c + Vector2(-26, 24), c + Vector2(-8, -8), c + Vector2(8, -8), c + Vector2(26, 24)], Color(0.22, 0.14, 0.12))
+			_poly(ci, [c + Vector2(-8, -8), c + Vector2(8, -8), c + Vector2(4, 4), c + Vector2(-2, 12), c + Vector2(-5, 2)], col)
+			_flame(ci, c + Vector2(0, -8), 18, 9, col)
+			_flame(ci, c + Vector2(0, -8), 10, 5, light)
+			for p in [Vector2(-18, -18), Vector2(17, -22), Vector2(-6, -27)]:
+				ci.draw_circle(c + p, 4, col)
+				ci.draw_circle(c + p, 2, light)
 		_:
 			ci.draw_circle(c, 18, col)
 

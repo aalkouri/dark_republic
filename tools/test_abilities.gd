@@ -368,7 +368,13 @@ func _ready() -> void:
 			drops += 1
 			kinds[pu._pickups[pu._pickups.size() - 1]["kind"]] = true
 	_check("elite drop rate ~2%", absf(drops / 20000.0 - 0.02) < 0.004, "%.2f%%" % (drops / 200.0))
-	_check("all four power-ups can drop", kinds.size() == 4, "%d kinds" % kinds.size())
+	_check("all five power-ups can drop", kinds.size() == 5, "%d kinds" % kinds.size())
+	var per_kind := [0, 0, 0, 0, 0]
+	for n in 40000:
+		per_kind[pu.roll_kind()] += 1
+	var others: float = (per_kind[0] + per_kind[1] + per_kind[2] + per_kind[3]) / 4.0
+	_check("the NUKE drops about half as often as each other power-up (~11%)", absf(float(per_kind[PowerupManager.NUKE]) / others - 0.5) < 0.05 and absf(float(per_kind[PowerupManager.NUKE]) / 40000.0 - 1.0 / 9.0) < 0.01,
+		"%s" % str(per_kind))
 	# Magnet: every gem on the map heads to the player
 	for k in 30:
 		gm.spawn(Vector3(rng.randf_range(-80, 80), 0.5, rng.randf_range(-80, 80)), 1.0)
@@ -409,6 +415,51 @@ func _ready() -> void:
 	for f in 60 * 15 + 2:
 		pu.tick(dt, 0.1)
 	_check("Movement Enhancer ends after 15 s", is_equal_approx(pstats.value("move_speed"), 8.0), "%.2f" % pstats.value("move_speed"))
+	# NUKE: everything alive at that moment dies in a wave; bosses lose 15%; later spawns live
+	em.count = 0
+	em.damage_mult = 1.0
+	for k in pu._pickups:
+		(k["node"] as Node).queue_free()
+	pu._pickups.clear()
+	var nuke_uids: Array[int] = []
+	for k in 120:
+		var ang := TAU * k / 120.0
+		var ni := em.spawn(EnemyManager.GRUNT if k % 3 else EnemyManager.TANK, Vector3(cos(ang), 0, sin(ang)) * (4.0 + k * 0.4), 5.0, k % 10 == 0)
+		nuke_uids.append(em.uid[ni])
+	var warlord := em.spawn(EnemyManager.BOSS, Vector3(20, 0, 0), 10.0)
+	var w_uid := em.uid[warlord]
+	var w_max := em.hp_max[warlord]
+	em.curse(warlord, 10.0)   # buffs don't change the boss's share
+	em.tick(dt, Vector3.ZERO)
+	player.hp = 100.0
+	var p_hp := player.hp
+	pu.activate(PowerupManager.NUKE)
+	var blast: NukeBlast = pu.blasts[0] if not pu.blasts.is_empty() else null
+	_check("NUKE goes off (marks every enemy alive)", blast != null and blast.marked == 121, "%d marked" % (blast.marked if blast else -1))
+	var late := em.spawn(EnemyManager.TANK, Vector3(3, 0, 0), 5.0)   # spawned right after
+	var late_uid := em.uid[late]
+	pu.tick(dt, 0.1)
+	var alive_early := 0
+	for u in nuke_uids:
+		if em.index_of(u) >= 0:
+			alive_early += 1
+	_check("...the wave rolls outward (not everything dies on the first frame)", alive_early > 60, "%d of 120 still up after 1 frame" % alive_early)
+	var t_all := -1.0
+	for f in 60:
+		pu.tick(dt, 0.1)
+		em.tick(dt, Vector3(0, 0, 0))
+		var left := 0
+		for u in nuke_uids:
+			if em.index_of(u) >= 0:
+				left += 1
+		if left == 0 and t_all < 0.0:
+			t_all = (f + 2) * dt
+	var wi := em.index_of(w_uid)
+	_check("...every enemy that was alive dies, within ~0.6 s", t_all > 0.3 and t_all <= NukeBlast.WAVE_TIME + 0.1, "all dead at %.2f s" % t_all)
+	_check("...a boss isn't killed, only loses 15% of max HP", wi >= 0 and absf((w_max - em.hp[wi]) / w_max - NukeBlast.BOSS_FRAC) < 0.005, "lost %.3f" % ((w_max - em.hp[wi]) / w_max if wi >= 0 else -1.0))
+	_check("...enemies spawned after it survive", em.index_of(late_uid) >= 0 and is_equal_approx(em.hp[em.index_of(late_uid)], em.hp_max[em.index_of(late_uid)]), "")
+	_check("...and it never hurts you", is_equal_approx(player.hp, p_hp), "%.1f -> %.1f" % [p_hp, player.hp])
+	_check("...the wave is over (no blast left ticking)", pu.blasts.is_empty() and blast.killed == 120 and blast.bosses_hit == 1, "killed %d, bosses %d" % [blast.killed, blast.bosses_hit])
 
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)

@@ -56,7 +56,7 @@
       "abilities": [
         { "name": "Overcharge", "cooldown": 30, "icon": { "glyph": "bolt", "color": "#fff27a" },
           "text": "Never stands still. Now he really can't.",
-          "lines": ["{+40%} move speed for {8 s}",
+          "lines": ["{+40%} move speed for {8 s}", "Invincible the whole time",
                     "Every jump and every landing releases a shock: {40} damage within {6 m}"] },
         { "name": "Thunderclap", "cooldown": 30, "icon": { "glyph": "burst", "color": "#ffe14a" },
           "text": "Lightning finds the toughest enemies.",
@@ -345,20 +345,20 @@
 
     "singe": {
       "role": "Fast fire imp who sets the ground ablaze",
-      "weapon": { "name": "Cinder Toss", "icon": { "glyph": "flame", "cover": "#3a1408", "tint": "#ff8a2a" }, "desc": "Lobbed hot coals that leave small fires (10 damage per second for 2 s)", "short": "Lobbed coals, fires", "damage": "15", "every": 0.7 },
+      "weapon": { "name": "Fireflick", "icon": { "glyph": "fireball", "cover": "#3a1408", "tint": "#ff8a2a" }, "desc": "Embers flicked in pairs (14 m): 8 damage each, and they set what they hit burning for 3% of max HP per second for 2 s", "short": "Flicked embers, burns", "damage": "8 × 2", "every": 0.5 },
       "abilities": [
-        { "name": "Hotfoot", "cooldown": 25, "icon": { "glyph": "flame", "color": "#ff8a2a" },
+        { "name": "Scorch Trail", "cooldown": 25, "icon": { "glyph": "flame", "color": "#ff8a2a" },
           "text": "Runs around leaving scorch marks on everything.",
-          "lines": ["{+40%} move speed for {6 s}, leaving burning footprints that last {4 s}",
-                    "Enemies that touch them burn for {4%} of max HP per second for {3 s}"] },
-        { "name": "Flashover", "cooldown": 45, "icon": { "glyph": "burst", "color": "#ffb030" },
-          "text": "Every fire he's lit goes off at once.",
-          "lines": ["Every fire on the ground erupts: {100} damage within {3 m} of each",
-                    "Each eruption leaves a fresh fire behind"] },
-        { "name": "Supernova", "cooldown": 120, "icon": { "glyph": "sun", "color": "#fff0c0" },
-          "text": "Gets very, very hot.",
-          "lines": ["Glow white-hot for {3 s} (you take no damage), then explode: {300} damage within {25 m}, plus a {3 s} burn",
-                    "Afterwards you're a tiny cinder with {+50%} move speed for {5 s}"] }
+          "lines": ["{+30%} move speed for {6 s}, leaving burning scorch marks behind you that last {4 s}",
+                    "Enemies on them take {15} damage and burn for {5%} of max HP per second for {3 s}"] },
+        { "name": "Lava Cannonball", "cooldown": 45, "icon": { "glyph": "bomb", "color": "#ff6a20" },
+          "text": "Tucks in. Cannonballs. Splashes everyone.",
+          "lines": ["Curl into a ball of coals and dive up to {18 m} where you aim (untouchable in the air)",
+                    "Crash down for {150} damage within {6 m}, leaving a lava pool for {3 s} ({4%} of max HP per second)"] },
+        { "name": "Caldera Eruption", "cooldown": 120, "icon": { "glyph": "volcano", "color": "#ff4a10" },
+          "text": "Brings the volcano with him.",
+          "lines": ["The ground cracks open round you and lava bombs rain down for {6 s}: {36} bombs within {22 m}",
+                    "Each hits for {110} damage within {3.5 m} and sets enemies burning ({4%} of max HP per second for {3 s})"] }
       ]
     },
 
@@ -480,39 +480,39 @@
 
     "pharaoh": {
       "role": "Cursed king who commands the sand and the dead",
-      "weapon": { "name": "Flail of Kings", "icon": { "glyph": "slam", "cover": "#3a2a10", "tint": "#ffd060" }, "desc": "Flail slam in a 4 m arc: 45 damage, and the enemies it hits are cursed (+25% damage taken for 3 s)", "short": "Slam, curses", "damage": "45", "every": 1.1 },
+      "weapon": { "name": "Scarab Bolts", "icon": { "glyph": "scarab", "cover": "#3a2a10", "tint": "#ffd060" }, "desc": "Golden scarabs that seek their target: 14 damage, then they burrow in for 2% of max HP per second for 2 s", "short": "Seeking scarabs", "damage": "14", "every": 0.6 },
       "abilities": [
-        { "name": "Scarab Swarm", "cooldown": 30, "icon": { "glyph": "swirl", "color": "#3a7a6a" },
-          "text": "A carpet of beetles pours out of his sleeves.",
-          "lines": ["Scarabs pour down a {20 m} lane where you aim: {60} damage",
-                    "Enemies they cross are poisoned for {4 s}"] },
-        { "name": "Sandstorm", "cooldown": 45, "icon": { "glyph": "cloud", "color": "#e0b870" },
+        { "name": "Curse of the Sands", "cooldown": 30, "icon": { "glyph": "ankh", "color": "#9cff5a" },
+          "text": "Four thousand years of bad luck, all at once.",
+          "lines": ["A beam of cursed light runs {22 m} down where you aim: {60} damage",
+                    "Enemies it touches are cursed ({+25%} damage taken) for {6 s}, slowed {50%} and wither for {3%} of max HP per second for {4 s}"] },
+        { "name": "Sandstorm", "cooldown": 45, "icon": { "glyph": "swirl", "color": "#e0b870" },
           "text": "The desert answers.",
-          "lines": ["A storm whirls round you for {8 s} out to {9 m}",
-                    "Enemies in it are slowed {50%} and take {20} damage a second"] },
-        { "name": "Wrath of the Sands", "cooldown": 120, "icon": { "glyph": "sun", "color": "#ffd23f" },
+          "lines": ["A storm whirls round you for {8 s} out to {8 m}",
+                    "Enemies in it are slowed {50%} and take {20} damage a second; it blinds them for {2 s} when it catches them (they wander, harmless)"] },
+        { "name": "Wrath of the Sands", "cooldown": 120, "icon": { "glyph": "eye", "color": "#ffd23f" },
           "text": "The Sphinx opens its eyes.",
-          "lines": ["Its gaze sweeps the field: {400} damage to every enemy within {30 m}",
-                    "The fallen rise as mummies that fight for you for {10 s}"] }
+          "lines": ["A spectral Sphinx rises before you and its eyes blaze: a great storm tears through every enemy within {25 m} for {300} damage",
+                    "Up to {10} of the fallen rise as mummies that fight for you for {12 s} ({20} a hit)"] }
       ]
     },
 
     "necromancer": {
       "role": "Grave-lord who drains souls and raises the dead",
-      "weapon": { "name": "Skull Staff", "icon": { "glyph": "shadowbolt", "cover": "#14281a", "tint": "#6dff8a" }, "desc": "A bolt of green soul-fire from the staff: 26 damage, and a little of it heals you", "short": "Soul bolts, drain", "damage": "26", "every": 0.8 },
+      "weapon": { "name": "Soul Bolts", "icon": { "glyph": "shadowbolt", "cover": "#14281a", "tint": "#6dff8a" }, "desc": "Green skull bolts of soul-fire: 20 damage, piercing 2 more enemies", "short": "Piercing soul bolts", "damage": "20", "every": 0.8 },
       "abilities": [
-        { "name": "Bone Spikes", "cooldown": 30, "icon": { "glyph": "bone", "color": "#e0d8c0" },
-          "text": "The ground remembers what's buried in it.",
-          "lines": ["Bone spikes burst up along a {18 m} line where you aim: {70} damage",
-                    "Enemies they hit are rooted for {1.5 s}"] },
-        { "name": "Raise the Dead", "cooldown": 45, "icon": { "glyph": "ghost", "color": "#7dffb0" },
+        { "name": "Raise the Dead", "cooldown": 30, "icon": { "glyph": "grave", "color": "#7dffb0" },
           "text": "Up you get.",
-          "lines": ["Six skeletons claw out of the ground round you and fight for you for {15 s}",
+          "lines": ["Up to {8} of the dead (fresh corpses first) claw out of the ground and fight for you for {12 s}",
                     "Each hits for {18} damage"] },
-        { "name": "The Graves Open", "cooldown": 120, "icon": { "glyph": "moon", "color": "#5cff7a" },
+        { "name": "Soul Drain", "cooldown": 45, "icon": { "glyph": "ghost", "color": "#5cff9a" },
+          "text": "He'll be taking that.",
+          "lines": ["A beam from your staff drains everything in a {16 m} line for {4 s}: {40} damage a second",
+                    "You heal {20%} of the damage it does (up to {4%} of max HP a second)"] },
+        { "name": "The Graves Open", "cooldown": 120, "icon": { "glyph": "skull", "color": "#5cff7a" },
           "text": "Every grave in reach gives up its dead.",
-          "lines": ["The ground within {25 m} erupts: {300} damage to every enemy on it",
-                    "The fallen rise as ghosts that fight for you for {10 s}"] }
+          "lines": ["Graves burst open under every enemy within {25 m}: bone spikes for {300} damage, rooted for {1.5 s}",
+                    "Then up to {16} of the dead rise and fight for you for {10 s}"] }
       ]
     }
   }

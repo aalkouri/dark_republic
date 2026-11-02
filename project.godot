@@ -21,6 +21,7 @@ Events="*res://scripts/events.gd"
 Settings="*res://scripts/settings.gd"
 Wallet="*res://scripts/wallet.gd"
 MenuMusic="*res://scripts/menu_music.gd"
+Loader="*res://scripts/loader.gd"
 
 [display]
 

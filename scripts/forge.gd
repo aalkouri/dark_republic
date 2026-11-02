@@ -38,6 +38,10 @@ const ACID_BURST_FRAC := 0.25            # Acid Body: its kills burst for 25% of
 const ACID_BURST_RADIUS := 3.0           # ...within 3 m
 const VENOM_STACKS := 5                  # Venom Spit: poison stacks 5 times (not 3)
 const SPORE_SIZE := 2.0                  # Spore Blade: spore clouds twice as big
+const SCARAB_BOUNCES := 1                # Scarab Bolts: each scarab seeks on to 1 more enemy
+const SOUL_HEAL := 1.0                   # Soul Bolts: each hit heals 1 HP...
+const SOUL_HEAL_CAP := 4.0               # ...up to 4 HP a second
+const EMBER_BURN := 2.0                  # Fireflick: burns deal double damage
 
 ## Shard parts per weapon style (always 5 in all).
 const RECIPES := {
@@ -59,6 +63,9 @@ const RECIPES := {
 	"acid": {"fire": 2, "dark": 3},                       # The Blob
 	"venom": {"ice": 1, "lightning": 1, "dark": 3},       # The Arachnid
 	"spore": {"fire": 1, "ice": 1, "dark": 3},            # The Toadstool Knight
+	"scarab": {"fire": 2, "lightning": 1, "light": 2},    # The Pharaoh (desert sun and storm, gold)
+	"soul": {"ice": 1, "dark": 3, "light": 1},            # The Necromancer (the grave's chill, souls)
+	"ember": {"fire": 3, "dark": 2},                      # Singe (lava and obsidian)
 }
 ## Weapon specials, unlocked at forge level 1.
 const SPECIALS := {
@@ -80,6 +87,9 @@ const SPECIALS := {
 	"acid": "Enemies it kills burst for 25% of their max HP",
 	"venom": "Poison stacks 5 times instead of 3",
 	"spore": "Spore clouds are twice as big",
+	"scarab": "Scarabs seek on to 1 more enemy",
+	"soul": "Each hit heals you 1 HP (up to 4 a second)",
+	"ember": "Burns deal double damage",
 }
 
 

@@ -9,6 +9,7 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 const GAME_SCENE := "res://scenes/main.tscn"
 const COLUMNS := 6
 const TILE := 120.0
+const CharBonuses := preload("res://scripts/char_bonuses.gd")
 
 var characters: Array = []
 var _tiles: Array[Button] = []
@@ -31,6 +32,7 @@ var _level_box: VBoxContainer   # top left of the preview: level, EXP and a bar
 var _level_label: Label
 var _exp_label: Label
 var _exp_bar: ProgressBar
+var _bonus_box: VBoxContainer   # under the level: "STARTING BONUSES", 3 rows with tier-coloured bars
 var _req_box: PanelContainer
 var _req_rows: HBoxContainer
 var _big_icon: CharacterIcon
@@ -120,7 +122,7 @@ func price_of(k: int) -> int:
 	return int(characters[k].get("price", 0))
 
 
-const BOSS_NAMES := {"thog": "Defeat Thog the Troll in the Swamp", "toadstool_knight": "Defeat the Toadstool Knight in the Magical Forest", "arachnid": "Defeat the Arachnid in the Castle", "pharaoh": "Defeat the Pharaoh in the Desert", "necromancer": "Defeat the Necromancer in the Graveyard"}
+const BOSS_NAMES := {"thog": "Defeat Thog the Troll in the Swamp", "toadstool_knight": "Defeat the Toadstool Knight in the Magical Forest", "arachnid": "Defeat the Arachnid in the Castle", "pharaoh": "Defeat the Pharaoh in the Desert", "necromancer": "Defeat the Necromancer in the Graveyard", "singe": "Defeat Singe in the Ashen Caldera"}
 const FEAT_NAMES := {"unrelenting_swamp_15": "Survive 15:00 in the Swamp on Unrelenting"}
 
 
@@ -424,6 +426,69 @@ func _build_level_box(stage: Control) -> void:
 	_exp_bar.add_theme_stylebox_override("fill", fill)
 	_exp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_level_box.add_child(_exp_bar)
+	_bonus_box = VBoxContainer.new()
+	_bonus_box.add_theme_constant_override("separation", 1)
+	_bonus_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0, 8)
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_level_box.add_child(gap)
+	_level_box.add_child(_bonus_box)
+
+
+## The character's three starting bonuses under the level: stat name and value, and a bar as
+## long as the boost, red (small), yellow (medium) or green (big). Shown for locked ones too.
+func _refresh_bonuses(cid: String) -> void:
+	for ch in _bonus_box.get_children():
+		_bonus_box.remove_child(ch)
+		ch.queue_free()
+	var list := CharBonuses.of(cid)
+	_bonus_box.visible = not list.is_empty()
+	if list.is_empty():
+		return
+	_bonus_box.add_child(_label(tr("STARTING BONUSES"), 15, Color(1.0, 0.62, 0.25), true))
+	for b in list:
+		var row := VBoxContainer.new()
+		row.set_meta("bonus", b)
+		row.add_theme_constant_override("separation", 1)
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var line := HBoxContainer.new()
+		line.custom_minimum_size = Vector2(210, 0)
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var nm := _label(CharBonuses.stat_name(str(b["stat"])), 16, Color(0.92, 0.86, 0.76))
+		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		nm.clip_text = true
+		nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		nm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		line.add_child(nm)
+		var tier := CharBonuses.tier(b)
+		var col := CharBonuses.tier_color(tier)
+		var val := _label(CharBonuses.value_text(b), 16, col.lerp(Color.WHITE, 0.25), true)
+		val.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		line.add_child(val)
+		row.add_child(line)
+		var bar := ProgressBar.new()
+		bar.name = "BonusBar"
+		bar.show_percentage = false
+		bar.custom_minimum_size = Vector2(210, 7)
+		bar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		bar.max_value = 1.0
+		bar.step = 0.0
+		bar.value = CharBonuses.bar_fill(b)
+		var bg := StyleBoxFlat.new()
+		bg.bg_color = Color(0.1, 0.07, 0.05, 0.9)
+		bg.border_color = Color(0.45, 0.3, 0.14, 0.8)
+		bg.set_border_width_all(1)
+		bg.set_corner_radius_all(3)
+		var fill := StyleBoxFlat.new()
+		fill.bg_color = col
+		fill.set_corner_radius_all(3)
+		bar.add_theme_stylebox_override("background", bg)
+		bar.add_theme_stylebox_override("fill", fill)
+		bar.set_meta("tier", tier)
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(bar)
+		_bonus_box.add_child(row)
 
 
 ## The weapon corner's forge info: its forge level, and the shards the next level needs - only
@@ -821,10 +886,9 @@ func _show(k: int) -> void:
 	# Level and EXP sit in the preview's top-left corner (unlocked characters); the only text
 	# under the abilities is for locked ones: what it takes to unlock them
 	_status.visible = not mystery and not unlocked
-	_level_box.visible = unlocked and not mystery
-	if mystery:
-		_status.text = ""
-	elif unlocked:
+	# Every character with a card shows its level (LVL 0 while locked) and starting bonuses
+	_level_box.visible = not mystery
+	if not mystery:
 		var cid: String = c["id"]
 		var next := Wallet.next_level_exp(cid)
 		var ex := Wallet.char_exp_of(cid)
@@ -832,6 +896,10 @@ func _show(k: int) -> void:
 		_exp_label.text = (tr("%s / %s EXP") % [Wallet.fmt(ex), Wallet.fmt(next)]) if next >= 0 else tr("max level")
 		_exp_bar.max_value = maxf(1.0, float(next)) if next >= 0 else 1.0
 		_exp_bar.value = float(ex) if next >= 0 else 1.0
+		_refresh_bonuses(cid)
+	if mystery:
+		_status.text = ""
+	elif unlocked:
 		_status.text = ""
 	else:
 		var ok := can_unlock(k)
@@ -993,7 +1061,7 @@ func _leave(scene: String) -> void:
 	tw.tween_property(_fade, "color:a", 1.0, 0.45)
 	if scene == GAME_SCENE:
 		MenuMusic.fade_out(0.45)
-	tw.chain().tween_callback(func(): get_tree().change_scene_to_file(scene))
+	tw.chain().tween_callback(func(): Loader.go(scene))
 
 
 func _open_skills() -> void:

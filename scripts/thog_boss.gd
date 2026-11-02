@@ -501,6 +501,22 @@ func is_quaking() -> bool:
 	return state == "attack" and attack == "quake" and not _landed
 
 
+## Minimap: during the quake's warning, every swamp pool is safe ([{pos, radius}]; MapBoss API).
+func map_safe_zones() -> Array:
+	var out: Array = []
+	var w = main.water if main != null else null
+	if not is_quaking() or w == null:
+		return out
+	for p in w.pools:
+		var c: Vector2 = p["center"]
+		out.append({"pos": Vector3(c.x, 0.0, c.y), "radius": float(p["r"])})
+	return out
+
+
+func map_danger_zones() -> Array:
+	return []
+
+
 func _hit(amount: float, push: Vector3) -> void:
 	player.invuln = 0.0   # the big swings always land, whatever grazed you a moment ago
 	if player.hurt(amount * EnemyManager.BOSS_DAMAGE_MULT, "THOG"):

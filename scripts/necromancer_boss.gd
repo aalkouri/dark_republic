@@ -585,6 +585,17 @@ func safe_zones() -> Array[Vector3]:
 	return _safe
 
 
+## Minimap: the consecrated ground (churchyard + holy circles) while the graves are opening
+## (MapBoss API; cleared once it has landed).
+func map_safe_zones() -> Array:
+	var out: Array = []
+	if _landed:
+		return out
+	for s in _safe:
+		out.append({"pos": Vector3(s.x, 0.0, s.z), "radius": s.y})
+	return out
+
+
 func _pillar(at: Vector3) -> void:
 	var n := Node3D.new()
 	n.top_level = true

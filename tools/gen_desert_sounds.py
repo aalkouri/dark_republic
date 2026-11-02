@@ -7,6 +7,7 @@ audio/desert/mummy_curse.wav        a hollow whisper and a sinister shimmer (a m
 audio/desert/mummy_crumble.wav      dry linen tearing and dust pouring away
 audio/desert/vulture_screech_1..2   a harsh, hissing screech
 audio/desert/vulture_flap.wav       two heavy wingbeats
+audio/desert/vulture_peck.wav       a vulture's beak attack: a quick whoosh, a hard bony strike, a hiss
 audio/desert/pharaoh_roar.wav       a huge, dry, echoing bellow from inside the gold mask
 audio/desert/pharaoh_curse.wav      the curse beam: a rising choir-like drone and a crackling hiss
 audio/desert/pharaoh_summon.wav     stone grinding, sand pouring, a low call
@@ -59,6 +60,20 @@ def screech(d, f0):
 def wingbeat(d):
     t = g.t_of(d)
     return g.lp(g.noise(d), 500) * np.exp(-t / 0.06) + g.boom(d, 70, 40, 0.06) * 0.4
+
+
+def peck(d=0.5):
+    """A beak lunging and striking: a short whoosh, a hard knock of bone with a woody ring, a
+    rasping hiss after it."""
+    t = g.t_of(d)
+    swish = g.bp(g.noise(d), 700, 3500) * np.exp(-((t - 0.05) / 0.035) ** 2) * 0.5
+    tt = np.clip(t - 0.08, 0, None)
+    hit = (t >= 0.08)
+    knock = (np.sin(2 * np.pi * 1650 * tt) * 0.6 + np.sin(2 * np.pi * 2900 * tt) * 0.3) * np.exp(-tt / 0.018) * hit
+    thud = np.sin(2 * np.pi * (190 - 60 * np.clip(tt / 0.08, 0, 1)) * tt) * np.exp(-tt / 0.05) * hit * 0.7
+    crack = g.hp(g.noise(d), 2500) * np.exp(-tt / 0.008) * hit * 0.6
+    hiss = g.bp(g.noise(d), 2500, 7000) * np.exp(-np.clip(t - 0.14, 0, None) / 0.12) * (t >= 0.12) * 0.25
+    return swish + knock + thud + crack + hiss
 
 
 def grind(d, f0=55):
@@ -127,6 +142,7 @@ def main():
         g.write("vulture_screech_%d" % (k + 1), screech(d, f0))
     d = 0.7
     g.write("vulture_flap", g.mix(d, wingbeat(0.25), at(wingbeat(0.25), d, 0.3)))
+    g.write("vulture_peck", peck(0.5))
     # The Pharaoh
     d = 2.6
     t = g.t_of(d)

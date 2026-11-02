@@ -1,0 +1,290 @@
+{
+ "Every boss you defeat drops 1 to 5 elemental shards: Fire, Ice, Lightning, Dark or Light.": [
+  "Cada jefe que derrotas suelta de 1 a 5 fragmentos elementales: Fuego, Hielo, Rayo, Oscuridad o Luz.",
+  "Chaque boss vaincu lâche de 1 à 5 éclats élémentaires : Feu, Glace, Foudre, Ténèbres ou Lumière.",
+  "كل زعيم تهزمه يُسقط من 1 إلى 5 شظايا عنصرية: نار أو جليد أو برق أو ظلام أو نور.",
+  "Jeder besiegte Boss lässt 1 bis 5 Elementarsplitter fallen: Feuer, Eis, Blitz, Schatten oder Licht.",
+  "每击败一个首领，都会掉落 1 到 5 枚元素碎片：火焰、寒冰、雷电、暗影或光明。",
+  "ボスを倒すと、属性の欠片が1〜5個落ちる：炎、氷、雷、闇、光のいずれか。"
+ ],
+ "Each map only drops its own two kinds of shard. The Swamp gives Dark and Ice, the Magical Forest Light and Lightning.": [
+  "Cada mapa solo da sus dos tipos de fragmento. El Pantano da Oscuridad y Hielo; el Bosque mágico, Luz y Rayo.",
+  "Chaque carte ne donne que ses deux types d'éclats. Le Marais donne Ténèbres et Glace, la Forêt magique Lumière et Foudre.",
+  "كل خريطة لا تُسقط إلا نوعيها الخاصين من الشظايا. المستنقع يمنح الظلام والجليد، والغابة السحرية النور والبرق.",
+  "Jede Karte liefert nur ihre zwei eigenen Splitterarten. Der Sumpf gibt Schatten und Eis, der Zauberwald Licht und Blitz.",
+  "每张地图只掉落它自己的两种碎片。沼泽掉落暗影和寒冰，魔法森林掉落光明和雷电。",
+  "各マップで手に入る欠片は2種類だけ。沼は闇と氷、魔法の森は光と雷。"
+ ],
+ "Hunting for Fire shards? The Castle, the Desert and the Ashen Caldera all drop them.": [
+  "¿Buscas fragmentos de fuego? El Castillo, el Desierto y la Caldera de Ceniza los sueltan.",
+  "Vous cherchez des éclats de feu ? Le Château, le Désert et la Caldeira de cendres en donnent tous.",
+  "تبحث عن شظايا النار؟ القلعة والصحراء وفوهة الرماد كلها تُسقطها.",
+  "Auf der Jagd nach Feuersplittern? Die Burg, die Wüste und die Aschecaldera lassen sie alle fallen.",
+  "想要火焰碎片？城堡、沙漠和灰烬火山口都会掉落。",
+  "炎の欠片が欲しい？ 城、砂漠、灰のカルデラで手に入る。"
+ ],
+ "Spend shards in the Forge to upgrade your signature weapon, up to level 10. Click the weapon on the character select to open it.": [
+  "Gasta fragmentos en la Forja para mejorar tu arma insignia hasta el nivel 10. Haz clic en el arma en la selección de personaje para abrirla.",
+  "Dépensez vos éclats à la Forge pour améliorer votre arme emblématique, jusqu'au niveau 10. Cliquez sur l'arme dans la sélection des personnages pour l'ouvrir.",
+  "أنفق الشظايا في المصهر لترقية سلاحك المميز حتى المستوى 10. انقر على السلاح في شاشة اختيار الشخصية لفتحه.",
+  "Gib Splitter in der Schmiede aus, um deine Signaturwaffe bis Stufe 10 zu verbessern. Klicke in der Charakterauswahl auf die Waffe, um sie zu öffnen.",
+  "在锻造炉中花费碎片升级你的招牌武器，最高 10 级。在角色选择界面点击武器即可打开。",
+  "欠片を鍛冶場で使えば、看板武器をレベル10まで強化できる。キャラクター選択で武器をクリックして開こう。"
+ ],
+ "Short on shards? The Forge sells any kind for 150 coins each.": [
+  "¿Te faltan fragmentos? La Forja vende cualquier tipo por 150 monedas cada uno.",
+  "À court d'éclats ? La Forge vend n'importe quel type pour 150 pièces l'unité.",
+  "تنقصك الشظايا؟ يبيع المصهر أي نوع منها بـ 150 عملة للواحدة.",
+  "Zu wenig Splitter? Die Schmiede verkauft jede Sorte für 150 Münzen pro Stück.",
+  "碎片不够？锻造炉以每枚 150 金币出售任意种类的碎片。",
+  "欠片が足りない？ 鍛冶場ならどの種類も1個150コインで買える。"
+ ],
+ "Every Forge level adds 25% damage and 8% attack rate, and level 1 unlocks your weapon's own special trick.": [
+  "Cada nivel de forja añade un 25 % de daño y un 8 % de velocidad de ataque, y el nivel 1 desbloquea el truco especial de tu arma.",
+  "Chaque niveau de forge ajoute 25 % de dégâts et 8 % de cadence d'attaque, et le niveau 1 débloque l'effet spécial de votre arme.",
+  "كل مستوى صهر يضيف 25% من الضرر و8% من سرعة الهجوم، والمستوى 1 يفتح الخدعة الخاصة بسلاحك.",
+  "Jede Schmiedestufe bringt 25 % Schaden und 8 % Angriffstempo, und Stufe 1 schaltet den besonderen Trick deiner Waffe frei.",
+  "每个锻造等级增加 25% 伤害和 8% 攻击速度，1 级时还会解锁武器专属的特殊效果。",
+  "鍛造レベルごとにダメージ+25%、攻撃速度+8%。レベル1で武器固有の特殊効果も解放される。"
+ ],
+ "You start a run with one ability. The second unlocks at level 5 and your ultimate at level 10.": [
+  "Empiezas cada partida con una habilidad. La segunda se desbloquea al nivel 5 y tu definitiva al nivel 10.",
+  "Vous commencez une partie avec une seule capacité. La deuxième se débloque au niveau 5 et votre ultime au niveau 10.",
+  "تبدأ الجولة بقدرة واحدة. تُفتح الثانية في المستوى 5 وقدرتك الخارقة في المستوى 10.",
+  "Du beginnst einen Lauf mit einer Fähigkeit. Die zweite wird auf Stufe 5 frei, deine Ultimative auf Stufe 10.",
+  "每局开始时你只有一个技能。第二个在 5 级解锁，终极技在 10 级解锁。",
+  "ラン開始時のアビリティは1つ。2つ目はレベル5、アルティメットはレベル10で解放される。"
+ ],
+ "Abilities recharge on a cooldown: about 30 seconds, 45 seconds and 2 minutes. A ready ability pulses on the bar.": [
+  "Las habilidades se recargan con un tiempo de espera: unos 30 segundos, 45 segundos y 2 minutos. Una habilidad lista late en la barra.",
+  "Les capacités se rechargent : environ 30 secondes, 45 secondes et 2 minutes. Une capacité prête pulse sur la barre.",
+  "تُعاد شحن القدرات بعد فترة تبريد: نحو 30 ثانية و45 ثانية ودقيقتين. القدرة الجاهزة تنبض على الشريط.",
+  "Fähigkeiten laden sich mit einer Abklingzeit auf: etwa 30 Sekunden, 45 Sekunden und 2 Minuten. Eine bereite Fähigkeit pulsiert in der Leiste.",
+  "技能有冷却时间：大约 30 秒、45 秒和 2 分钟。就绪的技能会在技能栏上闪动。",
+  "アビリティにはクールダウンがある：だいたい30秒、45秒、2分。使えるアビリティはバーで脈打つ。"
+ ],
+ "Hold Alt to pause and inspect: hover an ability or one of your upgrades to see exactly what it does.": [
+  "Mantén Alt para pausar e inspeccionar: pasa el cursor sobre una habilidad o una de tus mejoras para ver exactamente qué hace.",
+  "Maintenez Alt pour mettre en pause et inspecter : survolez une capacité ou une de vos améliorations pour voir exactement ce qu'elle fait.",
+  "اضغط مطولًا على Alt للإيقاف المؤقت والفحص: مرّر المؤشر فوق قدرة أو إحدى ترقياتك لترى ما تفعله بالضبط.",
+  "Halte Alt gedrückt, um zu pausieren und nachzusehen: Fahre über eine Fähigkeit oder ein Upgrade, um genau zu sehen, was es tut.",
+  "按住 Alt 可暂停并查看：将鼠标悬停在技能或你的升级上，即可看到它的具体效果。",
+  "Altを押し続けると一時停止して確認できる。アビリティや強化にカーソルを合わせれば効果が詳しくわかる。"
+ ],
+ "Chests only open with a key of their own tier: bronze, silver or gold. Walk up to one with its key and press E.": [
+  "Los cofres solo se abren con una llave de su mismo rango: bronce, plata u oro. Acércate con la llave y pulsa E.",
+  "Les coffres ne s'ouvrent qu'avec une clé de leur rang : bronze, argent ou or. Approchez-vous avec la clé et appuyez sur E.",
+  "لا تُفتح الصناديق إلا بمفتاح من فئتها: برونزي أو فضي أو ذهبي. اقترب من الصندوق ومعك مفتاحه واضغط E.",
+  "Truhen öffnen sich nur mit einem Schlüssel ihrer Stufe: Bronze, Silber oder Gold. Geh mit dem Schlüssel hin und drück E.",
+  "宝箱只能用同等级的钥匙打开：青铜、白银或黄金。带着钥匙走到宝箱前按 E。",
+  "宝箱は同じランクの鍵でしか開かない：ブロンズ、シルバー、ゴールド。鍵を持って近づき、Eを押そう。"
+ ],
+ "Elites sometimes drop chest keys. Keys don't carry over to the next run, so use them!": [
+  "Las élites a veces sueltan llaves de cofre. Las llaves no pasan a la siguiente partida, ¡así que úsalas!",
+  "Les élites lâchent parfois des clés de coffre. Les clés ne sont pas conservées d'une partie à l'autre, alors utilisez-les !",
+  "تُسقط النخبة أحيانًا مفاتيح صناديق. المفاتيح لا تنتقل إلى الجولة التالية، فاستخدمها!",
+  "Elitegegner lassen manchmal Truhenschlüssel fallen. Schlüssel bleiben nicht für den nächsten Lauf, also nutze sie!",
+  "精英敌人有时会掉落宝箱钥匙。钥匙不会保留到下一局，记得用掉！",
+  "エリートは時々宝箱の鍵を落とす。鍵は次のランに持ち越せないので、使い切ろう！"
+ ],
+ "Opening a chest spins a slot machine of your abilities. Three of a kind gives that ability +3 levels, and gold chests hit it most often.": [
+  "Abrir un cofre hace girar una tragaperras con tus habilidades. Tres iguales dan +3 niveles a esa habilidad, y los cofres de oro lo consiguen más a menudo.",
+  "Ouvrir un coffre lance une machine à sous de vos capacités. Trois identiques donnent +3 niveaux à cette capacité, et les coffres en or y parviennent le plus souvent.",
+  "فتح صندوق يدير آلة حظ تحمل قدراتك. ثلاثة متطابقة تمنح تلك القدرة +3 مستويات، والصناديق الذهبية تحققها أكثر من غيرها.",
+  "Eine Truhe zu öffnen dreht einen Spielautomaten mit deinen Fähigkeiten. Drei gleiche geben dieser Fähigkeit +3 Stufen, und Goldtruhen schaffen das am häufigsten.",
+  "打开宝箱会转动一台装着你技能的老虎机。三个相同可让该技能 +3 级，黄金宝箱最容易中。",
+  "宝箱を開けるとアビリティのスロットが回る。3つそろえばそのアビリティが+3レベル。ゴールドの宝箱ほどそろいやすい。"
+ ],
+ "Chests are the only way to level up abilities. At level 10 an ability is four times as strong and recharges 40% faster.": [
+  "Los cofres son la única forma de subir de nivel las habilidades. Al nivel 10, una habilidad es cuatro veces más fuerte y se recarga un 40 % más rápido.",
+  "Les coffres sont le seul moyen de faire monter vos capacités de niveau. Au niveau 10, une capacité est quatre fois plus puissante et se recharge 40 % plus vite.",
+  "الصناديق هي الطريقة الوحيدة لرفع مستوى القدرات. في المستوى 10 تصبح القدرة أقوى بأربع مرات وتُشحن أسرع بنسبة 40%.",
+  "Truhen sind der einzige Weg, Fähigkeiten aufzuwerten. Auf Stufe 10 ist eine Fähigkeit viermal so stark und lädt 40 % schneller auf.",
+  "宝箱是提升技能等级的唯一途径。10 级时，技能威力是原来的四倍，冷却快 40%。",
+  "アビリティを強化できるのは宝箱だけ。レベル10では威力が4倍、クールダウンが40%短くなる。"
+ ],
+ "Epic enemies drop potions: purple cuts your cooldowns, red heals and blue gives you a shield. Potions never disappear.": [
+  "Los enemigos épicos sueltan pociones: la morada reduce tus tiempos de espera, la roja cura y la azul te da un escudo. Las pociones nunca desaparecen.",
+  "Les ennemis épiques lâchent des potions : la violette réduit vos temps de recharge, la rouge soigne et la bleue donne un bouclier. Les potions ne disparaissent jamais.",
+  "يُسقط الأعداء الملحميون جرعات: البنفسجية تقلّص فترات التبريد، والحمراء تشفي، والزرقاء تمنحك درعًا. الجرعات لا تختفي أبدًا.",
+  "Epische Gegner lassen Tränke fallen: Lila verkürzt deine Abklingzeiten, Rot heilt und Blau gibt dir einen Schild. Tränke verschwinden nie.",
+  "史诗敌人会掉落药水：紫色缩短冷却，红色回复生命，蓝色提供护盾。药水永远不会消失。",
+  "エピックな敵はポーションを落とす。紫はクールダウン短縮、赤は回復、青はシールド。ポーションは消えない。"
+ ],
+ "Elites can drop power-ups like Magnet, Fear Idol and 5x Damage. Press E to grab one, but hurry: they vanish after 45 seconds.": [
+  "Las élites pueden soltar potenciadores como el Imán, el Ídolo del miedo o el Daño x5. Pulsa E para cogerlos, pero date prisa: desaparecen a los 45 segundos.",
+  "Les élites peuvent lâcher des bonus comme l'Aimant, l'Idole de la peur ou Dégâts x5. Appuyez sur E pour les prendre, mais vite : ils disparaissent au bout de 45 secondes.",
+  "قد تُسقط النخبة معززات مثل المغناطيس وصنم الرعب وضرر ×5. اضغط E لالتقاطها، لكن أسرع: فهي تختفي بعد 45 ثانية.",
+  "Elitegegner können Power-ups wie Magnet, Angstidol und 5-facher Schaden fallen lassen. Drück E, um eins zu nehmen, aber beeil dich: Nach 45 Sekunden verschwinden sie.",
+  "精英敌人可能掉落磁铁、恐惧神像和 5 倍伤害等强化道具。按 E 拾取，但要快：45 秒后就会消失。",
+  "エリートはマグネット、恐怖の偶像、ダメージ5倍などのパワーアップを落とすことがある。Eで拾えるが急げ：45秒で消える。"
+ ],
+ "Luck brings more epic enemies (and their drops) and better odds of Rare, Epic and Legendary upgrade cards.": [
+  "La suerte trae más enemigos épicos (y sus botines) y mejores probabilidades de cartas de mejora Raras, Épicas y Legendarias.",
+  "La chance attire plus d'ennemis épiques (et leur butin) et améliore vos chances de cartes Rares, Épiques et Légendaires.",
+  "الحظ يجلب المزيد من الأعداء الملحميين (وغنائمهم) وفرصًا أفضل لبطاقات الترقية النادرة والملحمية والأسطورية.",
+  "Glück bringt mehr epische Gegner (samt ihrer Beute) und bessere Chancen auf seltene, epische und legendäre Upgrade-Karten.",
+  "幸运会带来更多史诗敌人（以及它们的掉落），并提高稀有、史诗和传说升级卡的出现几率。",
+  "幸運が高いとエピックな敵（とそのドロップ）が増え、レア・エピック・レジェンダリーの強化カードも出やすくなる。"
+ ],
+ "Don't like a card? BAN it for 100 coins and it won't come back this run. You get three bans per run.": [
+  "¿No te gusta una carta? VÉTALA por 100 monedas y no volverá en esta partida. Tienes tres vetos por partida.",
+  "Une carte ne vous plaît pas ? BANNISSEZ-la pour 100 pièces et elle ne reviendra plus de la partie. Vous avez trois bannissements par partie.",
+  "لا تعجبك بطاقة؟ احظرها مقابل 100 عملة ولن تعود في هذه الجولة. لديك ثلاث مرات حظر في كل جولة.",
+  "Gefällt dir eine Karte nicht? SPERRE sie für 100 Münzen, dann kommt sie in diesem Lauf nicht wieder. Du hast drei Sperren pro Lauf.",
+  "不喜欢某张卡？花 100 金币禁用它，本局就不会再出现。每局可以禁用三次。",
+  "気に入らないカードは100コインで除外でき、そのランでは二度と出ない。除外はラン1回につき3回まで。"
+ ],
+ "A Legendary card you don't need can be converted into a chest key instead.": [
+  "Una carta Legendaria que no necesites se puede convertir en una llave de cofre.",
+  "Une carte Légendaire dont vous n'avez pas besoin peut être convertie en clé de coffre.",
+  "يمكن تحويل البطاقة الأسطورية التي لا تحتاجها إلى مفتاح صندوق بدلًا منها.",
+  "Eine legendäre Karte, die du nicht brauchst, kannst du stattdessen in einen Truhenschlüssel umwandeln.",
+  "不需要的传说卡可以转换成一把宝箱钥匙。",
+  "いらないレジェンダリーカードは、宝箱の鍵に変換できる。"
+ ],
+ "Coins come from time survived and from kills, but they're only banked on the end screen. Quitting a run forfeits them.": [
+  "Las monedas se ganan sobreviviendo y matando, pero solo se guardan en la pantalla final. Si abandonas la partida, las pierdes.",
+  "Les pièces viennent du temps survécu et des ennemis tués, mais elles ne sont encaissées qu'à l'écran de fin. Quitter la partie les fait perdre.",
+  "تأتي العملات من وقت البقاء ومن القتلى، لكنها لا تُودَع إلا في شاشة النهاية. ترك الجولة يُضيّعها.",
+  "Münzen gibt es für überlebte Zeit und Kills, aber gutgeschrieben werden sie erst auf dem Endbildschirm. Wer den Lauf abbricht, verliert sie.",
+  "金币来自存活时间和击杀数，但只有在结算画面才会入账。中途退出会失去它们。",
+  "コインは生存時間と撃破数で貯まるが、受け取れるのはリザルト画面だけ。途中でやめると没収される。"
+ ],
+ "Bosses arrive at 8:00. Leave one alive too long and it enrages, attacking much faster.": [
+  "Los jefes llegan a las 8:00. Si dejas uno vivo demasiado tiempo, se enfurece y ataca mucho más rápido.",
+  "Les boss arrivent à 8:00. Laissez-en un en vie trop longtemps et il enrage, attaquant bien plus vite.",
+  "يصل الزعماء عند 8:00. اترك أحدهم حيًا طويلًا فيهيج ويهاجم أسرع بكثير.",
+  "Bosse erscheinen bei 8:00. Lässt du einen zu lange leben, gerät er in Raserei und greift viel schneller an.",
+  "首领在 8:00 登场。拖得太久它就会狂暴，攻击速度大幅加快。",
+  "ボスは8:00に現れる。長く生かしておくと激怒し、攻撃がずっと速くなる。"
+ ],
+ "Boss attacks are always marked on the ground first, filling up red. You always get at least a second to move.": [
+  "Los ataques de los jefes siempre se marcan antes en el suelo, llenándose de rojo. Siempre tienes al menos un segundo para moverte.",
+  "Les attaques de boss sont toujours marquées au sol d'abord, en se remplissant de rouge. Vous avez toujours au moins une seconde pour bouger.",
+  "تُعلَّم هجمات الزعماء على الأرض أولًا دائمًا وتمتلئ بالأحمر. لديك دائمًا ثانية واحدة على الأقل للتحرك.",
+  "Bossangriffe werden immer zuerst am Boden markiert und füllen sich rot. Du hast immer mindestens eine Sekunde zum Ausweichen.",
+  "首领的攻击总会先在地面上标出，逐渐填满红色。你至少有一秒的时间躲开。",
+  "ボスの攻撃は必ず先に地面に表示され、赤く満ちていく。動く時間は最低1秒ある。"
+ ],
+ "At 75%, 50% and 10% health a boss unleashes its ultimate. Thog's Quake can only be survived in a pool: follow the green arrows!": [
+  "Al 75 %, 50 % y 10 % de vida, un jefe desata su definitiva. El Terremoto de Thog solo se sobrevive dentro de una charca: ¡sigue las flechas verdes!",
+  "À 75 %, 50 % et 10 % de vie, un boss déchaîne son ultime. On ne survit au Séisme de Thog que dans une mare : suivez les flèches vertes !",
+  "عند 75% و50% و10% من الصحة يطلق الزعيم قدرته الخارقة. لا نجاة من زلزال ثوغ إلا داخل بركة: اتبع الأسهم الخضراء!",
+  "Bei 75 %, 50 % und 10 % Leben entfesselt ein Boss seine Ultimative. Thogs Beben überlebst du nur in einem Tümpel: Folge den grünen Pfeilen!",
+  "首领在生命值降到 75%、50% 和 10% 时会释放终极技。索格的地震只有躲进水池才能活下来：跟着绿色箭头走！",
+  "ボスは体力75%、50%、10%でアルティメットを放つ。ソグの地震は池の中でしか耐えられない：緑の矢印に従おう！"
+ ],
+ "When a boss ultimate starts, find the safe spot: golden circles for the Pharaoh, holy ground for the Necromancer, raised islands for Singe.": [
+  "Cuando empiece la definitiva de un jefe, busca la zona segura: círculos dorados con el Faraón, suelo sagrado con el Nigromante, islas elevadas con Singe.",
+  "Quand un boss lance son ultime, trouvez la zone sûre : cercles dorés pour le Pharaon, terre consacrée pour le Nécromancien, îlots surélevés pour Singe.",
+  "عندما تبدأ القدرة الخارقة للزعيم، ابحث عن المكان الآمن: الدوائر الذهبية مع الفرعون، والأرض المقدسة مع مستحضر الأرواح، والجزر المرتفعة مع سِنج.",
+  "Wenn ein Boss seine Ultimative beginnt, such den sicheren Ort: goldene Kreise beim Pharao, geweihter Boden beim Nekromanten, erhöhte Inseln bei Singe.",
+  "首领释放终极技时，快找安全点：法老要找金色圆圈，死灵法师要找圣地，焦焦要找升起的岛屿。",
+  "ボスのアルティメットが始まったら安全地帯へ：ファラオは金色の円、ネクロマンサーは聖なる地、シンジはせり上がる島。"
+ ],
+ "Beat each map's boss to open the next map: the Swamp, the Magical Forest, the Castle, the Desert, the Graveyard, then the Ashen Caldera.": [
+  "Vence al jefe de cada mapa para abrir el siguiente: el Pantano, el Bosque mágico, el Castillo, el Desierto, el Cementerio y, por último, la Caldera de Ceniza.",
+  "Battez le boss de chaque carte pour ouvrir la suivante : le Marais, la Forêt magique, le Château, le Désert, le Cimetière, puis la Caldeira de cendres.",
+  "اهزم زعيم كل خريطة لتفتح التالية: المستنقع، ثم الغابة السحرية، فالقلعة، فالصحراء، فالمقبرة، وأخيرًا فوهة الرماد.",
+  "Besiege den Boss jeder Karte, um die nächste zu öffnen: Sumpf, Zauberwald, Burg, Wüste, Friedhof und dann die Aschecaldera.",
+  "击败每张地图的首领即可开启下一张地图：沼泽、魔法森林、城堡、沙漠、墓地，最后是灰烬火山口。",
+  "各マップのボスを倒すと次のマップが開く：沼、魔法の森、城、砂漠、墓地、そして灰のカルデラ。"
+ ],
+ "New champions are bought with coins on the character select. Some, like Thog, must first be beaten on their home turf.": [
+  "Los nuevos campeones se compran con monedas en la selección de personaje. Algunos, como Thog, primero deben ser derrotados en su territorio.",
+  "Les nouveaux champions s'achètent avec des pièces dans la sélection des personnages. Certains, comme Thog, doivent d'abord être vaincus sur leur terrain.",
+  "يُشترى الأبطال الجدد بالعملات من شاشة اختيار الشخصية. وبعضهم، مثل ثوغ، يجب هزيمته أولًا في عقر داره.",
+  "Neue Champions kaufst du mit Münzen in der Charakterauswahl. Manche, wie Thog, müssen zuerst auf heimischem Boden besiegt werden.",
+  "新英雄可在角色选择界面用金币购买。有些英雄（比如索格）必须先在它的主场被击败。",
+  "新しいチャンピオンはキャラクター選択でコインを使って購入する。ソグのように、先に本拠地で倒す必要がある者もいる。"
+ ],
+ "Every run earns your character EXP. Each character level gives a skill point for their skill tree, and the Special column opens at level 5.": [
+  "Cada partida da EXP a tu personaje. Cada nivel de personaje otorga un punto de habilidad para su árbol, y la columna Especial se abre al nivel 5.",
+  "Chaque partie rapporte de l'EXP à votre personnage. Chaque niveau donne un point de compétence pour son arbre, et la colonne Spécial s'ouvre au niveau 5.",
+  "كل جولة تمنح شخصيتك خبرة. كل مستوى للشخصية يمنح نقطة مهارة لشجرة مهاراته، والعمود الخاص يُفتح في المستوى 5.",
+  "Jeder Lauf bringt deinem Charakter EP. Jede Charakterstufe gibt einen Fertigkeitspunkt für seinen Fertigkeitsbaum, und die Spalte Spezial öffnet sich auf Stufe 5.",
+  "每局都会为你的角色赚取经验。角色每升一级获得一个技能点，用于技能树；特殊一栏在 5 级开放。",
+  "ランを重ねるとキャラクターにEXPが入る。キャラクターレベルごとにスキルツリー用のスキルポイントが1つ。スペシャル列はレベル5で開く。"
+ ],
+ "Ultimates set the woods ablaze. Burnt trees crumble away for good, opening new escape routes.": [
+  "Las definitivas incendian el bosque. Los árboles quemados se desmoronan para siempre y abren nuevas vías de escape.",
+  "Les ultimes embrasent les bois. Les arbres brûlés s'effondrent pour de bon, ouvrant de nouvelles voies de fuite.",
+  "القدرات الخارقة تُشعل الغابة. الأشجار المحترقة تتفتت إلى الأبد فاتحةً طرقًا جديدة للهرب.",
+  "Ultimative Fähigkeiten setzen den Wald in Brand. Verbrannte Bäume zerfallen für immer und öffnen neue Fluchtwege.",
+  "终极技会点燃树林。烧毁的树木会彻底化为灰烬，开辟出新的逃生路线。",
+  "アルティメットは森を燃やす。焼けた木は崩れ去り、新しい逃げ道ができる。"
+ ],
+ "Jump the moment you land to keep your momentum, and strafe while airborne to pick up even more speed.": [
+  "Salta justo al aterrizar para mantener la inercia y desplázate de lado en el aire para ganar todavía más velocidad.",
+  "Sautez dès que vous touchez le sol pour garder votre élan, et faites du strafe en l'air pour gagner encore plus de vitesse.",
+  "اقفز لحظة هبوطك لتحافظ على زخمك، وتحرك جانبيًا في الهواء لتكسب سرعة أكبر.",
+  "Spring genau im Moment der Landung, um deinen Schwung zu behalten, und strafe in der Luft, um noch schneller zu werden.",
+  "落地瞬间立刻起跳可以保持惯性，空中横移还能获得更快的速度。",
+  "着地した瞬間にジャンプすれば勢いを保てる。空中でストレイフすればさらに加速できる。"
+ ],
+ "Slide while running for a burst of speed. Sliding downhill speeds you up, and a slide-jump keeps it.": [
+  "Deslízate mientras corres para un acelerón. Deslizarte cuesta abajo te acelera, y un salto desde el deslizamiento conserva la velocidad.",
+  "Glissez en courant pour un regain de vitesse. Glisser en descente vous accélère, et un saut glissé conserve la vitesse.",
+  "انزلق أثناء الركض لدفعة سرعة. الانزلاق على المنحدرات يزيد سرعتك، والقفز من الانزلاق يحافظ عليها.",
+  "Rutsche im Laufen für einen Temposchub. Bergab rutschen macht dich schneller, und ein Rutschsprung behält das Tempo.",
+  "奔跑时滑铲可获得一次加速。下坡滑铲会越滑越快，滑铲跳则能保持速度。",
+  "走りながらスライディングすると一気に加速。下り坂のスライディングでさらに速くなり、スライディングジャンプでその速さを保てる。"
+ ],
+ "Swamp water halves your speed and jump height. The goblins wade slowly too.": [
+  "El agua del pantano reduce a la mitad tu velocidad y la altura de tus saltos. Los goblins también vadean despacio.",
+  "L'eau du marais divise par deux votre vitesse et la hauteur de vos sauts. Les gobelins y pataugent lentement eux aussi.",
+  "ماء المستنقع يُنصّف سرعتك وارتفاع قفزتك. والغوبلن يخوضون فيه ببطء أيضًا.",
+  "Sumpfwasser halbiert dein Tempo und deine Sprunghöhe. Auch die Goblins waten darin langsam.",
+  "沼泽水会让你的速度和跳跃高度减半。哥布林在水里也走得很慢。",
+  "沼の水の中では移動速度とジャンプ力が半分になる。ゴブリンも水の中ではのろい。"
+ ],
+ "Unrelenting mode has no time limit and no level cap. Survive 15 minutes in the Swamp to earn a rare feat.": [
+  "El modo Implacable no tiene límite de tiempo ni de nivel. Sobrevive 15 minutos en el Pantano para lograr una hazaña poco común.",
+  "Le mode Implacable n'a ni limite de temps ni niveau maximum. Survivez 15 minutes dans le Marais pour accomplir un exploit rare.",
+  "نمط «بلا هوادة» بلا حد زمني ولا سقف للمستويات. انجُ 15 دقيقة في المستنقع لتنال إنجازًا نادرًا.",
+  "Der Modus Gnadenlos hat kein Zeitlimit und keine Stufenobergrenze. Überlebe 15 Minuten im Sumpf, um eine seltene Leistung zu erringen.",
+  "无尽模式没有时间限制，也没有等级上限。在沼泽中存活 15 分钟可获得一项稀有成就。",
+  "アンリレンティングモードには制限時間もレベル上限もない。沼で15分生き延びれば、珍しい偉業を達成できる。"
+ ],
+ "LOADING": [
+  "CARGANDO",
+  "CHARGEMENT",
+  "جارٍ التحميل",
+  "LADEN",
+  "加载中",
+  "ロード中"
+ ],
+ "TIP": [
+  "CONSEJO",
+  "ASTUCE",
+  "نصيحة",
+  "TIPP",
+  "提示",
+  "ヒント"
+ ],
+ "Click or press any key for the next tip": [
+  "Haz clic o pulsa cualquier tecla para ver el siguiente consejo",
+  "Cliquez ou appuyez sur une touche pour l'astuce suivante",
+  "انقر أو اضغط أي مفتاح للنصيحة التالية",
+  "Klicke oder drücke eine Taste für den nächsten Tipp",
+  "点击或按任意键查看下一条提示",
+  "クリックまたは任意のキーで次のヒントへ"
+ ],
+ "Characters": [
+  "Personajes",
+  "Personnages",
+  "الشخصيات",
+  "Charaktere",
+  "角色",
+  "キャラクター"
+ ],
+ "You can carry four weapons and four kinds of tome in a run. Once your slots are full, only those level up, so choose carefully.": [
+  "Puedes llevar cuatro armas y cuatro tipos de tomo por partida. Cuando tus huecos estén llenos, solo esos suben de nivel, así que elige bien.",
+  "Tu peux porter quatre armes et quatre types de tome par partie. Une fois tes emplacements pleins, seuls ceux-là montent de niveau : choisis bien.",
+  "يمكنك حمل أربعة أسلحة وأربعة أنواع من المجلدات في كل جولة. بعد امتلاء الخانات لا يرتقي إلا ما تملكه، فاختر بعناية.",
+  "Du kannst pro Lauf vier Waffen und vier Arten von Folianten tragen. Sind deine Plätze voll, steigen nur diese auf – wähle also mit Bedacht.",
+  "每局最多携带四种武器和四种法典。栏位满后只有它们能升级，请谨慎选择。",
+  "1回のランで武器4つと書4種類まで持てる。枠が埋まるとそれだけが強化されるので、よく選ぼう。"
+ ]
+}

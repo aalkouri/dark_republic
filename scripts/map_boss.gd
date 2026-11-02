@@ -95,6 +95,18 @@ func _tick_death(_dt: float) -> bool:
 	return _die_t > 5.0
 
 
+## Minimap: where to stand right now to survive this boss's ultimate (empty unless one is coming
+## or under way): [{pos: Vector3, radius: float}].
+func map_safe_zones() -> Array:
+	return []
+
+
+## Minimap: ground to keep off right now: circles {pos: Vector3, radius: float} or rectangles
+## {rect: Rect2 (world x / z)}.
+func map_danger_zones() -> Array:
+	return []
+
+
 # ------------------------------------------------------------------ setup
 
 ## Spawn at `at` with `hp_mult` x the base health.

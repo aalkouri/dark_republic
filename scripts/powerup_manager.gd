@@ -6,18 +6,22 @@ extends Node3D
 ##   Fear Idol         every goblin runs away from you for 15 s
 ##   5x Damage         all damage you deal x5 for 10 s
 ##   Movement Enhancer +80% move speed for 15 s
+##   NUKE              every enemy alive at that moment dies in a wave out from you (bosses lose
+##                     15% of max HP instead); a mushroom cloud, flash and boom (NukeBlast).
+##                     Half as likely to drop as each of the others (WEIGHTS).
 ## Picking up a power-up that's already active refreshes its timer.
 
 signal collected(kind: int)
 
-enum { MAGNET, FEAR, DAMAGE, SPEED }
+enum { MAGNET, FEAR, DAMAGE, SPEED, NUKE }
 
 const DROP_BASE := 0.02
 const DROP_PER_LUCK := 0.1    # per point of the Luck stat (a Tome of Luck level = 0.1 luck = +1%)
-const NAMES := ["Magnet", "Fear Idol", "5x Damage", "Movement Enhancer"]
-const PICKUP_TEXT := ["MAGNET! All orbs incoming", "FEAR IDOL! Enemies flee for 15 s", "5x DAMAGE for 10 s!", "MOVEMENT +80% for 15 s!"]
-const DURATION := [0.0, 15.0, 10.0, 15.0]
-const COLORS := [Color(1.0, 0.25, 0.2), Color(0.65, 0.3, 1.0), Color(1.0, 0.55, 0.1), Color(0.3, 1.0, 0.45)]
+const NAMES := ["Magnet", "Fear Idol", "5x Damage", "Movement Enhancer", "Nuke"]
+const PICKUP_TEXT := ["MAGNET! All orbs incoming", "FEAR IDOL! Enemies flee for 15 s", "5x DAMAGE for 10 s!", "MOVEMENT +80% for 15 s!", "NUKE! WAVE CLEARED!"]
+const DURATION := [0.0, 15.0, 10.0, 15.0, 0.0]
+const COLORS := [Color(1.0, 0.25, 0.2), Color(0.65, 0.3, 1.0), Color(1.0, 0.55, 0.1), Color(0.3, 1.0, 0.45), Color(0.85, 1.0, 0.2)]
+const WEIGHTS := [1.0, 1.0, 1.0, 1.0, 0.5]   # drop odds per kind: the NUKE is half as likely as each of the others
 const DAMAGE_MULT := 5.0
 const SPEED_MULT := 1.8
 const LIFETIME := 45.0
@@ -34,7 +38,7 @@ var gems: GemManager
 var db: UpgradeDB
 var rng: RandomNumberGenerator
 
-var active := PackedFloat32Array([0.0, 0.0, 0.0, 0.0])   # seconds left per kind
+var active := PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0])   # seconds left per kind
 var _pickups: Array = []   # {node, spinner, kind, age, pulled}
 
 
@@ -55,7 +59,20 @@ func drop_chance() -> float:
 ## Called when an elite dies: maybe drop a random power-up.
 func on_elite_killed(at: Vector3) -> void:
 	if rng.randf() < drop_chance():
-		drop(at, rng.randi() % 4)
+		drop(at, roll_kind())
+
+
+## Which power-up drops, by WEIGHTS.
+func roll_kind() -> int:
+	var total := 0.0
+	for w in WEIGHTS:
+		total += w
+	var r := rng.randf() * total
+	for k in WEIGHTS.size():
+		r -= WEIGHTS[k]
+		if r < 0.0:
+			return k
+	return MAGNET
 
 
 # ------------------------------------------------------------------ pickups
@@ -112,6 +129,8 @@ static func _glow(c: Color, energy := 1.2) -> StandardMaterial3D:
 func _model(kind: int) -> Node3D:
 	var root := Node3D.new()
 	match kind:
+		NUKE:
+			root.add_child(NukeModel.build())   # a cartoon atomic bomb with the trefoil
 		MAGNET:
 			# Red horseshoe (U opening downward) with silver tips
 			var mb := MeshBuilder.new()
@@ -217,6 +236,7 @@ func _model(kind: int) -> Node3D:
 
 func tick(dt: float, pickup_range: float) -> void:
 	_tick_effects(dt)
+	_tick_nukes(dt)
 	var target := player.global_position + Vector3(0, 0.6, 0)
 	# Only the nearest power-up in reach shows "Press E" and is taken by a press (one per press)
 	var nearest := -1
@@ -259,6 +279,8 @@ func activate(kind: int) -> void:
 		SPEED:
 			if active[SPEED] <= 0.0:
 				stats.apply("move_speed", "mult", SPEED_MULT)
+		NUKE:
+			nuke(player.global_position if player != null else Vector3.ZERO)
 	active[kind] = DURATION[kind]
 	collected.emit(kind)
 
@@ -297,3 +319,27 @@ static func is_visible_at(age: float) -> bool:
 	if age < LIFETIME - BLINK_WINDOW:
 		return true
 	return fmod(age - (LIFETIME - BLINK_WINDOW), BLINK_PERIOD) < BLINK_PERIOD * BLINK_ON
+
+
+# ------------------------------------------------------------------ the NUKE
+
+var blasts: Array[NukeBlast] = []   # going off right now (their shockwaves still running)
+
+
+## Set off a NUKE at `at`: every enemy alive now dies in a wave out from there (bosses lose
+## 15%). Returns the blast (tests).
+func nuke(at: Vector3) -> NukeBlast:
+	var b := NukeBlast.new()
+	var main := get_parent()
+	var fx: FxManager = main.get("fx") as FxManager if main != null else null
+	b.setup(enemies, player, gems, fx, at)
+	add_child(b)
+	blasts.append(b)
+	return b
+
+
+func _tick_nukes(dt: float) -> void:
+	for k in range(blasts.size() - 1, -1, -1):
+		var b := blasts[k]
+		if not is_instance_valid(b) or not b.tick(dt):
+			blasts.remove_at(k)

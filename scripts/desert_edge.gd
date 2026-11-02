@@ -19,6 +19,7 @@ static func build(parent: Node3D, half: float, night: bool) -> void:
 	var mat: Material = SwampWater.current.ground_mat if SwampWater.current != null and SwampWater.current.ground_mat != null else StandardMaterial3D.new()
 	for s in 4:
 		_dunes(parent, half, s, mat, r)
+	_foot(parent, half, r)
 	var mesa_side := r.randi() % 4
 	_mesas(parent, half, mesa_side, night, r)
 	var h := Horizon.new()
@@ -78,11 +79,13 @@ static func _dunes(parent: Node3D, half: float, s: int, mat: Material, r: Random
 		# the arena's ground right at the wall (clamped into the arena for the corners)
 		var edge_p := o + along * clampf(a, -half + 1.0, half - 1.0) - out * 1.0
 		var g0 := SwampWater.height_at(edge_p.x, edge_p.z)
-		var crest := 22.0 + 18.0 * (n.get_noise_1d(a * 0.6) * 0.5 + 0.5)
-		var crest_at := 38.0 + 22.0 * n.get_noise_1d(a * 0.4 + 50.0)
+		var crest := 24.0 + 18.0 * (n.get_noise_1d(a * 0.6) * 0.5 + 0.5)
+		var crest_at := 26.0 + 10.0 * n.get_noise_1d(a * 0.4 + 50.0)
 		for j in no:
 			var d := -6.0 + j * STEP_OUT
-			var up := smoothstep(-2.0, crest_at, d)
+			# the dune face rises right at the wall (steep at first, then rolling up to the crest),
+			# so the edge of the map reads as a wall of sand, not a flat strip you can't enter
+			var up := pow(smoothstep(-3.0, crest_at, d), 0.75)
 			var down := 1.0 - smoothstep(crest_at + 10.0, crest_at + 70.0, d) * 0.55
 			var ripple := n.get_noise_2d(a * 1.5, d * 2.0) * 2.5 * up
 			var h := g0 - 1.0 + (crest * pow(up, 1.6) + ripple) * down
@@ -116,6 +119,55 @@ static func _dunes(parent: Node3D, half: float, s: int, mat: Material, r: Random
 	mi.add_to_group("edge_dunes")
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mi)
+
+
+## Along the foot of the dunes, right inside the invisible walls: a broken line of half-buried
+## sandstone blocks and boulder heaps, so the map's edge is plain to see before you reach it.
+static func _foot(parent: Node3D, half: float, r: RandomNumberGenerator) -> void:
+	var stone := DesertProps.stone_material()
+	var variants: Array = []
+	for k in 4:
+		var rr := RandomNumberGenerator.new()
+		rr.seed = 900 + k
+		variants.append((DesertProps.boulders(rr)["mesh"]) as Mesh)
+	var bmb := MeshBuilder.new()   # vertex-coloured, like every desert stone (STONE_SHADER)
+	bmb.add(MeshBuilder.box(Vector3.ONE), Transform3D(), DesertProps.SANDSTONE)
+	var block := bmb.commit(stone)
+	var xf_by: Array = [[], [], [], [], []]   # 4 boulder variants + blocks
+	for s in 4:
+		var f := _frame(half, s)
+		var o: Vector3 = f[0]
+		var along: Vector3 = f[1]
+		var out: Vector3 = f[2]
+		var a := -half + r.randf_range(0.0, 4.0)
+		while a < half:
+			var p := o + along * a - out * r.randf_range(1.2, 3.0)
+			p.y = SwampWater.height_at(p.x, p.z)
+			if r.randf() < 0.55:   # a boulder heap
+				var sc := r.randf_range(0.9, 1.6)
+				xf_by[r.randi() % 4].append(Transform3D(Basis(Vector3.UP, r.randf() * TAU).scaled(Vector3.ONE * sc), p - Vector3(0, 0.35 * sc, 0)))
+			else:   # a run of tumbled wall blocks, half sunk in the sand
+				for b in r.randi_range(2, 4):
+					var bp := p + along * (b * r.randf_range(1.1, 1.5)) + Vector3(0, r.randf_range(-0.2, 0.3), 0)
+					var bs := Vector3(r.randf_range(1.0, 1.6), r.randf_range(0.6, 1.3), r.randf_range(0.8, 1.2))
+					var basis := Basis(Vector3.UP, atan2(along.x, along.z) + r.randf_range(-0.25, 0.25)).rotated(along, r.randf_range(-0.15, 0.15))
+					xf_by[4].append(Transform3D(basis.scaled(bs), bp))
+			a += r.randf_range(3.0, 6.5)
+	for k in 5:
+		var xfs: Array = xf_by[k]
+		if xfs.is_empty():
+			continue
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = variants[k] if k < 4 else block
+		mm.instance_count = xfs.size()
+		for i in xfs.size():
+			mm.set_instance_transform(i, xfs[i])
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		mmi.name = "EdgeStones"   # no-i18n
+		mmi.add_to_group("edge_stones")
+		parent.add_child(mmi)
 
 
 ## Flat-topped mesas of banded red and buff sandstone standing beyond the dunes on side `s`.

@@ -67,7 +67,7 @@ def walk(v, key, acc, where):
     elif isinstance(v, list):
         for x in v:
             walk(x, key, acc, where)
-    elif isinstance(v, str) and (key in DATA_KEYS or where == "taglines.json" or key == "@stat"):
+    elif isinstance(v, str) and (key in DATA_KEYS or where in ("taglines.json", "tips.json") or key == "@stat"):
         if re.search(r"[A-Za-z]", v):
             acc.setdefault(v, []).append(where)
 

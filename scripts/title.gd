@@ -576,7 +576,7 @@ func _leave(scene: String, fade: float) -> void:
 	tw.tween_property(_fade, "color:a", 1.0, fade)
 	if scene == GAME_SCENE:
 		MenuMusic.fade_out(fade)
-	tw.chain().tween_callback(func(): get_tree().change_scene_to_file(scene))
+	tw.chain().tween_callback(func(): Loader.go(scene))
 
 
 ## Testing cheat (remove before release): F8 on the title adds 100,000 coins.
@@ -693,24 +693,65 @@ func _update_camera(_dt: float) -> void:
 	_cam.look_at(Vector3(0, DAIS_HEIGHT + 1.3, 0) + side * 2.6, Vector3.UP)
 
 
+## A goblin that creeps closer than this to the dais slows to a stop and disintegrates; a new
+## one then forms out in the fog (they never reach the camera's orbit, so none pop through it).
+const GOBLIN_NEAR := 9.0
+const GOBLIN_STALL := 0.9      # seconds slowing to a stop
+const GOBLIN_DISSOLVE := 1.8   # seconds coming apart
+const GOBLIN_FORM := 1.6       # seconds for the new one to come together
+
+
 func _update_goblins(dt: float) -> void:
 	for g in _goblins:
 		var node: Node3D = g["node"]
-		g["creep_t"] -= dt
-		if g["creep_t"] <= 0.0:
-			g["creep_t"] = randf_range(4.0, 10.0)
-			g["target"] = randf_range(-3.5, -1.0) if g["creep"] > -0.5 else 0.0   # sneak in, then back off
+		var state: String = g.get("state", "")
+		var st: float = g.get("st", 0.0) + dt
+		g["st"] = st
+		var dis := 0.0
+		var speed := 1.0
+		if state == "":
+			g["creep_t"] -= dt
+			if g["creep_t"] <= 0.0:
+				g["creep_t"] = randf_range(4.0, 10.0)
+				g["target"] = randf_range(-5.5, -2.5) if g["creep"] > -0.5 else 0.0   # sneak in, then back off
+			if float(g["r"]) + float(g["creep"]) < GOBLIN_NEAR:
+				g["state"] = "stall"
+				g["st"] = 0.0
+		elif state == "stall":   # slowing down...
+			speed = 1.0 - clampf(st / GOBLIN_STALL, 0.0, 1.0)
+			if st >= GOBLIN_STALL:
+				g["state"] = "dissolve"
+				g["st"] = 0.0
+		elif state == "dissolve":   # ...and coming apart
+			speed = 0.0
+			dis = clampf(st / GOBLIN_DISSOLVE, 0.0, 1.0)
+			if st >= GOBLIN_DISSOLVE:   # gone: a new one somewhere out in the fog
+				g["state"] = "form"
+				g["st"] = 0.0
+				g["a"] = randf() * TAU
+				g["r"] = randf_range(11.5, 15.0)
+				g["creep"] = 0.0
+				g["target"] = 0.0
+				g["creep_t"] = randf_range(3.0, 8.0)
+				dis = 1.0
+		elif state == "form":   # the new one comes together
+			dis = 1.0 - clampf(st / GOBLIN_FORM, 0.0, 1.0)
+			if st >= GOBLIN_FORM:
+				g["state"] = ""
 		var target: float = g.get("target", 0.0)
-		g["creep"] = move_toward(g["creep"], target, dt * 0.9)
+		g["creep"] = move_toward(g["creep"], target, dt * 0.9 * speed) if state != "dissolve" else g["creep"]
 		var r: float = g["r"] + g["creep"]
 		var a: float = g["a"] + 0.05 * sin(_t * 0.3 + g["phase"])
-		var moving := absf(g["creep"] - target) > 0.05
+		var moving := absf(g["creep"] - target) > 0.05 and speed > 0.05
 		node.position = Vector3(cos(a) * r, 0.0, sin(a) * r)
 		node.look_at(Vector3(0, 0, 0), Vector3.UP, true)   # face the wizard (+Z)
-		# Creeping: slow run cycle; lurking: barely moving
-		g["anim"] = fmod(g["anim"] + dt * (0.9 if moving else 0.12), 1.0)
+		# Creeping: slow run cycle; lurking: barely moving (and winding down as it stalls)
+		g["anim"] = fmod(g["anim"] + dt * (0.9 if moving else 0.12) * maxf(speed, 0.0), 1.0)
 		var k := _goblins.find(g)
 		_goblin_mm.set_instance_transform(k, node.transform)
-		_goblin_mm.set_instance_color(k, _goblin_vat.anim_color("run", g["anim"]))
+		var c := _goblin_vat.anim_color("run", g["anim"])
+		c.b = dis
+		c.a = 0.0   # tells the goblin shader b is the disintegration
+		_goblin_mm.set_instance_color(k, c)
 
 

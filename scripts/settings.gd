@@ -46,6 +46,7 @@ var game_mode := "classic"
 # Gameplay
 var language := "en"
 var play_intro := true       # the cinematic after the studio logo
+var show_minimap := true     # the HUD minimap (top right)
 # Sound
 var music_volume := 0.8      # 0..1 (linear)
 var music_muted := false
@@ -111,6 +112,43 @@ func apply_language() -> void:
 ## Right-to-left script (Arabic): text is shaped RTL; layouts stay as designed.
 func is_rtl() -> bool:
 	return language == "ar"
+
+
+## "Cave" muffle on the music while a menu is up (level-up, chest, pause): a low-pass that
+## closes in over MUFFLE_TIME and a touch of echo. update_muffle() eases it in and out.
+const MUFFLE_CUTOFF := 900.0     # Hz while muffled (20 kHz = open)
+const MUFFLE_TIME := 0.35        # seconds to fade in / out
+var _muffle := 0.0               # 0 = clear .. 1 = fully muffled
+var _lp: AudioEffectLowPassFilter
+var _verb: AudioEffectReverb
+
+
+func _ensure_muffle() -> void:
+	if _lp != null:
+		return
+	var idx := AudioServer.get_bus_index(MUSIC_BUS)
+	_lp = AudioEffectLowPassFilter.new()
+	_lp.cutoff_hz = 20000.0
+	_lp.resonance = 0.5
+	AudioServer.add_bus_effect(idx, _lp)
+	_verb = AudioEffectReverb.new()
+	_verb.room_size = 0.75
+	_verb.damping = 0.6
+	_verb.wet = 0.0
+	_verb.dry = 1.0
+	AudioServer.add_bus_effect(idx, _verb)
+
+
+## Call every frame with whether the music should sound muffled right now.
+func update_muffle(dt: float, on: bool) -> void:
+	_ensure_muffle()
+	_muffle = move_toward(_muffle, 1.0 if on else 0.0, dt / MUFFLE_TIME)
+	var k := _muffle * _muffle * (3.0 - 2.0 * _muffle)   # smooth
+	_lp.cutoff_hz = exp(lerpf(log(20000.0), log(MUFFLE_CUTOFF), k))
+	_verb.wet = 0.22 * k
+	var idx := AudioServer.get_bus_index(MUSIC_BUS)
+	AudioServer.set_bus_effect_enabled(idx, 0, _muffle > 0.001)
+	AudioServer.set_bus_effect_enabled(idx, 1, _muffle > 0.001)
 
 
 func _ensure_bus(bus_name: String) -> void:
@@ -196,6 +234,7 @@ func save_settings() -> void:
 	var cf := ConfigFile.new()
 	cf.set_value("gameplay", "language", language)
 	cf.set_value("gameplay", "play_intro", play_intro)
+	cf.set_value("gameplay", "show_minimap", show_minimap)
 	cf.set_value("gameplay", "last_played", last_played)
 	cf.set_value("sound", "music_volume", music_volume)
 	cf.set_value("sound", "music_muted", music_muted)
@@ -221,6 +260,7 @@ func load_settings() -> void:
 		return
 	language = cf.get_value("gameplay", "language", language)
 	play_intro = cf.get_value("gameplay", "play_intro", play_intro)
+	show_minimap = cf.get_value("gameplay", "show_minimap", show_minimap)
 	last_played = cf.get_value("gameplay", "last_played", last_played)
 	selected_character = last_played
 	music_volume = cf.get_value("sound", "music_volume", music_volume)
@@ -270,7 +310,7 @@ func set_value(key: String, value) -> void:
 	changed.emit()
 
 
-const SAVED_KEYS := ["language", "play_intro", "music_volume", "music_muted", "sfx_volume", "sfx_muted",
+const SAVED_KEYS := ["language", "play_intro", "show_minimap", "music_volume", "music_muted", "sfx_volume", "sfx_muted",
 	"window_mode", "vsync", "render_scale", "fov", "max_fps", "show_fps",
 	"mouse_sensitivity", "invert_y", "bindings", "dev_stats"]
 

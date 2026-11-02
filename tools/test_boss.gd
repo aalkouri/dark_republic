@@ -170,11 +170,10 @@ func _ready() -> void:
 	_check("he falls when killed", dead[0] and thog.state == "dying", thog.state)
 	_check("beating him is remembered", Wallet.has_defeated("thog"), "")
 	_check("the Forest unlocks (the Castle still needs the Toadstool Knight)", MapPicker.lock_reason("forest", "fire_wizard") == "" and MapPicker.lock_reason("castle", "fire_wizard") != "", "")
-	for f in 60 * 6:
-		await get_tree().physics_frame
-		if main.state == "won":
-			break
-	_check("killing Thog wins the run", main.state == "won" and main.boss_won and main.first_boss_kill, main.state)
+	await _secs(4.8)
+	_check("killing Thog doesn't end the run: a portal opens instead", main.state != "won" and main.boss_down, main.state)
+	await _through_portal()
+	_check("stepping through the portal wins the run", main.state == "won" and main.boss_won and main.first_boss_kill, main.state)
 	var hud: Hud = main.hud
 	var names := []
 	for c in hud.unlock_cards:
@@ -230,6 +229,21 @@ func _count_type(em: EnemyManager, t: int) -> int:
 		if em.typ[k] == t and not em.dead[k]:
 			n += 1
 	return n
+
+
+## The boss is down: the run goes on until you step through the portal that opens (level-ups
+## from his XP are taken as they come). Returns once the end screen is up (or after 15 s).
+func _through_portal() -> void:
+	for f in 60 * 15:
+		await get_tree().physics_frame
+		if main.state == "levelup":
+			main.choose_upgrade(0)
+		var pt: BossPortal = main.aftermath.portal
+		if pt != null and pt.is_open() and main.state == "playing" and not main.aftermath.entering:
+			main.player.global_position = pt.global_position + Vector3(0, 0.4, 0)
+			main.player.velocity = Vector3.ZERO
+		if main.state == "won":
+			return
 
 
 func _check(what: String, ok: bool, detail: String) -> void:

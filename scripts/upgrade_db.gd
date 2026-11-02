@@ -40,7 +40,10 @@ func owned_of_kind(kind: String) -> int:
 	return c
 
 
-func _eligible(max_weapons: int) -> Array:
+## Tome types you can carry at once: with this many, only those tomes come up (like weapons).
+const MAX_TOMES := 4
+
+func _eligible(max_weapons: int, max_tomes := MAX_TOMES) -> Array:
 	var out := []
 	for id in order:
 		var d: Dictionary = defs[id]
@@ -49,6 +52,8 @@ func _eligible(max_weapons: int) -> Array:
 			continue
 		if d["kind"] == "weapon" and lv == 0 and owned_of_kind("weapon") >= max_weapons:
 			continue
+		if d["kind"] == "tome" and lv == 0 and owned_of_kind("tome") >= max_tomes:
+			continue   # all tome slots taken: only the tomes you have can level up
 		if d.has("signature") and lv == 0 and has_signature():
 			continue   # one other character's weapon per run: once you have one, the rest stop showing
 		out.append(id)

@@ -43,9 +43,16 @@ func _start(id: String) -> void:
 	_check("no ash footprints", not main.player.footprints, "")
 	_check("ability bar shows its kit", main.abilities.defs()[0]["name"] == KitDB.ability(id, 0)["name"]
 		and (main.hud.ability_slots[2] as AbilitySlot).glyph == KitDB.ability(id, 2)["icon"]["glyph"], str(main.abilities.defs()[0]))
-	_check("arrives as a comet in its colours", main.intro and main.player.meteor_form and not main.player.model.visible, "")
-	await _secs(Abilities.METEOR_FALL_TIME + 0.4)
-	_check("comet lands and the run starts", not main.intro and not main.player.meteor_form and main.player.model.visible, "")
+	if id == "thunder_wizard":
+		_check("arrives as a comet in its colours", main.intro and main.player.meteor_form and not main.player.model.visible and HeroEntrances.last_kind == "comet", "")
+	else:   # everyone else has an entrance of its own (HeroEntrances; tools/test_entrances.gd)
+		_check("arrives its own way (%s), not as the comet" % HeroEntrances.kind_of(id), main.intro and main.player.meteor_form and HeroEntrances.last_kind == HeroEntrances.kind_of(id), HeroEntrances.last_kind)
+	for f in 60 * 5:
+		await get_tree().physics_frame
+		if not main.intro:
+			break
+	await _secs(0.4)
+	_check("lands and the run starts", not main.intro and not main.player.meteor_form and main.player.model.visible, "")
 	main.abilities.level = 10
 	main.abilities.reset_cooldowns()
 	main.xp_next = 1e12   # no level-up cards (they pause the game)
@@ -220,6 +227,8 @@ func _test_thunder_wizard() -> void:
 	ring = await _ring(8, 4.0)
 	_cast(0)
 	_check("Overcharge: +40% move speed", is_equal_approx(main.stats.value("move_speed"), base * 1.4), "%.2f" % main.stats.value("move_speed"))
+	var hp_oc: float = main.player.hp
+	_check("Overcharge: invincible (glowing) for its whole duration", main.player.untouchable and main.player.is_invincible() and not main.player.hurt(50.0) and main.player.hp == hp_oc, "")
 	await _frames(2)
 	var hurt0 := _hurt_count(ring)
 	main.player.bot = true

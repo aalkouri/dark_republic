@@ -1,9 +1,9 @@
 {
  "\nFPS %d": [
-  "hud.gd:1443"
+  "hud.gd:1565"
  ],
  "\"All other audio\" covers enemy sounds, hits and effects.": [
-  "settings_menu.gd:211"
+  "settings_menu.gd:212"
  ],
  "%.1f / %d s": [
   "(runtime)"
@@ -12,11 +12,11 @@
   "(runtime)"
  ],
  "%d min": [
-  "abilities.gd:265",
+  "abilities.gd:271",
   "kit_db.gd:96"
  ],
  "%d of %d unlocked": [
-  "character_select.gd:332"
+  "character_select.gd:334"
  ],
  "%d s": [
   "(runtime)"
@@ -24,17 +24,14 @@
  "%d to spend": [
   "skill_screen.gd:267"
  ],
- "%s  +%d level  (Lv %d -> %d)": [
-  "slot_machine.gd:336"
- ],
- "%s  +%d levels  (Lv %d -> %d)": [
+ "%s   Lv %d -> %d": [
   "slot_machine.gd:331"
  ],
- "%s  LEVEL %d": [
-  "main.gd:1005"
+ "%s  +%d%%  (now x%s)": [
+  "abilities.gd:387"
  ],
  "%s  Lv %d": [
-  "hud.gd:1449"
+  "hud.gd:1571"
  ],
  "%s  ·  %.1f / %d s": [
   "(runtime)"
@@ -43,63 +40,69 @@
   "skill_screen.gd:311"
  ],
  "%s  ·  ENRAGED": [
-  "map_boss.gd:461"
+  "map_boss.gd:473"
  ],
  "%s  ·  Skills": [
   "skill_screen.gd:100"
  ],
  "%s  ·  enrages in %d:%02d": [
-  "map_boss.gd:465"
+  "map_boss.gd:477"
  ],
  "%s / %s EXP": [
-  "character_select.gd:832",
-  "hud.gd:1025"
+  "character_select.gd:896",
+  "hud.gd:1073"
  ],
  "%s APPROACHES": [
-  "main.gd:796"
+  "main.gd:839"
  ],
  "%s Chest": [
   "chest.gd:60",
   "slot_machine.gd:143"
  ],
  "%s Cooldown": [
-  "weapon_system.gd:382"
+  "weapon_system.gd:409"
  ],
  "%s DEFEATED!": [
-  "hud.gd:999",
-  "main.gd:78"
+  "hud.gd:1047",
+  "main.gd:80"
  ],
  "%s Damage": [
-  "weapon_system.gd:381",
-  "weapon_system.gd:419"
+  "weapon_system.gd:408",
+  "weapon_system.gd:446"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:826"
+  "main.gd:866"
  ],
  "%s IS ENRAGED!": [
-  "map_boss.gd:396"
+  "map_boss.gd:408"
  ],
  "%s Pierce": [
-  "weapon_system.gd:384",
-  "weapon_system.gd:421"
+  "weapon_system.gd:411",
+  "weapon_system.gd:448"
  ],
  "%s Reach": [
-  "weapon_system.gd:383"
+  "weapon_system.gd:410"
  ],
  "%s can't fight here: it's home turf": [
-  "map_picker.gd:95"
+  "map_picker.gd:96"
  ],
  "%s coins": [
-  "character_select.gd:132"
+  "character_select.gd:134"
  ],
  "+%d projectile / hit": [
-  "forge.gd:179"
+  "forge.gd:189"
  ],
  "+%d shield": [
-  "hud.gd:1434"
+  "hud.gd:1556"
+ ],
+ "+%d skill point": [
+  "hud.gd:1129"
+ ],
+ "+%d skill points": [
+  "hud.gd:1129"
  ],
  "+%d%% from Damage": [
-  "abilities.gd:235"
+  "abilities.gd:241"
  ],
  "+0.5 luck: better rewards, more epic enemies and power-ups (like 5 Tomes of Luck)": [
   "skill_tree.gd:60",
@@ -191,16 +194,16 @@
   "skill_tree.gd:110"
  ],
  ", blend_add": [
-  "hero_entrances.gd:626"
+  "hero_entrances.gd:635"
  ],
  ", unshaded": [
-  "hero_entrances.gd:624"
+  "hero_entrances.gd:633"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:547"
+  "main.gd:572"
  ],
  "2 yd": [
-  "abilities.gd:248"
+  "abilities.gd:254"
  ],
  "3 of a kind: +%d levels (%d%% chance)   ·   otherwise: +1 level": [
   "slot_machine.gd:205"
@@ -215,22 +218,31 @@
   "abilities.json"
  ],
  "5 yd": [
-  "abilities.gd:252"
+  "abilities.gd:258"
  ],
  "5x DAMAGE for 10 s!": [
-  "powerup_manager.gd:18"
+  "powerup_manager.gd:21"
  ],
  "5x Damage": [
-  "powerup_manager.gd:17"
+  "powerup_manager.gd:20"
  ],
  "6 rapid shots of 40 damage (pierce 1), then a 1.5 s reload": [
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:691"
+  "main.gd:724"
+ ],
+ "A Legendary card you don't need can be converted into a chest key instead.": [
+  "tips.json"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
+ ],
+ "A beam from your staff drains everything in a {16 m} line for {4 s}: {40} damage a second": [
+  "abilities.json"
+ ],
+ "A beam of cursed light runs {22 m} down where you aim: {60} damage": [
+  "abilities.json"
  ],
  "A big blue troll with a bigger club. Retired from bridge duty after a goat incident. Not retired from smashing.": [
   "characters.json"
@@ -238,13 +250,7 @@
  "A blizzard swallows everything around you.": [
   "abilities.json"
  ],
- "A bolt of green soul-fire from the staff: 26 damage, and a little of it heals you": [
-  "abilities.json"
- ],
  "A boss within {40 m} can take up to {4} of the bolts": [
-  "abilities.json"
- ],
- "A carpet of beetles pours out of his sleeves.": [
   "abilities.json"
  ],
  "A cauldron stands for {15 s}, spitting a glob at an enemy within {15 m} every second: {50} damage": [
@@ -275,7 +281,7 @@
   "abilities.json"
  ],
  "A ring of fire bursts out from the ground under you.": [
-  "abilities.gd:250"
+  "abilities.gd:256"
  ],
  "A ring of mushrooms springs up around you.": [
   "abilities.json"
@@ -286,13 +292,16 @@
  "A silent swamp ninja. The splash you didn't hear was him.": [
   "characters.json"
  ],
+ "A spectral Sphinx rises before you and its eyes blaze: a great storm tears through every enemy within {25 m} for {300} damage": [
+  "abilities.json"
+ ],
  "A spectral winged horse charges through the horde {3} times in the direction you aim": [
   "abilities.json"
  ],
  "A stone bridge crashes down on a {25 m} line where you aim: {350} damage": [
   "abilities.json"
  ],
- "A storm whirls round you for {8 s} out to {9 m}": [
+ "A storm whirls round you for {8 s} out to {8 m}": [
   "abilities.json"
  ],
  "A thunderstorm follows you around.": [
@@ -310,6 +319,9 @@
  "Abilities recharge 20% faster": [
   "skill_tree.gd:59",
   "skill_tree.gd:109"
+ ],
+ "Abilities recharge on a cooldown: about 30 seconds, 45 seconds and 2 minutes. A ready ability pulses on the bar.": [
+  "tips.json"
  ],
  "Ability 1": [
   "settings.gd:25"
@@ -344,11 +356,8 @@
  "After {5 s} each takes {400} damage": [
   "abilities.json"
  ],
- "Afterwards you're a tiny cinder with {+50%} move speed for {5 s}": [
-  "abilities.json"
- ],
  "All other audio": [
-  "settings_menu.gd:209"
+  "settings_menu.gd:210"
  ],
  "Alternating sonic pulses in a 6 m cone: 20 damage each, faster while you keep moving": [
   "abilities.json"
@@ -378,11 +387,14 @@
   "upgrades.json"
  ],
  "Armored Skeleton": [
-  "main.gd:707",
+  "main.gd:740",
   "skeleton_crowd.gd:412"
  ],
  "Ashen Ward": [
   "skill_tree.gd:81"
+ ],
+ "At 75%, 50% and 10% health a boss unleashes its ultimate. Thog's Quake can only be survived in a pool: follow the green arrows!": [
+  "tips.json"
  ],
  "Attack Speed": [
   "upgrades.json"
@@ -391,7 +403,7 @@
   "upgrades.json"
  ],
  "Attack rate +%d%%": [
-  "forge.gd:176"
+  "forge.gd:186"
  ],
  "Aura Damage": [
   "upgrades.json"
@@ -409,26 +421,26 @@
   "abilities.json"
  ],
  "Available from the start of every run": [
-  "character_select.gd:645"
+  "character_select.gd:710"
  ],
  "BAN  %d": [
-  "hud.gd:334"
+  "hud.gd:339"
  ],
  "BANNED": [
-  "hud.gd:385"
+  "hud.gd:390"
  ],
  "BOSS": [
   "map_boss.gd:58"
  ],
  "BURNING": [
-  "hud.gd:1468"
+  "hud.gd:1590"
  ],
  "Back": [
-  "character_select.gd:743",
+  "character_select.gd:808",
   "settings_menu.gd:63"
  ],
  "Bans left: %d / %d   ·   %d coins each": [
-  "hud.gd:976"
+  "hud.gd:1024"
  ],
  "Banshee Scream": [
   "abilities.json"
@@ -438,6 +450,9 @@
  ],
  "Bastion": [
   "skill_tree.gd:30"
+ ],
+ "Beat each map's boss to open the next map: the Swamp, the Magical Forest, the Castle, the Desert, the Graveyard, then the Ashen Caldera.": [
+  "tips.json"
  ],
  "Become a whirlwind for {5 s}, pulling enemies within {6 m} in": [
   "abilities.json"
@@ -477,10 +492,10 @@
   "upgrades.json"
  ],
  "Bleed": [
-  "enemy_manager.gd:901"
+  "enemy_manager.gd:941"
  ],
  "Bleeds deal double damage": [
-  "forge.gd:74"
+  "forge.gd:81"
  ],
  "Blink from enemy to enemy faster than they can blink.": [
   "abilities.json"
@@ -495,26 +510,29 @@
   "characters.json"
  ],
  "Bolts bounce to 2 more enemies": [
-  "forge.gd:69"
+  "forge.gd:76"
  ],
  "Bolts pierce 2 more enemies": [
-  "forge.gd:72"
+  "forge.gd:79"
  ],
  "Bomber Skeleton": [
   "bomber_skeletons.gd:144",
-  "main.gd:705"
- ],
- "Bone Spikes": [
-  "abilities.json"
- ],
- "Bone spikes burst up along a {18 m} line where you aim: {70} damage": [
-  "abilities.json"
+  "main.gd:738"
  ],
  "Borderless fullscreen": [
-  "settings_menu.gd:187"
+  "settings_menu.gd:188"
+ ],
+ "Boss": [
+  "hud.gd:1122"
  ],
  "Boss +%s": [
-  "hud.gd:1109"
+  "hud.gd:1202"
+ ],
+ "Boss attacks are always marked on the ground first, filling up red. You always get at least a second to move.": [
+  "tips.json"
+ ],
+ "Bosses arrive at 8:00. Leave one alive too long and it enrages, attacking much faster.": [
+  "tips.json"
  ],
  "Brace behind your shield.": [
   "abilities.json"
@@ -529,6 +547,9 @@
   "characters.json"
  ],
  "Brings his old bridge down on them.": [
+  "abilities.json"
+ ],
+ "Brings the volcano with him.": [
   "abilities.json"
  ],
  "Broke out of the zoo, swam the river and found the swamp to his liking. Still wears the shackles. Uses them.": [
@@ -550,10 +571,13 @@
   "abilities.json"
  ],
  "Burning": [
-  "enemy_manager.gd:872"
+  "enemy_manager.gd:912"
  ],
  "Burning Explosions": [
-  "enemy_manager.gd:1256"
+  "enemy_manager.gd:1298"
+ ],
+ "Burns deal double damage": [
+  "forge.gd:92"
  ],
  "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size": [
   "abilities.json"
@@ -562,7 +586,7 @@
   "abilities.json"
  ],
  "Bursts and acid puddles are 50% bigger": [
-  "forge.gd:76"
+  "forge.gd:83"
  ],
  "Bursts, leaves acid": [
   "abilities.json"
@@ -577,10 +601,13 @@
   "singe_boss.gd:630"
  ],
  "CHOOSE YOUR BATTLEGROUND": [
-  "map_picker.gd:56"
+  "map_picker.gd:57"
  ],
  "CHOOSE YOUR CHAMPION": [
-  "character_select.gd:218"
+  "character_select.gd:220"
+ ],
+ "Caldera Eruption": [
+  "abilities.json"
  ],
  "Caller of the Storm": [
   "characters.json"
@@ -589,7 +616,7 @@
   "characters.json"
  ],
  "Chain Lightning": [
-  "weapon_system.gd:175",
+  "weapon_system.gd:195",
   "abilities.json"
  ],
  "Chain spin, knockback": [
@@ -601,26 +628,44 @@
  "Chaotic neat": [
   "taglines.json"
  ],
+ "Character level": [
+  "hud.gd:1127"
+ ],
+ "Characters": [
+  "hud.gd:803"
+ ],
  "Charge {20 m} headfirst where you aim": [
   "abilities.json"
  ],
  "Chest Pound": [
   "abilities.json"
  ],
+ "Chests": [
+  "hud.gd:1122"
+ ],
  "Chests +%s": [
-  "hud.gd:1109"
+  "hud.gd:1202"
+ ],
+ "Chests are the only way to level up abilities. At level 10 an ability is four times as strong and recharges 40% faster.": [
+  "tips.json"
+ ],
+ "Chests only open with a key of their own tier: bronze, silver or gold. Walk up to one with its key and press E.": [
+  "tips.json"
+ ],
+ "Chests opened": [
+  "hud.gd:1111"
  ],
  "Choose it after Play": [
-  "hud.gd:1131"
+  "hud.gd:1224"
  ],
  "Choose your champion and map. Survive 10 minutes.": [
   "mode_menu.gd:14"
  ],
+ "Cinder Bat": [
+  "enemy_manager.gd:401"
+ ],
  "Cinder Shell": [
   "skill_tree.gd:86"
- ],
- "Cinder Toss": [
-  "abilities.json"
  ],
  "Classic": [
   "mode_menu.gd:14"
@@ -632,7 +677,7 @@
   "unlock_reveal.gd:52"
  ],
  "Click to forge": [
-  "character_select.gd:634"
+  "character_select.gd:699"
  ],
  "Close": [
   "forge_menu.gd:143"
@@ -646,8 +691,14 @@
  "Coin Gain": [
   "char_bonuses.gd:29"
  ],
+ "Coins come from time survived and from kills, but they're only banked on the end screen. Quitting a run forfeits them.": [
+  "tips.json"
+ ],
+ "Coins earned": [
+  "hud.gd:770"
+ ],
  "Collect the shards below to forge it": [
-  "character_select.gd:634"
+  "character_select.gd:699"
  ],
  "Collects what's owed.": [
   "abilities.json"
@@ -665,16 +716,22 @@
   "slot_machine.gd:215"
  ],
  "Controls": [
-  "settings_menu.gd:238"
+  "settings_menu.gd:239"
  ],
  "Convert": [
-  "hud.gd:366"
+  "hud.gd:371"
+ ],
+ "Cooldown  %ss  ->  %ss": [
+  "abilities.gd:389"
  ],
  "Cooldowns reset": [
-  "main.gd:1113"
+  "main.gd:1168"
  ],
  "Cowboy": [
   "characters.json"
+ ],
+ "Crash down for {150} damage within {6 m}, leaving a lava pool for {3 s} ({4%} of max HP per second)": [
+  "abilities.json"
  ],
  "Critical Damage": [
   "skill_tree.gd:72",
@@ -698,6 +755,12 @@
  "Critical hits, critical misses, critical vibes": [
   "taglines.json"
  ],
+ "Curl into a ball of coals and dive up to {18 m} where you aim (untouchable in the air)": [
+  "abilities.json"
+ ],
+ "Curse of the Sands": [
+  "abilities.json"
+ ],
  "DARK REPUBLIC": [
   "loader.gd:248",
   "title.gd:356"
@@ -709,13 +772,13 @@
   "upgrades.json"
  ],
  "Damage +%d%%": [
-  "forge.gd:175"
+  "forge.gd:185"
  ],
  "Damage stat: %+d%% to flat damage": [
-  "abilities.gd:216"
+  "abilities.gd:222"
  ],
  "Damage: %s": [
-  "character_select.gd:620"
+  "character_select.gd:685"
  ],
  "Dancing enemies take {5%} of max HP per second": [
   "abilities.json"
@@ -745,23 +808,26 @@
   "taglines.json"
  ],
  "Defeat %s to unlock": [
-  "map_picker.gd:93",
-  "map_picker.gd:134"
+  "map_picker.gd:94",
+  "map_picker.gd:135"
+ ],
+ "Defeat Singe in the Ashen Caldera": [
+  "character_select.gd:125"
  ],
  "Defeat Thog the Troll in the Swamp": [
-  "character_select.gd:123"
+  "character_select.gd:125"
  ],
  "Defeat the Arachnid in the Castle": [
-  "character_select.gd:123"
+  "character_select.gd:125"
  ],
  "Defeat the Necromancer in the Graveyard": [
-  "character_select.gd:123"
+  "character_select.gd:125"
  ],
  "Defeat the Pharaoh in the Desert": [
-  "character_select.gd:123"
+  "character_select.gd:125"
  ],
  "Defeat the Toadstool Knight in the Magical Forest": [
-  "character_select.gd:123"
+  "character_select.gd:125"
  ],
  "Defense": [
   "skill_tree.gd:11",
@@ -769,19 +835,19 @@
   "skill_tree.gd:78"
  ],
  "Display mode": [
-  "settings_menu.gd:191"
+  "settings_menu.gd:192"
  ],
  "Diving down deals {140} damage within {6 m}": [
   "abilities.json"
+ ],
+ "Don't like a card? BAN it for 100 coins and it won't come back this run. You get three bans per run.": [
+  "tips.json"
  ],
  "Don't split the party. Split the goblins.": [
   "taglines.json"
  ],
  "Done": [
   "skill_screen.gd:176"
- ],
- "Door": [
-  "hero_entrances.gd:1725"
  ],
  "Dr. Croc": [
   "characters.json"
@@ -826,10 +892,10 @@
   "skill_screen.gd:263"
  ],
  "EXP +%s   ·   lvl %d  (%s)": [
-  "hud.gd:1026"
+  "hud.gd:1074"
  ],
  "EXPERIENCE": [
-  "hud.gd:709"
+  "hud.gd:1121"
  ],
  "Each bolt deals {90} damage and chains to {3} more enemies": [
   "abilities.json"
@@ -843,13 +909,16 @@
  "Each enemy you pass drops an extra XP gem": [
   "abilities.json"
  ],
- "Each eruption leaves a fresh fire behind": [
-  "abilities.json"
- ],
  "Each explodes after {1.5 s} for {120} damage within {5 m}": [
   "abilities.json"
  ],
  "Each has its own Acid Body at {60%} damage": [
+  "abilities.json"
+ ],
+ "Each hit heals you 1 HP (up to 4 a second)": [
+  "forge.gd:91"
+ ],
+ "Each hits for {110} damage within {3.5 m} and sets enemies burning ({4%} of max HP per second for {3 s})": [
   "abilities.json"
  ],
  "Each hits for {18} damage": [
@@ -860,6 +929,9 @@
  ],
  "Each kill heals {2%} of your max HP": [
   "abilities.json"
+ ],
+ "Each map only drops its own two kinds of shard. The Swamp gives Dark and Ice, the Magical Forest Light and Lightning.": [
+  "tips.json"
  ],
  "Each one that pays drops an XP gem": [
   "abilities.json"
@@ -889,16 +961,31 @@
   "taglines.json"
  ],
  "Elite %s": [
-  "hud.gd:1102"
+  "hud.gd:1195"
+ ],
+ "Elites": [
+  "hud.gd:1122"
  ],
  "Elites +%s": [
+  "hud.gd:1202"
+ ],
+ "Elites can drop power-ups like Magnet, Fear Idol and 5x Damage. Press E to grab one, but hurry: they vanish after 45 seconds.": [
+  "tips.json"
+ ],
+ "Elites killed": [
   "hud.gd:1109"
+ ],
+ "Elites sometimes drop chest keys. Keys don't carry over to the next run, so use them!": [
+  "tips.json"
  ],
  "Ember Hide": [
   "skill_tree.gd:80"
  ],
  "Ember Pull": [
   "skill_tree.gd:110"
+ ],
+ "Embers flicked in pairs (14 m): 8 damage each, and they set what they hit burning for 3% of max HP per second for 2 s": [
+  "abilities.json"
  ],
  "Enemies below {20%} HP die instantly (not the boss)": [
   "abilities.json"
@@ -915,7 +1002,7 @@
  "Enemies hit take {120} damage and are thrown {8 yd}": [
   "abilities.json"
  ],
- "Enemies in it are slowed {50%} and take {20} damage a second": [
+ "Enemies in it are slowed {50%} and take {20} damage a second; it blinds them for {2 s} when it catches them (they wander, harmless)": [
   "abilities.json"
  ],
  "Enemies in it are slowed {90%} and take {6%} of max HP per second": [
@@ -925,7 +1012,16 @@
   "abilities.json"
  ],
  "Enemies it kills burst for 25% of their max HP": [
-  "forge.gd:80"
+  "forge.gd:87"
+ ],
+ "Enemies it touches are cursed ({+25%} damage taken) for {6 s}, slowed {50%} and wither for {3%} of max HP per second for {4 s}": [
+  "abilities.json"
+ ],
+ "Enemies killed": [
+  "hud.gd:1107"
+ ],
+ "Enemies on them take {15} damage and burn for {5%} of max HP per second for {3 s}": [
+  "abilities.json"
  ],
  "Enemies that cross it take {50} damage and wander confused for {3 s}": [
   "abilities.json"
@@ -937,15 +1033,6 @@
   "upgrades.json"
  ],
  "Enemies that hit you while it holds take {2x} their contact damage back": [
-  "abilities.json"
- ],
- "Enemies that touch them burn for {4%} of max HP per second for {3 s}": [
-  "abilities.json"
- ],
- "Enemies they cross are poisoned for {4 s}": [
-  "abilities.json"
- ],
- "Enemies they hit are rooted for {1.5 s}": [
   "abilities.json"
  ],
  "Enemies within {12 m} lose {6%} of max HP per second for {4 s}": [
@@ -976,10 +1063,13 @@
   "abilities.json"
  ],
  "Enter: choose   ·   Esc: back": [
-  "map_picker.gd:67"
+  "map_picker.gd:68"
  ],
  "Epic": [
   "upgrades.json"
+ ],
+ "Epic enemies drop potions: purple cuts your cooldowns, red heals and blue gives you a shield. Potions never disappear.": [
+  "tips.json"
  ],
  "Esc: back": [
   "mode_menu.gd:58"
@@ -988,22 +1078,25 @@
   "characters.json"
  ],
  "Every 3rd cut deals double damage": [
-  "forge.gd:75"
+  "forge.gd:82"
  ],
  "Every 3rd throw is a javelin": [
-  "forge.gd:73"
+  "forge.gd:80"
  ],
  "Every 4th swing is a full 360° sweep": [
-  "forge.gd:70"
+  "forge.gd:77"
  ],
  "Every 5th hit explodes like a Blast Bomb": [
-  "forge.gd:65"
+  "forge.gd:72"
  ],
  "Every 5th hit freezes the enemy for 1.5 s": [
-  "forge.gd:66"
+  "forge.gd:73"
  ],
- "Every ability is at max level!  Fully healed": [
-  "main.gd:990"
+ "Every Forge level adds 25% damage and 8% attack rate, and level 1 unlocks your weapon's own special trick.": [
+  "tips.json"
+ ],
+ "Every boss you defeat drops 1 to 5 elemental shards: Fire, Ice, Lightning, Dark or Light.": [
+  "tips.json"
  ],
  "Every chest is a mimic until proven innocent": [
   "taglines.json"
@@ -1020,17 +1113,11 @@
  "Every enemy within {25 m} is wrapped in silk for {5 s} (the boss is only slowed)": [
   "abilities.json"
  ],
- "Every fire he's lit goes off at once.": [
-  "abilities.json"
- ],
- "Every fire on the ground erupts: {100} damage within {3 m} of each": [
-  "abilities.json"
- ],
  "Every grave in reach gives up its dead.": [
   "abilities.json"
  ],
  "Every hit curses": [
-  "forge.gd:68"
+  "forge.gd:75"
  ],
  "Every jump and every landing releases a shock: {40} damage within {6 m}": [
   "abilities.json"
@@ -1040,6 +1127,9 @@
  ],
  "Every projectile weapon fires more.": [
   "upgrades.json"
+ ],
+ "Every run earns your character EXP. Each character level gives a skill point for their skill tree, and the Special column opens at level 5.": [
+  "tips.json"
  ],
  "Every second, hands drag the {3} nearest enemies under (elites and the boss take {25%} of max HP instead)": [
   "abilities.json"
@@ -1060,10 +1150,10 @@
   "upgrades.json"
  ],
  "FEAR IDOL! Enemies flee for 15 s": [
-  "powerup_manager.gd:18"
+  "powerup_manager.gd:21"
  ],
  "FPS limit": [
-  "settings_menu.gd:201"
+  "settings_menu.gd:202"
  ],
  "Fairy Ring": [
   "abilities.json"
@@ -1093,7 +1183,7 @@
   "characters.json"
  ],
  "Fear Idol": [
-  "powerup_manager.gd:17"
+  "powerup_manager.gd:20"
  ],
  "Feather": [
   "upgrades.json"
@@ -1102,7 +1192,7 @@
   "abilities.json"
  ],
  "Field of view": [
-  "settings_menu.gd:194"
+  "settings_menu.gd:195"
  ],
  "Fiesta-Grade Machine": [
   "characters.json"
@@ -1111,10 +1201,10 @@
   "abilities.json"
  ],
  "Fire": [
-  "player.gd:519"
+  "player.gd:526"
  ],
  "Fire Nova": [
-  "abilities.gd:122",
+  "abilities.gd:127",
   "abilities.json"
  ],
  "Fire Shard": [
@@ -1133,29 +1223,26 @@
   "taglines.json"
  ],
  "Fireballs": [
-  "weapon_system.gd:171",
+  "weapon_system.gd:191",
   "abilities.json",
   "upgrades.json",
   "upgrades.json"
  ],
+ "Fireflick": [
+  "abilities.json"
+ ],
  "Fires {16} stakes in a ring: {90} damage each": [
-  "abilities.json"
- ],
- "Flail of Kings": [
-  "abilities.json"
- ],
- "Flail slam in a 4 m arc: 45 damage, and the enemies it hits are cursed (+25% damage taken for 3 s)": [
   "abilities.json"
  ],
  "Flash Freeze": [
   "abilities.json"
  ],
- "Flashover": [
-  "abilities.json"
- ],
  "Fleet Feet": [
   "skill_tree.gd:52",
   "skill_tree.gd:104"
+ ],
+ "Flicked embers, burns": [
+  "abilities.json"
  ],
  "Fog, cypress trees and stinking pools.": [
   "map_picker.gd:18"
@@ -1182,7 +1269,7 @@
   "abilities.json"
  ],
  "Forge": [
-  "character_select.gd:440"
+  "character_select.gd:505"
  ],
  "Forge Weapon": [
   "forge_menu.gd:136",
@@ -1192,8 +1279,8 @@
   "forge_menu.gd:179"
  ],
  "Forged +%d": [
-  "character_select.gd:440",
-  "character_select.gd:631"
+  "character_select.gd:505",
+  "character_select.gd:696"
  ],
  "Fortune": [
   "skill_tree.gd:60"
@@ -1202,6 +1289,9 @@
   "skill_tree.gd:111"
  ],
  "Four of him. None of them make a sound.": [
+  "abilities.json"
+ ],
+ "Four thousand years of bad luck, all at once.": [
   "abilities.json"
  ],
  "Freezes every enemy around you solid.": [
@@ -1217,20 +1307,20 @@
   "abilities.json"
  ],
  "Frost Shards": [
-  "weapon_system.gd:173",
+  "weapon_system.gd:193",
   "abilities.json"
  ],
  "Frozen Shatter": [
-  "enemy_manager.gd:1270"
+  "enemy_manager.gd:1312"
  ],
  "Frozen enemies that die shatter for {40%} of their max HP to enemies within {2 yd}; shatters chain": [
   "abilities.json"
  ],
  "Fullscreen": [
-  "settings_menu.gd:187"
+  "settings_menu.gd:188"
  ],
  "Fully forged": [
-  "character_select.gd:440"
+  "character_select.gd:505"
  ],
  "Fungal Shield": [
   "abilities.json"
@@ -1239,7 +1329,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:851"
+  "main.gd:905"
  ],
  "Gaiden": [
   "characters.json"
@@ -1259,18 +1349,15 @@
  "Gelatinous cube: the dungeon's mop": [
   "taglines.json"
  ],
- "Gets very, very hot.": [
-  "abilities.json"
- ],
  "Ghast": [
   "characters.json"
  ],
  "Ghost": [
-  "enemy_manager.gd:381"
+  "enemy_manager.gd:385"
  ],
  "Ghoul": [
   "enemy_manager.gd:40",
-  "enemy_manager.gd:380"
+  "enemy_manager.gd:384"
  ],
  "Giant's Heart": [
   "skill_tree.gd:29"
@@ -1278,25 +1365,22 @@
  "Glacial Path": [
   "abilities.json"
  ],
- "Glow white-hot for {3 s} (you take no damage), then explode: {300} damage within {25 m}, plus a {3 s} burn": [
-  "abilities.json"
- ],
  "Goat Charge": [
   "abilities.json"
  ],
  "Goblin": [
-  "enemy_manager.gd:281"
+  "enemy_manager.gd:284"
  ],
  "Goblin Brute": [
   "enemy_manager.gd:39",
-  "enemy_manager.gd:283"
+  "enemy_manager.gd:286"
  ],
  "Goblin Scamp": [
   "enemy_manager.gd:39",
-  "enemy_manager.gd:282"
+  "enemy_manager.gd:285"
  ],
  "Goblin Warlord": [
-  "enemy_manager.gd:284"
+  "enemy_manager.gd:287"
  ],
  "Gold": [
   "chest.gd:8"
@@ -1307,8 +1391,17 @@
  "Gold Sense": [
   "skill_tree.gd:106"
  ],
+ "Golden scarabs that seek their target: 14 damage, then they burrow in for 2% of max HP per second for 2 s": [
+  "abilities.json"
+ ],
+ "Graves burst open under every enemy within {25 m}: bone spikes for {300} damage, rooted for {1.5 s}": [
+  "abilities.json"
+ ],
  "Greed": [
   "skill_tree.gd:54"
+ ],
+ "Green skull bolts of soul-fire: 20 damage, piercing 2 more enemies": [
+  "abilities.json"
  ],
  "Ground Slam": [
   "upgrades.json"
@@ -1347,6 +1440,9 @@
   "abilities.json"
  ],
  "He swells to {twice} his size, bursting out of his lab coat": [
+  "abilities.json"
+ ],
+ "He'll be taking that.": [
   "abilities.json"
  ],
  "He's seen this before. Turn the clock back.": [
@@ -1391,6 +1487,9 @@
  "Hobgoblin up the competition": [
   "taglines.json"
  ],
+ "Hold Alt to pause and inspect: hover an ability or one of your upgrades to see exactly what it does.": [
+  "tips.json"
+ ],
  "Holds {2} charges": [
   "abilities.json"
  ],
@@ -1403,24 +1502,24 @@
  "Homing, strong vs epics": [
   "abilities.json"
  ],
- "Hotfoot": [
-  "abilities.json"
- ],
  "Huge smash, knockback": [
   "abilities.json"
  ],
  "Hunter's Night": [
   "abilities.json"
  ],
+ "Hunting for Fire shards? The Castle, the Desert and the Ashen Caldera all drop them.": [
+  "tips.json"
+ ],
  "Hurls a log that rolls {30 m} where you aim": [
   "abilities.json"
  ],
  "Hurls fireballs from your staff at the nearest enemies.": [
-  "weapon_system.gd:171",
+  "weapon_system.gd:191",
   "upgrades.json"
  ],
  "Hurls icicles from your staff that slow the enemies they hit.": [
-  "weapon_system.gd:173"
+  "weapon_system.gd:193"
  ],
  "I cast Magic Missile at the darkness!": [
   "taglines.json"
@@ -1441,13 +1540,16 @@
   "characters.json"
  ],
  "Inferno": [
-  "abilities.gd:121",
+  "abilities.gd:126",
   "abilities.json"
  ],
  "Inspect abilities (hold)": [
   "settings.gd:27"
  ],
  "Intangible for {4 s}: no contact damage, and you pass through everything": [
+  "abilities.json"
+ ],
+ "Invincible the whole time": [
   "abilities.json"
  ],
  "Invulnerable for {1.5 s} afterwards": [
@@ -1471,11 +1573,8 @@
  "Item": [
   "(runtime)"
  ],
- "Its gaze sweeps the field: {400} damage to every enemy within {30 m}": [
-  "abilities.json"
- ],
  "JACKPOT!": [
-  "slot_machine.gd:330"
+  "slot_machine.gd:340"
  ],
  "Jump": [
   "settings.gd:24"
@@ -1485,6 +1584,9 @@
  ],
  "Jump again in mid-air.": [
   "upgrades.json"
+ ],
+ "Jump the moment you land to keep your momentum, and strafe while airborne to pick up even more speed.": [
+  "tips.json"
  ],
  "Jumps between enemies": [
   "abilities.json"
@@ -1496,26 +1598,35 @@
   "characters.json"
  ],
  "Key %s  ·  Cooldown %s": [
-  "abilities.gd:242",
+  "abilities.gd:248",
   "kit_db.gd:83"
  ],
  "Key bindings  (click, then press a key; Esc cancels)": [
-  "settings_menu.gd:241"
+  "settings_menu.gd:242"
+ ],
+ "Kill bonus": [
+  "hud.gd:1135"
+ ],
+ "Killed by": [
+  "hud.gd:1114"
  ],
  "Killed by %s": [
-  "hud.gd:1006"
+  "hud.gd:1054"
+ ],
+ "Kills": [
+  "hud.gd:1122"
  ],
  "Kills %d\nEnemies %d\nSpeed %.1f m/s": [
-  "hud.gd:1441"
+  "hud.gd:1563"
  ],
  "Kills %s": [
-  "hud.gd:1109"
+  "hud.gd:1202"
  ],
  "Kills %s   →   +%s bonus": [
-  "hud.gd:1036"
+  "hud.gd:1084"
  ],
  "Kills %s   →   +0 bonus  (100 coins per 1,000 kills)": [
-  "hud.gd:1037"
+  "hud.gd:1085"
  ],
  "Kills during the ride heal you {1%} of max HP": [
   "abilities.json"
@@ -1533,32 +1644,33 @@
   "characters.json"
  ],
  "LEGENDARY": [
-  "hud.gd:904"
+  "hud.gd:952"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:424"
+  "weapon_system.gd:451"
  ],
  "LEVEL UP!": [
-  "hud.gd:297"
+  "hud.gd:302",
+  "hud.gd:1129"
  ],
  "LEVEL UP!  lvl %d   ·   +%d skill point": [
-  "hud.gd:1030"
+  "hud.gd:1078"
  ],
  "LEVEL UP!  lvl %d   ·   +%d skill points": [
-  "hud.gd:1030"
+  "hud.gd:1078"
  ],
  "LOADING": [
   "loader.gd:224",
   "loader.gd:386"
  ],
  "LV %d": [
-  "hud.gd:1439"
+  "hud.gd:1561"
  ],
  "LV 1": [
-  "hud.gd:100"
+  "hud.gd:101"
  ],
  "LVL %d": [
-  "character_select.gd:831"
+  "character_select.gd:895"
  ],
  "Ladle of Bile": [
   "abilities.json"
@@ -1583,6 +1695,12 @@
  ],
  "Laundry Day": [
   "abilities.json"
+ ],
+ "Lava Cannonball": [
+  "abilities.json"
+ ],
+ "Lava Slug": [
+  "enemy_manager.gd:403"
  ],
  "Lawful good at running away": [
   "taglines.json"
@@ -1621,16 +1739,22 @@
   "upgrades.json"
  ],
  "Level %d / %d": [
-  "abilities.gd:362"
+  "abilities.gd:368"
+ ],
+ "Level reached": [
+  "hud.gd:1106"
  ],
  "Leveled up. Still lost.": [
   "taglines.json"
  ],
  "Levels raise: %s and cooldown": [
-  "abilities.gd:363"
+  "abilities.gd:369"
  ],
  "Lich and let lich": [
   "taglines.json"
+ ],
+ "Lid": [
+  "hero_entrances.gd:2189"
  ],
  "Light Fingers, Sharp Knives": [
   "characters.json"
@@ -1642,10 +1766,10 @@
   "wallet.gd:279"
  ],
  "Lightning arcs from your staff and jumps between enemies.": [
-  "weapon_system.gd:175"
+  "weapon_system.gd:195"
  ],
  "Lightning chains to 2 more enemies": [
-  "forge.gd:67"
+  "forge.gd:74"
  ],
  "Lightning finds the toughest enemies.": [
   "abilities.json"
@@ -1653,20 +1777,14 @@
  "Lives in a bog, hates visitors, swings a tree trunk like a toothpick.": [
   "characters.json"
  ],
- "Lobbed coals, fires": [
-  "abilities.json"
- ],
  "Lobbed flasks that burst for 30 damage in 3 m and leave acid (4% of max HP per second for 3 s)": [
-  "abilities.json"
- ],
- "Lobbed hot coals that leave small fires (10 damage per second for 2 s)": [
   "abilities.json"
  ],
  "Lobs bile that splashes for 25 damage in 3 m and slows 20%": [
   "abilities.json"
  ],
  "Locked: unlocks at level %d": [
-  "abilities.gd:223"
+  "abilities.gd:229"
  ],
  "Loco Robotico": [
   "characters.json"
@@ -1692,6 +1810,9 @@
  "Luck": [
   "upgrades.json"
  ],
+ "Luck brings more epic enemies (and their drops) and better odds of Rare, Epic and Legendary upgrade cards.": [
+  "tips.json"
+ ],
  "Lunges at the nearest enemy (2 m) for 25 damage; every 5th bite shakes it for 3x": [
   "abilities.json"
  ],
@@ -1701,20 +1822,20 @@
  "Lv %d": [
   "ability_slot.gd:163",
   "ability_slot.gd:183",
-  "hud.gd:802",
-  "hud.gd:905"
+  "hud.gd:850",
+  "hud.gd:953"
  ],
  "Lv %d → %d": [
-  "upgrade_db.gd:168"
+  "upgrade_db.gd:173"
  ],
  "MAGNET! All orbs incoming": [
-  "powerup_manager.gd:18"
+  "powerup_manager.gd:21"
  ],
  "MAX": [
   "ability_slot.gd:163"
  ],
  "MOVEMENT +80% for 15 s!": [
-  "powerup_manager.gd:18"
+  "powerup_manager.gd:21"
  ],
  "Mage against the machine": [
   "taglines.json"
@@ -1722,15 +1843,18 @@
  "Magical Forest": [
   "map_picker.gd:20"
  ],
+ "Magma Imp": [
+  "enemy_manager.gd:400"
+ ],
  "Magnet": [
-  "powerup_manager.gd:17"
+  "powerup_manager.gd:20"
  ],
  "Magnetism": [
   "skill_tree.gd:55"
  ],
  "Main menu": [
-  "hud.gd:262",
-  "hud.gd:755"
+  "hud.gd:267",
+  "hud.gd:797"
  ],
  "Maraca Blasters": [
   "abilities.json"
@@ -1745,7 +1869,7 @@
   "upgrades.json"
  ],
  "Max level": [
-  "abilities.gd:369",
+  "abilities.gd:375",
   "forge_menu.gd:181",
   "forge_menu.gd:203"
  ],
@@ -1759,7 +1883,7 @@
   "characters.json"
  ],
  "Meteor": [
-  "abilities.gd:123",
+  "abilities.gd:128",
   "abilities.json"
  ],
  "Midas Touch": [
@@ -1774,11 +1898,14 @@
  "More health.": [
   "upgrades.json"
  ],
+ "Most damage taken": [
+  "hud.gd:1115"
+ ],
  "Most damage: %s (%d)": [
-  "hud.gd:1007"
+  "hud.gd:1055"
  ],
  "Mouse sensitivity": [
-  "settings_menu.gd:239"
+  "settings_menu.gd:240"
  ],
  "Move Speed": [
   "upgrades.json"
@@ -1796,39 +1923,39 @@
   "settings.gd:23"
  ],
  "Movement Enhancer": [
-  "powerup_manager.gd:17"
+  "powerup_manager.gd:20"
  ],
  "Mummy": [
   "enemy_manager.gd:40",
-  "enemy_manager.gd:363"
+  "enemy_manager.gd:367"
  ],
  "Music": [
   "settings.gd:17",
-  "settings_menu.gd:208"
+  "settings_menu.gd:209"
  ],
  "Mutagen": [
   "abilities.json"
  ],
  "Mute": [
-  "settings_menu.gd:225"
+  "settings_menu.gd:226"
  ],
  "NEW": [
-  "upgrade_db.gd:168"
- ],
- "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:872"
+  "upgrade_db.gd:173"
  ],
  "NEW CHAMPION": [
-  "hud.gd:1137"
+  "hud.gd:1230"
  ],
  "NEW LEGENDARY LEVEL-UP REWARD": [
-  "character_select.gd:919"
+  "character_select.gd:987"
  ],
  "NEW MAP": [
-  "hud.gd:1131"
+  "hud.gd:1224"
  ],
  "NEW WEAPON": [
-  "upgrade_db.gd:161"
+  "upgrade_db.gd:166"
+ ],
+ "NUKE! WAVE CLEARED!": [
+  "powerup_manager.gd:21"
  ],
  "Needs a %s": [
   "chest.gd:120"
@@ -1839,8 +1966,11 @@
  "Never stands still. Now he really can't.": [
   "abilities.json"
  ],
+ "New champions are bought with coins on the character select. Some, like Thog, must first be beaten on their home turf.": [
+  "tips.json"
+ ],
  "Next level: %s x%s, cooldown -%d%%": [
-  "abilities.gd:367"
+  "abilities.gd:373"
  ],
  "No skill points (earn one each level)": [
   "skill_tree.gd:175"
@@ -1861,20 +1991,24 @@
   "abilities.json"
  ],
  "Not forged yet": [
-  "forge.gd:173",
+  "forge.gd:183",
   "forge_menu.gd:179"
  ],
  "Now": [
   "forge_menu.gd:90"
  ],
  "Now for sale in Characters: %s coins": [
-  "hud.gd:1138"
+  "hud.gd:1231"
  ],
  "Now: %s x%s, cooldown -%d%%": [
-  "abilities.gd:365"
+  "abilities.gd:371"
  ],
  "Nuke": [
-  "nuke_blast.gd:207"
+  "nuke_blast.gd:209",
+  "powerup_manager.gd:20"
+ ],
+ "Obsidian Golem": [
+  "enemy_manager.gd:402"
  ],
  "Offense": [
   "skill_tree.gd:11",
@@ -1886,13 +2020,16 @@
   "characters.json"
  ],
  "One attack every %s": [
-  "character_select.gd:622"
+  "character_select.gd:687"
+ ],
+ "Opening a chest spins a slot machine of your abilities. Three of a kind gives that ability +3 levels, and gold chests hit it most often.": [
+  "tips.json"
  ],
  "Orc-estrating total chaos": [
   "taglines.json"
  ],
  "Other": [
-  "enemy_manager.gd:169"
+  "enemy_manager.gd:172"
  ],
  "Over {3 s}, strike the {20} nearest enemies: {120} damage each, plus a bleed": [
   "abilities.json"
@@ -1910,17 +2047,17 @@
   "taglines.json"
  ],
  "PAUSED": [
-  "hud.gd:256"
+  "hud.gd:261"
  ],
  "PAUSED  ·  hover an ability or upgrade for details  ·  release Alt to resume": [
-  "hud.gd:544"
+  "hud.gd:549"
  ],
  "PLAY": [
-  "character_select.gd:820"
+  "character_select.gd:885"
  ],
  "PORTAL OPEN": [
   "boss_aftermath.gd:121",
-  "boss_aftermath.gd:223"
+  "boss_aftermath.gd:222"
  ],
  "Padding": [
   "skill_tree.gd:25"
@@ -1955,6 +2092,9 @@
  "Piercing icicles that slow enemies 30% for 2 s": [
   "abilities.json"
  ],
+ "Piercing soul bolts": [
+  "abilities.json"
+ ],
  "Piercing thrusts, javelins": [
   "abilities.json"
  ],
@@ -1974,17 +2114,17 @@
   "skill_tree.gd:23"
  ],
  "Play": [
-  "character_select.gd:747",
+  "character_select.gd:812",
   "title.gd:409"
  ],
  "Poison": [
-  "enemy_manager.gd:907"
+  "enemy_manager.gd:947"
  ],
  "Poison kick, slows": [
   "abilities.json"
  ],
  "Poison stacks 5 times instead of 3": [
-  "forge.gd:81"
+  "forge.gd:88"
  ],
  "Polymorph": [
   "abilities.json"
@@ -1999,10 +2139,10 @@
   "activate_prompt.gd:28"
  ],
  "Press Apply to switch the language.": [
-  "settings_menu.gd:170"
+  "settings_menu.gd:171"
  ],
  "Press a key...": [
-  "settings_menu.gd:301"
+  "settings_menu.gd:302"
  ],
  "Projectile Speed": [
   "upgrades.json"
@@ -2014,7 +2154,7 @@
   "slot_machine.gd:147"
  ],
  "Pulses knock enemies back": [
-  "forge.gd:79"
+  "forge.gd:86"
  ],
  "Purple Potion: cooldowns -30%": [
   "potion_manager.gd:18"
@@ -2035,10 +2175,13 @@
   "title.gd:413"
  ],
  "Quit to desktop": [
-  "hud.gd:263"
+  "hud.gd:268"
  ],
  "REWARDS": [
-  "hud.gd:715"
+  "hud.gd:1130"
+ ],
+ "RUN": [
+  "hud.gd:1104"
  ],
  "Rage against the dungeon": [
   "taglines.json"
@@ -2074,14 +2217,14 @@
   "abilities.json"
  ],
  "Ready": [
-  "abilities.gd:227"
+  "abilities.gd:233"
  ],
  "Ready in %s": [
-  "abilities.gd:225"
+  "abilities.gd:231"
  ],
  "Ready to unlock": [
-  "character_select.gd:29",
-  "character_select.gd:838"
+  "character_select.gd:30",
+  "character_select.gd:906"
  ],
  "Reaps every enemy within {12 m} below {30%} HP (not the boss)": [
   "abilities.json"
@@ -2101,25 +2244,25 @@
   "skill_tree.gd:87"
  ],
  "Render scale": [
-  "settings_menu.gd:193"
+  "settings_menu.gd:194"
  ],
  "Reset keys to defaults": [
-  "settings_menu.gd:252"
+  "settings_menu.gd:253"
  ],
  "Resets the cooldowns of your other two abilities": [
   "abilities.json"
  ],
  "Restart  [R]": [
-  "hud.gd:749"
+  "hud.gd:791"
  ],
  "Restart run": [
-  "hud.gd:261"
+  "hud.gd:266"
  ],
  "Restores your HP and shield to what they were {8 s} ago": [
   "abilities.json"
  ],
  "Resume": [
-  "hud.gd:259"
+  "hud.gd:264"
  ],
  "Rewind": [
   "abilities.json"
@@ -2132,6 +2275,9 @@
  ],
  "Rips up a log and bowls it at them.": [
   "abilities.json"
+ ],
+ "Rivers of lava, eruptions, magma imps and their cackling king.": [
+  "map_picker.gd:24"
  ],
  "Rode a winged horse into the swamp. The horse refused to come back.": [
   "characters.json"
@@ -2157,13 +2303,10 @@
  "SETTINGS": [
   "settings_menu.gd:47"
  ],
- "SHARDS: %s": [
-  "main.gd:815"
- ],
  "SIGNATURE WEAPON": [
-  "character_select.gd:496",
-  "character_select.gd:619",
-  "character_select.gd:917"
+  "character_select.gd:561",
+  "character_select.gd:684",
+  "character_select.gd:985"
  ],
  "SINGE": [
   "singe_boss.gd:127"
@@ -2177,8 +2320,12 @@
  "SKILL POINTS": [
   "skill_screen.gd:108"
  ],
+ "STARTING BONUSES": [
+  "character_select.gd:35",
+  "character_select.gd:449"
+ ],
  "SURVIVE": [
-  "main.gd:471"
+  "main.gd:492"
  ],
  "Sage": [
   "skill_tree.gd:63"
@@ -2186,16 +2333,22 @@
  "Sandstorm": [
   "abilities.json"
  ],
- "Scarab Swarm": [
+ "Scarab Bolts": [
   "abilities.json"
  ],
- "Scarabs pour down a {20 m} lane where you aim: {60} damage": [
-  "abilities.json"
+ "Scarabs seek on to 1 more enemy": [
+  "forge.gd:90"
  ],
  "Scholar": [
   "skill_tree.gd:56"
  ],
+ "Scorch Trail": [
+  "abilities.json"
+ ],
  "Scythe Sweep": [
+  "abilities.json"
+ ],
+ "Seeking scarabs": [
   "abilities.json"
  ],
  "Select a skill": [
@@ -2209,20 +2362,20 @@
   "characters.json"
  ],
  "Sets [b]every enemy[/b] on fire.": [
-  "abilities.gd:246"
+  "abilities.gd:252"
  ],
  "Sets down her cauldron. It spits.": [
   "abilities.json"
  ],
  "Settings": [
-  "hud.gd:260",
+  "hud.gd:265",
   "title.gd:410"
  ],
  "Shackle Swing": [
   "abilities.json"
  ],
  "Shadow Bolts": [
-  "weapon_system.gd:177",
+  "weapon_system.gd:197",
   "abilities.json"
  ],
  "Shadow Step": [
@@ -2232,7 +2385,7 @@
   "characters.json"
  ],
  "Shards won:": [
-  "hud.gd:819"
+  "hud.gd:867"
  ],
  "Sharpen": [
   "skill_tree.gd:38"
@@ -2242,6 +2395,9 @@
  ],
  "Shoots a web where you aim.": [
   "abilities.json"
+ ],
+ "Short on shards? The Forge sells any kind for 150 coins each.": [
+  "tips.json"
  ],
  "Shuriken Storm": [
   "abilities.json"
@@ -2262,10 +2418,10 @@
   "singe_boss.gd:123",
   "characters.json"
  ],
- "Siphon": [
-  "abilities.json"
+ "Singe in the Ashen Caldera": [
+  "map_picker.gd:27"
  ],
- "Six skeletons claw out of the ground round you and fight for you for {15 s}": [
+ "Siphon": [
   "abilities.json"
  ],
  "Six-Shooter": [
@@ -2276,22 +2432,22 @@
  ],
  "Skeleton": [
   "enemy_manager.gd:39",
-  "enemy_manager.gd:286"
+  "enemy_manager.gd:289"
+ ],
+ "Skill bonus": [
+  "hud.gd:1137"
  ],
  "Skills": [
-  "character_select.gd:745"
+  "character_select.gd:810"
  ],
  "Skills  →   +%s coins": [
-  "hud.gd:1040"
+  "hud.gd:1088"
  ],
  "Skills last for every run with this character.": [
   "skill_screen.gd:298"
  ],
  "Skip this upgrade for a chest key: 60% bronze, 30% silver, 10% gold": [
-  "hud.gd:356"
- ],
- "Skull Staff": [
-  "abilities.json"
+  "hud.gd:361"
  ],
  "Slam Cooldown": [
   "upgrades.json"
@@ -2301,9 +2457,6 @@
  ],
  "Slam Size": [
   "upgrades.json"
- ],
- "Slam, curses": [
-  "abilities.json"
  ],
  "Slash, spore cloud": [
   "abilities.json"
@@ -2317,8 +2470,11 @@
  "Slide": [
   "settings.gd:24"
  ],
+ "Slide while running for a burst of speed. Sliding downhill speeds you up, and a slide-jump keeps it.": [
+  "tips.json"
+ ],
  "Slow bolts of shadow that pierce and curse the enemies they hit.": [
-  "weapon_system.gd:177"
+  "weapon_system.gd:197"
  ],
  "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)": [
   "abilities.json"
@@ -2336,7 +2492,7 @@
   "characters.json"
  ],
  "Smashes stun everything hit for 0.6 s": [
-  "forge.gd:77"
+  "forge.gd:84"
  ],
  "Smoke Bomb": [
   "abilities.json"
@@ -2353,14 +2509,17 @@
  "Sonic cone, faster moving": [
   "abilities.json"
  ],
+ "Soul Bolts": [
+  "abilities.json"
+ ],
+ "Soul Drain": [
+  "abilities.json"
+ ],
  "Soul Leech": [
   "abilities.json"
  ],
- "Soul bolts, drain": [
-  "abilities.json"
- ],
  "Sound": [
-  "settings_menu.gd:207"
+  "settings_menu.gd:208"
  ],
  "Special": [
   "skill_screen.gd:132",
@@ -2375,6 +2534,9 @@
  ],
  "Spell slots sold separately": [
   "taglines.json"
+ ],
+ "Spend shards in the Forge to upgrade your signature weapon, up to level 10. Click the weapon on the character select to open it.": [
+  "tips.json"
  ],
  "Spin Cycle": [
   "abilities.json"
@@ -2401,7 +2563,7 @@
   "abilities.json"
  ],
  "Spore clouds are twice as big": [
-  "forge.gd:82"
+  "forge.gd:89"
  ],
  "Spreads out flat across the swamp.": [
   "abilities.json"
@@ -2414,7 +2576,7 @@
  ],
  "Sprinting Zombie": [
   "enemy_manager.gd:40",
-  "enemy_manager.gd:361"
+  "enemy_manager.gd:365"
  ],
  "Sprints in circles for no reason.": [
   "abilities.json"
@@ -2456,14 +2618,14 @@
  "Sunlit glades, blossoming trees and butterflies.": [
   "map_picker.gd:20"
  ],
- "Supernova": [
-  "abilities.json"
+ "Survival coins": [
+  "hud.gd:1134"
  ],
  "Survive 15:00 in the Swamp on Unrelenting": [
-  "character_select.gd:124"
+  "character_select.gd:126"
  ],
  "Survived %s   →   %s coins": [
-  "hud.gd:1038"
+  "hud.gd:1086"
  ],
  "Survivors come out shrunk: half damage and {double} damage taken for {20 s}": [
   "abilities.json"
@@ -2476,6 +2638,9 @@
  ],
  "Swamp Scientist": [
   "characters.json"
+ ],
+ "Swamp water halves your speed and jump height. The goblins wade slowly too.": [
+  "tips.json"
  ],
  "Swamp's Fury": [
   "abilities.json"
@@ -2496,7 +2661,7 @@
   "arachnid_boss.gd:98"
  ],
  "THE ARACHNID CLIMBS THE WALLS!": [
-  "arachnid_boss.gd:479"
+  "arachnid_boss.gd:496"
  ],
  "THE DEAD ANSWER THE PHARAOH!": [
   "pharaoh_boss.gd:296"
@@ -2520,7 +2685,7 @@
   "pharaoh_boss.gd:104"
  ],
  "THE PHARAOH CRUMBLES TO DUST!": [
-  "pharaoh_boss.gd:674"
+  "pharaoh_boss.gd:682"
  ],
  "THE PHARAOH RISES FROM HIS TOMB!": [
   "pharaoh_boss.gd:175"
@@ -2532,35 +2697,35 @@
   "toadstool_boss.gd:76"
  ],
  "THOG": [
-  "main.gd:78",
-  "main.gd:801",
+  "main.gd:80",
+  "main.gd:844",
   "thog_boss.gd:424",
-  "thog_boss.gd:506"
+  "thog_boss.gd:522"
  ],
  "THOG CALLS HIS GOBLINS!": [
   "thog_boss.gd:382"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:824"
+  "main.gd:864"
  ],
  "THOG IS ENRAGED!": [
-  "thog_boss.gd:528"
+  "thog_boss.gd:544"
  ],
  "THOG SHAKES THE SWAMP!  GET IN A PUDDLE!": [
   "thog_boss.gd:400"
  ],
  "THOG THE TROLL": [
-  "main.gd:774",
-  "thog_boss.gd:605"
+  "main.gd:814",
+  "thog_boss.gd:621"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
-  "thog_boss.gd:636"
+  "thog_boss.gd:652"
  ],
  "THOG THE TROLL  ·  enrages in %d:%02d": [
-  "thog_boss.gd:640"
+  "thog_boss.gd:656"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:775"
+  "main.gd:815"
  ],
  "TIP": [
   "loader.gd:222",
@@ -2587,6 +2752,9 @@
  "The Arachnid": [
   "arachnid_boss.gd:94",
   "characters.json"
+ ],
+ "The Ashen Caldera": [
+  "map_picker.gd:24"
  ],
  "The Castle": [
   "map_picker.gd:21"
@@ -2662,19 +2830,10 @@
  "The fallen get back up, on your side this time.": [
   "abilities.json"
  ],
- "The fallen rise as ghosts that fight for you for {10 s}": [
-  "abilities.json"
- ],
- "The fallen rise as mummies that fight for you for {10 s}": [
-  "abilities.json"
- ],
  "The goblins have disadvantage. On everything.": [
   "taglines.json"
  ],
- "The ground remembers what's buried in it.": [
-  "abilities.json"
- ],
- "The ground within {25 m} erupts: {300} damage to every enemy on it": [
+ "The ground cracks open round you and lava bombs rain down for {6 s}: {36} bombs within {22 m}": [
   "abilities.json"
  ],
  "The ground within {30 m} turns to bog for {12 s}: enemies are slowed {70%}": [
@@ -2707,6 +2866,9 @@
  "Then the bone explodes for {100} damage within {5 m}": [
   "abilities.json"
  ],
+ "Then up to {16} of the dead rise and fight for you for {10 s}": [
+  "abilities.json"
+ ],
  "Then you fire: {300} damage to each": [
   "abilities.json"
  ],
@@ -2723,14 +2885,14 @@
   "taglines.json"
  ],
  "Thog the Troll": [
-  "enemy_manager.gd:290",
+  "enemy_manager.gd:293",
   "characters.json"
  ],
  "Thog the Troll in the Swamp": [
-  "map_picker.gd:26"
+  "map_picker.gd:27"
  ],
  "Thorns": [
-  "main.gd:603",
+  "main.gd:628",
   "upgrades.json"
  ],
  "Thorns Damage": [
@@ -2770,18 +2932,24 @@
   "taglines.json"
  ],
  "Time %s   ·   Level %d   ·   Kills %d": [
-  "hud.gd:1001"
+  "hud.gd:1049"
  ],
  "Time +%s": [
-  "hud.gd:1109"
+  "hud.gd:1202"
  ],
  "Time Warp": [
   "skill_tree.gd:59",
   "skill_tree.gd:109",
   "abilities.json"
  ],
+ "Time alive": [
+  "hud.gd:1122"
+ ],
  "Time freezes for {2 s} while you mark up to {30} enemies in view": [
   "abilities.json"
+ ],
+ "Time survived": [
+  "hud.gd:1105"
  ],
  "Toadstool Knight": [
   "toadstool_boss.gd:72",
@@ -2836,10 +3004,13 @@
   "upgrades.json"
  ],
  "Tomes ×%d": [
-  "hud.gd:1455"
+  "hud.gd:1577"
  ],
  "Torch-lit halls, a feast to trample, skeletons.": [
   "map_picker.gd:21"
+ ],
+ "Total EXP": [
+  "hud.gd:1125"
  ],
  "Total party kill? Not on my watch.": [
   "taglines.json"
@@ -2848,7 +3019,7 @@
   "skill_tree.gd:22"
  ],
  "Toxic Spill": [
-  "enemy_manager.gd:1283",
+  "enemy_manager.gd:1325",
   "abilities.json"
  ],
  "Tree Trunk": [
@@ -2856,6 +3027,9 @@
  ],
  "Troll Blood": [
   "skill_tree.gd:31"
+ ],
+ "Tucks in. Cannonballs. Splashes everyone.": [
+  "abilities.json"
  ],
  "Turns the nearest enemies into frogs.": [
   "abilities.json"
@@ -2867,44 +3041,47 @@
   "abilities.json"
  ],
  "ULTIMATE": [
-  "abilities.gd:240",
+  "abilities.gd:246",
   "kit_db.gd:81"
  ],
  "UNLOCK": [
-  "character_select.gd:840"
+  "character_select.gd:908"
  ],
  "UNLOCKED %s": [
   "unlock_reveal.gd:33"
  ],
  "UNLOCKED!": [
-  "hud.gd:74",
-  "hud.gd:1155"
+  "hud.gd:75",
+  "hud.gd:1248"
  ],
  "UNRELENTING": [
-  "character_select.gd:230",
-  "character_select.gd:231"
+  "character_select.gd:232",
+  "character_select.gd:233"
  ],
  "Ultimate": [
   "settings.gd:26"
  ],
+ "Ultimates set the woods ablaze. Burnt trees crumble away for good, opening new escape routes.": [
+  "tips.json"
+ ],
  "Unknown": [
-  "player.gd:569"
+  "player.gd:576"
  ],
  "Unknown map": [
-  "map_picker.gd:97"
+  "map_picker.gd:98"
  ],
  "Unknown skill": [
   "skill_tree.gd:162"
  ],
  "Unlimited": [
-  "settings_menu.gd:198"
+  "settings_menu.gd:199"
  ],
  "Unlock": [
-  "character_select.gd:944"
+  "character_select.gd:1012"
  ],
  "Unlock Requirements:": [
-  "character_select.gd:29",
-  "character_select.gd:838"
+  "character_select.gd:30",
+  "character_select.gd:906"
  ],
  "Unlocks at level %d": [
   "skill_screen.gd:135",
@@ -2912,12 +3089,21 @@
   "skill_tree.gd:166"
  ],
  "Unlocks at level %d during a run": [
-  "character_select.gd:647"
+  "character_select.gd:712"
  ],
  "Unrelenting": [
   "mode_menu.gd:16"
  ],
+ "Unrelenting mode has no time limit and no level cap. Survive 15 minutes in the Swamp to earn a rare feat.": [
+  "tips.json"
+ ],
+ "Up to {10} of the fallen rise as mummies that fight for you for {12 s} ({20} a hit)": [
+  "abilities.json"
+ ],
  "Up to {40} enemies within {20 m} become frogs for {8 s} (not the boss)": [
+  "abilities.json"
+ ],
+ "Up to {8} of the dead (fresh corpses first) claw out of the ground and fight for you for {12 s}": [
   "abilities.json"
  ],
  "Up you get.": [
@@ -2954,7 +3140,7 @@
   "characters.json"
  ],
  "Video": [
-  "settings_menu.gd:185"
+  "settings_menu.gd:186"
  ],
  "Volatile Flasks": [
   "abilities.json"
@@ -2963,10 +3149,10 @@
   "skill_tree.gd:44"
  ],
  "Vulture": [
-  "enemy_manager.gd:364"
+  "enemy_manager.gd:368"
  ],
  "WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns": [
-  "hud.gd:189"
+  "hud.gd:194"
  ],
  "WRATH OF THE SANDS! FIND SHELTER!": [
   "pharaoh_boss.gd:454"
@@ -2989,8 +3175,11 @@
  "Web Trap": [
   "abilities.json"
  ],
+ "When a boss ultimate starts, find the safe spot: golden circles for the Pharaoh, holy ground for the Necromancer, raised islands for Singe.": [
+  "tips.json"
+ ],
  "When a possessed enemy dies, enemies near it flee in fear for 1.5 s": [
-  "forge.gd:71"
+  "forge.gd:78"
  ],
  "When it breaks or runs out, it bursts into spores: {60} damage within {8 m}, plus poison": [
   "abilities.json"
@@ -3026,16 +3215,19 @@
   "skill_tree.gd:97"
  ],
  "Win +%s": [
-  "hud.gd:1109"
+  "hud.gd:1202"
+ ],
+ "Win bonus": [
+  "hud.gd:1122"
  ],
  "Windowed": [
-  "settings_menu.gd:187"
+  "settings_menu.gd:188"
  ],
  "Wings of Valhalla": [
   "abilities.json"
  ],
  "Winner!": [
-  "slot_machine.gd:335"
+  "slot_machine.gd:344"
  ],
  "Wizard of ahhh!": [
   "taglines.json"
@@ -3050,10 +3242,16 @@
   "upgrades.json"
  ],
  "YOU DIED": [
-  "hud.gd:999"
+  "hud.gd:1047"
  ],
  "YOU SURVIVED!": [
-  "hud.gd:999"
+  "hud.gd:1047"
+ ],
+ "YOUR DAMAGE": [
+  "hud.gd:1118"
+ ],
+ "You can carry four weapons and four kinds of tome in a run. Once your slots are full, only those level up, so choose carefully.": [
+  "tips.json"
  ],
  "You deal {+100%} damage": [
   "abilities.json"
@@ -3070,8 +3268,14 @@
  "You heal {2%} of max HP per second while standing next to it": [
   "abilities.json"
  ],
+ "You heal {20%} of the damage it does (up to {4%} of max HP a second)": [
+  "abilities.json"
+ ],
+ "You start a run with one ability. The second unlocks at level 5 and your ultimate at level 10.": [
+  "tips.json"
+ ],
  "You vanish and become a giant flaming copy of your own head. [b]Invulnerable[/b] while falling.": [
-  "abilities.gd:254"
+  "abilities.gd:260"
  ],
  "You're invulnerable while rolling": [
   "abilities.json"
@@ -3086,7 +3290,7 @@
   "abilities.json"
  ],
  "Your damage: %s": [
-  "hud.gd:1014"
+  "hud.gd:1062"
  ],
  "Your dust trail deals {30} damage per second and knocks enemies back": [
   "abilities.json"
@@ -3104,109 +3308,119 @@
   "abilities.json"
  ],
  "Zaps hit 2 more enemies": [
-  "forge.gd:78"
+  "forge.gd:85"
  ],
  "Zaps the 3 nearest enemies for 18 damage; builds up to 2x damage while you keep moving": [
   "abilities.json"
  ],
  "Zombie": [
   "enemy_manager.gd:39",
-  "enemy_manager.gd:360"
+  "enemy_manager.gd:364"
  ],
  "Zombie Brute": [
   "enemy_manager.gd:40",
-  "enemy_manager.gd:362"
+  "enemy_manager.gd:366"
  ],
  "Zoomies": [
   "abilities.json"
  ],
  "bomb damage": [
-  "abilities.gd:48"
+  "abilities.gd:49",
+  "abilities.gd:55"
  ],
  "burn damage": [
-  "abilities.gd:34"
+  "abilities.gd:35"
  ],
  "burst damage": [
-  "abilities.gd:51"
+  "abilities.gd:52"
  ],
  "clone damage": [
-  "abilities.gd:44"
+  "abilities.gd:45"
  ],
  "damage bonus": [
-  "abilities.gd:37",
-  "abilities.gd:39",
-  "abilities.gd:43"
+  "abilities.gd:38",
+  "abilities.gd:40",
+  "abilities.gd:44"
  ],
  "digest damage": [
-  "abilities.gd:49"
+  "abilities.gd:50"
  ],
  "drain damage": [
-  "abilities.gd:37"
- ],
- "frog count": [
   "abilities.gd:38"
  ],
+ "frog count": [
+  "abilities.gd:39"
+ ],
  "lvl %d": [
-  "character_select.gd:328"
+  "character_select.gd:330"
  ],
  "lvl %d   ·   %s   ·   %d / 18 skills learned": [
   "skill_screen.gd:264"
  ],
  "max level": [
-  "character_select.gd:832",
-  "hud.gd:1025"
+  "character_select.gd:896",
+  "hud.gd:1073",
+  "hud.gd:1126"
  ],
  "mini-blob damage": [
-  "abilities.gd:49"
+  "abilities.gd:50"
+ ],
+ "mummy damage": [
+  "abilities.gd:53"
  ],
  "needs row 1": [
   "skill_screen.gd:145"
  ],
  "partner damage": [
-  "abilities.gd:47"
+  "abilities.gd:48"
  ],
  "poison bonus": [
-  "abilities.gd:50"
- ],
- "shock damage": [
-  "abilities.gd:36"
- ],
- "slam damage": [
   "abilities.gd:51"
  ],
+ "risen dead damage": [
+  "abilities.gd:54"
+ ],
+ "shock damage": [
+  "abilities.gd:37"
+ ],
+ "slam damage": [
+  "abilities.gd:52"
+ ],
  "speed bonus": [
-  "abilities.gd:45"
+  "abilities.gd:46"
  ],
  "spiderling damage": [
-  "abilities.gd:50"
+  "abilities.gd:51"
  ],
  "the Arachnid in the Castle": [
-  "map_picker.gd:26"
+  "map_picker.gd:27"
  ],
  "the Necromancer in the Graveyard": [
-  "map_picker.gd:26"
+  "map_picker.gd:27"
  ],
  "the Pharaoh in the Desert": [
-  "map_picker.gd:26"
+  "map_picker.gd:27"
  ],
  "the Toadstool Knight in the Magical Forest": [
-  "map_picker.gd:26"
+  "map_picker.gd:27"
  ],
  "trail damage": [
-  "abilities.gd:35"
+  "abilities.gd:36"
  ],
  "unshaded add": [
-  "hero_entrances.gd:866",
-  "hero_entrances.gd:1334",
-  "hero_entrances.gd:2173"
+  "hero_entrances.gd:875",
+  "hero_entrances.gd:1343",
+  "hero_entrances.gd:2026",
+  "hero_entrances.gd:2271",
+  "hero_entrances.gd:2396"
  ],
  "wisp damage": [
-  "abilities.gd:37"
+  "abilities.gd:38"
  ],
  "{+100%} move speed for {6 s}": [
   "abilities.json"
  ],
- "{+40%} move speed for {6 s}, leaving burning footprints that last {4 s}": [
+ "{+30%} move speed for {6 s}, leaving burning scorch marks behind you that last {4 s}": [
   "abilities.json"
  ],
  "{+40%} move speed for {8 s}": [
@@ -3273,24 +3487,24 @@
   "abilities.json"
  ],
  "• %s damage to every enemy within %s": [
-  "abilities.gd:251"
- ],
- "• Burn: %s of max HP per second for %s (%s total)": [
-  "abilities.gd:247"
- ],
- "• Burning enemies that die explode for %s of their max HP to enemies within %s; explosions chain": [
-  "abilities.gd:248"
- ],
- "• Crashes where you aim after %s: %s damage within %s, plus knockback": [
-  "abilities.gd:255"
- ],
- "• Knocks them back %s": [
-  "abilities.gd:252"
- ],
- "• The ground burns for %s: %s of max HP per second within %s": [
   "abilities.gd:257"
  ],
+ "• Burn: %s of max HP per second for %s (%s total)": [
+  "abilities.gd:253"
+ ],
+ "• Burning enemies that die explode for %s of their max HP to enemies within %s; explosions chain": [
+  "abilities.gd:254"
+ ],
+ "• Crashes where you aim after %s: %s damage within %s, plus knockback": [
+  "abilities.gd:261"
+ ],
+ "• Knocks them back %s": [
+  "abilities.gd:258"
+ ],
+ "• The ground burns for %s: %s of max HP per second within %s": [
+  "abilities.gd:263"
+ ],
  "• You reappear at the crash site": [
-  "abilities.gd:256"
+  "abilities.gd:262"
  ]
 }

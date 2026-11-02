@@ -139,6 +139,23 @@ func _build_model() -> void:
 	main.add_child(webs)
 
 
+## Minimap: the web swath's webbed half of the keep, as a red no-go area (MapBoss API).
+func map_danger_zones() -> Array:
+	var out: Array = []
+	if webs == null or not is_instance_valid(webs):
+		return out
+	var h := SpiderWebs.HALF
+	for s in webs.swaths:
+		if float(s["t"]) >= SpiderWebs.SWATH_LIFE:
+			continue
+		match String(s["half"]):
+			"west": out.append({"rect": Rect2(-h, -h, h, h * 2.0)})
+			"east": out.append({"rect": Rect2(0.0, -h, h, h * 2.0)})
+			"north": out.append({"rect": Rect2(-h, -h, h * 2.0, h)})
+			_: out.append({"rect": Rect2(-h, 0.0, h * 2.0, h)})
+	return out
+
+
 func can_climb() -> bool:
 	return CastleNav.current != null
 

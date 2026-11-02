@@ -210,6 +210,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		cam_pitch = clampf(cam_pitch - dy * sens, -1.25, 1.2 if first_person else 0.4)
 
 
+## Props between the camera and you thin out so they never hide you (MeshBuilder's shader).
+func _process(_dt: float) -> void:
+	if cam and cam.is_inside_tree() and cam.current:
+		MeshBuilder.set_occlusion(cam.global_position, global_position + Vector3(0.0, 1.1, 0.0))
+
+
 func _physics_process(dt: float) -> void:
 	if meteor_form:
 		_follow_camera(dt)
@@ -291,7 +297,8 @@ func _physics_process(dt: float) -> void:
 			if wish_len > 0.1:  # air jumps let you redirect without losing speed
 				hv = wishdir * maxf(hspeed, move_speed * 0.8)
 	if jumped:
-		velocity.y = JUMP_VELOCITY * (sqrt(WATER_JUMP_HEIGHT_MULT) if in_water else 1.0)
+		var jh := stats.value("jump_height") if stats.has_stat("jump_height") else 1.0   # character bonus (apex x jh)
+		velocity.y = JUMP_VELOCITY * sqrt(maxf(0.1, jh) * (WATER_JUMP_HEIGHT_MULT if in_water else 1.0))
 		_jump_buf = 0.0
 		_coyote = 0.0
 		on_floor = false

@@ -13,6 +13,8 @@ const REACH := 0.8
 const TINT := Color(0.32, 0.18, 0.45)
 
 var enemies: EnemyManager
+var tint := TINT                 # the Necromancer's risen dead glow green, the Pharaoh's mummies gold
+var glow := Color(0.55, 0.25, 1.0)   # ...the colour of their ghostly glow (set before it's added)
 var _pos := PackedVector3Array()
 var _face := PackedVector2Array()
 var _life := PackedFloat32Array()
@@ -40,6 +42,7 @@ func _ready() -> void:
 	_clip_attack = float(_vat.clip_index["attack"]) / 4.0
 	_attack_rate = 1.0 / float(_vat.clip_length["attack"])
 	_vat.material.set_shader_parameter("ghost", 1.0)   # its own material: only allies glow
+	_vat.material.set_shader_parameter("ghost_color", Vector3(glow.r, glow.g, glow.b))
 	_mm = MultiMesh.new()
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_mm.use_colors = true
@@ -146,7 +149,7 @@ func _write(i: int, rise: float, clip: float) -> void:
 	_buf[b + 13] = _phase[i]
 	_buf[b + 14] = 0.0
 	_buf[b + 15] = 1.0
-	_buf[b + 16] = TINT.r
-	_buf[b + 17] = TINT.g
-	_buf[b + 18] = TINT.b
+	_buf[b + 16] = tint.r
+	_buf[b + 17] = tint.g
+	_buf[b + 18] = tint.b
 	_buf[b + 19] = EnemyManager.FX_SHADOW

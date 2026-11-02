@@ -10,14 +10,15 @@ const ARENA_HALF := 220.0   # 440 m across
 const RUN_LENGTH := 600.0
 const BOSS_TIME := 300.0
 const THOG_TIME := RUN_LENGTH - 120.0   # the Swamp's boss arrives with 2 minutes left
-const MAX_WEAPONS := 3
+const MAX_WEAPONS := 4   # weapon slots (and UpgradeDB.MAX_TOMES tome slots): once full, only those level up
 const SWAMP_MUSIC := "res://audio/music/tension_drop.mp3"   # loops for the whole swamp run
-const MAP_MUSIC := {"forest": "res://audio/music/bosna_grit.mp3", "castle": "res://audio/music/castle_map.mp3"}   # per-map tracks (others use SWAMP_MUSIC)
+const MAP_MUSIC := {"forest": "res://audio/music/bosna_grit.mp3", "castle": "res://audio/music/castle_map.mp3", "caldera": "res://audio/music/castle_map.mp3"}   # per-map tracks (others use SWAMP_MUSIC)
 const MUSIC_VOLUME_DB := -6.0
 const EPIC_BASE_CHANCE := 0.05
 const EPIC_CHANCE_PER_LUCK := 0.1      # per point of the Luck stat (a Tome of Luck level = 0.1 luck = +1%)
 const CONTACT_ENEMY_KNOCK := 2.5       # metres an enemy is shoved on collision
 
+const CharBonuses := preload("res://scripts/char_bonuses.gd")
 const BASE_STATS := {
 	"max_hp": 100.0, "regen": 0.0, "armor": 0.0, "move_speed": 8.0,
 	"damage": 1.0, "attack_speed": 1.0, "area": 1.0, "projectile_speed": 1.0,
@@ -29,6 +30,7 @@ const BASE_STATS := {
 	"bomb_chance": 0.0, "bomb_damage": 25.0, "fang_chance": 0.0,
 	"crit_chance": 0.03, "crit_damage": 1.5,   # every hit: 3% to crit for 1.5x (crit tomes and skills raise them)
 	"coin_gain": 1.0, "ability_cdr": 1.0, "start_shield": 0.0,   # from character skills
+	"jump_height": 1.0,   # jump apex multiplier (character bonuses)
 }
 
 static var smoke_restarts := 0
@@ -73,11 +75,14 @@ var _boss_spawned := false
 var thog: ThogBoss                 # the Swamp boss once he's arrived
 var boss_map := false              # this map has a boss you must kill to win
 ## Each map's boss (also the Wallet.bosses_defeated id, and the character it unlocks)
-const MAP_BOSS := {"swamp": "thog", "forest": "toadstool_knight", "castle": "arachnid", "desert": "pharaoh", "graveyard": "necromancer"}
+const MAP_BOSS := {"swamp": "thog", "forest": "toadstool_knight", "castle": "arachnid", "desert": "pharaoh", "graveyard": "necromancer", "caldera": "singe"}
 var boss_id := ""                  # this run's boss
 var boss_name := "THOG"            # for "%s DEFEATED!"
 var map_boss: MapBoss              # the Forest's / Castle's boss once it has arrived
-var boss_won := false              # the run was won by killing the boss
+var boss_won := false              # the run was won by killing the boss (and leaving through the portal)
+var boss_down := false             # Classic: the boss has fallen; no more monsters come (BossAftermath opens the portal)
+var _boss_down_at := 0.0           # run_time when he fell (the run's time and coins stop there)
+var aftermath: BossAftermath       # the boss's shards on the ground and the portal out
 ## Unrelenting mode: no time limit (the clock counts up), spawns never stop, upgrades have no
 ## level cap, and past 10:00 enemies hit harder and drop less XP the longer you last.
 var endless := false
@@ -121,6 +126,7 @@ var _shot_front := false
 var _shot_pool := false
 var _shot_potions := false
 var _shot_powerups := false
+var _shot_nuke := -1.0     # --shot-nuke=T: set off a NUKE power-up at T seconds
 var _shot_chest := -1      # --shot-chest=tier: a chest of that tier in front of you
 var _shot_slot := -1       # --shot-slot=tier[:pull_after_s[:levels a,b,c]]: the slot machine
 var _shot_slot_pull := -1.0
@@ -157,6 +163,11 @@ var _shot_slow := -1.0   # --shot-slow=T: crawl (time scale 0.02) from T, to cat
 func _ready() -> void:
 	Wallet.set_shown(true)
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# Main keeps running while paused (menus, input), but everything in the world freezes with the
+	# pause: map props like the castle's chandeliers and feast, bosses, webs, kegs... Anything
+	# added under main that hasn't chosen otherwise becomes pausable; the HUD (a CanvasLayer)
+	# and plain (non-positional) audio like the music keep running.
+	child_entered_tree.connect(_pause_with_game)
 	setup_inputs()
 	Settings.apply_bindings()
 
@@ -181,6 +192,8 @@ func _ready() -> void:
 			ForestBuilder.force_time = a.split("=")[1]
 		elif a.begins_with("--desert-time="):   # day / dusk / night (screenshots)
 			DesertBuilder.force_time = a.split("=")[1]
+		elif a.begins_with("--caldera-time="):   # ember / night (screenshots)
+			CalderaBuilder.force_time = a.split("=")[1]
 		elif a.begins_with("--thog-at=") or a.begins_with("--boss-at="):   # bring the map's boss early (tests, screenshots)
 			_thog_at = float(a.split("=")[1])
 		elif a.begins_with("--smoke-wall="):   # wall-clock limit for long smoke runs (seconds)
@@ -263,6 +276,8 @@ func _ready() -> void:
 					_shot_slot_levels.append(int(lv))
 		elif a == "--shot-powerups":
 			_shot_powerups = true
+		elif a.begins_with("--shot-nuke="):
+			_shot_nuke = float(a.split("=")[1])
 		elif a == "--shot-potions":
 			_shot_potions = true
 		elif a == "--shot-pool":
@@ -294,6 +309,7 @@ func _ready() -> void:
 	if kit_hp > 0.0:   # some characters start tougher (Thog: a melee bruiser, 250 HP)
 		stats.apply("max_hp", "flat", kit_hp - float(BASE_STATS["max_hp"]))
 	skills_applied = SkillTree.apply(Settings.selected_character, stats)   # skill tree bonuses
+	CharBonuses.apply(Settings.selected_character, stats)   # the character's 3 starting bonuses (characters.json)
 	db = UpgradeDB.new("res://data/upgrades.json", rng)
 
 	water = WorldBuilder.build(self, rng, ARENA_HALF, Settings.selected_map)
@@ -357,7 +373,6 @@ func _ready() -> void:
 	potions = PotionManager.new()
 	potions.setup(player, abilities, rng)
 	add_child(potions)
-	potions.collected.connect(func(k: int): hud.flash_message(PotionManager.NAMES[k], 1.5))
 	potions.healed.connect(func(amount: float):
 		hud.show_heal(amount)
 		numbers.add(player.global_position + Vector3(0, 2.6, 0), amount, DamageNumbers.HEAL))
@@ -365,7 +380,6 @@ func _ready() -> void:
 	keys = KeyManager.new()
 	keys.setup(player, rng)
 	add_child(keys)
-	keys.collected.connect(func(t: int): hud.flash_message(tr("%s!") % tr(KeyManager.NAMES[t]), 1.8))
 	enemies.epic_killed.connect(func(p: Vector3):
 		elites_killed += 1
 		potions.on_elite_killed(p)
@@ -379,7 +393,6 @@ func _ready() -> void:
 	powerups = PowerupManager.new()
 	powerups.setup(player, stats, enemies, gems, db, rng)
 	add_child(powerups)
-	powerups.collected.connect(func(k: int): hud.flash_message(PowerupManager.PICKUP_TEXT[k], 2.5))
 	enemies.epic_killed.connect(func(p: Vector3): powerups.on_elite_killed(p))
 	if not smoke and shot_path == "":   # developer stats (temporary): your real runs only
 		run_stats = RunStats.new()
@@ -404,8 +417,11 @@ func _ready() -> void:
 	hud = Hud.new()
 	add_child(hud)
 	hud.setup(self)
+	aftermath = BossAftermath.new()   # after the boss: shard pickups and the portal out
+	aftermath.setup(self)
+	add_child(aftermath)
 	# Main runs while paused (menus, input); all gameplay nodes freeze with the pause.
-	for n in [fx, enemies, numbers, corpses, powerups, chests, keys, gems, weapons, abilities, potions, goblin_audio, items]:
+	for n in [fx, enemies, numbers, corpses, powerups, chests, keys, gems, weapons, abilities, potions, goblin_audio, items, aftermath]:
 		(n as Node).process_mode = Node.PROCESS_MODE_PAUSABLE
 
 	Events.enemy_killed.connect(_on_enemy_killed)
@@ -444,6 +460,11 @@ func _ready() -> void:
 			hud.start_clock_spin()
 		abilities.entrance_landed.connect(_on_entrance_landed, CONNECT_ONE_SHOT)
 		abilities.entrance_meteor(Vector3(0, water.ground_height(0, 0), 0))
+
+
+func _pause_with_game(n: Node) -> void:
+	if n.process_mode == Node.PROCESS_MODE_INHERIT and not (n is CanvasLayer) and not (n is AudioStreamPlayer):
+		n.process_mode = Node.PROCESS_MODE_PAUSABLE
 
 
 ## The castle entrance: walk the player in through the doors, then shut them.
@@ -486,6 +507,7 @@ func xp_drop_mult() -> float:
 
 
 func _exit_tree() -> void:
+	Settings.update_muffle(10.0, false)   # leaving the run from a menu: the music clears at once
 	if Events.enemy_killed.is_connected(_on_enemy_killed):
 		Events.enemy_killed.disconnect(_on_enemy_killed)
 
@@ -494,6 +516,8 @@ func _exit_tree() -> void:
 
 ## Hold Alt: freeze the game and free the cursor to inspect abilities; release to resume.
 func _process(_dt: float) -> void:
+	# Music sounds muffled (like in a cave) while a menu holds the run: level-up, chest, pause
+	Settings.update_muffle(get_process_delta_time(), get_tree().paused and state in ["levelup", "chest", "paused"])
 	if _shot_inspect >= 0:
 		return   # screenshot mode holds inspect open without a real key press
 	var held := Input.is_action_pressed("inspect")
@@ -531,7 +555,8 @@ func _physics_process(dt: float) -> void:
 	var gained := gems.tick(dt, player.global_position + Vector3(0, 0.9, 0), stats.value("pickup_range"))
 	potions.tick(dt, stats.value("pickup_range"))
 	powerups.tick(dt, stats.value("pickup_range"))
-	enemies.crit_chance = stats.value("crit_chance")
+	# (headless test runs check exact damage, so no random crits there; the game always renders)
+	enemies.crit_chance = stats.value("crit_chance") if DisplayServer.get_name() != "headless" else 0.0
 	enemies.crit_mult = stats.value("crit_damage")
 	keys.tick(dt, stats.value("pickup_range"))
 	chests.tick(dt)
@@ -638,8 +663,10 @@ func hp_mult() -> float:
 
 
 func _spawn_director(dt: float) -> void:
+	if boss_down:
+		return   # the boss has fallen: nothing more comes (the ones left can still be fought)
 	var m := run_time / 60.0
-	var k_boss := BOSS_SPAWN_MULT if boss_up() else 1.0   # half the mobs while the boss is out
+	var k_boss := BOSS_SPAWN_MULT if boss_up() else 1.0   # a fifth of the mobs while the boss is out
 	_spawn_budget += (1.6 + m * 2.2 + m * m * 0.5) * dt * k_boss
 	var hpm := hp_mult()
 	while _spawn_budget >= 1.0:
@@ -649,8 +676,11 @@ func _spawn_director(dt: float) -> void:
 			break
 		_spawn_enemy(_pick_type(m), _spawn_point(26.0, 36.0), hpm)
 
-	# Swarm ring every minute (the Castle: bomber skeletons crawl out of the floor instead)
-	if run_time >= _next_swarm and CastleNav.current != null:
+	# Swarm ring every minute (the Castle: bomber skeletons crawl out of the floor instead);
+	# none at all while a boss is out
+	if run_time >= _next_swarm and boss_up():
+		_next_swarm += 60.0
+	elif run_time >= _next_swarm and CastleNav.current != null:
 		_next_swarm += 60.0
 		var nb := int((BOMBERS_BASE + int(m) * BOMBERS_PER_MIN) * k_boss)
 		for k in nb:
@@ -659,6 +689,9 @@ func _spawn_director(dt: float) -> void:
 			if CastleNav.current.steps_to_player(p.x, p.z) <= 0:
 				p = _spawn_point(14.0, 24.0)   # that spot is a wall or cut off
 			enemies.bombers.spawn(p, hpm, rng.randf_range(0.0, 1.2))
+	elif run_time >= _next_swarm and enemies.caldera != null:   # the Caldera: the volcano erupts (lava bombs) and imps claw out of the cracks round you
+		_next_swarm += 60.0
+		enemies.caldera.eruption_swarm(player.global_position, int((24 + int(m) * 6) * k_boss), hpm, rng, epic_chance(), mini(6 + int(m), 14))
 	elif run_time >= _next_swarm and enemies.undead != null:   # the Graveyard: the dead climb out of the graves round you
 		_next_swarm += 60.0
 		enemies.undead.grave_swarm(player.global_position, int((24 + int(m) * 6) * k_boss), hpm, rng, epic_chance())
@@ -709,8 +742,11 @@ func damage_source(i: int) -> String:
 	return ("Elite " + n) if enemies.epic[i] and not enemies.is_boss(i) else n   # no-i18n
 
 
-## Spawns (trickle and swarm waves) are scaled by this while the map's boss is out.
-const BOSS_SPAWN_MULT := 0.5
+## While any map boss is out: the trickle runs at a fifth of its rate, never more than
+## BOSS_LIVE_CAP enemies alive at once, and no swarm waves at all (rings, eruptions, the rising
+## dead, bomber skeletons). The fight is about the boss.
+const BOSS_SPAWN_MULT := 0.2
+const BOSS_LIVE_CAP := 90
 
 
 func boss_up() -> bool:
@@ -723,7 +759,9 @@ const LIVE_CAP := 250   # the steady trickle pauses while this many goblins are 
 ## The steady trickle's cap: LIVE_CAP, or lower while a map boss that asks for it is up.
 func _live_cap() -> int:
 	if map_boss != null and is_instance_valid(map_boss) and map_boss.crowd_cap > 0 and map_boss.state != "dead":
-		return map_boss.crowd_cap
+		return mini(map_boss.crowd_cap, BOSS_LIVE_CAP)
+	if boss_up():
+		return BOSS_LIVE_CAP
 	return LIVE_CAP
 const TANK_WEIGHT_CAP := {"forest": 4.0}   # per map: Brutes stop growing as a share of spawns at this weight (grunts are 10)
 const RING_GAP := {"forest": deg_to_rad(90.0)}   # per map: the swarm ring's opening, toward where you're heading
@@ -735,6 +773,8 @@ const BOMBERS_PER_MIN := 2    # ...plus this many per minute of the run
 func _pick_type(m: float) -> int:
 	if DesertBuilder.active:   # zombies instead of goblins, mummies and vultures
 		return DesertCrowd.pick_type(rng, m)
+	if CalderaBuilder.active:   # imps, bats, golems and slugs instead of goblins
+		return CalderaCrowd.pick_type(rng, m)
 	if CastleNav.current != null and rng.randf() < SKELETON_SHARE:
 		return EnemyManager.SKELETON
 	var w_grunt := 10.0
@@ -781,6 +821,9 @@ func spawn_map_boss() -> MapBoss:
 	if boss_id == "pharaoh":   # the Desert's: he rises from the tomb before the sphinx
 		map_boss = PharaohBoss.new()
 		map_boss.setup(self, PharaohBoss.rise_point(), hp_mult())
+	elif boss_id == "singe":   # the Caldera's: Singe bursts up out of the great lava pool
+		map_boss = SingeBoss.new()
+		map_boss.setup(self, SingeBoss.rise_point(), hp_mult())
 	elif boss_id == "necromancer":   # the Graveyard's: he steps out of the fog among the graves
 		map_boss = NecromancerBoss.new()
 		map_boss.setup(self, _spawn_point(30.0, 34.0), hp_mult())
@@ -808,17 +851,14 @@ func _award_shards() -> void:
 	for kind in won:
 		shards_won[kind] = int(shards_won.get(kind, 0)) + int(won[kind])
 	Wallet.add_shards(won)
-	var parts := []
-	for kind in Wallet.SHARDS:
-		if won.has(kind):
-			parts.append("%d %s" % [won[kind], tr(Wallet.SHARD_NAMES[kind])])
-	hud.flash_message(tr("SHARDS: %s") % ", ".join(parts), 3.0)
 
 
-## A map boss has fallen: gems fly in, first kills unlock things, and the run is won.
+## A map boss has fallen: gems fly in, first kills unlock things at once, his shards burst out
+## onto the ground round him and (Classic) the monsters stop coming. A couple of seconds later a
+## portal opens (BossAftermath); stepping into it wins the run (complete_run). Unrelenting goes on
+## as before (spawns keep coming), with the portal as a way out.
 func _on_boss_defeated() -> void:
 	gems.magnetise_all()
-	_award_shards()
 	first_boss_kill = Wallet.defeat_boss(boss_id)
 	if boss_id == "thog":
 		hud.flash_message("THOG IS DEFEATED!", 4.0)
@@ -826,13 +866,27 @@ func _on_boss_defeated() -> void:
 		hud.flash_message(tr("%s IS DEFEATED!") % tr(boss_name), 4.0)
 	if endless:
 		_thog_at = INF   # Unrelenting: the run goes on (he doesn't come back)
-		return
-	await get_tree().create_timer(4.0, true).timeout   # he topples; gems fly in
+	else:
+		boss_down = true
+		_boss_down_at = run_time
+	aftermath.boss_down(_boss_fall_point(), Wallet.roll_boss_shards(rng, Settings.selected_map))
+
+
+## Where the boss came down (his body; the player if it's gone), on the ground.
+func _boss_fall_point() -> Vector3:
+	var b: Node = thog if boss_id == "thog" else map_boss
+	var m = b.get("model") if b != null and is_instance_valid(b) else null
+	var p: Vector3 = (m as Node3D).global_position if m is Node3D and (m as Node3D).is_inside_tree() else player.global_position
+	return Vector3(p.x, water.ground_height(p.x, p.z), p.z)
+
+
+## The player stepped through the portal: the run is won (any open menu is closed first).
+func complete_run() -> void:
 	if state == "levelup":   # no point picking upgrades now: straight to the victory
 		hud.hide_draft()
 		pending_levels = 0
 		state = "playing"
-	if state == "chest":   # finish the slot machine first? no - the boss is down: the win comes first
+	if state == "chest":
 		hud.hide_slot_machine()
 		state = "playing"
 	while state == "paused" or state == "inspect":
@@ -866,10 +920,6 @@ func _add_xp(v: float) -> void:
 		pending_levels += 1
 		Events.level_up.emit(level)
 		abilities.level = level
-		for k in abilities.defs().size():
-			var d: Dictionary = abilities.defs()[k]
-			if int(d["unlock_level"]) == level:
-				hud.flash_message(tr("NEW ABILITY UNLOCKED: %s  [%s]") % [tr(d["name"]).to_upper(), d["key"]], 4.0)
 	if pending_levels > 0 and state == "playing":
 		_open_draft()
 
@@ -965,9 +1015,7 @@ func choose_upgrade(i: int) -> void:
 func cast_ability(i: int) -> void:
 	if state != "playing" or intro:
 		return
-	if abilities.try_cast(i):
-		if i == Abilities.INFERNO or i == Abilities.METEOR:
-			hud.flash_message(tr(str(abilities.defs()[i]["name"])).to_upper() + "!", 2.0)
+	abilities.try_cast(i)
 
 
 func resume_from_pause() -> void:
@@ -987,7 +1035,6 @@ func _open_slot_machine(tier: int) -> void:
 		return
 	if abilities.levelable().is_empty():   # every ability maxed out: a full heal instead
 		player.heal(player.max_hp)
-		hud.flash_message(tr("Every ability is at max level!  Fully healed"), 3.0)
 		return
 	state = "chest"
 	get_tree().paused = true
@@ -1000,8 +1047,6 @@ func _open_slot_machine(tier: int) -> void:
 
 func _on_slot_done(a: int, n: int) -> void:
 	hud.hide_slot_machine()
-	var name := tr(str(abilities.defs()[a]["name"])).to_upper()
-	hud.flash_message(tr("%s  LEVEL %d") % [name, abilities.ab_level[a]], 2.5)
 	_resume()
 	if pending_levels > 0 and state == "playing":
 		_open_draft()
@@ -1055,6 +1100,8 @@ func _stop_music() -> void:
 
 
 func _end_run(won: bool) -> void:
+	if boss_down:   # the clock stopped when the boss fell (no farming coins in an empty map)
+		run_time = minf(run_time, _boss_down_at)
 	_stop_music()
 	state = "won" if won else "dead"
 	if run_stats:
@@ -1070,16 +1117,25 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 func to_title() -> void:
 	if run_stats:
 		run_stats.save("QUIT")   # no-op if the run already ended  no-i18n
-	get_tree().paused = false
+	get_tree().paused = true   # the run holds still behind the loading screen; Loader unpauses
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	get_tree().change_scene_to_file(TITLE_SCENE)
+	Loader.go(TITLE_SCENE)   # behind the loading screen (scripts/loader.gd)
+
+
+## End screen: back to the roster to pick someone else (same mode, same map).
+func to_character_select() -> void:
+	if run_stats:
+		run_stats.save("QUIT")   # no-op if the run already ended  no-i18n
+	get_tree().paused = true   # the run holds still behind the loading screen; Loader unpauses
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Loader.go("res://scenes/character_select.tscn")
 
 
 func restart() -> void:
 	if run_stats:
 		run_stats.save("QUIT")   # no-i18n
-	get_tree().paused = false
-	get_tree().reload_current_scene()
+	get_tree().paused = true   # the run holds still behind the loading screen; Loader unpauses
+	Loader.go(scene_file_path)
 
 
 # ------------------------------------------------------------------ input
@@ -1270,8 +1326,11 @@ func _shot_tick() -> void:
 	if _shot_powerups and run_time < 0.05:
 		var f2 := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
 		var r2 := Vector3(cos(player.cam_yaw), 0, -sin(player.cam_yaw))
-		for k in 4:
-			powerups.drop(player.global_position + f2 * 6.0 + r2 * (k - 1.5) * 1.9, k)
+		for k in PowerupManager.NAMES.size():
+			powerups.drop(player.global_position + f2 * 6.0 + r2 * (k - 2.0) * 1.9, k)
+	if _shot_nuke >= 0.0 and run_time >= _shot_nuke:
+		_shot_nuke = -1.0
+		powerups.activate(PowerupManager.NUKE)
 	if _shot_potions and run_time < 0.05:
 		var fwd := Vector3(-sin(player.cam_yaw), 0, -cos(player.cam_yaw))
 		var right := Vector3(cos(player.cam_yaw), 0, -sin(player.cam_yaw))
@@ -1305,6 +1364,8 @@ func _shot_tick() -> void:
 				t = EnemyManager.SKELETON   # indoors: show some skeletons too
 			if DesertBuilder.active and k % 4 == 1:
 				t = EnemyManager.MUMMY if k % 8 == 1 else EnemyManager.VULTURE   # the Desert: mummies and vultures too
+			if CalderaBuilder.active and k % 5 == 2:
+				t = EnemyManager.LAVA_SLUG   # the Caldera: slugs too
 			if _shot_epic and k % 3 == 0:   # --shot-epic: every third one is an epic, close by
 				enemies.spawn(t, _spawn_point(5.0, 9.0), 3.0, true)
 			else:

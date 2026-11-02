@@ -38,6 +38,13 @@ func _ready() -> void:
 	main._end_run(false)
 	_check("end screen lists the coins", "61 coins" in main.hud.end_coin_lines.text and "+100 bonus" in main.hud.end_coin_lines.text, main.hud.end_coin_lines.text)
 	_check("pot shows the total before paying", main.hud.end_pot.text == "+161", main.hud.end_pot.text)
+	# The end screen is a ledger: item on the left, dots, value on the right
+	var rows := {}
+	for lr in main.hud.end_ledger.get_children():
+		if lr is HBoxContainer and lr.get_child_count() == 3:
+			rows[(lr.get_child(0) as Label).text] = (lr.get_child(2) as Label).text
+	_check("end screen ledger: one row per item, value on the right", rows.get("Time survived", "") == "01:01" and rows.get("Enemies killed", "") == "1,500"
+		and rows.get("Kill bonus", "") == "+100" and rows.has("Total EXP"), str(rows))
 	# 1,500 kills + about a minute alive (100 EXP a minute); died, so no win bonus
 	var want := Wallet.run_exp(1500, 0, 0, 0, main.run_time, false)
 	_check("EXP banked at the end: kills + time alive", Wallet.char_exp_of("fire_wizard") == int(want["total"]) and int(want["time"]) >= 100

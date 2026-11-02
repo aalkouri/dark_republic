@@ -1,0 +1,322 @@
+{
+ "A beam from your staff drains everything in a {16 m} line for {4 s}: {40} damage a second": [
+  "Un rayo de tu bastón drena todo en una línea de {16 m} durante {4 s}: {40} de daño por segundo",
+  "Un rayon de ton bâton draine tout sur une ligne de {16 m} pendant {4 s} : {40} dégâts par seconde",
+  "شعاع من عصاك يستنزف كل شيء في خط طوله {16 m} لمدة {4 s}: {40} ضرر في الثانية",
+  "Ein Strahl aus deinem Stab saugt {4 s} lang alles in einer {16 m} langen Linie aus: {40} Schaden pro Sekunde",
+  "法杖射出光束，持续 {4 s} 吸取 {16 m} 直线上的一切：每秒 {40} 点伤害",
+  "杖から放つ光線が {16 m} の直線上のすべてを {4 s} 吸い取る：毎秒 {40} ダメージ"
+ ],
+ "A beam of cursed light runs {22 m} down where you aim: {60} damage": [
+  "Un rayo de luz maldita recorre {22 m} hacia donde apuntas: {60} de daño",
+  "Un rayon de lumière maudite file sur {22 m} là où tu vises : {60} dégâts",
+  "شعاع من نور ملعون يمتد {22 m} نحو ما تصوب إليه: {60} ضرر",
+  "Ein Strahl verfluchten Lichts schießt {22 m} weit in Zielrichtung: {60} Schaden",
+  "一道诅咒之光朝瞄准方向延伸 {22 m}：{60} 点伤害",
+  "呪われた光線が狙った方向へ {22 m} 走る：{60} ダメージ"
+ ],
+ "A spectral Sphinx rises before you and its eyes blaze: a great storm tears through every enemy within {25 m} for {300} damage": [
+  "Una Esfinge espectral se alza ante ti y sus ojos arden: una gran tormenta arrasa a todos los enemigos en {25 m} con {300} de daño",
+  "Un Sphinx spectral se dresse devant toi, les yeux en feu : une grande tempête frappe chaque ennemi à {25 m} pour {300} dégâts",
+  "يرتفع أبو الهول الطيفي أمامك وتتوهج عيناه: عاصفة عظيمة تمزق كل عدو ضمن {25 m} بضرر {300}",
+  "Eine geisterhafte Sphinx erhebt sich vor dir, ihre Augen lodern: Ein gewaltiger Sturm trifft jeden Gegner im Umkreis von {25 m} für {300} Schaden",
+  "幽灵狮身人面像在你面前升起，双眼燃起：一场巨大风暴席卷 {25 m} 内所有敌人，造成 {300} 点伤害",
+  "目の前に幻のスフィンクスが現れ、その目が燃え上がる：大嵐が {25 m} 以内のすべての敵を襲い {300} ダメージ"
+ ],
+ "A storm whirls round you for {8 s} out to {8 m}": [
+  "Una tormenta gira a tu alrededor durante {8 s} hasta {8 m}",
+  "Une tempête tourbillonne autour de toi pendant {8 s} jusqu'à {8 m}",
+  "عاصفة تدور حولك لمدة {8 s} حتى {8 m}",
+  "Ein Sturm wirbelt {8 s} lang bis {8 m} um dich herum",
+  "风暴在你周围旋转 {8 s}，范围 {8 m}",
+  "嵐が {8 s} の間、周囲 {8 m} に渦巻く"
+ ],
+ "Brings the volcano with him.": [
+  "Se trae el volcán consigo.",
+  "Il emporte le volcan avec lui.",
+  "يحمل البركان معه.",
+  "Bringt den Vulkan einfach mit.",
+  "他把火山也带来了。",
+  "火山ごと連れてくる。"
+ ],
+ "Burns deal double damage": [
+  "Las quemaduras hacen el doble de daño",
+  "Les brûlures infligent le double de dégâts",
+  "الحروق تسبب ضعف الضرر",
+  "Verbrennungen verursachen doppelten Schaden",
+  "灼烧伤害翻倍",
+  "燃焼ダメージが2倍"
+ ],
+ "Caldera Eruption": [
+  "Erupción de la caldera",
+  "Éruption de la caldeira",
+  "ثوران الفوهة",
+  "Calderaausbruch",
+  "火山口喷发",
+  "カルデラ噴火"
+ ],
+ "Crash down for {150} damage within {6 m}, leaving a lava pool for {3 s} ({4%} of max HP per second)": [
+  "Caes con {150} de daño en {6 m}, dejando un charco de lava durante {3 s} ({4%} de la vida máx. por segundo)",
+  "Tu t'écrases pour {150} dégâts dans {6 m}, laissant une mare de lave pendant {3 s} ({4%} des PV max par seconde)",
+  "تهبط بقوة مسببًا {150} ضرر ضمن {6 m} وتترك بركة حمم لمدة {3 s} ({4%} من الصحة القصوى في الثانية)",
+  "Du schlägst mit {150} Schaden im Umkreis von {6 m} ein und hinterlässt {3 s} lang einen Lavapfuhl ({4%} der max. LP pro Sekunde)",
+  "重重砸下，对 {6 m} 内造成 {150} 点伤害，留下持续 {3 s} 的熔岩池（每秒最大生命值的 {4%}）",
+  "{6 m} 以内に {150} ダメージで着弾し、{3 s} 溶岩だまりを残す（毎秒最大HPの {4%}）"
+ ],
+ "Curl into a ball of coals and dive up to {18 m} where you aim (untouchable in the air)": [
+  "Te enroscas en una bola de brasas y te lanzas hasta {18 m} hacia donde apuntas (intocable en el aire)",
+  "Tu te roules en boule de braises et plonges jusqu'à {18 m} là où tu vises (intouchable en l'air)",
+  "تلتف ككرة من الجمر وتنقض حتى {18 m} نحو ما تصوب إليه (لا يمكن لمسك في الهواء)",
+  "Rolle dich zu einer Glutkugel zusammen und springe bis zu {18 m} in Zielrichtung (in der Luft unberührbar)",
+  "蜷成一团炭火球，朝瞄准处跃出最多 {18 m}（空中无法被触碰）",
+  "炭の玉に丸まり、狙った場所へ最大 {18 m} 飛び込む（空中では無敵）"
+ ],
+ "Curse of the Sands": [
+  "Maldición de las arenas",
+  "Malédiction des sables",
+  "لعنة الرمال",
+  "Fluch des Sandes",
+  "黄沙诅咒",
+  "砂の呪い"
+ ],
+ "Each hit heals you 1 HP (up to 4 a second)": [
+  "Cada impacto te cura 1 PV (hasta 4 por segundo)",
+  "Chaque coup te soigne de 1 PV (jusqu'à 4 par seconde)",
+  "كل إصابة تشفيك 1 نقطة صحة (حتى 4 في الثانية)",
+  "Jeder Treffer heilt dich um 1 LP (bis zu 4 pro Sekunde)",
+  "每次命中为你恢复 1 点生命（每秒最多 4 点）",
+  "命中ごとにHPを1回復（毎秒最大4）"
+ ],
+ "Each hits for {110} damage within {3.5 m} and sets enemies burning ({4%} of max HP per second for {3 s})": [
+  "Cada una hace {110} de daño en {3.5 m} y quema a los enemigos ({4%} de la vida máx. por segundo durante {3 s})",
+  "Chacune inflige {110} dégâts dans {3.5 m} et embrase les ennemis ({4%} des PV max par seconde pendant {3 s})",
+  "كل واحدة تسبب {110} ضرر ضمن {3.5 m} وتشعل الأعداء ({4%} من الصحة القصوى في الثانية لمدة {3 s})",
+  "Jede trifft mit {110} Schaden im Umkreis von {3.5 m} und setzt Gegner in Brand ({4%} der max. LP pro Sekunde für {3 s})",
+  "每颗造成 {3.5 m} 内 {110} 点伤害并点燃敌人（{3 s} 内每秒最大生命值的 {4%}）",
+  "各弾が {3.5 m} 以内に {110} ダメージを与え、敵を燃やす（{3 s} の間、毎秒最大HPの {4%}）"
+ ],
+ "Embers flicked in pairs (14 m): 8 damage each, and they set what they hit burning for 3% of max HP per second for 2 s": [
+  "Brasas lanzadas de dos en dos (14 m): 8 de daño cada una, y queman lo que tocan con un 3% de la vida máx. por segundo durante 2 s",
+  "Des braises lancées par paires (14 m) : 8 dégâts chacune, et elles embrasent ce qu'elles touchent pour 3 % des PV max par seconde pendant 2 s",
+  "جمرات تُقذف أزواجًا (14 م): 8 ضرر لكل منها، وتشعل ما تصيبه بـ 3% من الصحة القصوى في الثانية لمدة 2 ث",
+  "Paarweise geschnippte Glut (14 m): je 8 Schaden, und Getroffenes brennt 2 s lang für 3 % der max. LP pro Sekunde",
+  "成对弹出的余烬（14 米）：每颗 8 点伤害，并使命中目标燃烧 2 秒，每秒最大生命值的 3%",
+  "2つずつ弾く火の粉（14 m）：各8ダメージ、当たった相手を2秒間燃やす（毎秒最大HPの3%）"
+ ],
+ "Enemies in it are slowed {50%} and take {20} damage a second; it blinds them for {2 s} when it catches them (they wander, harmless)": [
+  "Los enemigos dentro van un {50%} más lentos y reciben {20} de daño por segundo; los ciega {2 s} al atraparlos (deambulan, inofensivos)",
+  "Les ennemis dedans sont ralentis de {50%} et subissent {20} dégâts par seconde ; elle les aveugle {2 s} quand elle les prend (ils errent, inoffensifs)",
+  "الأعداء بداخلها يتباطؤون {50%} ويتلقون {20} ضرر في الثانية؛ وتعميهم {2 s} عندما تمسك بهم (يتجولون بلا أذى)",
+  "Gegner darin werden um {50%} verlangsamt und erleiden {20} Schaden pro Sekunde; er blendet sie {2 s} lang, wenn er sie erfasst (sie irren harmlos umher)",
+  "其中的敌人减速 {50%}，每秒受到 {20} 点伤害；被卷入时致盲 {2 s}（四处游荡，无害）",
+  "中の敵は {50%} 減速し毎秒 {20} ダメージ。巻き込まれた敵は {2 s} 目が見えなくなる（さまよい、無害）"
+ ],
+ "Enemies it touches are cursed ({+25%} damage taken) for {6 s}, slowed {50%} and wither for {3%} of max HP per second for {4 s}": [
+  "Los enemigos que toca quedan malditos ({+25%} de daño recibido) durante {6 s}, ralentizados un {50%} y se marchitan un {3%} de la vida máx. por segundo durante {4 s}",
+  "Les ennemis touchés sont maudits ({+25%} de dégâts subis) pendant {6 s}, ralentis de {50%} et dépérissent de {3%} des PV max par seconde pendant {4 s}",
+  "الأعداء الذين يلمسهم يُلعنون ({+25%} ضرر متلقى) لمدة {6 s}، ويتباطؤون {50%} ويذبلون بـ {3%} من الصحة القصوى في الثانية لمدة {4 s}",
+  "Berührte Gegner sind {6 s} lang verflucht ({+25%} erlittener Schaden), um {50%} verlangsamt und welken {4 s} lang um {3%} der max. LP pro Sekunde",
+  "被击中的敌人受到诅咒（受到伤害 {+25%}）{6 s}，减速 {50%}，并在 {4 s} 内每秒枯萎最大生命值的 {3%}",
+  "触れた敵は {6 s} 呪われ（被ダメージ {+25%}）、{50%} 減速し、{4 s} の間毎秒最大HPの {3%} 衰弱する"
+ ],
+ "Enemies on them take {15} damage and burn for {5%} of max HP per second for {3 s}": [
+  "Los enemigos encima reciben {15} de daño y arden un {5%} de la vida máx. por segundo durante {3 s}",
+  "Les ennemis dessus subissent {15} dégâts et brûlent pour {5%} des PV max par seconde pendant {3 s}",
+  "الأعداء فوقها يتلقون {15} ضرر ويحترقون بـ {5%} من الصحة القصوى في الثانية لمدة {3 s}",
+  "Gegner darauf erleiden {15} Schaden und brennen {3 s} lang für {5%} der max. LP pro Sekunde",
+  "踩上的敌人受到 {15} 点伤害，并在 {3 s} 内每秒燃烧最大生命值的 {5%}",
+  "上にいる敵は {15} ダメージを受け、{3 s} の間毎秒最大HPの {5%} 燃える"
+ ],
+ "Fireflick": [
+  "Chispazo",
+  "Pichenette de feu",
+  "نقرة النار",
+  "Feuerschnipser",
+  "火星弹指",
+  "ファイアフリック"
+ ],
+ "Flicked embers, burns": [
+  "Brasas lanzadas, quemaduras",
+  "Braises lancées, brûlures",
+  "جمرات مقذوفة، حروق",
+  "Geschnippte Glut, Brand",
+  "弹射余烬，灼烧",
+  "弾く火の粉、燃焼"
+ ],
+ "Four thousand years of bad luck, all at once.": [
+  "Cuatro mil años de mala suerte, de golpe.",
+  "Quatre mille ans de malchance, d'un seul coup.",
+  "أربعة آلاف عام من سوء الحظ دفعة واحدة.",
+  "Viertausend Jahre Pech, alle auf einmal.",
+  "四千年的霉运，一次奉上。",
+  "四千年分の不運を、一度に。"
+ ],
+ "Golden scarabs that seek their target: 14 damage, then they burrow in for 2% of max HP per second for 2 s": [
+  "Escarabajos dorados que buscan su objetivo: 14 de daño, y luego se entierran un 2% de la vida máx. por segundo durante 2 s",
+  "Des scarabées d'or qui traquent leur cible : 14 dégâts, puis ils s'enfouissent pour 2 % des PV max par seconde pendant 2 s",
+  "خنافس ذهبية تتعقب هدفها: 14 ضرر، ثم تحفر داخله بـ 2% من الصحة القصوى في الثانية لمدة 2 ث",
+  "Goldene Skarabäen, die ihr Ziel suchen: 14 Schaden, dann graben sie sich 2 s lang für 2 % der max. LP pro Sekunde hinein",
+  "追踪目标的黄金圣甲虫：14 点伤害，随后钻入体内 2 秒，每秒最大生命值的 2%",
+  "標的を追う黄金のスカラベ：14ダメージ、その後2秒間食い込み毎秒最大HPの2%"
+ ],
+ "Graves burst open under every enemy within {25 m}: bone spikes for {300} damage, rooted for {1.5 s}": [
+  "Las tumbas estallan bajo cada enemigo en {25 m}: púas de hueso con {300} de daño, inmovilizados {1.5 s}",
+  "Des tombes s'ouvrent sous chaque ennemi à {25 m} : des pointes d'os pour {300} dégâts, immobilisés {1.5 s}",
+  "تنفجر القبور تحت كل عدو ضمن {25 m}: أشواك عظمية بضرر {300} وتثبيت لمدة {1.5 s}",
+  "Unter jedem Gegner im Umkreis von {25 m} brechen Gräber auf: Knochenstacheln für {300} Schaden, {1.5 s} lang festgehalten",
+  "{25 m} 内每个敌人脚下坟墓迸裂：骨刺造成 {300} 点伤害并定身 {1.5 s}",
+  "{25 m} 以内のすべての敵の足元で墓が裂ける：骨の棘で {300} ダメージ、{1.5 s} 拘束"
+ ],
+ "Green skull bolts of soul-fire: 20 damage, piercing 2 more enemies": [
+  "Proyectiles de calavera de fuego de almas verde: 20 de daño, atraviesan 2 enemigos más",
+  "Des projectiles-crânes verts de feu d'âmes : 20 dégâts, transperçant 2 ennemis de plus",
+  "قذائف جماجم خضراء من نار الأرواح: 20 ضرر، تخترق عدوين إضافيين",
+  "Grüne Schädelgeschosse aus Seelenfeuer: 20 Schaden, durchbohren 2 weitere Gegner",
+  "绿色魂火骷髅弹：20 点伤害，额外穿透 2 个敌人",
+  "緑の魂炎のドクロ弾：20ダメージ、さらに敵2体を貫通"
+ ],
+ "He'll be taking that.": [
+  "Eso se lo queda él.",
+  "Ça, il le prend.",
+  "سيأخذ هذا.",
+  "Das nimmt er sich.",
+  "这个归他了。",
+  "それはいただいていく。"
+ ],
+ "Lava Cannonball": [
+  "Bala de lava",
+  "Boulet de lave",
+  "قذيفة الحمم",
+  "Lavakanonenkugel",
+  "熔岩炮弹",
+  "溶岩キャノンボール"
+ ],
+ "Piercing soul bolts": [
+  "Proyectiles de alma perforantes",
+  "Projectiles d'âme perçants",
+  "قذائف أرواح خارقة",
+  "Durchbohrende Seelengeschosse",
+  "穿透魂弹",
+  "貫通する魂弾"
+ ],
+ "Scarab Bolts": [
+  "Escarabajos",
+  "Scarabées",
+  "قذائف الجعران",
+  "Skarabäen",
+  "圣甲虫弹",
+  "スカラベ弾"
+ ],
+ "Scarabs seek on to 1 more enemy": [
+  "Los escarabajos persiguen a 1 enemigo más",
+  "Les scarabées traquent 1 ennemi de plus",
+  "تتعقب الخنافس عدوًا إضافيًا واحدًا",
+  "Skarabäen jagen 1 weiteren Gegner",
+  "圣甲虫会再追踪 1 个敌人",
+  "スカラベがさらに敵1体を追う"
+ ],
+ "Scorch Trail": [
+  "Rastro abrasador",
+  "Traînée brûlante",
+  "أثر الحريق",
+  "Glutspur",
+  "焦土足迹",
+  "焦げ跡"
+ ],
+ "Seeking scarabs": [
+  "Escarabajos buscadores",
+  "Scarabées traqueurs",
+  "خنافس متعقبة",
+  "Suchende Skarabäen",
+  "追踪圣甲虫",
+  "追尾スカラベ"
+ ],
+ "Soul Bolts": [
+  "Proyectiles de alma",
+  "Projectiles d'âme",
+  "قذائف الأرواح",
+  "Seelengeschosse",
+  "魂弹",
+  "魂弾"
+ ],
+ "Soul Drain": [
+  "Drenaje de almas",
+  "Drain d'âme",
+  "استنزاف الأرواح",
+  "Seelensog",
+  "灵魂汲取",
+  "ソウルドレイン"
+ ],
+ "The ground cracks open round you and lava bombs rain down for {6 s}: {36} bombs within {22 m}": [
+  "El suelo se agrieta a tu alrededor y llueven bombas de lava durante {6 s}: {36} bombas en {22 m}",
+  "Le sol se fend autour de toi et des bombes de lave pleuvent pendant {6 s} : {36} bombes dans {22 m}",
+  "تتشقق الأرض حولك وتمطر قنابل الحمم لمدة {6 s}: {36} قنبلة ضمن {22 m}",
+  "Der Boden reißt um dich auf und {6 s} lang regnen Lavabomben: {36} Bomben im Umkreis von {22 m}",
+  "你周围的地面裂开，熔岩弹倾泻 {6 s}：{22 m} 内共 {36} 颗",
+  "周囲の地面が裂け、{6 s} の間溶岩弾が降り注ぐ：{22 m} 以内に {36} 発"
+ ],
+ "Then up to {16} of the dead rise and fight for you for {10 s}": [
+  "Después se alzan hasta {16} muertos que luchan por ti durante {10 s}",
+  "Puis jusqu'à {16} morts se relèvent et combattent pour toi pendant {10 s}",
+  "ثم ينهض حتى {16} من الموتى ويقاتلون معك لمدة {10 s}",
+  "Dann erheben sich bis zu {16} Tote und kämpfen {10 s} lang für dich",
+  "随后最多 {16} 名亡者起身，为你战斗 {10 s}",
+  "その後、最大 {16} 体の死者が起き上がり {10 s} 味方として戦う"
+ ],
+ "Tucks in. Cannonballs. Splashes everyone.": [
+  "Se encoge. Bomba. Salpica a todos.",
+  "Il se roule. Boulet. Éclabousse tout le monde.",
+  "ينكمش. يقفز كالقذيفة. يرش الجميع.",
+  "Einrollen. Arschbombe. Alle nass.",
+  "抱团。炮弹跳。溅所有人一身。",
+  "丸まる。飛び込む。みんなに浴びせる。"
+ ],
+ "Up to {10} of the fallen rise as mummies that fight for you for {12 s} ({20} a hit)": [
+  "Hasta {10} de los caídos se alzan como momias que luchan por ti durante {12 s} ({20} por golpe)",
+  "Jusqu'à {10} des tombés se relèvent en momies qui combattent pour toi pendant {12 s} ({20} par coup)",
+  "ينهض حتى {10} من الساقطين كمومياوات تقاتل معك لمدة {12 s} ({20} لكل ضربة)",
+  "Bis zu {10} Gefallene erheben sich als Mumien und kämpfen {12 s} lang für dich ({20} pro Treffer)",
+  "最多 {10} 名倒下者化为木乃伊，为你战斗 {12 s}（每击 {20}）",
+  "倒れた者のうち最大 {10} 体がミイラとなって {12 s} 味方として戦う（1撃 {20}）"
+ ],
+ "Up to {8} of the dead (fresh corpses first) claw out of the ground and fight for you for {12 s}": [
+  "Hasta {8} muertos (primero los cadáveres frescos) salen arañando del suelo y luchan por ti durante {12 s}",
+  "Jusqu'à {8} morts (les cadavres frais d'abord) sortent de terre et combattent pour toi pendant {12 s}",
+  "يخرج حتى {8} من الموتى (الجثث الحديثة أولًا) من الأرض ويقاتلون معك لمدة {12 s}",
+  "Bis zu {8} Tote (frische Leichen zuerst) graben sich aus dem Boden und kämpfen {12 s} lang für dich",
+  "最多 {8} 名亡者（优先新鲜尸体）从地下爬出，为你战斗 {12 s}",
+  "最大 {8} 体の死者（新しい死体から）が地面から這い出し {12 s} 味方として戦う"
+ ],
+ "You heal {20%} of the damage it does (up to {4%} of max HP a second)": [
+  "Te curas un {20%} del daño que hace (hasta un {4%} de la vida máx. por segundo)",
+  "Tu te soignes de {20%} des dégâts infligés (jusqu'à {4%} des PV max par seconde)",
+  "تُشفى بـ {20%} من الضرر الذي يحدثه (حتى {4%} من الصحة القصوى في الثانية)",
+  "Du heilst dich um {20%} des verursachten Schadens (bis zu {4%} der max. LP pro Sekunde)",
+  "你恢复其伤害的 {20%}（每秒最多最大生命值的 {4%}）",
+  "与えたダメージの {20%} を回復（毎秒最大HPの {4%} まで）"
+ ],
+ "mummy damage": [
+  "daño de las momias",
+  "dégâts des momies",
+  "ضرر المومياوات",
+  "Mumienschaden",
+  "木乃伊伤害",
+  "ミイラのダメージ"
+ ],
+ "risen dead damage": [
+  "daño de los no muertos",
+  "dégâts des morts relevés",
+  "ضرر الموتى الناهضين",
+  "Schaden der Untoten",
+  "亡者伤害",
+  "蘇った死者のダメージ"
+ ],
+ "{+30%} move speed for {6 s}, leaving burning scorch marks behind you that last {4 s}": [
+  "{+30%} de velocidad durante {6 s}, dejando marcas ardientes tras de ti que duran {4 s}",
+  "{+30%} de vitesse pendant {6 s}, laissant derrière toi des traces brûlantes qui durent {4 s}",
+  "{+30%} سرعة حركة لمدة {6 s}، تاركًا خلفك آثار حريق تدوم {4 s}",
+  "{+30%} Bewegungstempo für {6 s}; du hinterlässt brennende Glutspuren, die {4 s} halten",
+  "移动速度 {+30%}，持续 {6 s}，身后留下持续 {4 s} 的燃烧焦痕",
+  "{6 s} の間移動速度 {+30%}、背後に {4 s} 残る燃える焦げ跡を残す"
+ ]
+}

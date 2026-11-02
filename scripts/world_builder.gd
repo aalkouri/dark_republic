@@ -220,7 +220,7 @@ void fragment() {
 
 static var force_time := ""     # screenshots: "day" or "night" for the Swamp (--swamp-time=...)
 
-const MAPS := ["swamp", "forest", "castle", "desert", "graveyard"]
+const MAPS := ["swamp", "forest", "castle", "desert", "graveyard", "caldera"]
 
 
 ## Build the arena for `map` ("swamp", "forest" or "castle"). All share the 440 m footprint and
@@ -229,6 +229,9 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float, map :
 	CastleNav.current = null
 	DesertBuilder.active = false
 	GraveyardBuilder.active = false
+	CalderaBuilder.active = false
+	if map == "caldera":
+		return CalderaBuilder.build(parent, rng, half)
 	if map == "desert":
 		return DesertBuilder.build(parent, rng, half)
 	if map == "forest":

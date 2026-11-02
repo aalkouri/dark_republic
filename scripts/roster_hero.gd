@@ -128,6 +128,26 @@ const CFG := {
 		"main": Color(0.78, 0.5, 1.0), "deep": Color(0.62, 0.08, 0.06), "light": Color(0.93, 0.82, 1.0),
 		"motes": false,
 	},
+	# The map bosses who joined the roster: their own code-built boss models at player size
+	# (PlayableBoss: PharaohBody, NecromancerBody, SingeBody)
+	"pharaoh": {
+		"procedural": "pharaoh",
+		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"main": Color(1.0, 0.8, 0.36), "deep": Color(0.14, 0.26, 0.66), "light": Color(1.0, 0.95, 0.7),
+		"motes": false,
+	},
+	"necromancer": {
+		"procedural": "necromancer",
+		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"main": Color(0.4, 1.0, 0.55), "deep": Color(0.2, 0.08, 0.24), "light": Color(0.8, 1.0, 0.85),
+		"motes": false,
+	},
+	"singe": {
+		"procedural": "singe",
+		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"main": Color(1.0, 0.5, 0.12), "deep": Color(0.25, 0.06, 0.03), "light": Color(1.0, 0.85, 0.4),
+		"motes": false,
+	},
 	"thog": {
 		"model": "ogre", "skin": "res://models/ogre/thog_skin.jpg", "scale": 1.2, "weapon_scale": 1.35,
 		"fire": [0.8, 1.8667], "fire_speed": 1.3,
@@ -203,6 +223,7 @@ var blob: BlobBody          # The Blob: built in code, no rig
 var blob_opts := {}         # ...its size and colours (Split's mini-blobs), set before it's added
 var knight: ToadstoolBody   # The Toadstool Knight: the boss's body at player size, own AnimationTree
 var spider: ArachnidBody    # The Arachnid: built in code, no rig
+var boss: Node3D            # The Pharaoh, the Necromancer, Singe: boss models at player size (PlayableBoss)
 
 
 func _ready() -> void:
@@ -229,6 +250,12 @@ func _ready() -> void:
 		knight = ToadstoolBody.create()
 		_rig = knight
 		add_child(knight)
+		_floaty = true
+		return
+	if PlayableBoss.is_kind(str(cfg0.get("procedural", ""))):
+		boss = PlayableBoss.create(cfg0["procedural"])
+		_rig = boss
+		add_child(boss)
 		_floaty = true
 		return
 	if cfg0.get("procedural", "") == "blob":
@@ -405,6 +432,8 @@ func _build_tree() -> void:
 # ------------------------------------------------------------------ interface
 
 func attack(target: Vector3) -> Vector3:
+	if boss:   # the crook thrust / the staff levelled / a claw flick
+		return boss.attack(target)
 	if spider:   # jabs its head forward and spits
 		spider.spit()
 		return spider.tip()
@@ -426,6 +455,8 @@ func attack(target: Vector3) -> Vector3:
 
 
 func staff_tip() -> Vector3:
+	if boss:
+		return boss.tip()
 	if sock:
 		return sock.tip()
 	if loco:
@@ -452,6 +483,9 @@ func set_motion(speed: float, airborne: bool) -> void:
 ## The run is over: characters with a death pose play it (the Arachnid curls its legs up),
 ## carrying on while the game is paused for the end screen.
 func play_death() -> void:
+	if boss:   # crumbles to sand / the robe collapses / fizzles into coals
+		boss.die()
+		process_mode = Node.PROCESS_MODE_ALWAYS
 	if spider:
 		spider.die()
 		process_mode = Node.PROCESS_MODE_ALWAYS
@@ -461,6 +495,9 @@ func play_death() -> void:
 
 
 func play_hit() -> void:
+	if boss:
+		boss.hit()
+		return
 	if knight:
 		knight.hit()
 		return
@@ -471,6 +508,9 @@ func play_hit() -> void:
 
 
 func play_ability(i: int) -> void:
+	if boss:
+		boss.cast(i)
+		return
 	if knight:
 		knight.cast()
 		return
@@ -538,6 +578,8 @@ func _update_weapon_shown(dt: float) -> void:
 
 ## True while the weapon is in hand (procedural bodies: the Toadstool Knight's sword, Loco's maracas).
 func is_drawn() -> bool:
+	if boss:
+		return bool(boss.drawn)
 	if knight:
 		return knight.drawn
 	if loco:
@@ -559,6 +601,8 @@ func set_dim(f: float) -> void:
 		spider.set_dim(f)
 	if knight:
 		knight.set_dim(f)
+	if boss:
+		boss.set_dim(f)
 	for k in _mats.size():
 		var c := _base_albedo[k]
 		_mats[k].albedo_color = Color(c.r * f, c.g * f, c.b * f, c.a)
@@ -580,6 +624,8 @@ func set_hurt(amount: float) -> void:
 		spider.set_hurt(clampf(amount, 0.0, 1.0))
 	if knight:
 		knight.set_hurt(clampf(amount, 0.0, 1.0))
+	if boss:
+		boss.set_hurt(clampf(amount, 0.0, 1.0))
 	_apply_emission()
 
 
@@ -647,6 +693,9 @@ func _process(dt: float) -> void:
 		return
 	if knight:   # runs, slashes and casts on his own AnimationTree
 		knight.animate(dt, _speed, _airborne)
+		return
+	if boss:   # posed by hand every frame (PlayableBoss)
+		boss.animate(dt, _speed, _airborne)
 		return
 	if _floaty:   # hover, sway, lunge at targets, swell when casting, jerk back when hit
 		_lunge = maxf(0.0, _lunge - dt * 4.0)

@@ -1,0 +1,186 @@
+{
+ "+%d skill point": [
+  "+%d punto de habilidad",
+  "+%d point de compétence",
+  "+%d نقطة مهارة",
+  "+%d Fertigkeitspunkt",
+  "+%d 技能点",
+  "スキルポイント +%d"
+ ],
+ "+%d skill points": [
+  "+%d puntos de habilidad",
+  "+%d points de compétence",
+  "+%d نقاط مهارة",
+  "+%d Fertigkeitspunkte",
+  "+%d 技能点",
+  "スキルポイント +%d"
+ ],
+ "Boss": [
+  "Jefe",
+  "Boss",
+  "الزعيم",
+  "Boss",
+  "首领",
+  "ボス"
+ ],
+ "Character level": [
+  "Nivel del personaje",
+  "Niveau du personnage",
+  "مستوى الشخصية",
+  "Charakterstufe",
+  "角色等级",
+  "キャラクターレベル"
+ ],
+ "Chests": [
+  "Cofres",
+  "Coffres",
+  "الصناديق",
+  "Truhen",
+  "宝箱",
+  "宝箱"
+ ],
+ "Chests opened": [
+  "Cofres abiertos",
+  "Coffres ouverts",
+  "الصناديق المفتوحة",
+  "Geöffnete Truhen",
+  "开启的宝箱",
+  "開けた宝箱"
+ ],
+ "Coins earned": [
+  "Monedas ganadas",
+  "Pièces gagnées",
+  "العملات المكتسبة",
+  "Verdiente Münzen",
+  "获得金币",
+  "獲得コイン"
+ ],
+ "Elites": [
+  "Élites",
+  "Élites",
+  "النخبة",
+  "Elite",
+  "精英",
+  "エリート"
+ ],
+ "Elites killed": [
+  "Élites abatidos",
+  "Élites tués",
+  "النخبة المقتولون",
+  "Besiegte Elite",
+  "击杀精英",
+  "倒したエリート"
+ ],
+ "Enemies killed": [
+  "Enemigos abatidos",
+  "Ennemis tués",
+  "الأعداء المقتولون",
+  "Besiegte Gegner",
+  "击杀敌人",
+  "倒した敵"
+ ],
+ "Kill bonus": [
+  "Bonificación por bajas",
+  "Bonus d'éliminations",
+  "مكافأة القتل",
+  "Kill-Bonus",
+  "击杀奖励",
+  "撃破ボーナス"
+ ],
+ "Killed by": [
+  "Abatido por",
+  "Tué par",
+  "قُتلت على يد",
+  "Getötet von",
+  "被击杀于",
+  "倒した相手"
+ ],
+ "Kills": [
+  "Bajas",
+  "Éliminations",
+  "القتلى",
+  "Kills",
+  "击杀",
+  "撃破"
+ ],
+ "Level reached": [
+  "Nivel alcanzado",
+  "Niveau atteint",
+  "المستوى المحقق",
+  "Erreichte Stufe",
+  "达到等级",
+  "到達レベル"
+ ],
+ "Most damage taken": [
+  "Más daño recibido",
+  "Plus de dégâts subis",
+  "أكثر ضرر تلقيته",
+  "Meister erlittener Schaden",
+  "受到最多伤害",
+  "最大被ダメージ"
+ ],
+ "RUN": [
+  "PARTIDA",
+  "PARTIE",
+  "الجولة",
+  "LAUF",
+  "本局",
+  "ラン"
+ ],
+ "Skill bonus": [
+  "Bonificación de habilidades",
+  "Bonus de compétences",
+  "مكافأة المهارات",
+  "Fertigkeitsbonus",
+  "技能奖励",
+  "スキルボーナス"
+ ],
+ "Survival coins": [
+  "Monedas por sobrevivir",
+  "Pièces de survie",
+  "عملات النجاة",
+  "Überlebensmünzen",
+  "生存金币",
+  "生存コイン"
+ ],
+ "Time alive": [
+  "Tiempo vivo",
+  "Temps en vie",
+  "وقت البقاء",
+  "Überlebenszeit",
+  "存活时间",
+  "生存時間"
+ ],
+ "Time survived": [
+  "Tiempo sobrevivido",
+  "Temps survécu",
+  "مدة النجاة",
+  "Überlebte Zeit",
+  "存活时长",
+  "生存時間"
+ ],
+ "Total EXP": [
+  "EXP total",
+  "EXP totale",
+  "إجمالي الخبرة",
+  "EXP gesamt",
+  "总经验",
+  "合計EXP"
+ ],
+ "Win bonus": [
+  "Bonificación de victoria",
+  "Bonus de victoire",
+  "مكافأة الفوز",
+  "Siegbonus",
+  "胜利奖励",
+  "勝利ボーナス"
+ ],
+ "YOUR DAMAGE": [
+  "TU DAÑO",
+  "TES DÉGÂTS",
+  "ضررك",
+  "DEIN SCHADEN",
+  "你的伤害",
+  "あなたのダメージ"
+ ]
+}
