@@ -189,7 +189,6 @@ func _refresh() -> void:
 			var ic := ShardIcon.new()
 			ic.kind = kind
 			ic.custom_minimum_size = Vector2(24, 32)
-			ic.modulate = Color.WHITE if have >= need else Color(0.45, 0.45, 0.45, 0.7)
 			_cost_row.add_child(ic)
 			var l := _lbl("%d/%d" % [have, need], 17, ShardIcon.COLORS[kind][2] if have >= need else Color(0.6, 0.55, 0.55))
 			_cost_row.add_child(l)

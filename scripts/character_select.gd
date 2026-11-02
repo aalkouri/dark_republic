@@ -426,8 +426,9 @@ func _build_level_box(stage: Control) -> void:
 	_level_box.add_child(_exp_bar)
 
 
-## The weapon corner's forge info: its forge level, and the shards the next level needs - one
-## crystal per kind with the count, lit once you have that many of that kind.
+## The weapon corner's forge info: its forge level, and the shards the next level needs - only
+## the kinds the recipe uses, one crystal each with "×N" (the count turns the shard's colour once
+## you have that many, and stays grey until then).
 func _refresh_forge() -> void:
 	for ch in _shard_row.get_children():
 		ch.queue_free()
@@ -442,21 +443,20 @@ func _refresh_forge() -> void:
 		var need := int(cost[kind])
 		var have := int(Wallet.shards.get(kind, 0))
 		var lit := have >= need
-		if need <= 5:   # small costs: one crystal per shard, each lit when you have that many
-			for k in need:
-				_shard_row.add_child(_shard_pip(kind, have > k))
-		else:
-			_shard_row.add_child(_shard_pip(kind, lit))
-			var l := _label("%d" % need, 13, ShardIcon.COLORS[kind][2] if lit else Color(0.55, 0.5, 0.5), true)
-			l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			_shard_row.add_child(l)
+		_shard_row.add_child(_shard_pip(kind))
+		var l := _label("×%d" % need, 17, ShardIcon.COLORS[kind][2] if lit else Color(0.6, 0.56, 0.56), true)   # no-i18n
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_shard_row.add_child(l)
+		var gap := Control.new()
+		gap.custom_minimum_size = Vector2(6, 0)
+		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_shard_row.add_child(gap)
 
 
-func _shard_pip(kind: String, lit: bool) -> ShardIcon:
+func _shard_pip(kind: String) -> ShardIcon:
 	var ic := ShardIcon.new()
 	ic.kind = kind
 	ic.custom_minimum_size = Vector2(22, 30)
-	ic.modulate = Color.WHITE if lit else Color(0.3, 0.3, 0.32, 0.75)
 	return ic
 
 
