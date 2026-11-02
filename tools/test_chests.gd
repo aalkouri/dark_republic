@@ -102,7 +102,28 @@ func _test_shards() -> void:
 		lo = mini(lo, n)
 		hi = maxi(hi, n)
 	_check("a boss drops 1-5 shards", lo == 1 and hi == 5, "%d..%d" % [lo, hi])
-	_check("of all four kinds, at random", kinds.size() == 4 and kinds.has("fire") and kinds.has("ice") and kinds.has("lightning") and kinds.has("dark"), str(kinds.keys()))
+	_check("of all five kinds when no map is given", kinds.size() == 5 and kinds.has("fire") and kinds.has("ice") and kinds.has("lightning") and kinds.has("dark") and kinds.has("light"), str(kinds.keys()))
+	# Each map's boss only drops that map's two kinds, and every kind can be found somewhere
+	var expect := {"swamp": ["dark", "ice"], "forest": ["light", "lightning"]}
+	var found_anywhere := {}
+	for map in Wallet.MAP_SHARDS:
+		var allowed: Array = Wallet.map_shards(map)
+		var seen := {}
+		for k in 400:
+			for kind in Wallet.roll_boss_shards(r, map):
+				seen[kind] = true
+				found_anywhere[kind] = true
+		var ok := seen.size() == allowed.size()
+		for kind in seen:
+			ok = ok and allowed.has(kind)
+		_check("%s boss drops only %s shards" % [map, " and ".join(allowed)], ok, str(seen.keys()))
+	for map in expect:
+		var a: Array = Wallet.map_shards(map)
+		var e: Array = expect[map]
+		_check("%s offers exactly %s" % [map, str(e)], a.size() == 2 and a.has(e[0]) and a.has(e[1]), str(a))
+	_check("every shard kind drops on some map", found_anywhere.size() == Wallet.SHARDS.size(), str(found_anywhere.keys()))
+	for map in ["swamp", "forest", "castle", "desert", "graveyard", "caldera"]:
+		_check("%s has its own shard list" % map, Wallet.MAP_SHARDS.has(map), "")
 	var before: int = Wallet.shards["ice"]
 	Wallet.add_shards({"ice": 2})
 	_check("shards bank into the wallet and the counter shows them", Wallet.shards["ice"] == before + 2

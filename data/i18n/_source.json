@@ -190,6 +190,12 @@
   "skill_tree.gd:57",
   "skill_tree.gd:105"
  ],
+ ", blend_add": [
+  "hero_entrances.gd:619"
+ ],
+ ", unshaded": [
+  "hero_entrances.gd:617"
+ ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
   "main.gd:539"
  ],
@@ -564,6 +570,9 @@
  "Buy 1 missing shard: %s": [
   "forge_menu.gd:202"
  ],
+ "CALDERA ERUPTION! GET ONTO THE ROCKS!": [
+  "singe_boss.gd:630"
+ ],
  "CHOOSE YOUR BATTLEGROUND": [
   "map_picker.gd:56"
  ],
@@ -683,7 +692,7 @@
   "abilities.json"
  ],
  "Dark Shard": [
-  "wallet.gd:278"
+  "wallet.gd:279"
  ],
  "Dark Wizard": [
   "characters.json"
@@ -741,6 +750,9 @@
  ],
  "Done": [
   "skill_screen.gd:176"
+ ],
+ "Door": [
+  "hero_entrances.gd:1731"
  ],
  "Dr. Croc": [
   "characters.json"
@@ -1080,7 +1092,7 @@
   "abilities.json"
  ],
  "Fire Shard": [
-  "wallet.gd:278"
+  "wallet.gd:279"
  ],
  "Fireball Cooldown": [
   "upgrades.json"
@@ -1391,7 +1403,7 @@
   "upgrades.json"
  ],
  "Ice Shard": [
-  "wallet.gd:278"
+  "wallet.gd:279"
  ],
  "Ice Wizard": [
   "characters.json"
@@ -1584,8 +1596,11 @@
  "Light Fingers, Sharp Knives": [
   "characters.json"
  ],
+ "Light Shard": [
+  "wallet.gd:279"
+ ],
  "Lightning Shard": [
-  "wallet.gd:278"
+  "wallet.gd:279"
  ],
  "Lightning arcs from your staff and jumps between enemies.": [
   "weapon_system.gd:171"
@@ -2105,6 +2120,15 @@
   "character_select.gd:619",
   "character_select.gd:917"
  ],
+ "SINGE": [
+  "singe_boss.gd:127"
+ ],
+ "SINGE BURSTS FROM THE LAVA!": [
+  "singe_boss.gd:198"
+ ],
+ "SINGE GUTTERS OUT!": [
+  "singe_boss.gd:919"
+ ],
  "SKILL POINTS": [
   "skill_screen.gd:108"
  ],
@@ -2193,6 +2217,7 @@
   "key_manager.gd:11"
  ],
  "Singe": [
+  "singe_boss.gd:123",
   "characters.json"
  ],
  "Siphon": [
@@ -3113,6 +3138,11 @@
  ],
  "trail damage": [
   "abilities.gd:35"
+ ],
+ "unshaded add": [
+  "hero_entrances.gd:859",
+  "hero_entrances.gd:1331",
+  "hero_entrances.gd:2178"
  ],
  "wisp damage": [
   "abilities.gd:37"

@@ -45,11 +45,11 @@ const RECIPES := {
 	"ice": {"ice": 5},
 	"thunder": {"lightning": 5},
 	"dark": {"dark": 5},
-	"arcane": {"fire": 1, "ice": 2, "lightning": 2},      # Merlin
+	"arcane": {"fire": 1, "ice": 2, "light": 2},          # Merlin
 	"trunk": {"fire": 3, "dark": 2},                      # Ogre
 	"wail": {"ice": 1, "dark": 4},                        # Ghast
-	"silver": {"ice": 2, "lightning": 3},                 # Vampire Hunter
-	"spear": {"ice": 2, "lightning": 3},                  # Vicki
+	"silver": {"ice": 2, "light": 3},                     # Vampire Hunter (silver and holy light)
+	"spear": {"light": 3, "lightning": 2},                # Vicki (a Valkyrie of light)
 	"daggers": {"lightning": 2, "dark": 3},               # The Rogue
 	"katana": {"fire": 1, "lightning": 2, "dark": 2},     # Gaiden
 	"flask": {"fire": 2, "ice": 1, "dark": 2},            # Dr. Croc

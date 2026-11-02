@@ -272,10 +272,19 @@ func set_shown(v: bool) -> void:
 	shard_panel.visible = v
 
 
-## Elemental shards (fire, ice, lightning, dark): a separate, persistent currency for upgrading
-## the main weapon. Every boss defeated gives 1-5 of them, of random kinds.
-const SHARDS := ["fire", "ice", "lightning", "dark"]
-const SHARD_NAMES := {"fire": "Fire Shard", "ice": "Ice Shard", "lightning": "Lightning Shard", "dark": "Dark Shard"}
+## Elemental shards (fire, ice, lightning, dark, light): a separate, persistent currency for
+## upgrading the main weapon. Every boss defeated gives 1-5 of them, of random kinds, but each map
+## only yields its own two kinds (MAP_SHARDS).
+const SHARDS := ["fire", "ice", "lightning", "dark", "light"]
+const SHARD_NAMES := {"fire": "Fire Shard", "ice": "Ice Shard", "lightning": "Lightning Shard", "dark": "Dark Shard", "light": "Light Shard"}
+const MAP_SHARDS := {
+	"swamp": ["dark", "ice"],          # fog and cold black water
+	"forest": ["light", "lightning"],  # sunlit glades and summer storms
+	"castle": ["fire", "ice"],         # roaring hearths in cold stone halls
+	"desert": ["fire", "lightning"],   # blazing sun and sandstorms
+	"graveyard": ["dark", "light"],    # the restless dead and holy ground
+	"caldera": ["fire", "dark"],       # lava and obsidian
+}
 const BOSS_SHARDS := Vector2i(1, 5)
 const SHARD_PRICE := 150   # coins per shard, bought in the Forge (any kind)
 
@@ -290,11 +299,18 @@ func buy_shards(kind: String, n: int) -> bool:
 	return true
 
 
-## Roll a boss's shard drop: 1-5 shards, each of a random kind. {kind: count} (only kinds won).
-static func roll_boss_shards(r: RandomNumberGenerator) -> Dictionary:
+## The shard kinds a map's boss can drop (every kind for an unknown map).
+static func map_shards(map: String) -> Array:
+	return MAP_SHARDS.get(map, SHARDS)
+
+
+## Roll a boss's shard drop: 1-5 shards, each of a random kind the map offers. {kind: count}
+## (only kinds won).
+static func roll_boss_shards(r: RandomNumberGenerator, map := "") -> Dictionary:
+	var kinds := map_shards(map)
 	var out := {}
 	for k in r.randi_range(BOSS_SHARDS.x, BOSS_SHARDS.y):
-		var kind: String = SHARDS[r.randi() % SHARDS.size()]
+		var kind: String = kinds[r.randi() % kinds.size()]
 		out[kind] = int(out.get(kind, 0)) + 1
 	return out
 
@@ -364,7 +380,7 @@ func _build() -> void:
 	_refresh()
 
 
-## The shard counters: a pill like the coin counter's, just left of it: four crystals, each with
+## The shard counters: a pill like the coin counter's, just left of it: five crystals, each with
 ## how many you hold.
 func _build_shards(font: Font) -> void:
 	shard_panel = PanelContainer.new()

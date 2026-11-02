@@ -794,9 +794,9 @@ func _on_thog_defeated() -> void:
 	_on_boss_defeated()
 
 
-## A boss fell: 1-5 elemental shards of random kinds, banked at once and listed at the end.
+## A boss fell: 1-5 elemental shards of the map's kinds, banked at once and listed at the end.
 func _award_shards() -> void:
-	var won := Wallet.roll_boss_shards(rng)
+	var won := Wallet.roll_boss_shards(rng, Settings.selected_map)
 	for kind in won:
 		shards_won[kind] = int(shards_won.get(kind, 0)) + int(won[kind])
 	Wallet.add_shards(won)

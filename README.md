@@ -207,7 +207,18 @@ Quitting a run from the pause menu forfeits its coins.
 **Boss targeting:** whenever a boss is within an attack's range, every weapon and attack goes for it before any other enemy (`EnemyManager.nearest_k` puts bosses in range first; bouncing bolts jump to one first too).
 ## Elemental shards
 
-A second, persistent currency for upgrading your main weapon (the upgrade menu comes later). There are four kinds, **Fire, Ice, Lightning and Dark**, each drawn as a faceted crystal in code (`scripts/shard_icon.gd`). Their counters sit just left of the coins at the top of the screen, starting at 0. **Every boss you defeat drops 1-5 shards** of random kinds (Thog, the Toadstool Knight, the Arachnid and the Goblin Warlord). They're banked at once (`Wallet.shards`, saved in `user://progress.cfg`), flashed on screen, and listed under **Shards won** on the end screen.
+A second, persistent currency for upgrading your main weapon in the Forge. There are five kinds, **Fire, Ice, Lightning, Dark and Light**, each drawn as a faceted crystal in code (`scripts/shard_icon.gd`; Light is a pale white-gold gem). Their counters sit just left of the coins at the top of the screen, starting at 0. **Every boss you defeat drops 1-5 shards**, but **each map only yields its own two kinds** (`Wallet.MAP_SHARDS`):
+
+| Map | Shards | Why |
+|---|---|---|
+| The Swamp | Dark, Ice | Fog and cold black water |
+| Magical Forest | Light, Lightning | Sunlit glades and summer storms |
+| The Castle | Fire, Ice | Roaring hearths in cold stone halls |
+| The Desert | Fire, Lightning | Blazing sun and sandstorms |
+| The Graveyard | Dark, Light | The restless dead and holy ground |
+| The Ashen Caldera | Fire, Dark | Lava and obsidian |
+
+Each map card in the picker shows its two shards over the corner of the picture. The drop is banked at once (`Wallet.shards`, saved in `user://progress.cfg`), flashed on screen, and listed under **Shards won** on the end screen. Any kind can still be bought with coins in the Forge.
 
 ## The Forge (weapon upgrades)
 
@@ -219,9 +230,9 @@ Shards forge a character's signature weapon, up to **level 10** (`scripts/forge.
 | Frost Shards (Ice Wizard) | 5 ice | Katana (Gaiden) | 1 fire, 2 lightning, 2 dark |
 | Chain Lightning (Thunder Wizard) | 5 lightning | Volatile Flasks (Dr. Croc) | 2 fire, 1 ice, 2 dark |
 | Shadow Bolts (Dark Wizard) | 5 dark | Big Club (Thog) | 2 fire, 2 ice, 1 dark |
-| Arcane Bolts (Merlin) | 1 fire, 2 ice, 2 lightning | Static Cling (An Argyle Sock) | 3 lightning, 2 dark |
-| Tree Trunk (Ogre) | 3 fire, 2 dark | Silver Bolts (Vampire Hunter) | 2 ice, 3 lightning |
-| Wail (Ghast) | 1 ice, 4 dark | Valkyrie Spear (Vicki) | 2 ice, 3 lightning |
+| Arcane Bolts (Merlin) | 1 fire, 2 ice, 2 light | Static Cling (An Argyle Sock) | 3 lightning, 2 dark |
+| Tree Trunk (Ogre) | 3 fire, 2 dark | Silver Bolts (Vampire Hunter) | 2 ice, 3 light |
+| Wail (Ghast) | 1 ice, 4 dark | Valkyrie Spear (Vicki) | 3 light, 2 lightning |
 | Maraca Blasters (Loco Robotico) | 2 fire, 3 lightning | Acid Body (The Blob) | 2 fire, 3 dark |
 | Venom Spit (The Arachnid) | 1 ice, 1 lightning, 3 dark | Spore Blade (Toadstool Knight) | 1 fire, 1 ice, 3 dark |
 
@@ -251,7 +262,7 @@ Shards forge a character's signature weapon, up to **level 10** (`scripts/forge.
   | Venom Spit | Poison stacks 5 times instead of 3 |
   | Spore Blade | Spore clouds are twice as big |
 - **Everywhere:** forging applies to the weapon wherever it's used. That means your own starting weapon, and also its **Legendary card** when another character pulls it in a run. Forge levels are saved (`Wallet.forge`).
-- **Tests:** `godot --headless --path . res://tools/test_forge.tscn`. Screenshots: `res://scenes/character_select.tscn -- --shot-char=argyle_sock --shot-shards=fire,ice,lightning,dark [--shot-forge]`.
+- **Tests:** `godot --headless --path . res://tools/test_forge.tscn`. Screenshots: `res://scenes/character_select.tscn -- --shot-char=argyle_sock --shot-shards=fire,ice,lightning,dark,light [--shot-forge]`.
 
 ## Pause menu and settings
 

@@ -172,6 +172,32 @@ func _card(m: Dictionary) -> Button:
 	if img != "" and ResourceLoader.exists(img):
 		pic.texture = load(img)
 	v.add_child(pic)
+	# The shards this map's boss drops: crystals in a dark pill over the picture's top-right corner
+	var kinds := Wallet.map_shards(str(m["id"]))
+	var pill := PanelContainer.new()
+	var psb := StyleBoxFlat.new()
+	psb.bg_color = Color(0.04, 0.03, 0.06, 0.75)
+	psb.set_corner_radius_all(14)
+	psb.content_margin_left = 8
+	psb.content_margin_right = 8
+	psb.content_margin_top = 3
+	psb.content_margin_bottom = 3
+	pill.add_theme_stylebox_override("panel", psb)
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var srow := HBoxContainer.new()
+	srow.add_theme_constant_override("separation", 4)
+	srow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(srow)
+	for kind in kinds:
+		var ic := ShardIcon.new()
+		ic.kind = kind
+		ic.custom_minimum_size = Vector2(20, 27)
+		ic.tooltip_text = tr(Wallet.SHARD_NAMES[kind])
+		srow.add_child(ic)
+	pill.position = Vector2(14 + pw - 8 - (20 + 4) * kinds.size() - 12, 22)
+	pill.name = "Shards"   # no-i18n
+	b.set_meta("shards", kinds)
+	b.add_child(pill)
 	if locked:   # the picture darkened, with a padlock on it
 		pic.modulate = Color(0.32, 0.3, 0.3)
 		var lock := Padlock.new()
