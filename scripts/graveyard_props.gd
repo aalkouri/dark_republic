@@ -1537,6 +1537,7 @@ static func dead_tree(shape: int) -> Dictionary:
 	for k in segs:
 		var q := p + dir * (h * 0.62 / segs)
 		mb.limb(p, q, rr, rr * 0.88, ForestProps._shade(bark, rng, 0.08), 9)
+		TreeDetail.bark(mb, rng, p, q, rr, rr * 0.88, bark, 6)
 		if rng.randf() < 0.4:   # knots and burls
 			mb.add(MeshBuilder.sphere(rr * 0.5, 7, 5), Transform3D(Basis(), p.lerp(q, 0.5) + Vector3(rng.randf_range(-1, 1), 0, rng.randf_range(-1, 1)).normalized() * rr * 0.75), bark.darkened(0.15))
 		p = q
@@ -1620,6 +1621,7 @@ static func willow(shape: int) -> Dictionary:
 	var lean := Vector3(rng.randf_range(-0.3, 0.3), 1.0, rng.randf_range(-0.3, 0.3)).normalized()
 	var top := lean * 3.2
 	mb.limb(Vector3.ZERO, top, r, r * 0.75, bark, 10)
+	TreeDetail.bark(mb, rng, Vector3.ZERO, top, r, r * 0.75, bark, 8)
 	for k in 5:
 		var a := TAU * k / 5.0 + rng.randf()
 		mb.limb(Vector3(0, 0.6, 0), Vector3(cos(a) * r * 2.0, -0.1, sin(a) * r * 2.0), r * 0.4, r * 0.1, bark, 5)
@@ -1719,12 +1721,14 @@ static func _fallen_log(rng: RandomNumberGenerator) -> Dictionary:
 	var a := Vector3(-length * 0.5, 0, 0)
 	var b := Vector3(length * 0.5, 0, 0)
 	mb.limb(a, b, r, r * 0.55, BARK, 10)
+	TreeDetail.bark(mb, rng, a, b, r, r * 0.55, BARK, 6)
+	TreeDetail.root_mass(mb, rng, a, r, Color(0.14, 0.11, 0.08, 0.0), Color(BARK.r * 0.9, BARK.g * 0.85, BARK.b * 0.8, 0.0))
 	for k in 6:   # broken limbs sticking up and out
 		var t := rng.randf_range(-0.4, 0.45) * length
 		var dir := Vector3(rng.randf_range(-0.3, 0.3), rng.randf_range(0.2, 1.0), rng.randf_range(-1.0, 1.0)).normalized()
 		var root := Vector3(t, 0, 0) + dir * r * 0.7
 		mb.limb(root, root + dir * rng.randf_range(0.8, 2.0), r * 0.25, 0.02, Color(BARK, 0.05), 4)
-	mb.add(MeshBuilder.cyl(r * 0.95, r * 0.95, 0.02, 10), Transform3D(Basis(Vector3(0, 0, 1), PI * 0.5), b + Vector3(0.01, 0, 0)), Color(0.36, 0.3, 0.22, 0.0))
+	TreeDetail.broken_end(mb, rng, b, Vector3.RIGHT, r * 0.55, BARK)
 	for k in 4:   # pale fungus brackets
 		var t := rng.randf_range(-0.4, 0.4) * length
 		mb.add(MeshBuilder.sphere(0.14, 8, 4), Transform3D(Basis.from_scale(Vector3(1, 0.3, 0.8)), Vector3(t, rng.randf_range(-0.1, 0.2), r * 0.95)), Color(0.7, 0.66, 0.55, 0.0))

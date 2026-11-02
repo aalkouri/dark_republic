@@ -85,6 +85,8 @@ static func _cypress(rng: RandomNumberGenerator) -> Dictionary:
 	var p2 := p1.lerp(top, 0.4) + Vector3(rng.randf_range(-0.25, 0.25), 0, rng.randf_range(-0.25, 0.25))
 	var p3 := p1.lerp(top, 0.75) + Vector3(rng.randf_range(-0.2, 0.2), 0, rng.randf_range(-0.2, 0.2))
 	mb.limb(p1, p2, 0.5, 0.38, BARK, 10)
+	TreeDetail.bark(mb, rng, p1, p2, 0.5, 0.38, BARK, 7)
+	TreeDetail.bark(mb, rng, p2, p3, 0.38, 0.27, BARK, 5, false)
 	mb.limb(p2, p3, 0.38, 0.27, BARK, 9)
 	mb.limb(p3, top, 0.27, 0.12, BARK, 8)
 	for k in 5:   # darker ridges of bark running up the lower trunk
@@ -153,6 +155,7 @@ static func _snag(rng: RandomNumberGenerator) -> Dictionary:
 		var r0 := lerpf(0.55, 0.12, float(k) / segs)
 		var r1 := lerpf(0.55, 0.12, float(k + 1) / segs)
 		mb.limb(pts[k], pts[k + 1], r0, r1 if k < segs - 1 else r1 * 1.4, DEAD, 8)
+		TreeDetail.bark(mb, rng, pts[k], pts[k + 1], r0, r1, DEAD, 5, k == 0)
 	# Jagged broken top
 	var tip: Vector3 = pts[segs]
 	for k in 3:
@@ -183,6 +186,7 @@ static func _willow(rng: RandomNumberGenerator) -> Dictionary:
 	var lean := Vector3(cos(a0), 0, sin(a0)) * rng.randf_range(0.6, 1.3)
 	var fork := Vector3(0, rng.randf_range(2.8, 3.6), 0) + lean
 	mb.limb(Vector3.ZERO, fork, 0.75, 0.48, DARK_BARK, 10)
+	TreeDetail.bark(mb, rng, Vector3.ZERO, fork, 0.75, 0.48, DARK_BARK, 8)
 	for k in 4:
 		var a := rng.randf() * TAU
 		mb.limb(Vector3.ZERO, Vector3(cos(a) * 1.0, -0.05, sin(a) * 1.0) + Vector3(0, 0, 0), 0.3, 0.1, DARK_BARK, 5)
@@ -226,6 +230,7 @@ static func _mangrove(rng: RandomNumberGenerator) -> Dictionary:
 	var h := rng.randf_range(7.0, 9.5)
 	var top := Vector3(rng.randf_range(-0.3, 0.3), h * 0.7, rng.randf_range(-0.3, 0.3))
 	mb.limb(hub, top, 0.42, 0.26, BARK, 8)
+	TreeDetail.bark(mb, rng, hub, top, 0.42, 0.26, BARK, 6)
 	var clumps := [top + Vector3(0, 1.0, 0)]
 	for k in rng.randi_range(3, 5):
 		var a := rng.randf() * TAU
@@ -256,21 +261,15 @@ static func fallen_log(rng: RandomNumberGenerator) -> Dictionary:
 	var r := rng.randf_range(0.45, 0.8)
 	var a := Vector3(-length * 0.5, 0, 0)
 	var b := Vector3(length * 0.5, 0, 0)
-	mb.limb(a, b, r, r * 0.6, BARK if rng.randf() < 0.5 else DEAD, 12)
-	# Broken, splintered tip
-	for k in 4:
-		var ang := TAU * k / 4.0 + rng.randf() * 0.5
-		var off := Vector3(0, cos(ang), sin(ang)) * r * 0.35
-		mb.limb(b + off, b + off + Vector3(rng.randf_range(0.3, 0.8), 0, 0), r * 0.25, 0.0, DEAD, 4)
-	# Upturned root plate with dirt and tendrils
+	var wood := BARK if rng.randf() < 0.5 else DEAD
+	mb.limb(a, b, r, r * 0.6, wood, 12)
+	TreeDetail.bark(mb, rng, a, b, r, r * 0.6, wood, 7)
+	# Broken, splintered top
+	TreeDetail.broken_end(mb, rng, b, Vector3.RIGHT, r * 0.6, wood)
+	# The torn-up root mass: clods of mud, roots splaying out and dangling
 	var plate_r := r * rng.randf_range(2.4, 3.0)
 	var plate_basis := Basis(Vector3(0, 0, 1), deg_to_rad(90.0))
-	mb.add(MeshBuilder.cyl(plate_r, plate_r * 0.9, 0.45, 14), Transform3D(plate_basis, a + Vector3(-0.15, 0, 0)), DIRT)
-	for k in 10:
-		var ang := rng.randf() * TAU
-		var start := a + Vector3(-0.2, cos(ang), sin(ang)) * plate_r * 0.85
-		var end := start + Vector3(rng.randf_range(-0.9, -0.2), cos(ang) * 0.8, sin(ang) * 0.8)
-		mb.limb(start, end, 0.09, 0.02, ROOT, 4)
+	TreeDetail.root_mass(mb, rng, a, r, DIRT, ROOT)
 	# Snapped branch stubs
 	for k in rng.randi_range(3, 5):
 		var t := rng.randf_range(-0.3, 0.45) * length

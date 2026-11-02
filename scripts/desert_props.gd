@@ -591,6 +591,7 @@ static func _grow_dead(rng: RandomNumberGenerator) -> Dictionary:
 	var h := rng.randf_range(3.5, 6.0)
 	var top := Vector3(rng.randf_range(-0.6, 0.6), h, rng.randf_range(-0.6, 0.6))
 	mb.limb(Vector3.ZERO, top * 0.5, 0.3, 0.22, wood.darkened(0.1), 7)
+	TreeDetail.bark(mb, rng, Vector3.ZERO, top * 0.5, 0.3, 0.22, wood.darkened(0.1), 5, false)
 	mb.limb(top * 0.5, top, 0.22, 0.08, wood, 6)
 	for k in rng.randi_range(4, 7):
 		var from := top * rng.randf_range(0.35, 0.9)

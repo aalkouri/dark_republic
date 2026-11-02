@@ -135,7 +135,7 @@ vec3 shore_bank(vec3 col, vec2 p, float edge, float n, float amount, vec3 c_wet,
 
 ## `code` with SHORE_GLSL inserted just before its fragment().
 static func with_shore(code: String) -> String:
-	return code.replace("void fragment()", SHORE_GLSL + "\nvoid fragment()")
+	return code.replace("void fragment()", SHORE_GLSL + "\nvoid fragment()")   # no-i18n
 
 
 const GROUND_SHADER := """

@@ -111,6 +111,8 @@ static func _grow_tree(sp: Dictionary, rng: RandomNumberGenerator) -> Dictionary
 			var q := p + dir * (crown_at / segs)
 			var r_next := rr * 0.9
 			mb.limb(p, q, rr, r_next, _shade(bark, rng, 0.06), 10)
+			if not sp.get("marks", false):   # (birch and aspen keep their smooth white bark)
+				TreeDetail.bark(mb, rng, p, q, rr, r_next, bark, 6, k < 2)
 			if sp.get("marks", false):   # birch / aspen: black marks on the white bark
 				for m in rng.randi_range(2, 4):
 					var t := rng.randf()
@@ -186,6 +188,7 @@ static func _branch(mb: MeshBuilder, rng: RandomNumberGenerator, p: Vector3, dir
 ## Pine: a straight trunk under stacked, drooping tiers of boughs, narrowing to the top.
 static func _conifer(mb: MeshBuilder, rng: RandomNumberGenerator, h: float, r: float, bark: Color, leaves: Array) -> void:
 	mb.limb(Vector3.ZERO, Vector3(0, h, 0), r, r * 0.15, _shade(bark, rng, 0.05), 10)
+	TreeDetail.bark(mb, rng, Vector3.ZERO, Vector3(0, h * 0.45, 0), r, r * 0.6, bark, 6)
 	for k in 5:
 		var a := TAU * k / 5.0 + rng.randf() * 0.5
 		mb.limb(Vector3(0, 0.5, 0), Vector3(cos(a) * r * 2.0, -0.1, sin(a) * r * 2.0), r * 0.4, r * 0.1, _shade(bark, rng, 0.06), 5)
@@ -233,13 +236,11 @@ static func fallen_log(rng: RandomNumberGenerator) -> Dictionary:
 	var sp: Dictionary = SPECIES[[0, 1, 2, 3][rng.randi() % 4]]
 	var bark := Color(sp["bark"], 0.0)
 	mb.limb(a, b, r, r * 0.6, bark, 12)
+	TreeDetail.bark(mb, rng, a, b, r, r * 0.6, bark, 7)
+	TreeDetail.broken_end(mb, rng, b, Vector3.RIGHT, r * 0.6, bark)
 	var plate_r := r * rng.randf_range(2.2, 2.8)
 	var plate_basis := Basis(Vector3(0, 0, 1), deg_to_rad(90.0))
-	mb.add(MeshBuilder.cyl(plate_r, plate_r * 0.9, 0.45, 14), Transform3D(plate_basis, a + Vector3(-0.15, 0, 0)), Color(0.42, 0.32, 0.22, 0.0))
-	for k in 8:
-		var ang := rng.randf() * TAU
-		var start := a + Vector3(-0.2, cos(ang), sin(ang)) * plate_r * 0.85
-		mb.limb(start, start + Vector3(rng.randf_range(-0.9, -0.2), cos(ang) * 0.8, sin(ang) * 0.8), 0.09, 0.02, Color(0.5, 0.38, 0.26, 0.0), 4)
+	TreeDetail.root_mass(mb, rng, a, r, Color(0.36, 0.26, 0.17, 0.0), Color(0.5, 0.38, 0.26, 0.0))
 	# Moss along the top
 	for k in rng.randi_range(4, 7):
 		var t := rng.randf_range(-0.45, 0.45)
