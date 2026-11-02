@@ -463,9 +463,7 @@ func _refresh_bonuses(cid: String) -> void:
 		line.add_child(nm)
 		var tier := CharBonuses.tier(b)
 		var col := CharBonuses.tier_color(tier)
-		var val := _label(CharBonuses.value_text(b), 16, col.lerp(Color.WHITE, 0.25), true)
-		val.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		line.add_child(val)
+		# (no number: the bar's length and colour show how big the boost is)
 		row.add_child(line)
 		var bar := ProgressBar.new()
 		bar.name = "BonusBar"

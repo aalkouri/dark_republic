@@ -136,6 +136,7 @@ func _ready() -> void:
 			var bar: ProgressBar = row.get_child(1)
 			var nm: String = (row.get_child(0).get_child(0) as Label).text
 			tiers[nm] = [str(bar.get_meta("tier")), (bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color, bar.value]
+			_check("%s: just the name and the bar, no number" % nm, row.get_child(0).get_child_count() == 1, "")
 	_check("Gaiden's bars: move speed red, jump height green, crit green", tiers.has("Move Speed") and tiers["Move Speed"][0] == "small" and tiers["Move Speed"][1].is_equal_approx(CharBonuses.tier_color("small"))
 		and tiers.has("Jump Height") and tiers["Jump Height"][0] == "big" and tiers["Jump Height"][1].is_equal_approx(CharBonuses.tier_color("big"))
 		and tiers.has("Critical Hit Chance") and tiers["Critical Hit Chance"][0] == "big", str(tiers))
