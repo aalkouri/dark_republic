@@ -20,6 +20,17 @@ var _clear: Button
 var _clear_armed := false
 
 
+## A Stats screen on its own layer, above the coin and shard counters (Wallet, layer 90).
+static func create(parent: Node) -> StatsScreen:
+	var layer := CanvasLayer.new()
+	layer.layer = 95
+	parent.add_child(layer)
+	var s := StatsScreen.new()
+	s.visible = false
+	layer.add_child(s)
+	return s
+
+
 func _init() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -157,7 +168,7 @@ func _refresh() -> void:
 	for id in ids:
 		var runs: Array = by_char[id]
 		var wins := runs.filter(func(r): return str(r.get("result", "")) == "WON").size()
-		_list.add_child(_char_button("%s   %d runs · %d won" % [_name(id), runs.size(), wins], id))
+		_list.add_child(_char_button("%s   %d run%s · %d won" % [_name(id), runs.size(), "" if runs.size() == 1 else "s", wins], id))
 	if _char != "" and not by_char.has(_char):
 		_char = ""
 	_body.text = _overview(by_char, ids) if _char == "" else _character(_char, by_char[_char])
@@ -214,7 +225,7 @@ func _character(id: String, runs: Array) -> String:
 		for v in bh:
 			avg += v
 			lo = minf(lo, v)
-		t += "Boss HP left when you lost: avg [b]%d%%[/b], best [b]%d%%[/b] (%d runs that reached the boss)\n" % [roundi(avg / bh.size() * 100.0), roundi(lo * 100.0), bh.size()]
+		t += "Boss HP left when you lost: avg [b]%d%%[/b], best [b]%d%%[/b] (%d run(s) that reached the boss)\n" % [roundi(avg / bh.size() * 100.0), roundi(lo * 100.0), bh.size()]
 	t += "\n"
 	t += _breakdown("Damage dealt by weapon / ability", s["dealt"], -1)
 	t += _breakdown("What kills you", s["killers"], s["deaths"], true)
@@ -261,7 +272,7 @@ func _recent(runs: Array, n: int) -> String:
 		var tops := PackedStringArray()
 		for d in top:
 			tops.append("%s %s" % [d[0], Wallet.fmt(roundi(d[1]))])
-		var k: Dictionary = r.get("keys", {})
+		var kd: Dictionary = r.get("keys", {})
 		var extra := ""
 		if res == "DIED":
 			extra = "  ·  killed by %s" % str(r.get("killed_by", "?"))
@@ -274,7 +285,7 @@ func _recent(runs: Array, n: int) -> String:
 		t += "[color=#888]%s[/color]  [color=%s][b]%s[/b][/color] %s  ·  %s%s  ·  lvl %d  ·  %s kills%s\n" % [
 			when, col, res, _time(float(r.get("time", 0.0))), who, _map_name(str(r.get("map", ""))),
 			int(r.get("level", 0)), Wallet.fmt(int(r.get("kills", 0))), extra]
-		t += "      [color=#aaa]keys %d/%d/%d  ·  shards %s  ·  %s[/color]\n" % [int(k.get("Bronze", 0)), int(k.get("Silver", 0)), int(k.get("Gold", 0)),
+		t += "      [color=#aaa]keys %d/%d/%d  ·  shards %s  ·  %s[/color]\n" % [int(kd.get("Bronze", 0)), int(kd.get("Silver", 0)), int(kd.get("Gold", 0)),
 			(", ".join(sh) if not sh.is_empty() else "0"), (", ".join(tops) if not tops.is_empty() else "no damage")]
 	return t
 

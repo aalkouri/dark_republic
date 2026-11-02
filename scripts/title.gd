@@ -296,10 +296,8 @@ func _build_ui() -> void:
 		_stats_button.visible = Settings.dev_stats
 		(_menu.get_child(1) as Button).grab_focus())
 	root.add_child(_settings)
-	_stats = StatsScreen.new()
-	_stats.visible = false
+	_stats = StatsScreen.create(self)
 	_stats.closed.connect(func(): _menu.visible = true; _stats_button.grab_focus())
-	root.add_child(_stats)
 
 	_fade = ColorRect.new()
 	_fade.color = Color(0, 0, 0, 1)

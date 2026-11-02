@@ -325,8 +325,7 @@ func _developer_tab() -> Control:
 
 func open_stats() -> void:
 	if _stats == null:
-		_stats = StatsScreen.new()
-		add_child(_stats)
+		_stats = StatsScreen.create(self)
 	_stats.open()
 
 
