@@ -35,12 +35,15 @@ var _wash_t := -1.0
 var _wash_at := Vector3.ZERO
 var _washing: Array = []            # uids in the drum
 var _wash_tick := 0.0
+var _invincible := false            # we made the sock untouchable (Spin Cycle / Laundry Day)
 var spin_hits := 0                  # tests
 var washed := 0
 var shrunk := 0
 
 
 func _exit_tree() -> void:
+	if _invincible and is_instance_valid(player):
+		player.untouchable = false
 	if is_instance_valid(_pair):
 		_pair.queue_free()
 
@@ -68,6 +71,17 @@ func tick(dt: float) -> void:
 	_tick_pair(dt)
 	src(2)
 	_tick_wash(dt)
+	_tick_invincible()
+
+
+## Nothing can hurt the sock while Spin Cycle whirls or while Laundry Day's machine is out
+## (from its drop until the wash ends): Player.untouchable, which also gives the
+## invincible glow every other character's invulnerability shows.
+func _tick_invincible() -> void:
+	var want := _spin_t > 0.0 or _wash_t >= 0.0 or is_instance_valid(_machine)
+	if want != _invincible:
+		_invincible = want
+		player.untouchable = want
 
 
 func clone_list() -> Array:
