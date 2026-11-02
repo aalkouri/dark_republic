@@ -17,10 +17,13 @@ uniform float lift = 0.1;
 uniform float inner = 0.0;   // > 0: a ring (band from inner to 1)
 uniform float arc = 4.0;     // < PI: only a wedge this many radians either side of local -Z
 uniform float fill = 1.0;    // < 1: a telegraph, solid out to `fill` of the radius, faint beyond
+uniform vec4 clip_rect = vec4(-1e9, -1e9, 1e9, 1e9);   // world x/z min, x/z max: only drawn inside
 varying vec2 local_uv;
+varying vec2 wxz;
 
 void vertex() {
 	local_uv = UV;
+	wxz = VERTEX.xz;
 	if (has_height > 0.5) {
 		vec2 uv = (VERTEX.xz - h_origin + 0.5) / h_size;
 		VERTEX.y = texture(height_tex, uv).r + lift;
@@ -28,6 +31,7 @@ void vertex() {
 }
 
 void fragment() {
+	if (wxz.x < clip_rect.x || wxz.y < clip_rect.y || wxz.x > clip_rect.z || wxz.y > clip_rect.w) { discard; }
 	float d = length(local_uv - 0.5) * 2.0;
 	float a = color.a * (1.0 - smoothstep(0.96, 1.0, d));
 	if (inner > 0.0) { a *= smoothstep(inner - 0.04, inner, d); }
@@ -75,6 +79,16 @@ func set_fill(f: float) -> void:
 
 func set_lift(metres: float) -> void:
 	_mat.set_shader_parameter("lift", metres)
+
+
+## Lie flat at the disc's own height instead of draping over the ground (e.g. on a table top).
+func set_flat() -> void:
+	_mat.set_shader_parameter("has_height", 0.0)
+
+
+## Only draw the part inside this world-space rectangle (x0, z0, x1, z1).
+func set_clip(x0: float, z0: float, x1: float, z1: float) -> void:
+	_mat.set_shader_parameter("clip_rect", Vector4(x0, z0, x1, z1))
 
 
 static func create(radius: float, c: Color, additive := false) -> GroundDisc:

@@ -45,7 +45,7 @@ func _static_checks() -> void:
 				and absf(float(feast[0].rect[1]) - float(feast[1].rect[1])) > 200.0, "")
 			if feast.size() == 2:
 				var f: CastleFeast = feast[0]
-				_check("castle: the tables are laid end to end (plates, goblets, dishes)", f.items.size() + feast[1].items.size() >= 200, str(f.items.size() + feast[1].items.size()))
+				_check("castle: the tables are laid end to end (plates, goblets, dishes)", f.items.size() + feast[1].items.size() >= 120, str(f.items.size() + feast[1].items.size()))
 				var kinds := {}
 				for it in f.items:
 					kinds[it.get_meta("kind", "")] = true
@@ -214,6 +214,16 @@ func _run_checks() -> void:
 		plates += 1 if kd.begins_with("plate_") else 0
 		goblets += 1 if kd.begins_with("goblet_") else 0
 	_check("a goblet at every place setting", plates > 0 and goblets == plates, "%d plates, %d goblets" % [plates, goblets])
+	# Laid by hand: plates spread out (staggered, every other row) and never perfectly lined up
+	var yaws := {}
+	var xs := {}
+	var tlen := float(feast.rect[3]) - float(feast.rect[1])
+	for it in feast.items:
+		if str(it.get_meta("kind", "")).begins_with("plate_"):
+			yaws[snappedf(fposmod((it as Node3D).rotation.y, PI), 0.01)] = true
+			xs[snappedf((it as Node3D).position.x, 0.01)] = true
+	_check("plates are spread out: about one place setting per metre of table, not two", plates <= int(tlen * 1.25) and plates >= int(tlen * 0.6), "%d plates on %.1f m" % [plates, tlen])
+	_check("plates aren't perfectly placed: each is turned and offset a little", yaws.size() >= plates * 0.8 and xs.size() >= plates * 0.8, "%d yaws, %d xs for %d plates" % [yaws.size(), xs.size(), plates])
 	for kd in ["whole_chicken", "roast_boar", "turkey_legs", "fruit_platter", "wine_bottle"]:
 		_check("the feast has " + kd, kinds.has(kd) or (kd == "wine_bottle" and feast.bottles_broken > 0), "")
 	_check("three table sets", kinds.has("plate_silver") and kinds.has("plate_gold") and kinds.has("plate_pewter"), "")
@@ -273,6 +283,9 @@ func _run_checks() -> void:
 		await get_tree().physics_frame
 	_check("after 2 s a chandelier drops at your spot, marked on the table", feast.drops == ch_d0 + 1
 		and (feast._falling[-1]["at"] as Vector3).distance_to(Vector3(tcx, feast.top_y, tmid - 2.0)) < 0.5, "")
+	var tmk: GroundDisc = feast._falling[-1]["top_marker"]
+	_check("...and its warning circle also shows on the table top (flat, clipped to the table)", is_instance_valid(tmk) and tmk.visible
+		and absf(tmk.global_position.y - feast.top_y) < 0.1, "y %.2f vs top %.2f" % [tmk.global_position.y if is_instance_valid(tmk) else -1.0, feast.top_y])
 	var ch_h0 := player.hp
 	var ch_hits0 := feast.drop_hits
 	for f in int(60 * 0.7):

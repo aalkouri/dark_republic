@@ -83,15 +83,32 @@ func build(rng: RandomNumberGenerator, table_rect: Array, height: float) -> void
 	var k := 0
 	while z < float(rect[3]) - 0.6:
 		var set_name: String = SETS[int((z - float(rect[1])) / SET_RUN) % SETS.size()]
-		for side in [-1.0, 1.0]:   # a place setting at each side: plate (knife and spoon), goblet, a bite
-			var x: float = (x0 + 0.45) if side < 0 else (x1 - 0.45)
-			_add("plate_" + set_name, Vector3(x, 0, z), rng)
+		# Place settings every other row, the two sides staggered, each laid by hand: a little off
+		# its spot and turned a touch, the goblet wherever it was set down (every plate gets one).
+		# The shared `rng` is drawn exactly as the old evenly laid table did (so the rest of the
+		# castle's layout doesn't shift); the hand-laid jitter comes from the feast's own _rng.
+		for side in [-1.0, 1.0]:
 			var kind: String = ["chicken_leg", "bread", "apple", "cheese", "none"][rng.randi() % 5]
 			if kind != "none":
-				_add(kind, Vector3(x, 0.05, z + rng.randf_range(-0.05, 0.05)), rng)
-			_add("goblet_" + set_name, Vector3(x + side * -0.32, 0, z + 0.26), rng)
-			if rng.randf() < 0.18:
-				_add("wine_bottle", Vector3(x + side * -0.5, 0, z - 0.25), rng)
+				rng.randf()
+				rng.randf()
+			rng.randf()
+			var bottle := rng.randf() < 0.18
+			if bottle:
+				rng.randf()
+			if (k + (0 if side < 0 else 1)) % 2 != 0:
+				continue
+			var r := _rng
+			var x: float = (x0 + 0.48) if side < 0 else (x1 - 0.48)
+			x += r.randf_range(-0.07, 0.07)
+			var pz := z + r.randf_range(-0.18, 0.18)
+			_add("plate_" + set_name, Vector3(x, 0, pz), r, (PI if side < 0 else 0.0) + r.randf_range(-0.35, 0.35))
+			if kind != "none":
+				_add(kind, Vector3(x + r.randf_range(-0.05, 0.05), 0.05, pz + r.randf_range(-0.06, 0.06)), r, r.randf() * TAU)
+			var gside := 1.0 if r.randf() < 0.75 else -1.0   # usually at the diner's right
+			_add("goblet_" + set_name, Vector3(x + side * -r.randf_range(0.26, 0.38), 0, pz + gside * r.randf_range(0.2, 0.34)), r, r.randf() * TAU)
+			if bottle:
+				_add("wine_bottle", Vector3(x + side * -r.randf_range(0.45, 0.6), 0, pz - r.randf_range(0.2, 0.35)), r, r.randf() * TAU)
 		# down the middle: roasts, platters, bottles, candles
 		var roll := rng.randi() % total
 		var mid := "pie"
@@ -430,7 +447,7 @@ func _box(size: Vector3) -> BoxShape3D:
 
 
 ## Put one item on the table top at `at` (x, extra lift, z).
-func _add(kind: String, at: Vector3, rng: RandomNumberGenerator) -> void:
+func _add(kind: String, at: Vector3, rng: RandomNumberGenerator, yaw := INF) -> void:
 	var k := _kind(kind)
 	var body := RigidBody3D.new()
 	body.mass = k[2]
@@ -441,7 +458,7 @@ func _add(kind: String, at: Vector3, rng: RandomNumberGenerator) -> void:
 	body.angular_damp = 0.6
 	body.continuous_cd = false
 	body.position = Vector3(at.x, top_y + float(k[3]) + at.y + 0.002, at.z)
-	body.rotation.y = rng.randf() * TAU if not kind.begins_with("plate_") else (0.0 if at.x > 0 else PI)
+	body.rotation.y = yaw if yaw != INF else rng.randf() * TAU
 	body.set_meta("kind", kind)
 	var mi := MeshInstance3D.new()
 	mi.mesh = k[0]
@@ -526,6 +543,9 @@ func _tick_chandeliers(dt: float, p: Vector3) -> void:
 			var marker: GroundDisc = f["marker"]
 			marker.set_fill(t / DROP_WARN)
 			marker.alpha = 0.45 + 0.2 * sin(t * 30.0)
+			var tm: GroundDisc = f["top_marker"]
+			tm.set_fill(t / DROP_WARN)
+			tm.alpha = marker.alpha
 			var fall := clampf((t - DROP_WARN * 0.35) / (DROP_WARN * 0.65), 0.0, 1.0)   # it gives, then plummets
 			var shake := 0.08 * (1.0 - fall) * sin(t * 60.0)
 			node.position = Vector3(at.x + shake, lerpf(float(f["top"]), at.y, fall * fall), at.z)
@@ -558,12 +578,21 @@ func _drop(at: Vector3) -> void:
 	marker.set_lift(0.04)
 	add_child(marker)
 	marker.global_position = at
-	_falling.append({"at": at, "t": 0.0, "node": node, "marker": marker, "top": top})
+	# The floor marker is hidden under the table where they overlap, so the same marker also lies
+	# flat on the table top, clipped to its edges
+	var top_marker := GroundDisc.create(DROP_RADIUS, Color(1.0, 0.25, 0.1, 0.5))
+	top_marker.set_fill(0.0)
+	top_marker.set_flat()
+	top_marker.set_clip(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3]))
+	add_child(top_marker)
+	top_marker.global_position = Vector3(at.x, top_y + 0.03, at.z)
+	_falling.append({"at": at, "t": 0.0, "node": node, "marker": marker, "top_marker": top_marker, "top": top})
 	_play(_snap_sfx, at)
 
 
 func _crash(at: Vector3, f: Dictionary) -> void:
 	(f["marker"] as GroundDisc).queue_free()
+	(f["top_marker"] as GroundDisc).queue_free()
 	var node: Node3D = f["node"]
 	node.position = at
 	node.rotation = Vector3(_rng.randf_range(-0.25, 0.25), _rng.randf() * TAU, _rng.randf_range(-0.25, 0.25))   # lands askew
