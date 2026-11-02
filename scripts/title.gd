@@ -125,24 +125,169 @@ func _build_wizard() -> void:
 	wizard.rotation.y = PI * 0.15
 	hero = wizard
 
-	# Embers drifting up around him
-	var embers := Abilities._flame_particles(0.12, 3.0, 60)
-	embers.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	embers.emission_sphere_radius = 2.2
-	embers.position = Vector3(0, DAIS_HEIGHT + 0.8, 0)
-	embers.gravity = Vector3(0, 0.6, 0)
-	embers.initial_velocity_min = 0.1
-	embers.initial_velocity_max = 0.5
-	embers.amount = 40
-	embers.scale_amount_min = 0.05
-	embers.scale_amount_max = 0.12
-	add_child(embers)
+	# The character's own particles drifting around the dais (embers for the Fire Wizard,
+	# soap suds for the sock, snow for the Ice Wizard...) and a light in its colour
+	var fx := dais_particles(who if who != "fire_wizard" and RosterHero.is_playable(who) else "fire_wizard")
+	fx.position += Vector3(0, DAIS_HEIGHT + 0.8, 0)
+	add_child(fx)
 	var warm := OmniLight3D.new()
-	warm.light_color = Color(1.0, 0.5, 0.18)
+	warm.light_color = dais_light(who if RosterHero.is_playable(who) else "fire_wizard")
 	warm.light_energy = 2.2
 	warm.omni_range = 11.0
 	warm.position = Vector3(0, DAIS_HEIGHT + 2.0, 0)
 	add_child(warm)
+
+
+## How each character's dais particles move: embers rise, snow falls, suds bob up, sparks
+## crackle, wisps drift, spores and motes hang in the air, confetti tumbles.
+const DAIS_STYLE := {
+	"fire_wizard": "embers", "ice_wizard": "snow", "thunder_wizard": "sparks", "dark_wizard": "wisps",
+	"merlin": "motes", "ogre": "spores", "ghast": "wisps", "vampire_hunter": "motes", "vicki": "motes",
+	"rogue": "wisps", "gaiden": "petals", "dr_croc": "bubbles", "argyle_sock": "suds", "blob": "bubbles",
+	"arachnid": "wisps", "loco_robotico": "confetti", "toadstool_knight": "spores", "thog": "dust",
+}
+
+
+## The light over the dais, in the character's colour (warm firelight for the Fire Wizard).
+static func dais_light(id: String) -> Color:
+	if id == "fire_wizard" or not RosterHero.CFG.has(id):
+		return Color(1.0, 0.5, 0.18)
+	return RosterHero.color(id, "main")
+
+
+## Particles drifting round the dais for character `id`, in its own colours and manner.
+static func dais_particles(id: String) -> CPUParticles3D:
+	var style: String = DAIS_STYLE.get(id, "motes")
+	var p := Abilities._flame_particles(0.12, 3.0, 40)
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 2.2
+	p.gravity = Vector3(0, 0.6, 0)
+	p.initial_velocity_min = 0.1
+	p.initial_velocity_max = 0.5
+	p.scale_amount_min = 0.05
+	p.scale_amount_max = 0.12
+	if style == "embers":
+		return p   # the Fire Wizard's flame colours
+	var main := RosterHero.color(id, "main")
+	var light := RosterHero.color(id, "light")
+	var deep := RosterHero.color(id, "deep")
+	var c0 := light
+	var c1 := main
+	var c2 := Color(deep, 0.0)
+	match style:
+		"snow":   # flakes drifting down
+			p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+			p.emission_box_extents = Vector3(2.4, 0.2, 2.4)
+			p.direction = Vector3.DOWN
+			p.gravity = Vector3(0, -0.45, 0)
+			p.initial_velocity_min = 0.05
+			p.initial_velocity_max = 0.2
+			p.lifetime = 4.5
+			p.amount = 70
+			p.scale_amount_min = 0.02
+			p.scale_amount_max = 0.045
+			c0 = Color(1, 1, 1, 0.0)
+			c1 = Color(light, 0.95)
+			c2 = Color(main, 0.0)
+		"sparks":   # quick crackling sparks
+			p.lifetime = 0.7
+			p.amount = 60
+			p.spread = 180.0
+			p.initial_velocity_min = 1.5
+			p.initial_velocity_max = 3.5
+			p.gravity = Vector3(0, -1.0, 0)
+			p.scale_amount_min = 0.012
+			p.scale_amount_max = 0.03
+		"wisps":   # slow curling smoke
+			p.lifetime = 4.0
+			p.amount = 26
+			p.gravity = Vector3(0, 0.25, 0)
+			p.scale_amount_min = 0.2
+			p.scale_amount_max = 0.42
+			p.orbit_velocity_min = 0.05
+			p.orbit_velocity_max = 0.12
+			c0 = Color(main, 0.0)
+			c1 = Color(main, 0.45)
+			c2 = Color(deep, 0.0)
+		"suds", "bubbles":   # soap bubbles / bubbling ooze bobbing up
+			p.lifetime = 3.5
+			p.amount = 30
+			p.gravity = Vector3(0, 0.35, 0)
+			p.initial_velocity_min = 0.05
+			p.initial_velocity_max = 0.3
+			p.scale_amount_min = 0.1
+			p.scale_amount_max = 0.24
+			var curve := Curve.new()   # they swell, then pop
+			curve.add_point(Vector2(0, 0.3))
+			curve.add_point(Vector2(0.85, 1.0))
+			curve.add_point(Vector2(1, 0))
+			p.scale_amount_curve = curve
+			if style == "suds":   # iridescent white soap
+				c0 = Color(0.95, 0.98, 1.0, 0.0)
+				c1 = Color(0.8, 0.9, 1.0, 0.7)
+				c2 = Color(1.0, 0.75, 0.95, 0.0)
+		"spores":   # hanging in the air, barely rising
+			p.lifetime = 5.0
+			p.amount = 36
+			p.gravity = Vector3(0, 0.08, 0)
+			p.spread = 180.0
+			p.initial_velocity_min = 0.05
+			p.initial_velocity_max = 0.15
+			p.scale_amount_min = 0.04
+			p.scale_amount_max = 0.08
+		"motes":   # glittering motes that circle slowly
+			p.lifetime = 3.5
+			p.amount = 34
+			p.gravity = Vector3(0, 0.15, 0)
+			p.orbit_velocity_min = 0.08
+			p.orbit_velocity_max = 0.16
+			p.scale_amount_min = 0.02
+			p.scale_amount_max = 0.05
+		"petals":   # drifting down, swaying
+			p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+			p.emission_box_extents = Vector3(2.4, 0.2, 2.4)
+			p.direction = Vector3(1, -0.3, 0)
+			p.gravity = Vector3(0.15, -0.35, 0)
+			p.lifetime = 4.5
+			p.amount = 26
+			p.scale_amount_min = 0.06
+			p.scale_amount_max = 0.11
+			c0 = Color(1.0, 0.75, 0.82, 0.0)
+			c1 = Color(1.0, 0.7, 0.8, 0.85)
+			c2 = Color(main, 0.0)
+		"confetti":   # bright bits tumbling down
+			p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+			p.emission_box_extents = Vector3(2.4, 0.2, 2.4)
+			p.direction = Vector3.DOWN
+			p.gravity = Vector3(0, -0.8, 0)
+			p.lifetime = 3.0
+			p.amount = 44
+			p.hue_variation_min = -1.0
+			p.hue_variation_max = 1.0
+			c0 = Color(1, 1, 1, 0.0)
+			c1 = Color(main, 1.0)
+			c2 = Color(light, 0.0)
+		"dust":   # heavy grit stirred up and settling
+			p.lifetime = 2.5
+			p.amount = 30
+			p.gravity = Vector3(0, -0.3, 0)
+			p.initial_velocity_min = 0.3
+			p.initial_velocity_max = 0.8
+			p.scale_amount_min = 0.08
+			p.scale_amount_max = 0.16
+	var grad := Gradient.new()
+	grad.set_color(0, c0)
+	grad.set_color(1, c2)
+	grad.add_point(0.3, c1)
+	p.color_ramp = grad
+	var quad_size: float = {"snow": 0.16, "sparks": 0.1, "motes": 0.2, "spores": 0.22, "confetti": 0.2, "petals": 0.24}.get(style, 0.5)
+	(p.mesh as QuadMesh).size = Vector2(quad_size, quad_size)   # small, sharp flakes and sparks
+	if style in ["sparks", "snow", "motes", "spores", "confetti", "petals"]:
+		p.scale_amount_min *= 0.5 / quad_size * 0.6
+		p.scale_amount_max *= 0.5 / quad_size * 0.6
+	if style in ["snow", "petals", "confetti"]:
+		p.position = Vector3(0, 2.6, 0)   # they fall from above the character
+	return p
 
 
 func _build_goblins() -> void:
