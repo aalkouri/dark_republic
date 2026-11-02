@@ -171,6 +171,7 @@ func limb(a: Vector3, b: Vector3, r_a: float, r_b: float, color: Color, seg := 8
 
 
 func commit(material: Material = null) -> ArrayMesh:
+	Loader.pump()   # keep the loading screen animating through long map builds
 	# Degenerate parts (zero-radius tips, collapsed triangles) can carry zero/NaN normals;
 	# on some GPUs those shade as NaN pixels that the glow blows up into flashing white dots.
 	for k in _norms.size():

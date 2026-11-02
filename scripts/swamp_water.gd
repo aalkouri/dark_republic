@@ -275,6 +275,7 @@ func build_terrain(rng: RandomNumberGenerator, half: float, chest_count: int, ch
 	horigin = -float(hsize - 1) * 0.5
 	hgrid.resize(hsize * hsize)
 	for zi in hsize:
+		Loader.pump()   # keep the loading screen moving
 		var z := horigin + zi
 		for xi in hsize:
 			var x := horigin + xi

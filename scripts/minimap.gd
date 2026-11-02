@@ -4,7 +4,7 @@ extends Control
 ## A round, semi-transparent dark map with a gold rim, RANGE metres across its radius, that turns
 ## with the camera: you're the white arrow in the middle, always pointing up (the way the camera
 ## looks), and a little N on the rim shows north.
-##   - Enemies: tiny dim red dots (sampled, at most MAX_DOTS), elites purple, bosses a big red
+##   - Enemies: not shown, except the boss as a big red
 ##     skull diamond.
 ##   - Unopened chests (tier colour), power-ups (their own icons), keys and potions.
 ##   - Map context: the arena edge, swamp pools, the Caldera's lava, the castle's walls.
@@ -33,7 +33,13 @@ const GOLD := Color(0.85, 0.62, 0.18, 0.92)
 const ENEMY := Color(0.9, 0.22, 0.16, 0.7)
 const ELITE := Color(0.75, 0.35, 1.0, 0.95)
 const BOSS := Color(1.0, 0.12, 0.08)
-const SAFE := Color(0.25, 1.0, 0.4)
+const SAFE := Color(0.24, 1.0, 0.4)
+# Every kind of blip has its own colour on the map (none shared): chests and keys per tier,
+# each potion and each power-up. Shapes differ too (boxes, keys, dots, ringed icons).
+const CHEST_COLS := [Color("c8742f"), Color("eef2fa"), Color("ffd21f")]      # copper, silver-white, gold
+const KEY_COLS := [Color("ff8f70"), Color("5fd8ff"), Color("ff3ddb")]        # salmon, sky blue, magenta
+const POTION_COLS := [Color("8a3dff"), Color("ff5c8a"), Color("2f6bff")]     # purple, rose, royal blue
+const POWERUP_COLS := [Color("ff6a00"), Color("19d6b0"), Color("ffb000"), Color("00ff9c"), Color("b8ff2e")]   # magnet, fear, damage, speed, nuke
 const DANGER := Color(1.0, 0.12, 0.08)
 const WATER := Color(0.25, 0.5, 0.6, 0.55)
 const LAVA := Color(1.0, 0.42, 0.08, 0.6)
@@ -247,38 +253,17 @@ func _draw_terrain() -> void:
 
 # --- enemies
 
+## Only the boss is shown (a skull blip, or the red rim arrow when he's out of range): no dots
+## for the rest of the crowd, so the map stays readable.
 func _draw_enemies() -> void:
 	var em: EnemyManager = main.enemies
 	if em == null:
 		return
-	var L := _layer
-	var r2 := RANGE * RANGE
-	var dots := PackedVector2Array()
-	var elites := 0
 	for i in em.count:
-		if em.dead[i]:
-			continue
-		var p := em.pos[i]
-		var dx := p.x - _p0.x
-		var dz := p.z - _p0.z
-		if em.is_boss(i):
-			_draw_boss(p)
-			continue
-		if dx * dx + dz * dz > r2:
-			continue
-		if em.epic[i]:
-			if elites < MAX_ELITES:
-				elites += 1
-				L.draw_circle(_at(p), 2.8, ELITE)
-			continue
-		dots.append(_at(p))
-	var step := maxi(1, ceili(float(dots.size()) / MAX_DOTS))
-	var n := 0
-	for k in range(0, dots.size(), step):
-		L.draw_rect(Rect2(dots[k] - Vector2(1.1, 1.1), Vector2(2.2, 2.2)), ENEMY)
-		n += 1
-	shown["enemies"] = n
-	shown["elites"] = elites
+		if not em.dead[i] and em.is_boss(i):
+			_draw_boss(em.pos[i])
+	shown["enemies"] = 0
+	shown["elites"] = 0
 
 
 func _draw_boss(p: Vector3) -> void:
@@ -335,7 +320,7 @@ func _draw_pickups() -> void:
 			if is_instance_valid(node) and _in_range(node.global_position):
 				var c := _at(node.global_position)
 				L.draw_circle(c, 3.6, Color(0.05, 0.03, 0.02, 0.85))
-				L.draw_circle(c, 2.6, PotionManager.COLORS[int(p["kind"])])
+				L.draw_circle(c, 2.6, POTION_COLS[int(p["kind"])])
 				shown["potions"] += 1
 	# keys
 	if main.keys != null:
@@ -343,7 +328,7 @@ func _draw_pickups() -> void:
 			var node: Node3D = d["node"]
 			if is_instance_valid(node) and _in_range(node.global_position):
 				var c := _at(node.global_position)
-				var col: Color = Chest.TIER_COLORS[int(d["tier"])]
+				var col: Color = KEY_COLS[int(d["tier"])]
 				L.draw_set_transform(c, -_layer.rotation)
 				L.draw_line(Vector2(-1.0, 0.0), Vector2(5.0, 0.0), Color(0.05, 0.03, 0.02), 4.0)
 				L.draw_circle(Vector2(-2.5, 0.0), 3.6, Color(0.05, 0.03, 0.02))
@@ -358,7 +343,7 @@ func _draw_pickups() -> void:
 			if not is_instance_valid(ch) or ch.is_open or ch.gone:
 				continue
 			var at: Vector3 = ch.global_position
-			var col: Color = Chest.TIER_COLORS[ch.tier]
+			var col: Color = CHEST_COLS[ch.tier]
 			if not _in_range(at):
 				if main.keys != null and main.keys.has_key(ch.tier):
 					_rim_arrow(at, col, 6.0)   # you could open this one: point the way
@@ -378,7 +363,7 @@ func _draw_pickups() -> void:
 				continue
 			var at := node.global_position
 			var kind: int = p["kind"]
-			var col: Color = PowerupManager.COLORS[kind]
+			var col: Color = POWERUP_COLS[kind] if kind < POWERUP_COLS.size() else PowerupManager.COLORS[kind]
 			shown["powerups"].append(at)
 			if not _in_range(at):
 				_rim_arrow(at, col, 7.0)

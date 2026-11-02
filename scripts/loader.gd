@@ -180,9 +180,13 @@ func _pick_tip() -> int:
 	if _bag.is_empty():
 		_bag = range(tips.size())
 		_bag.shuffle()
-		if _bag.back() == tip_index:   # the next pick comes off the back: no repeat across bags
+		if _bag.back() == _last_pick:   # the next pick comes off the back: no repeat across bags
 			_bag.push_front(_bag.pop_back())
-	return _bag.pop_back()
+	_last_pick = _bag.pop_back()
+	return _last_pick
+
+
+var _last_pick := -1
 
 
 func _process(delta: float) -> void:
@@ -193,7 +197,29 @@ func _process(delta: float) -> void:
 	if _tip_t >= TIP_TIME:
 		next_tip()
 	_loading_lbl.modulate.a = 0.55 + 0.45 * sin(_shown_t * 3.0)
+	_loading_lbl.text = tr("LOADING") + ".".repeat(int(_shown_t * 2.5) % 4)   # LOADING. .. ...
 	_bg.scale = Vector2.ONE * (1.04 + 0.03 * sin(_shown_t * 0.15))   # a slow drift on the picture
+
+
+var _pump_last := 0
+
+## Keep the loading screen moving while a scene builds in one go (the maps are built in the new
+## scene's _ready, which blocks the frame loop for several seconds): called from inside long
+## builds (MeshBuilder.commit and the map builders), at most ~30 times a second it steps the
+## animation (spinner, LOADING dots, tip timer) and draws a frame on the spot.
+func pump() -> void:
+	if _root == null or not _root.visible or DisplayServer.get_name() == "headless":
+		return
+	var now := Time.get_ticks_usec()
+	if _pump_last != 0 and now - _pump_last < 33000:
+		return
+	var dt := 0.033 if _pump_last == 0 else clampf(float(now - _pump_last) / 1e6, 0.0, 0.1)
+	_pump_last = now
+	_process(dt)
+	if _spinner != null:
+		_spinner.t += dt
+		_spinner.queue_redraw()
+	RenderingServer.force_draw(true, 0.0)
 
 
 func _input(event: InputEvent) -> void:

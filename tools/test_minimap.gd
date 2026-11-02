@@ -123,8 +123,12 @@ func _test_blips() -> void:
 	_check("...and that's where the turned layer draws it", _drawn_at(chest_at).distance_to(cm) < 3.0, "%s vs %s" % [str(_drawn_at(chest_at)), str(cm)])
 	var pm := mm.to_map(pu_at)
 	_check("power-up blip shown, to your right", mm.shown["powerups"].size() >= 1 and absf((pm.x - c.x) - 20.0 * px) < 2.0 and absf(pm.y - c.y) < 2.0, str(pm))
-	var bm := mm.to_map(em.pos[em.index_of(e_uid)])
-	_check("an enemy behind you is a dot below centre", mm.shown["enemies"] >= 1 and bm.y > c.y + 25.0 * px, "%d dots, %s" % [mm.shown["enemies"], str(bm)])
+	_check("ordinary enemies aren't shown (no dots for the crowd)", mm.shown["enemies"] == 0 and mm.shown["elites"] == 0, "%d dots" % mm.shown["enemies"])
+	var all_cols: Array = Minimap.CHEST_COLS + Minimap.KEY_COLS + Minimap.POTION_COLS + Minimap.POWERUP_COLS + [Minimap.SAFE, Minimap.BOSS]
+	var uniq := {}
+	for col in all_cols:
+		uniq[(col as Color).to_html(false)] = true
+	_check("every kind of blip has its own colour", uniq.size() == all_cols.size(), "%d colours for %d kinds" % [uniq.size(), all_cols.size()])
 	_check("a power-up past the edge sits on the rim as an arrow", mm.shown["rim"] >= 1, "%d rim arrows" % mm.shown["rim"])
 	# opened chests disappear
 	ch.is_open = true
@@ -142,7 +146,7 @@ func _test_blips() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var ms := mm.last_draw_ms
-	_check("with a huge horde the dots are capped (~%d) and the redraw stays cheap" % Minimap.MAX_DOTS, mm.shown["enemies"] <= Minimap.MAX_DOTS + 5 and mm.shown["enemies"] > 100 and ms < 6.0, "%d dots, redraw %.2f ms" % [mm.shown["enemies"], ms])
+	_check("with a huge horde: still no enemy dots, and the redraw stays cheap", mm.shown["enemies"] == 0 and ms < 6.0, "%d dots, redraw %.2f ms" % [mm.shown["enemies"], ms])
 	em.count = 0
 
 
