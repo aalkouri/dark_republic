@@ -15,6 +15,10 @@ var _lid: Node3D
 var _hint: Label3D
 var prompt: ActivatePrompt   # Press E (the Activate key) when you can open it
 var _light: OmniLight3D
+var gone := false        # vanished after it was opened (tests, minimap)
+var _open_t := 0.0       # seconds since it opened, counted while the game runs
+const VANISH_AFTER := 0.5   # once the slot machine is closed, it lingers this long open...
+const VANISH_TIME := 0.45   # ...then shrinks away in a puff of sparkles
 
 
 func _ready() -> void:
@@ -87,8 +91,27 @@ func _box(parent: Node3D, size: Vector3, at: Vector3, mat: Material) -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
-	if is_open:
+	if is_open and not gone:
 		_lid.rotation.x = lerpf(_lid.rotation.x, -1.9, 1.0 - exp(-8.0 * dt))
+		if not get_tree().paused:   # wait for the slot machine to close
+			_open_t += dt
+			var k := clampf((_open_t - VANISH_AFTER) / VANISH_TIME, 0.0, 1.0)
+			if k > 0.0:
+				var e := k * k
+				scale = Vector3.ONE * maxf(0.001, 1.0 + 0.15 * sin(k * PI) - e)
+				_light.light_energy = 3.0 * (1.0 - e)
+			if k >= 1.0:
+				_vanish()
+
+
+## Opened and emptied: gone in a puff of sparkles in its trim colour.
+func _vanish() -> void:
+	gone = true
+	visible = false
+	for f in get_tree().root.find_children("*", "FxManager", true, false):
+		(f as FxManager).burst(global_position + Vector3(0, 0.5, 0), 1.4, TIER_COLORS[tier], 0.45)
+		break
+	set_process(false)
 
 
 ## "Needs a Silver Key" floating over the chest while you stand by it without one.

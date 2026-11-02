@@ -233,6 +233,9 @@ func _test_keys_and_open() -> void:
 	sm._finish()
 	await _secs(0.2)
 	_check("Continue: back to the run", main.state == "playing" and not get_tree().paused and main.hud.slot_machine == null, main.state)
+	_check("the opened chest is still there a moment after the slot machine closes", not c.gone and c.visible, "")
+	await _secs(1.2)
+	_check("...then it vanishes", c.gone and not c.visible, "")
 	main._award_shards()
 	var got := 0
 	for kind in main.shards_won:
@@ -346,6 +349,38 @@ func _test_powerup_activate() -> void:
 	await _secs(0.2)
 	main.player.bot_activate = false
 	_check("...press E: taken", pu.count() == n0 - 1 and pu.active[PowerupManager.SPEED] > 0.0, "")
+	# Two power-ups side by side: one press takes only one (the nearer), the next press the other
+	await _secs(0.3)
+	p = main.player.global_position
+	pu.drop(p + Vector3(0.8, 0, 0), PowerupManager.DAMAGE)
+	pu.drop(p + Vector3(-1.4, 0, 0), PowerupManager.FEAR)
+	await _secs(0.4)
+	var n1 := pu.count()
+	var prompts := 0
+	for q in pu._pickups:
+		if (q["prompt"] as ActivatePrompt).visible:
+			prompts += 1
+	_check("two power-ups in reach: only the nearer one says Press E", prompts == 1, "%d prompts" % prompts)
+	# which is nearer right now (the player may have drifted a little)
+	var near_kind := -1
+	var near_d := INF
+	for q in pu._pickups:
+		var dq: float = main.player.global_position.distance_to((q["node"] as Node3D).global_position)
+		if dq < near_d:
+			near_d = dq
+			near_kind = int(q["kind"])
+	var far_kind := PowerupManager.FEAR if near_kind == PowerupManager.DAMAGE else PowerupManager.DAMAGE
+	Input.action_press("activate")   # one real press: "just pressed" for a single frame
+	await _secs(0.2)
+	Input.action_release("activate")
+	await _secs(0.1)
+	_check("one press beside two power-ups takes only one", pu.count() == n1 - 1, "%d -> %d" % [n1, pu.count()])
+	_check("...the nearer one", pu.active[near_kind] > 0.0 and pu.active[far_kind] <= 0.0, "dmg %.1f fear %.1f" % [pu.active[PowerupManager.DAMAGE], pu.active[PowerupManager.FEAR]])
+	Input.action_press("activate")   # one real press: "just pressed" for a single frame
+	await _secs(0.2)
+	Input.action_release("activate")
+	await _secs(0.1)
+	_check("...the next press takes the other", pu.count() == n1 - 2 and pu.active[far_kind] > 0.0, "%d" % pu.count())
 
 
 ## Thorns and Ice Aura: weapons anyone can draft, as often as a tome.

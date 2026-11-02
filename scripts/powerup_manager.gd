@@ -218,6 +218,14 @@ func _model(kind: int) -> Node3D:
 func tick(dt: float, pickup_range: float) -> void:
 	_tick_effects(dt)
 	var target := player.global_position + Vector3(0, 0.6, 0)
+	# Only the nearest power-up in reach shows "Press E" and is taken by a press (one per press)
+	var nearest := -1
+	var best := ACTIVATE_DIST
+	for k in _pickups.size():
+		var d0 := target.distance_to((_pickups[k]["node"] as Node3D).global_position + Vector3(0, 0.6, 0))
+		if d0 < best:
+			best = d0
+			nearest = k
 	for k in range(_pickups.size() - 1, -1, -1):
 		var p: Dictionary = _pickups[k]
 		var root: Node3D = p["node"]
@@ -226,11 +234,9 @@ func tick(dt: float, pickup_range: float) -> void:
 		var age: float = p["age"]
 		spinner.position.y = 0.8 + 0.15 * sin(age * 2.2)
 		spinner.rotation.y += 1.1 * dt
-		var to := target - (root.global_position + Vector3(0, 0.6, 0))
-		var d := to.length()
-		var near := d < ACTIVATE_DIST
+		var near := k == nearest
 		(p["prompt"] as ActivatePrompt).visible = near
-		if near and player.activate_pressed():   # press Activate (E) to take it
+		if near and player.take_activate():   # press Activate (E) to take it
 			activate(p["kind"])
 			root.queue_free()
 			_pickups.remove_at(k)

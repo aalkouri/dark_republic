@@ -52,7 +52,7 @@
 
     { "id": "tome_damage", "kind": "tome", "icon": { "glyph": "blade", "cover": "#8e1f1a" }, "name": "Tome of Damage", "weight": 10, "max_level": 99,
       "desc": "Hit harder.", "per_level": [ { "stat": "damage", "op": "add", "value": 0.12 } ] },
-    { "id": "tome_haste", "kind": "tome", "icon": { "glyph": "clock", "cover": "#b8761a" }, "name": "Tome of Haste", "weight": 10, "max_level": 99,
+    { "id": "tome_haste", "kind": "tome", "icon": { "glyph": "clock", "cover": "#b8761a" }, "name": "Tome of Attack Speed", "weight": 10, "max_level": 99,
       "desc": "Attack faster.", "per_level": [ { "stat": "attack_speed", "op": "add", "value": 0.1 } ] },
     { "id": "tome_swift", "kind": "tome", "icon": { "glyph": "boot", "cover": "#2f7d3a" }, "name": "Tome of Swiftness", "weight": 8, "max_level": 99,
       "desc": "Run faster.", "per_level": [ { "stat": "move_speed", "op": "add", "value": 0.08 } ] },

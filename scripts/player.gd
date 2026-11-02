@@ -623,6 +623,18 @@ func activate_pressed() -> bool:
 	return bot or bot_activate or Input.is_action_just_pressed("activate")
 
 
+## Use up this frame's Activate press: true for the first thing that asks (the nearest power-up,
+## a chest), false for everything after it, so one press only ever takes one thing.
+var _activate_used := -1
+
+func take_activate() -> bool:
+	var f := Engine.get_physics_frames() if Engine.is_in_physics_frame() else Engine.get_process_frames() + 1000000000
+	if _activate_used == f or not activate_pressed():
+		return false
+	_activate_used = f
+	return true
+
+
 ## Shove the player along `dir` (horizontal) with a small hop.
 func knockback(dir: Vector3) -> void:
 	if no_knockback or scripted:

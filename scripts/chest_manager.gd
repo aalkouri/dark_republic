@@ -76,7 +76,7 @@ func tick(_dt: float) -> void:
 		var has := keys.has_key(c.tier)
 		c.show_hint(d < HINT_DIST and not has)
 		c.prompt.visible = d < OPEN_DIST and has
-		if d < OPEN_DIST and has and player.activate_pressed():   # press Activate (E) to open
+		if d < OPEN_DIST and has and player.take_activate():   # press Activate (E) to open
 			keys.use_key(c.tier)
 			c.open()
 			opened_count += 1
