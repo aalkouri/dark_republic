@@ -62,6 +62,9 @@ var lost := false               # Eclipse: goblins lose track of the player and 
 ## Walls enemies can't cross (Thog's Bridge Collapse): [Vector2 a, Vector2 b, half width]
 var barriers: Array = []
 var bonus_mult := 1.0           # ability damage buffs (Eclipse), on top of damage_mult
+var crit_chance := 0.03         # every hit on an enemy can crit (Tome of Critical Hit raises it)...
+var crit_mult := 1.5            # ...for this much damage (Tome of Critical Damage raises it)
+var crits := 0                  # critical hits landed (tests)
 # Status effects from roster abilities (per goblin, seconds left):
 #   slow   moves at slow_f of its speed            (Frost Shards, Glacial Path, Absolute Zero)
 #   freeze frozen solid: can't move or hit you, takes +freeze_bonus damage, shatters on death
@@ -476,11 +479,15 @@ func damage(i: int, amount: float, knockback := Vector3.ZERO, source := "") -> b
 	if dead[i]:
 		return false
 	amount *= damage_mult * taken_mult(i)
+	var crit := crit_chance > 0.0 and randf() < crit_chance
+	if crit:
+		amount *= crit_mult
+		crits += 1
 	_credit(i, amount, source)
 	hp[i] -= amount
 	flash[i] = 0.08
 	if numbers != null:
-		numbers.add(_number_pos(i), amount)
+		numbers.add(_number_pos(i), amount, DamageNumbers.CRIT if crit else DamageNumbers.NORMAL)
 	if knockback != Vector3.ZERO:
 		vel[i] += knockback / (t_scale[typ[i]] * sz[i])
 	if hp[i] <= 0.0:

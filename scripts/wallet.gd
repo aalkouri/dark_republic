@@ -547,6 +547,14 @@ func _load() -> void:
 		coins = int(cfg.get_value("wallet", "coins", 0))
 		char_exp = cfg.get_value("characters", "exp", {})
 		char_skills = cfg.get_value("characters", "skills", {})
+		# Skills that no longer exist (Piercing and Velocity became the two crit skills) are
+		# dropped, so their points come back to spend again
+		for cid in char_skills.keys():
+			var kept: Array = []
+			for sk in char_skills[cid]:
+				if not SkillTree.find(str(cid), str(sk)).is_empty():
+					kept.append(sk)
+			char_skills[cid] = kept
 		unlocked_chars = cfg.get_value("characters", "unlocked", [])
 		bosses_defeated = cfg.get_value("progress", "bosses", [])
 		feats = cfg.get_value("progress", "feats", [])

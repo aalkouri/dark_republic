@@ -15,9 +15,10 @@
     "aura_damage": "Aura Damage", "aura_radius": "Aura Size", "aura_tick": "Aura Tick Rate",
     "slam_damage": "Slam Damage", "slam_radius": "Slam Size", "slam_cooldown": "Slam Cooldown",
     "thorns_return": "Thorns Damage", "frost_radius": "Ice Aura Size", "frost_slow": "Ice Aura Slow",
-    "bomb_chance": "Explode Chance", "bomb_damage": "Explosion Damage", "fang_chance": "Heal-on-Kill Chance"
+    "bomb_chance": "Explode Chance", "bomb_damage": "Explosion Damage", "fang_chance": "Heal-on-Kill Chance",
+    "crit_chance": "Critical Hit Chance", "crit_damage": "Critical Damage"
   },
-  "percent_stats": ["luck", "bomb_chance", "fang_chance"],
+  "percent_stats": ["luck", "bomb_chance", "fang_chance", "crit_chance", "crit_damage"],
 
   "upgrades": [
     { "id": "weapon_orb", "kind": "weapon", "icon": { "glyph": "fireball", "cover": "#7a2a10", "tint": "#ff9a30" }, "name": "Fireballs", "weight": 10, "max_level": 8,
@@ -60,6 +61,10 @@
       "desc": "More health.", "per_level": [ { "stat": "max_hp", "op": "flat", "value": 20 } ] },
     { "id": "tome_area", "kind": "tome", "icon": { "glyph": "expand", "cover": "#5b3a8e" }, "name": "Tome of Size", "weight": 7, "max_level": 99,
       "desc": "Bigger everything.", "per_level": [ { "stat": "area", "op": "add", "value": 0.12 } ] },
+    { "id": "tome_crit", "kind": "tome", "icon": { "glyph": "crit", "cover": "#a8321e" }, "name": "Tome of Critical Hit", "weight": 7, "max_level": 99,
+      "desc": "More critical hits (1.5x damage).", "per_level": [ { "stat": "crit_chance", "op": "flat", "value": 0.04 } ] },
+    { "id": "tome_crit_damage", "kind": "tome", "icon": { "glyph": "crit_damage", "cover": "#7a1a3a" }, "name": "Tome of Critical Damage", "weight": 6, "max_level": 99,
+      "desc": "Critical hits hit harder.", "per_level": [ { "stat": "crit_damage", "op": "flat", "value": 0.25 } ] },
     { "id": "tome_velocity", "kind": "tome", "icon": { "glyph": "arrow", "cover": "#1f6f8e" }, "name": "Tome of Velocity", "weight": 5, "max_level": 99,
       "desc": "Faster projectiles.", "per_level": [ { "stat": "projectile_speed", "op": "add", "value": 0.15 } ] },
     { "id": "tome_magnet", "kind": "tome", "icon": { "glyph": "magnet", "cover": "#4a4a7a" }, "name": "Tome of Attraction", "weight": 6, "max_level": 99,

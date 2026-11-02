@@ -162,10 +162,26 @@ func tick(dt: float, pickup_range: float) -> void:
 		if p["pulled"]:
 			root.global_position += to.normalized() * minf(d, (10.0 + age) * dt * 2.0)
 		if d < PICKUP_DIST:
+			_drink_sfx()
 			_apply(p["kind"])
 			root.queue_free()
 			_potions.remove_at(k)
 			continue
+
+
+var _drink: AudioStreamPlayer
+
+## The potion pickup sound (the same for all three potions).
+func _drink_sfx() -> void:
+	if _drink == null:
+		_drink = AudioStreamPlayer.new()
+		_drink.bus = Settings.SFX_BUS
+		_drink.max_polyphony = 3
+		if ResourceLoader.exists("res://audio/ui/potion.mp3"):
+			_drink.stream = load("res://audio/ui/potion.mp3")
+		add_child(_drink)
+	if _drink.stream:
+		_drink.play()
 
 
 func _apply(kind: int) -> void:

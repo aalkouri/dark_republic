@@ -27,6 +27,7 @@ const BASE_STATS := {
 	"thorns_return": 2.0, "frost_radius": 5.5, "frost_slow": 0.6,
 	"slam_damage": 18.0, "slam_radius": 5.5, "slam_cooldown": 2.6,
 	"bomb_chance": 0.0, "bomb_damage": 25.0, "fang_chance": 0.0,
+	"crit_chance": 0.03, "crit_damage": 1.5,   # every hit: 3% to crit for 1.5x (crit tomes and skills raise them)
 	"coin_gain": 1.0, "ability_cdr": 1.0, "start_shield": 0.0,   # from character skills
 }
 
@@ -530,6 +531,8 @@ func _physics_process(dt: float) -> void:
 	var gained := gems.tick(dt, player.global_position + Vector3(0, 0.9, 0), stats.value("pickup_range"))
 	potions.tick(dt, stats.value("pickup_range"))
 	powerups.tick(dt, stats.value("pickup_range"))
+	enemies.crit_chance = stats.value("crit_chance")
+	enemies.crit_mult = stats.value("crit_damage")
 	keys.tick(dt, stats.value("pickup_range"))
 	chests.tick(dt)
 	goblin_audio.tick(dt)

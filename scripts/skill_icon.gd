@@ -3,7 +3,7 @@ extends Control
 ## Small vector glyphs for skill squares (drawn in a 64x64 design space and scaled).
 ## kinds: heart, shield, cross, bubble, blade, clock, orb, burst, arrow, boot, feather, coin,
 ## magnet, book, clover, flame, expand, eye, triple, fireball, stink, slam, bomb, fang, thorns,
-## frost_aura.
+## frost_aura, crit, crit_damage.
 
 var kind := "orb"
 var color := Color.WHITE
@@ -26,6 +26,31 @@ func _draw() -> void:
 	var light := c.lightened(0.35)
 	var dark := c.darkened(0.45)
 	match kind:
+		"crit":   # a crosshair on a target with a bright strike in the bullseye
+			draw_arc(Vector2(32, 32), 22, 0, TAU, 40, c, 4)
+			draw_arc(Vector2(32, 32), 12, 0, TAU, 32, c, 3)
+			for k in 4:
+				var a := TAU * k / 4.0
+				draw_line(Vector2(32, 32) + Vector2(cos(a), sin(a)) * 16, Vector2(32, 32) + Vector2(cos(a), sin(a)) * 30, light, 4)
+			for k in 8:   # a little star burst in the middle
+				var a := TAU * k / 8.0 + 0.2
+				_poly([Vector2(32, 32) + Vector2(cos(a - 0.35), sin(a - 0.35)) * 3, Vector2(32, 32) + Vector2(cos(a), sin(a)) * (9 if k % 2 == 0 else 6),
+					Vector2(32, 32) + Vector2(cos(a + 0.35), sin(a + 0.35)) * 3], Color(1.0, 0.9, 0.4) * dim)
+		"crit_damage":   # a jagged burst with an exclamation mark: the hit lands harder
+			var pts := []
+			for k in 16:
+				var a := TAU * k / 16.0 - PI * 0.5
+				var r := 28.0 if k % 2 == 0 else 15.0
+				pts.append(Vector2(32, 32) + Vector2(cos(a), sin(a)) * r)
+			_poly(pts, c)
+			var inner := []
+			for k in 16:
+				var a := TAU * k / 16.0 - PI * 0.5
+				var r := 21.0 if k % 2 == 0 else 11.0
+				inner.append(Vector2(32, 32) + Vector2(cos(a), sin(a)) * r)
+			_poly(inner, dark)
+			_poly([Vector2(28, 17), Vector2(36, 17), Vector2(34, 36), Vector2(30, 36)], Color(1.0, 0.9, 0.4) * dim)
+			draw_circle(Vector2(32, 43), 3.5, Color(1.0, 0.9, 0.4) * dim)
 		"heart":
 			draw_circle(Vector2(22, 24), 12, c)
 			draw_circle(Vector2(42, 24), 12, c)
@@ -210,6 +235,17 @@ func _draw() -> void:
 			_poly([Vector2(36, 16), Vector2(50, 16), Vector2(43, 48)], Color(0.96, 0.94, 0.88))
 			draw_circle(Vector2(21, 54), 4, c)
 			_poly([Vector2(18, 53), Vector2(24, 53), Vector2(21, 46)], c)
+		"scarab":   # a golden scarab, wings half open, flying up-right with a little trail
+			_poly([Vector2(8, 56), Vector2(20, 40), Vector2(24, 46)], Color(c.r, c.g, c.b, 0.35))
+			_poly([Vector2(30, 22), Vector2(14, 30), Vector2(18, 46), Vector2(30, 36)], Color(0.25, 0.55, 0.5))
+			_poly([Vector2(34, 22), Vector2(50, 30), Vector2(46, 46), Vector2(34, 36)], Color(0.25, 0.55, 0.5))
+			draw_circle(Vector2(32, 34), 11, c)
+			draw_circle(Vector2(32, 19), 6, dark)
+			draw_line(Vector2(32, 24), Vector2(32, 44), dark, 2)
+			draw_circle(Vector2(32, 10), 5, Color(0.95, 0.55, 0.2))
+			for k in 3:
+				draw_line(Vector2(22, 30 + k * 6), Vector2(14, 28 + k * 9), dark, 2)
+				draw_line(Vector2(42, 30 + k * 6), Vector2(50, 28 + k * 9), dark, 2)
 		"flame":
 			_poly([Vector2(32, 4), Vector2(48, 26), Vector2(50, 42), Vector2(32, 58), Vector2(14, 42), Vector2(18, 26), Vector2(26, 30)], c)
 			_poly([Vector2(32, 24), Vector2(40, 40), Vector2(32, 52), Vector2(24, 40)], light)

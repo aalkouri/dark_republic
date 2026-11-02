@@ -31,7 +31,7 @@
   "slot_machine.gd:331"
  ],
  "%s  LEVEL %d": [
-  "main.gd:1002"
+  "main.gd:1005"
  ],
  "%s  Lv %d": [
   "hud.gd:1449"
@@ -56,35 +56,35 @@
   "hud.gd:1025"
  ],
  "%s APPROACHES": [
-  "main.gd:793"
+  "main.gd:796"
  ],
  "%s Chest": [
   "chest.gd:60",
   "slot_machine.gd:143"
  ],
  "%s Cooldown": [
-  "weapon_system.gd:381"
+  "weapon_system.gd:382"
  ],
  "%s DEFEATED!": [
   "hud.gd:999",
-  "main.gd:77"
+  "main.gd:78"
  ],
  "%s Damage": [
-  "weapon_system.gd:380",
-  "weapon_system.gd:418"
+  "weapon_system.gd:381",
+  "weapon_system.gd:419"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:823"
+  "main.gd:826"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:396"
  ],
  "%s Pierce": [
-  "weapon_system.gd:383",
-  "weapon_system.gd:420"
+  "weapon_system.gd:384",
+  "weapon_system.gd:421"
  ],
  "%s Reach": [
-  "weapon_system.gd:382"
+  "weapon_system.gd:383"
  ],
  "%s can't fight here: it's home turf": [
   "map_picker.gd:95"
@@ -102,96 +102,102 @@
   "abilities.gd:235"
  ],
  "+0.5 luck: better rewards, more epic enemies and power-ups (like 5 Tomes of Luck)": [
-  "skill_tree.gd:62",
-  "skill_tree.gd:106"
+  "skill_tree.gd:60",
+  "skill_tree.gd:111"
  ],
  "+1 air jump": [
-  "skill_tree.gd:55",
-  "skill_tree.gd:100"
+  "skill_tree.gd:53",
+  "skill_tree.gd:105"
  ],
  "+1 fireball": [
-  "skill_tree.gd:92"
+  "skill_tree.gd:97"
  ],
  "+1 projectile": [
-  "skill_tree.gd:45"
+  "skill_tree.gd:44"
  ],
  "+10 armor": [
   "skill_tree.gd:30"
  ],
  "+10% attack speed": [
   "skill_tree.gd:39",
-  "skill_tree.gd:88"
+  "skill_tree.gd:93"
  ],
  "+10% damage": [
   "skill_tree.gd:38",
-  "skill_tree.gd:87"
+  "skill_tree.gd:92"
  ],
  "+10% move speed": [
-  "skill_tree.gd:54",
-  "skill_tree.gd:99"
+  "skill_tree.gd:52",
+  "skill_tree.gd:104"
  ],
  "+15% XP": [
-  "skill_tree.gd:58"
+  "skill_tree.gd:56"
  ],
  "+15% area": [
   "skill_tree.gd:41"
  ],
  "+15% coins from runs": [
-  "skill_tree.gd:56",
-  "skill_tree.gd:101"
+  "skill_tree.gd:54",
+  "skill_tree.gd:106"
  ],
  "+15% max HP, +5 armor": [
   "skill_tree.gd:33"
  ],
  "+20 max HP": [
   "skill_tree.gd:22",
-  "skill_tree.gd:75"
+  "skill_tree.gd:80"
  ],
  "+20% move speed": [
-  "skill_tree.gd:64"
- ],
- "+20% projectile speed": [
-  "skill_tree.gd:42"
+  "skill_tree.gd:62"
  ],
  "+25% attack speed": [
-  "skill_tree.gd:48"
+  "skill_tree.gd:46"
  ],
  "+25% damage": [
-  "skill_tree.gd:47",
-  "skill_tree.gd:94"
+  "skill_tree.gd:45"
  ],
  "+25% max HP": [
   "skill_tree.gd:29",
-  "skill_tree.gd:80"
+  "skill_tree.gd:85"
  ],
  "+3 armor, +10 max HP": [
   "skill_tree.gd:25"
  ],
  "+35% XP": [
-  "skill_tree.gd:65"
+  "skill_tree.gd:63"
  ],
  "+35% area": [
-  "skill_tree.gd:49"
+  "skill_tree.gd:47"
  ],
  "+4 armor": [
   "skill_tree.gd:23",
-  "skill_tree.gd:76"
+  "skill_tree.gd:81"
  ],
  "+4 fireball damage": [
-  "skill_tree.gd:89"
+  "skill_tree.gd:94"
  ],
  "+4 projectile damage": [
   "skill_tree.gd:40"
  ],
  "+40% coins from runs": [
-  "skill_tree.gd:63"
+  "skill_tree.gd:61"
+ ],
+ "+5% critical hit chance": [
+  "skill_tree.gd:71",
+  "skill_tree.gd:98"
  ],
  "+50% pickup range": [
-  "skill_tree.gd:57",
-  "skill_tree.gd:105"
+  "skill_tree.gd:55",
+  "skill_tree.gd:110"
+ ],
+ ", blend_add": [
+  "hero_entrances.gd:626"
+ ],
+ ", unshaded": [
+  "hero_entrances.gd:624"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:544"
+  "main.gd:547"
  ],
  "2 yd": [
   "abilities.gd:248"
@@ -221,7 +227,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:688"
+  "main.gd:691"
  ],
  "A Monotreme of Distinction": [
   "characters.json"
@@ -302,14 +308,17 @@
   "abilities.json"
  ],
  "Abilities recharge 20% faster": [
-  "skill_tree.gd:61",
-  "skill_tree.gd:104"
+  "skill_tree.gd:59",
+  "skill_tree.gd:109"
  ],
  "Ability 1": [
   "settings.gd:25"
  ],
  "Ability 2": [
   "settings.gd:25"
+ ],
+ "Ability Cooldown": [
+  "char_bonuses.gd:29"
  ],
  "Absolute Zero": [
   "abilities.json"
@@ -369,11 +378,11 @@
   "upgrades.json"
  ],
  "Armored Skeleton": [
-  "main.gd:704",
+  "main.gd:707",
   "skeleton_crowd.gd:412"
  ],
  "Ashen Ward": [
-  "skill_tree.gd:76"
+  "skill_tree.gd:81"
  ],
  "Attack Speed": [
   "upgrades.json"
@@ -468,7 +477,7 @@
   "upgrades.json"
  ],
  "Bleed": [
-  "enemy_manager.gd:885"
+  "enemy_manager.gd:901"
  ],
  "Bleeds deal double damage": [
   "forge.gd:74"
@@ -493,7 +502,7 @@
  ],
  "Bomber Skeleton": [
   "bomber_skeletons.gd:144",
-  "main.gd:702"
+  "main.gd:705"
  ],
  "Bone Spikes": [
   "abilities.json"
@@ -535,16 +544,16 @@
   "abilities.json"
  ],
  "Brutality": [
-  "skill_tree.gd:47"
+  "skill_tree.gd:45"
  ],
  "Bubbling Cauldron": [
   "abilities.json"
  ],
  "Burning": [
-  "enemy_manager.gd:856"
+  "enemy_manager.gd:872"
  ],
  "Burning Explosions": [
-  "enemy_manager.gd:1240"
+  "enemy_manager.gd:1256"
  ],
  "Burns enemies touching you for 30 damage per second (2.5 m); grows with kills, up to +50% size": [
   "abilities.json"
@@ -563,6 +572,9 @@
  ],
  "Buy 1 missing shard: %s": [
   "forge_menu.gd:201"
+ ],
+ "CALDERA ERUPTION! GET ONTO THE ROCKS!": [
+  "singe_boss.gd:630"
  ],
  "CHOOSE YOUR BATTLEGROUND": [
   "map_picker.gd:56"
@@ -605,13 +617,16 @@
   "mode_menu.gd:14"
  ],
  "Cinder Shell": [
-  "skill_tree.gd:81"
+  "skill_tree.gd:86"
  ],
  "Cinder Toss": [
   "abilities.json"
  ],
  "Classic": [
   "mode_menu.gd:14"
+ ],
+ "Click or press any key for the next tip": [
+  "loader.gd:223"
  ],
  "Click to continue": [
   "unlock_reveal.gd:52"
@@ -628,6 +643,9 @@
  "Cocooned enemies take {25%} of their max HP; you heal {1%} of max HP per cocoon": [
   "abilities.json"
  ],
+ "Coin Gain": [
+  "char_bonuses.gd:29"
+ ],
  "Collect the shards below to forge it": [
   "character_select.gd:634"
  ],
@@ -635,7 +653,7 @@
   "abilities.json"
  ],
  "Colossal": [
-  "skill_tree.gd:49"
+  "skill_tree.gd:47"
  ],
  "Common": [
   "upgrades.json"
@@ -653,15 +671,35 @@
   "hud.gd:366"
  ],
  "Cooldowns reset": [
-  "main.gd:1110"
+  "main.gd:1113"
  ],
  "Cowboy": [
   "characters.json"
+ ],
+ "Critical Damage": [
+  "skill_tree.gd:72",
+  "skill_tree.gd:99",
+  "upgrades.json"
+ ],
+ "Critical Hit Chance": [
+  "upgrades.json"
+ ],
+ "Critical Strike": [
+  "skill_tree.gd:71",
+  "skill_tree.gd:98"
+ ],
+ "Critical hits deal +0.5x damage": [
+  "skill_tree.gd:72",
+  "skill_tree.gd:99"
+ ],
+ "Critical hits hit harder.": [
+  "upgrades.json"
  ],
  "Critical hits, critical misses, critical vibes": [
   "taglines.json"
  ],
  "DARK REPUBLIC": [
+  "loader.gd:248",
   "title.gd:356"
  ],
  "DESTROY Mode": [
@@ -728,7 +766,7 @@
  "Defense": [
   "skill_tree.gd:11",
   "skill_tree.gd:20",
-  "skill_tree.gd:73"
+  "skill_tree.gd:78"
  ],
  "Display mode": [
   "settings_menu.gd:191"
@@ -741,6 +779,9 @@
  ],
  "Done": [
   "skill_screen.gd:176"
+ ],
+ "Door": [
+  "hero_entrances.gd:1725"
  ],
  "Dr. Croc": [
   "characters.json"
@@ -854,10 +895,10 @@
   "hud.gd:1109"
  ],
  "Ember Hide": [
-  "skill_tree.gd:75"
+  "skill_tree.gd:80"
  ],
  "Ember Pull": [
-  "skill_tree.gd:105"
+  "skill_tree.gd:110"
  ],
  "Enemies below {20%} HP die instantly (not the boss)": [
   "abilities.json"
@@ -962,7 +1003,7 @@
   "forge.gd:66"
  ],
  "Every ability is at max level!  Fully healed": [
-  "main.gd:987"
+  "main.gd:990"
  ],
  "Every chest is a mimic until proven innocent": [
   "taglines.json"
@@ -1097,9 +1138,6 @@
   "upgrades.json",
   "upgrades.json"
  ],
- "Fireballs pierce 1 more enemy": [
-  "skill_tree.gd:93"
- ],
  "Fires {16} stakes in a ring: {90} damage each": [
   "abilities.json"
  ],
@@ -1116,8 +1154,8 @@
   "abilities.json"
  ],
  "Fleet Feet": [
-  "skill_tree.gd:54",
-  "skill_tree.gd:99"
+  "skill_tree.gd:52",
+  "skill_tree.gd:104"
  ],
  "Fog, cypress trees and stinking pools.": [
   "map_picker.gd:18"
@@ -1158,10 +1196,10 @@
   "character_select.gd:631"
  ],
  "Fortune": [
-  "skill_tree.gd:62"
+  "skill_tree.gd:60"
  ],
  "Fortune's Flame": [
-  "skill_tree.gd:106"
+  "skill_tree.gd:111"
  ],
  "Four of him. None of them make a sound.": [
   "abilities.json"
@@ -1173,7 +1211,7 @@
   "characters.json"
  ],
  "Frenzy": [
-  "skill_tree.gd:48"
+  "skill_tree.gd:46"
  ],
  "Frogs are harmless, take {double} damage and give {2x} XP if killed": [
   "abilities.json"
@@ -1183,7 +1221,7 @@
   "abilities.json"
  ],
  "Frozen Shatter": [
-  "enemy_manager.gd:1254"
+  "enemy_manager.gd:1270"
  ],
  "Frozen enemies that die shatter for {40%} of their max HP to enemies within {2 yd}; shatters chain": [
   "abilities.json"
@@ -1201,7 +1239,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:848"
+  "main.gd:851"
  ],
  "Gaiden": [
   "characters.json"
@@ -1228,10 +1266,11 @@
   "characters.json"
  ],
  "Ghost": [
-  "enemy_manager.gd:371"
+  "enemy_manager.gd:381"
  ],
  "Ghoul": [
-  "enemy_manager.gd:370"
+  "enemy_manager.gd:40",
+  "enemy_manager.gd:380"
  ],
  "Giant's Heart": [
   "skill_tree.gd:29"
@@ -1246,16 +1285,18 @@
   "abilities.json"
  ],
  "Goblin": [
-  "enemy_manager.gd:273"
+  "enemy_manager.gd:281"
  ],
  "Goblin Brute": [
-  "enemy_manager.gd:275"
+  "enemy_manager.gd:39",
+  "enemy_manager.gd:283"
  ],
  "Goblin Scamp": [
-  "enemy_manager.gd:274"
+  "enemy_manager.gd:39",
+  "enemy_manager.gd:282"
  ],
  "Goblin Warlord": [
-  "enemy_manager.gd:276"
+  "enemy_manager.gd:284"
  ],
  "Gold": [
   "chest.gd:8"
@@ -1264,10 +1305,10 @@
   "key_manager.gd:11"
  ],
  "Gold Sense": [
-  "skill_tree.gd:101"
+  "skill_tree.gd:106"
  ],
  "Greed": [
-  "skill_tree.gd:56"
+  "skill_tree.gd:54"
  ],
  "Ground Slam": [
   "upgrades.json"
@@ -1315,7 +1356,7 @@
   "upgrades.json"
  ],
  "Hearthfire": [
-  "skill_tree.gd:82"
+  "skill_tree.gd:87"
  ],
  "Heavy Hitter": [
   "skill_tree.gd:40"
@@ -1439,6 +1480,9 @@
  "Jump": [
   "settings.gd:24"
  ],
+ "Jump Height": [
+  "char_bonuses.gd:29"
+ ],
  "Jump again in mid-air.": [
   "upgrades.json"
  ],
@@ -1477,7 +1521,7 @@
   "abilities.json"
  ],
  "Kindling": [
-  "skill_tree.gd:87"
+  "skill_tree.gd:92"
  ],
  "Knocks over the whole lab.": [
   "abilities.json"
@@ -1492,7 +1536,7 @@
   "hud.gd:904"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:423"
+  "weapon_system.gd:424"
  ],
  "LEVEL UP!": [
   "hud.gd:297"
@@ -1502,6 +1546,10 @@
  ],
  "LEVEL UP!  lvl %d   ·   +%d skill points": [
   "hud.gd:1030"
+ ],
+ "LOADING": [
+  "loader.gd:224",
+  "loader.gd:386"
  ],
  "LV %d": [
   "hud.gd:1439"
@@ -1559,12 +1607,12 @@
  ],
  "Learn a %s skill from the first row first": [
   "skill_screen.gd:321",
-  "skill_tree.gd:165"
+  "skill_tree.gd:173"
  ],
  "Learned": [
   "skill_screen.gd:307",
   "skill_screen.gd:308",
-  "skill_tree.gd:156"
+  "skill_tree.gd:164"
  ],
  "Leaves a {8 m} pool for {6 s}": [
   "abilities.json"
@@ -1678,7 +1726,7 @@
   "powerup_manager.gd:17"
  ],
  "Magnetism": [
-  "skill_tree.gd:57"
+  "skill_tree.gd:55"
  ],
  "Main menu": [
   "hud.gd:262",
@@ -1715,10 +1763,13 @@
   "abilities.json"
  ],
  "Midas Touch": [
-  "skill_tree.gd:63"
+  "skill_tree.gd:61"
  ],
  "Moonlit tombs, ground fog, ghosts, ghouls and the restless dead.": [
   "map_picker.gd:23"
+ ],
+ "More critical hits (1.5x damage).": [
+  "upgrades.json"
  ],
  "More health.": [
   "upgrades.json"
@@ -1748,7 +1799,8 @@
   "powerup_manager.gd:17"
  ],
  "Mummy": [
-  "enemy_manager.gd:353"
+  "enemy_manager.gd:40",
+  "enemy_manager.gd:363"
  ],
  "Music": [
   "settings.gd:17",
@@ -1764,7 +1816,7 @@
   "upgrade_db.gd:168"
  ],
  "NEW ABILITY UNLOCKED: %s  [%s]": [
-  "main.gd:869"
+  "main.gd:872"
  ],
  "NEW CHAMPION": [
   "hud.gd:1137"
@@ -1791,7 +1843,7 @@
   "abilities.gd:367"
  ],
  "No skill points (earn one each level)": [
-  "skill_tree.gd:167"
+  "skill_tree.gd:175"
  ],
  "No time limit. Endless enemies that keep getting deadlier. No upgrade caps.": [
   "mode_menu.gd:16"
@@ -1821,10 +1873,14 @@
  "Now: %s x%s, cooldown -%d%%": [
   "abilities.gd:365"
  ],
+ "Nuke": [
+  "nuke_blast.gd:207"
+ ],
  "Offense": [
   "skill_tree.gd:11",
   "skill_tree.gd:36",
-  "skill_tree.gd:85"
+  "skill_tree.gd:90",
+  "skill_tree.gd:130"
  ],
  "Ogre": [
   "characters.json"
@@ -1836,7 +1892,7 @@
   "taglines.json"
  ],
  "Other": [
-  "enemy_manager.gd:162"
+  "enemy_manager.gd:169"
  ],
  "Over {3 s}, strike the {20} nearest enemies: {120} damage each, plus a bleed": [
   "abilities.json"
@@ -1862,6 +1918,10 @@
  "PLAY": [
   "character_select.gd:820"
  ],
+ "PORTAL OPEN": [
+  "boss_aftermath.gd:121",
+  "boss_aftermath.gd:223"
+ ],
  "Padding": [
   "skill_tree.gd:25"
  ],
@@ -1881,7 +1941,7 @@
   "abilities.json"
  ],
  "Phoenix Heart": [
-  "skill_tree.gd:80"
+  "skill_tree.gd:85"
  ],
  "Pick up XP from further away.": [
   "upgrades.json"
@@ -1891,9 +1951,6 @@
  ],
  "Pickup Range": [
   "upgrades.json"
- ],
- "Piercing": [
-  "skill_tree.gd:46"
  ],
  "Piercing icicles that slow enemies 30% for 2 s": [
   "abilities.json"
@@ -1921,7 +1978,7 @@
   "title.gd:409"
  ],
  "Poison": [
-  "enemy_manager.gd:891"
+  "enemy_manager.gd:907"
  ],
  "Poison kick, slows": [
   "abilities.json"
@@ -1953,9 +2010,6 @@
  "Projectiles": [
   "upgrades.json"
  ],
- "Projectiles pierce 1 more enemy": [
-  "skill_tree.gd:46"
- ],
  "Pull the handle!": [
   "slot_machine.gd:147"
  ],
@@ -1968,14 +2022,11 @@
  "Pyramids to climb, the Great Sphinx, mummies and vultures.": [
   "map_picker.gd:22"
  ],
- "Pyromastery": [
-  "skill_tree.gd:94"
- ],
  "Quick Hands": [
   "skill_tree.gd:39"
  ],
  "Quickfire": [
-  "skill_tree.gd:88"
+  "skill_tree.gd:93"
  ],
  "Quickplay": [
   "mode_menu.gd:15"
@@ -2043,11 +2094,11 @@
  ],
  "Regenerate 0.6 HP/s": [
   "skill_tree.gd:24",
-  "skill_tree.gd:77"
+  "skill_tree.gd:82"
  ],
  "Regenerate 1.5 HP/s": [
   "skill_tree.gd:31",
-  "skill_tree.gd:82"
+  "skill_tree.gd:87"
  ],
  "Render scale": [
   "settings_menu.gd:193"
@@ -2107,21 +2158,30 @@
   "settings_menu.gd:47"
  ],
  "SHARDS: %s": [
-  "main.gd:812"
+  "main.gd:815"
  ],
  "SIGNATURE WEAPON": [
   "character_select.gd:496",
   "character_select.gd:619",
   "character_select.gd:917"
  ],
+ "SINGE": [
+  "singe_boss.gd:127"
+ ],
+ "SINGE BURSTS FROM THE LAVA!": [
+  "singe_boss.gd:198"
+ ],
+ "SINGE GUTTERS OUT!": [
+  "singe_boss.gd:929"
+ ],
  "SKILL POINTS": [
   "skill_screen.gd:108"
  ],
  "SURVIVE": [
-  "main.gd:470"
+  "main.gd:471"
  ],
  "Sage": [
-  "skill_tree.gd:65"
+  "skill_tree.gd:63"
  ],
  "Sandstorm": [
   "abilities.json"
@@ -2133,13 +2193,10 @@
   "abilities.json"
  ],
  "Scholar": [
-  "skill_tree.gd:58"
+  "skill_tree.gd:56"
  ],
  "Scythe Sweep": [
   "abilities.json"
- ],
- "Searing Pierce": [
-  "skill_tree.gd:93"
  ],
  "Select a skill": [
   "skill_screen.gd:166",
@@ -2202,6 +2259,7 @@
   "key_manager.gd:11"
  ],
  "Singe": [
+  "singe_boss.gd:123",
   "characters.json"
  ],
  "Siphon": [
@@ -2217,7 +2275,8 @@
   "abilities.json"
  ],
  "Skeleton": [
-  "enemy_manager.gd:278"
+  "enemy_manager.gd:39",
+  "enemy_manager.gd:286"
  ],
  "Skills": [
   "character_select.gd:745"
@@ -2283,7 +2342,7 @@
   "abilities.json"
  ],
  "Smoulder Mend": [
-  "skill_tree.gd:77"
+  "skill_tree.gd:82"
  ],
  "Snaps his shackles. Uses the pieces.": [
   "abilities.json"
@@ -2307,9 +2366,9 @@
   "skill_screen.gd:132",
   "skill_screen.gd:270",
   "skill_tree.gd:11",
-  "skill_tree.gd:52",
-  "skill_tree.gd:97",
-  "skill_tree.gd:147"
+  "skill_tree.gd:50",
+  "skill_tree.gd:102",
+  "skill_tree.gd:155"
  ],
  "Spell check: fireball, fireball, fireball": [
   "taglines.json"
@@ -2348,13 +2407,14 @@
   "abilities.json"
  ],
  "Spring Step": [
-  "skill_tree.gd:55"
+  "skill_tree.gd:53"
  ],
  "Sprinter": [
-  "skill_tree.gd:64"
+  "skill_tree.gd:62"
  ],
  "Sprinting Zombie": [
-  "enemy_manager.gd:351"
+  "enemy_manager.gd:40",
+  "enemy_manager.gd:361"
  ],
  "Sprints in circles for no reason.": [
   "abilities.json"
@@ -2373,7 +2433,7 @@
  ],
  "Start each run with a shield worth 35% max HP": [
   "skill_tree.gd:32",
-  "skill_tree.gd:81"
+  "skill_tree.gd:86"
  ],
  "Static Cling": [
   "abilities.json"
@@ -2465,12 +2525,15 @@
  "THE PHARAOH RISES FROM HIS TOMB!": [
   "pharaoh_boss.gd:175"
  ],
+ "THE PORTAL IS OPEN": [
+  "boss_aftermath.gd:120"
+ ],
  "THE TOADSTOOL KNIGHT": [
   "toadstool_boss.gd:76"
  ],
  "THOG": [
-  "main.gd:77",
-  "main.gd:798",
+  "main.gd:78",
+  "main.gd:801",
   "thog_boss.gd:424",
   "thog_boss.gd:506"
  ],
@@ -2478,7 +2541,7 @@
   "thog_boss.gd:382"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:821"
+  "main.gd:824"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:528"
@@ -2487,7 +2550,7 @@
   "thog_boss.gd:400"
  ],
  "THOG THE TROLL": [
-  "main.gd:771",
+  "main.gd:774",
   "thog_boss.gd:605"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2497,7 +2560,11 @@
   "thog_boss.gd:640"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:772"
+  "main.gd:775"
+ ],
+ "TIP": [
+  "loader.gd:222",
+  "loader.gd:422"
  ],
  "Take less damage.": [
   "upgrades.json"
@@ -2656,14 +2723,14 @@
   "taglines.json"
  ],
  "Thog the Troll": [
-  "enemy_manager.gd:282",
+  "enemy_manager.gd:290",
   "characters.json"
  ],
  "Thog the Troll in the Swamp": [
   "map_picker.gd:26"
  ],
  "Thorns": [
-  "main.gd:600",
+  "main.gd:603",
   "upgrades.json"
  ],
  "Thorns Damage": [
@@ -2709,8 +2776,8 @@
   "hud.gd:1109"
  ],
  "Time Warp": [
-  "skill_tree.gd:61",
-  "skill_tree.gd:104",
+  "skill_tree.gd:59",
+  "skill_tree.gd:109",
   "abilities.json"
  ],
  "Time freezes for {2 s} while you mark up to {30} enemies in view": [
@@ -2733,6 +2800,12 @@
   "upgrades.json"
  ],
  "Tome of Attraction": [
+  "upgrades.json"
+ ],
+ "Tome of Critical Damage": [
+  "upgrades.json"
+ ],
+ "Tome of Critical Hit": [
   "upgrades.json"
  ],
  "Tome of Damage": [
@@ -2775,7 +2848,7 @@
   "skill_tree.gd:22"
  ],
  "Toxic Spill": [
-  "enemy_manager.gd:1267",
+  "enemy_manager.gd:1283",
   "abilities.json"
  ],
  "Tree Trunk": [
@@ -2821,7 +2894,7 @@
   "map_picker.gd:97"
  ],
  "Unknown skill": [
-  "skill_tree.gd:154"
+  "skill_tree.gd:162"
  ],
  "Unlimited": [
   "settings_menu.gd:198"
@@ -2836,7 +2909,7 @@
  "Unlocks at level %d": [
   "skill_screen.gd:135",
   "skill_screen.gd:319",
-  "skill_tree.gd:158"
+  "skill_tree.gd:166"
  ],
  "Unlocks at level %d during a run": [
   "character_select.gd:647"
@@ -2851,7 +2924,7 @@
   "abilities.json"
  ],
  "Updraft": [
-  "skill_tree.gd:100"
+  "skill_tree.gd:105"
  ],
  "Valkyrie Spear": [
   "abilities.json"
@@ -2867,9 +2940,6 @@
  ],
  "Vanish in a puff of smoke.": [
   "abilities.json"
- ],
- "Velocity": [
-  "skill_tree.gd:42"
  ],
  "Venom Spit": [
   "abilities.json"
@@ -2890,10 +2960,10 @@
   "abilities.json"
  ],
  "Volley": [
-  "skill_tree.gd:45"
+  "skill_tree.gd:44"
  ],
  "Vulture": [
-  "enemy_manager.gd:354"
+  "enemy_manager.gd:364"
  ],
  "WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns": [
   "hud.gd:189"
@@ -2938,7 +3008,7 @@
   "characters.json"
  ],
  "White-Hot Orbs": [
-  "skill_tree.gd:89"
+  "skill_tree.gd:94"
  ],
  "Who's a Good Boy": [
   "abilities.json"
@@ -2953,7 +3023,7 @@
   "abilities.json"
  ],
  "Wildfire": [
-  "skill_tree.gd:92"
+  "skill_tree.gd:97"
  ],
  "Win +%s": [
   "hud.gd:1109"
@@ -3040,10 +3110,12 @@
   "abilities.json"
  ],
  "Zombie": [
-  "enemy_manager.gd:350"
+  "enemy_manager.gd:39",
+  "enemy_manager.gd:360"
  ],
  "Zombie Brute": [
-  "enemy_manager.gd:352"
+  "enemy_manager.gd:40",
+  "enemy_manager.gd:362"
  ],
  "Zoomies": [
   "abilities.json"
@@ -3122,6 +3194,11 @@
  ],
  "trail damage": [
   "abilities.gd:35"
+ ],
+ "unshaded add": [
+  "hero_entrances.gd:866",
+  "hero_entrances.gd:1334",
+  "hero_entrances.gd:2173"
  ],
  "wisp damage": [
   "abilities.gd:37"

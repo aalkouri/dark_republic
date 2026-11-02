@@ -10,11 +10,13 @@ const MAX_NEW_PER_FRAME := 40
 const NORMAL := 0
 const BURN := 1
 const HEAL := 2
-const COLORS := [Color(1.0, 0.95, 0.8), Color(1.0, 0.55, 0.15), Color(1.0, 0.18, 0.15)]
+const CRIT := 3   # a critical hit: gold, bigger, with a "!"
+const COLORS := [Color(1.0, 0.95, 0.8), Color(1.0, 0.55, 0.15), Color(1.0, 0.18, 0.15), Color(1.0, 0.82, 0.15)]
 
 var _labels: Array[Label3D] = []
 var _age := PackedFloat32Array()
 var _base := PackedVector3Array()
+var _big := PackedFloat32Array()   # size multiplier per label (crits are bigger)
 var _next := 0
 var _new_this_frame := 0
 var _font: Font
@@ -24,6 +26,8 @@ func _ready() -> void:
 	_age.resize(POOL)
 	_age.fill(LIFE)
 	_base.resize(POOL)
+	_big.resize(POOL)
+	_big.fill(1.0)
 	_font = ThemeDB.fallback_font
 
 
@@ -36,7 +40,8 @@ func add(at: Vector3, amount: float, kind := NORMAL) -> void:
 	if i >= _labels.size():
 		_labels.append(_make_label())
 	var l := _labels[i]
-	l.text = ("+%d" if kind == HEAL else "%d") % roundi(amount)
+	l.text = ("+%d" if kind == HEAL else ("%d!" if kind == CRIT else "%d")) % roundi(amount)
+	_big[i] = 1.45 if kind == CRIT else 1.0
 	l.modulate = COLORS[kind]
 	l.outline_modulate = Color(0.1, 0.02, 0.0, 1.0) if kind == BURN else Color(0, 0, 0, 1)
 	l.visible = true
@@ -86,7 +91,7 @@ func _apply(i: int) -> void:
 	else:
 		s = 1.0
 	var l := _labels[i]
-	l.scale = Vector3.ONE * s
+	l.scale = Vector3.ONE * s * _big[i]
 	l.position = _base[i] + Vector3(0, 0.25 + t * 0.9, 0)
 	l.modulate.a = 1.0 if t < 0.5 else 1.0 - (t - 0.5) / 0.5
 	l.outline_modulate.a = l.modulate.a

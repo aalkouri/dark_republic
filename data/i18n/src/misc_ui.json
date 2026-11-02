@@ -1,3 +1,82 @@
 {
- "Tome of Attack Speed": ["Tomo de Velocidad de Ataque", "Tome de vitesse d'attaque", "مجلد سرعة الهجوم", "Foliant des Angriffstempos", "攻速之书", "攻撃速度の書"]
+ "Tome of Attack Speed": [
+  "Tomo de Velocidad de Ataque",
+  "Tome de vitesse d'attaque",
+  "مجلد سرعة الهجوم",
+  "Foliant des Angriffstempos",
+  "攻速之书",
+  "攻撃速度の書"
+ ],
+ "Tome of Critical Hit": [
+  "Tomo de Golpe Crítico",
+  "Tome de coup critique",
+  "مجلد الضربة الحرجة",
+  "Foliant des kritischen Treffers",
+  "暴击之书",
+  "クリティカルの書"
+ ],
+ "Tome of Critical Damage": [
+  "Tomo de Daño Crítico",
+  "Tome de dégâts critiques",
+  "مجلد الضرر الحرج",
+  "Foliant des kritischen Schadens",
+  "暴伤之书",
+  "クリティカルダメージの書"
+ ],
+ "More critical hits (1.5x damage).": [
+  "Más golpes críticos (daño x1,5).",
+  "Plus de coups critiques (dégâts x1,5).",
+  "ضربات حرجة أكثر (ضرر ×1.5).",
+  "Mehr kritische Treffer (1,5-facher Schaden).",
+  "更多暴击（1.5倍伤害）。",
+  "クリティカルが増える（ダメージ1.5倍）。"
+ ],
+ "Critical hits hit harder.": [
+  "Los golpes críticos pegan más fuerte.",
+  "Les coups critiques frappent plus fort.",
+  "الضربات الحرجة أقوى.",
+  "Kritische Treffer treffen härter.",
+  "暴击伤害更高。",
+  "クリティカルがより強力に。"
+ ],
+ "Critical Hit Chance": [
+  "Probabilidad de crítico",
+  "Chance de coup critique",
+  "فرصة الضربة الحرجة",
+  "Kritische Trefferchance",
+  "暴击率",
+  "クリティカル率"
+ ],
+ "Critical Damage": [
+  "Daño crítico",
+  "Dégâts critiques",
+  "الضرر الحرج",
+  "Kritischer Schaden",
+  "暴击伤害",
+  "クリティカルダメージ"
+ ],
+ "Critical Strike": [
+  "Golpe crítico",
+  "Frappe critique",
+  "ضربة حرجة",
+  "Kritischer Schlag",
+  "致命一击",
+  "会心の一撃"
+ ],
+ "+5% critical hit chance": [
+  "+5% de probabilidad de crítico",
+  "+5 % de chance de coup critique",
+  "+5% فرصة ضربة حرجة",
+  "+5 % kritische Trefferchance",
+  "暴击率 +5%",
+  "クリティカル率 +5%"
+ ],
+ "Critical hits deal +0.5x damage": [
+  "Los críticos infligen +0,5x de daño",
+  "Les coups critiques infligent +0,5x dégâts",
+  "الضربات الحرجة تُحدث ضررًا إضافيًا ×0.5",
+  "Kritische Treffer verursachen +0,5-fachen Schaden",
+  "暴击伤害 +0.5倍",
+  "クリティカルのダメージ +0.5倍"
+ ]
 }

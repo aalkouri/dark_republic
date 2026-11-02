@@ -39,11 +39,9 @@ const POOL := {
 			{"id": "quick", "name": "Quick Hands", "desc": "+10% attack speed", "icon": "clock", "fx": [["attack_speed", "add", 0.1]]},
 			{"id": "heavy", "name": "Heavy Hitter", "desc": "+4 projectile damage", "icon": "orb", "fx": [["orb_damage", "flat", 4.0]]},
 			{"id": "reach", "name": "Wide Swings", "desc": "+15% area", "icon": "burst", "fx": [["area", "add", 0.15]]},
-			{"id": "velocity", "name": "Velocity", "desc": "+20% projectile speed", "icon": "arrow", "fx": [["projectile_speed", "add", 0.2]]},
 		],
 		[
 			{"id": "volley", "name": "Volley", "desc": "+1 projectile", "icon": "burst", "fx": [["projectile_count", "flat", 1.0]]},
-			{"id": "pierce", "name": "Piercing", "desc": "Projectiles pierce 1 more enemy", "icon": "arrow", "fx": [["orb_pierce", "flat", 1.0]]},
 			{"id": "brutal", "name": "Brutality", "desc": "+25% damage", "icon": "blade", "fx": [["damage", "add", 0.25]]},
 			{"id": "frenzy", "name": "Frenzy", "desc": "+25% attack speed", "icon": "clock", "fx": [["attack_speed", "add", 0.25]]},
 			{"id": "colossal", "name": "Colossal", "desc": "+35% area", "icon": "burst", "fx": [["area", "add", 0.35]]},
@@ -66,6 +64,13 @@ const POOL := {
 		],
 	],
 }
+
+# Every character's Offense column ends with these two, in this order (the last two skills of
+# row 2): critical hit chance, then critical damage.
+const CRIT_SKILLS := [
+	{"id": "crit", "name": "Critical Strike", "desc": "+5% critical hit chance", "icon": "crit", "fx": [["crit_chance", "flat", 0.05]]},
+	{"id": "crit_dmg", "name": "Critical Damage", "desc": "Critical hits deal +0.5x damage", "icon": "crit_damage", "fx": [["crit_damage", "flat", 0.5]]},
+]
 
 # The Fire Wizard's own tree (fire-themed names on the same kinds of effects)
 const AUTHORED := {
@@ -90,8 +95,8 @@ const AUTHORED := {
 			],
 			[
 				{"id": "wildfire", "name": "Wildfire", "desc": "+1 fireball", "icon": "burst", "fx": [["projectile_count", "flat", 1.0]]},
-				{"id": "searing", "name": "Searing Pierce", "desc": "Fireballs pierce 1 more enemy", "icon": "arrow", "fx": [["orb_pierce", "flat", 1.0]]},
-				{"id": "inferno_mastery", "name": "Pyromastery", "desc": "+25% damage", "icon": "flame", "fx": [["damage", "add", 0.25]]},
+				{"id": "crit", "name": "Critical Strike", "desc": "+5% critical hit chance", "icon": "crit", "fx": [["crit_chance", "flat", 0.05]]},
+				{"id": "crit_dmg", "name": "Critical Damage", "desc": "Critical hits deal +0.5x damage", "icon": "crit_damage", "fx": [["crit_damage", "flat", 0.5]]},
 			],
 		],
 		"Special": [
@@ -122,8 +127,11 @@ static func tree_for(char_id: String) -> Dictionary:
 		for tier in 2:
 			var pool: Array = (POOL[cat][tier] as Array).duplicate()
 			var picks := []
-			for k in PER_ROW:
+			var crit_row: bool = cat == "Offense" and tier == 1   # ends with the two crit skills
+			for k in PER_ROW - (CRIT_SKILLS.size() if crit_row else 0):
 				picks.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
+			if crit_row:
+				picks.append_array(CRIT_SKILLS)
 			rows.append(picks)
 		out[cat] = rows
 	return out

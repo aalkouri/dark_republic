@@ -138,7 +138,7 @@ func _ready() -> void:
 
 	# Tome icons on the level-up cards
 	var db := UpgradeDB.new("res://data/upgrades.json", RandomNumberGenerator.new())
-	var glyphs := ["blade", "clock", "boot", "heart", "expand", "arrow", "magnet", "eye", "shield", "cross", "clover", "triple"]
+	var glyphs := ["blade", "clock", "boot", "heart", "expand", "arrow", "magnet", "eye", "shield", "cross", "clover", "triple", "crit", "crit_damage"]
 	var bad := []
 	var covers := {}
 	for id in db.defs:
@@ -151,7 +151,7 @@ func _ready() -> void:
 			if db.describe({"id": id, "rarity": 0})["icon"] != icon:
 				bad.append(id + " (describe)")
 	_check("every tome has an icon (glyph + cover colour)", bad.is_empty(), str(bad))
-	_check("every tome cover is a different colour", covers.size() == 12, "%d" % covers.size())
+	_check("every tome cover is a different colour", covers.size() == 14, "%d" % covers.size())
 	var missing := []
 	for id in db.defs:
 		if db.describe({"id": id, "rarity": 0})["icon"].is_empty():
@@ -198,6 +198,34 @@ func _ready() -> void:
 	_check("a banned reward never shows up in later drafts", not seen_banned, "")
 	db.banned.clear()
 	_check("every weapon and item has an icon too", missing.is_empty(), str(missing))
+
+	# Critical hits: 3% for 1.5x to start; two tomes raise them; Offense trees end with the two crit skills
+	var base_stats: Dictionary = load("res://scripts/main.gd").BASE_STATS
+	_check("base crit: 3% chance for 1.5x damage", is_equal_approx(float(base_stats["crit_chance"]), 0.03) and is_equal_approx(float(base_stats["crit_damage"]), 1.5), "")
+	_check("Tome of Critical Hit and Tome of Critical Damage exist", db.defs.has("tome_crit") and db.defs.has("tome_crit_damage"), "")
+	var crit_ok := true
+	var gone_ok := true
+	for cid in ["fire_wizard", "thunder_wizard", "gaiden", "vicki", "ogre", "rogue"]:
+		var orow: Array = SkillTree.tree_for(cid)["Offense"][1]
+		crit_ok = crit_ok and orow.size() == 3 and orow[1]["id"] == "crit" and orow[2]["id"] == "crit_dmg"
+		for tier in 2:
+			for sk in SkillTree.tree_for(cid)["Offense"][tier]:
+				gone_ok = gone_ok and not (sk["id"] in ["pierce", "velocity", "searing"])
+	_check("every Offense tree ends with Critical Strike then Critical Damage", crit_ok, "")
+	_check("Piercing and Velocity are gone from the skill trees", gone_ok, "")
+	var em := EnemyManager.new()
+	add_child(em)
+	var gi := em.spawn(EnemyManager.GRUNT, Vector3(0, 0, 0), 100.0)
+	if gi >= 0:
+		em.crit_chance = 1.0
+		em.crit_mult = 1.5
+		var h0: float = em.hp[gi]
+		em.damage(gi, 10.0)
+		_check("a critical hit deals 1.5x", is_equal_approx(h0 - em.hp[gi], 15.0) and em.crits == 1, "%.1f damage" % (h0 - em.hp[gi]))
+		em.crit_chance = 0.0
+		var h1: float = em.hp[gi]
+		em.damage(gi, 10.0)
+		_check("...and with no crit chance a hit deals its normal damage", is_equal_approx(h1 - em.hp[gi], 10.0), "%.1f" % (h1 - em.hp[gi]))
 
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
