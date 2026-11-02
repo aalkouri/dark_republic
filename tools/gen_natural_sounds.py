@@ -166,3 +166,70 @@ def jackpot():
 if __name__ == "__main__":
     chest_open()
     jackpot()
+
+
+# --- the Argyle Sock's washing-machine entrance ---------------------------------------------
+
+ABIL = os.path.join(os.path.dirname(__file__), "..", "audio", "abilities")
+
+
+def write_to(folder, name, x):
+    global OUT
+    old = OUT
+    OUT = folder
+    write(name, x)
+    OUT = old
+
+
+def slosh(t0, dur, total, amp=1.0):
+    """Water sloshing inside a drum: band-limited noise in waves."""
+    out = np.zeros(total)
+    i0 = int(t0 * SR)
+    n = min(int(dur * SR), total - i0)
+    t = np.arange(n) / SR
+    env = np.exp(-t / (dur * 0.45)) * (0.6 + 0.4 * np.sin(2 * np.pi * 3.2 * t) ** 2)
+    out[i0:i0 + n] = bp(rng.standard_normal(n), 250, 1500) * env * amp
+    return out
+
+
+def machine_land():
+    """A washing machine dropping onto the ground: a heavy thud, the steel cabinet ringing, the
+    water inside sloshing, a loose part rattling."""
+    total = int(1.4 * SR)
+    x = np.zeros(total)
+    x += thud(0.02, total, f=70, amp=1.2, length=0.4)
+    # sheet steel: low, slightly inharmonic panel modes
+    x += modal(0.02, total, [180, 395, 640, 930, 1380], [1, 0.7, 0.5, 0.35, 0.2], [0.35, 0.25, 0.18, 0.12, 0.08], 1.0) * 0.55
+    x += slosh(0.05, 1.1, total, 0.5)
+    for k in range(5):   # a loose part rattling
+        x += modal(0.12 + k * 0.045 + rng.uniform(0, 0.02), total, [2100, 3900], [1, 0.5], [0.02, 0.012], 0.06) * (0.2 - k * 0.03)
+    write_to(ABIL, "sock_machine_land.wav", room(x, 0.35, 0.18))
+
+
+def door_open():
+    """The porthole door: the latch pops, then the hinge creaks open and a little suds hiss out."""
+    total = int(1.0 * SR)
+    x = np.zeros(total)
+    x += modal(0.02, total, [1900, 3600, 5200], [1, 0.5, 0.3], [0.025, 0.015, 0.01], 0.1) * 0.9   # latch click
+    x += creak(0.08, 0.55, total, f_lo=420, f_hi=1500, rate0=150, rate1=260) * 0.35
+    n = int(0.6 * SR)
+    i0 = int(0.12 * SR)
+    t = np.arange(n) / SR
+    x[i0:i0 + n] += hp(rng.standard_normal(n), 3000) * np.exp(-t / 0.25) * 0.12   # suds hissing out
+    write_to(ABIL, "sock_door_open.wav", room(x, 0.25, 0.15))
+
+
+def door_close():
+    """The door swung shut: a plastic-and-glass thunk and the latch catching."""
+    total = int(0.7 * SR)
+    x = np.zeros(total)
+    x += thud(0.01, total, f=140, amp=0.8, length=0.18)
+    x += modal(0.01, total, [620, 1450, 2300], [1, 0.6, 0.3], [0.06, 0.04, 0.02], 0.3) * 0.5
+    x += modal(0.07, total, [2300, 4100], [1, 0.4], [0.02, 0.01], 0.08) * 0.6   # latch catches
+    write_to(ABIL, "sock_door_close.wav", room(x, 0.25, 0.15))
+
+
+if __name__ == "__main__":
+    machine_land()
+    door_open()
+    door_close()

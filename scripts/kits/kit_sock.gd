@@ -330,17 +330,19 @@ func entrance(target: Vector3) -> bool:
 	tw.tween_property(_entry, "global_position", at, ENTRANCE_DROP).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	tw.tween_callback(func():
 		player.add_shake(0.6)
-		play("slam", -3.0)
+		play("sock_machine_land")   # a thud, the cabinet ringing, water sloshing (not the old impact boom)
 		if fx:
 			fx.burst(at + Vector3(0, 0.4, 0), 3.5, Color(0.75, 0.7, 0.6), 0.45))
 	tw.tween_property(_entry, "scale", Vector3(1.08, 0.9, 1.08), 0.08)   # squash on landing
 	tw.tween_property(_entry, "scale", Vector3.ONE, 0.12)
 	tw.tween_interval(0.2)
+	tw.tween_callback(func(): play("sock_door_open"))   # the latch pops and the door creaks open
 	tw.tween_property(hinge, "rotation:y", -1.9, ENTRANCE_DOOR).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	tw.tween_callback(func(): _pop_out(at, target))
 	tw.tween_interval(ENTRANCE_HOP)
 	tw.tween_property(hinge, "rotation:y", 0.0, ENTRANCE_SHUT).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	tw.tween_callback(func():
+		play("sock_door_close")   # the door thunks shut and the latch catches
 		player.add_shake(0.25)
 		if fx:
 			fx.burst(at + Vector3(0, 1.0, 0), 2.0, Color(0.85, 0.95, 1.0), 0.3)
