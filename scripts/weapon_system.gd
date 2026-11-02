@@ -291,6 +291,7 @@ func _ready() -> void:
 	tmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	tmi.custom_aabb = AABB(Vector3(-500, -50, -500), Vector3(1000, 100, 1000))
 	add_child(tmi)
+	_build_frost()
 	mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -502,6 +503,7 @@ func tick(dt: float) -> void:
 				var ok := fire(sty, sid, dmg_mult)
 				sig_t[sid] = stats.value(sid + "_cooldown") * scale_of(sty).y / (haste * tempo_of(sty)) if ok else 0.1
 	_update_projectiles(dt)
+	_update_frost(dt)
 	_update_leeches(dt)
 	_update_flasks(dt)
 	enemies.src = source_name("orb" if style == "acid" else "sig_acid")
@@ -1548,15 +1550,19 @@ func _update_projectiles(dt: float) -> void:
 				tb = Basis(side * 0.35, up * 0.08, fwd * 1.2)
 			"venom":   # a dripping trail
 				tb = Basis(side * 0.22, up * 0.22, fwd * 1.1)
-		var tc := p - fwd * 0.55
+			"ice":   # a slim glint behind the shard (the frost mist does the rest)
+				tb = Basis(side * 0.16, up * 0.16, fwd * 0.7)
+		var tc := p - fwd * (0.3 if kind == "ice" else 0.55)
+		if kind == "ice":
+			_frost_trail(p, fwd, dt)
 		tail_buf[b] = tb.x.x; tail_buf[b + 1] = tb.y.x; tail_buf[b + 2] = tb.z.x; tail_buf[b + 3] = tc.x
 		tail_buf[b + 4] = tb.x.y; tail_buf[b + 5] = tb.y.y; tail_buf[b + 6] = tb.z.y; tail_buf[b + 7] = tc.y
 		tail_buf[b + 8] = tb.x.z; tail_buf[b + 9] = tb.y.z; tail_buf[b + 10] = tb.z.z; tail_buf[b + 11] = tc.z
 		# Core: a round fireball / shadow orb, a long thin icicle or bolt, a spinning star...
 		var cb := Basis.IDENTITY
 		match kind:
-			"ice":
-				cb = Basis(side * 0.45, up * 0.45, fwd * 2.2)
+			"ice":   # a slim icicle (was 0.45 x 2.2), spinning a little
+				cb = Basis(side * 0.2, up * 0.2, fwd * 1.15).rotated(fwd, p_life[i] * 12.0)
 			"dark":
 				cb = Basis.IDENTITY.scaled(Vector3.ONE * (1.15 + 0.15 * sin(p_life[i] * 25.0)))
 			"arcane":
@@ -1587,6 +1593,106 @@ func _update_projectiles(dt: float) -> void:
 	mm.visible_instance_count = pc
 	tail_mm.buffer = tail_buf
 	tail_mm.visible_instance_count = pc
+
+
+# ------------------------------------------------------------------ frost trail (Frost Shards)
+
+const FROST_MAX := 500
+const FROST_MIST_EVERY := 0.025   # s between mist puffs behind each icicle
+const FROST_CHIP_EVERY := 0.09    # s between ice chips flicking off it
+var _fr_pos := PackedVector3Array()
+var _fr_vel := PackedVector3Array()
+var _fr_life := PackedFloat32Array()
+var _fr_max := PackedFloat32Array()
+var _fr_size := PackedFloat32Array()
+var _fr_chip := PackedByteArray()
+var _fr_n := 0
+var _fr_mm: MultiMesh
+var _fr_buf := PackedFloat32Array()
+
+
+func _build_frost() -> void:
+	for a in [_fr_pos, _fr_vel]:
+		a.resize(FROST_MAX)
+	for a in [_fr_life, _fr_max, _fr_size]:
+		a.resize(FROST_MAX)
+	_fr_chip.resize(FROST_MAX)
+	_fr_buf.resize(FROST_MAX * 16)
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	m.billboard_keep_scale = true
+	m.vertex_color_use_as_albedo = true
+	m.albedo_texture = Abilities._soft_dot()
+	m.disable_fog = true
+	quad.material = m
+	_fr_mm = MultiMesh.new()
+	_fr_mm.transform_format = MultiMesh.TRANSFORM_3D
+	_fr_mm.use_colors = true
+	_fr_mm.mesh = quad
+	_fr_mm.instance_count = FROST_MAX
+	_fr_mm.visible_instance_count = 0
+	var mi := MultiMeshInstance3D.new()
+	mi.multimesh = _fr_mm
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.custom_aabb = AABB(Vector3(-500, -50, -500), Vector3(1000, 100, 1000))
+	add_child(mi)
+
+
+## Behind a flying icicle: puffs of chilling mist that swell and fade in a third of a second,
+## and now and then a tiny glinting ice chip flicking off sideways.
+func _frost_trail(p: Vector3, fwd: Vector3, dt: float) -> void:
+	if randf() < dt / FROST_MIST_EVERY:
+		var j := Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * 0.08
+		_frost_add(p - fwd * 0.35 + j, -fwd * 0.8 + j * 4.0 + Vector3(0, 0.2, 0), 0.32, 0.32, false)
+	if randf() < dt / FROST_CHIP_EVERY:
+		var out := Vector3(randf_range(-1, 1), randf_range(-0.3, 1), randf_range(-1, 1)).normalized()
+		_frost_add(p, out * randf_range(2.5, 4.5) - fwd * 1.0, 0.22, 0.07, true)
+
+
+func _frost_add(at: Vector3, vel: Vector3, life: float, size: float, chip: bool) -> void:
+	if _fr_n >= FROST_MAX:
+		return
+	_fr_pos[_fr_n] = at
+	_fr_vel[_fr_n] = vel
+	_fr_life[_fr_n] = life
+	_fr_max[_fr_n] = life
+	_fr_size[_fr_n] = size
+	_fr_chip[_fr_n] = 1 if chip else 0
+	_fr_n += 1
+
+
+func _update_frost(dt: float) -> void:
+	var k := 0
+	while k < _fr_n:
+		_fr_life[k] -= dt
+		if _fr_life[k] <= 0.0:
+			_fr_n -= 1
+			_fr_pos[k] = _fr_pos[_fr_n]; _fr_vel[k] = _fr_vel[_fr_n]; _fr_life[k] = _fr_life[_fr_n]
+			_fr_max[k] = _fr_max[_fr_n]; _fr_size[k] = _fr_size[_fr_n]; _fr_chip[k] = _fr_chip[_fr_n]
+			continue
+		var chip := _fr_chip[k] == 1
+		if chip:
+			_fr_vel[k] += Vector3(0, -9.0, 0) * dt
+		else:
+			_fr_vel[k] *= maxf(0.0, 1.0 - 4.0 * dt)
+		_fr_pos[k] += _fr_vel[k] * dt
+		var t := 1.0 - _fr_life[k] / _fr_max[k]   # 0 -> 1 over its life
+		var s := _fr_size[k] * (1.0 if chip else (0.6 + 1.6 * t))
+		var a := (1.0 - t) * (1.0 if chip else 0.45)
+		var col := Color(0.92, 0.98, 1.0, a) if chip else Color(0.75, 0.9, 1.0, a)
+		var b := k * 16
+		var p := _fr_pos[k]
+		_fr_buf[b] = s; _fr_buf[b + 1] = 0.0; _fr_buf[b + 2] = 0.0; _fr_buf[b + 3] = p.x
+		_fr_buf[b + 4] = 0.0; _fr_buf[b + 5] = s; _fr_buf[b + 6] = 0.0; _fr_buf[b + 7] = p.y
+		_fr_buf[b + 8] = 0.0; _fr_buf[b + 9] = 0.0; _fr_buf[b + 10] = s; _fr_buf[b + 11] = p.z
+		_fr_buf[b + 12] = col.r; _fr_buf[b + 13] = col.g; _fr_buf[b + 14] = col.b; _fr_buf[b + 15] = col.a
+		k += 1
+	_fr_mm.buffer = _fr_buf
+	_fr_mm.visible_instance_count = _fr_n
 
 
 ## Nearest live enemy within `r` that this projectile hasn't hit yet, or -1.
