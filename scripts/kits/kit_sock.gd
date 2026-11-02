@@ -281,11 +281,89 @@ func _make_machine() -> Node3D:
 	for x in [-0.7, -0.35, 0.0]:   # dials
 		mb.add(MeshBuilder.cyl(0.12, 0.12, 0.08, 10), Transform3D(Basis(Vector3.RIGHT, PI / 2), Vector3(x, 2.4, -1.24)), grey)
 	gb.add(MeshBuilder.box(Vector3(0.5, 0.18, 0.03)), Transform3D(Basis(), Vector3(0.6, 2.4, -1.23)), Color(0.4, 0.9, 1.0, 0))   # display
-	mb.add(MeshBuilder.cyl(0.85, 0.85, 0.1, 24), Transform3D(Basis(Vector3.RIGHT, PI / 2), Vector3(0, 1.1, -1.22)), grey)   # door rim
-	gb.add(MeshBuilder.cyl(0.7, 0.7, 0.06, 24), Transform3D(Basis(Vector3.RIGHT, PI / 2), Vector3(0, 1.1, -1.26)), Color(0.55, 0.8, 1.0, 0))   # sudsy glass
+	mb.add(MeshBuilder.cyl(0.62, 0.62, 0.04, 24), Transform3D(Basis(Vector3.RIGHT, PI / 2), Vector3(0, 1.1, -1.205)), Color(0.08, 0.09, 0.11, 0))   # the drum's dark mouth
 	var mesh := mb.commit(MeshBuilder.prop_material())
 	gb.commit_into(mesh, MeshBuilder.glow_material())
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
 	root.add_child(mi)
+	# The round door hangs on a hinge at its left edge (it swings open for the entrance)
+	var hinge := Node3D.new()
+	hinge.name = "Hinge"
+	hinge.position = Vector3(-0.85, 1.1, -1.22)
+	root.add_child(hinge)
+	var db := MeshBuilder.new()
+	var dg := MeshBuilder.new()
+	db.add(MeshBuilder.cyl(0.85, 0.85, 0.1, 24), Transform3D(Basis(Vector3.RIGHT, PI / 2), Vector3(0.85, 0, 0)), grey)   # door rim
+	dg.add(MeshBuilder.cyl(0.7, 0.7, 0.06, 24), Transform3D(Basis(Vector3.RIGHT, PI / 2), Vector3(0.85, 0, -0.04)), Color(0.55, 0.8, 1.0, 0))   # sudsy glass
+	var dmesh := db.commit(MeshBuilder.prop_material())
+	dg.commit_into(dmesh, MeshBuilder.glow_material())
+	var door := MeshInstance3D.new()
+	door.mesh = dmesh
+	hinge.add_child(door)
 	return root
+
+
+# ------------------------------------------------------------------ entrance
+
+const ENTRANCE_DROP := 0.8     # the machine falls out of the sky...
+const ENTRANCE_DOOR := 0.35    # ...the door swings open...
+const ENTRANCE_HOP := 0.55     # ...the sock pops out...
+const ENTRANCE_SHUT := 0.3     # ...the door slams, and the machine is packed away
+
+var _entry: Node3D
+
+
+## Run start: a washing machine drops out of the sky, its door flies open, the sock pops out,
+## the door slams shut and the machine sinks away - then the run begins.
+func entrance(target: Vector3) -> bool:
+	var fwd := Vector3(-sin(player.cam_yaw), 0.0, -cos(player.cam_yaw))   # where the camera looks
+	var at := ground(target + fwd * 2.6)   # the machine stands just beyond the start, door toward you
+	_entry = _make_machine()
+	spawn(_entry, at + Vector3(0, 24.0, 0))
+	_entry.rotation.y = player.cam_yaw + PI   # its door (local -Z) faces the camera
+	player.enter_meteor_form()   # hidden, no collision, untouchable until he's out
+	player.model.hide_now()
+	player.global_position = at + Vector3(0, 1.0, 0)
+	var hinge: Node3D = _entry.get_node("Hinge")
+	var tw := _entry.create_tween()
+	tw.tween_property(_entry, "global_position", at, ENTRANCE_DROP).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tw.tween_callback(func():
+		player.add_shake(0.6)
+		play("slam", -3.0)
+		if fx:
+			fx.burst(at + Vector3(0, 0.4, 0), 3.5, Color(0.75, 0.7, 0.6), 0.45))
+	tw.tween_property(_entry, "scale", Vector3(1.08, 0.9, 1.08), 0.08)   # squash on landing
+	tw.tween_property(_entry, "scale", Vector3.ONE, 0.12)
+	tw.tween_interval(0.2)
+	tw.tween_property(hinge, "rotation:y", -1.9, ENTRANCE_DOOR).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tw.tween_callback(func(): _pop_out(at, target))
+	tw.tween_interval(ENTRANCE_HOP)
+	tw.tween_property(hinge, "rotation:y", 0.0, ENTRANCE_SHUT).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tw.tween_callback(func():
+		player.add_shake(0.25)
+		if fx:
+			fx.burst(at + Vector3(0, 1.0, 0), 2.0, Color(0.85, 0.95, 1.0), 0.3)
+		k.hub.entrance_landed.emit())   # the run starts now...
+	tw.tween_property(_entry, "scale", Vector3(1.0, 0.05, 1.0), 0.45).set_ease(Tween.EASE_IN)   # ...as the machine sinks away
+	tw.tween_callback(func():
+		_entry.queue_free()
+		_entry = null)
+	return true
+
+
+## The sock tumbles out of the drum in a little arc and lands at the start point.
+func _pop_out(machine_at: Vector3, target: Vector3) -> void:
+	var door := machine_at + (target - machine_at).normalized() * 1.3 + Vector3(0, 1.1, 0)
+	var land := ground(target)
+	player.exit_meteor_form(door)
+	player.model.reappear()
+	if fx:
+		fx.burst(door, 1.6, Color(0.85, 0.95, 1.0), 0.35)   # suds
+	for n in 10:
+		mote(door, Vector3(randf_range(-1.5, 1.5), randf_range(1.5, 3.5), randf_range(-1.5, 1.5)), 0.8, Color(0.9, 0.97, 1.0), 0.2)
+	var tw := player.create_tween()
+	tw.tween_method(func(t: float):
+		var p := door.lerp(land, t)
+		p.y += sin(t * PI) * 1.4
+		player.global_position = p, 0.0, 1.0, ENTRANCE_HOP * 0.8)

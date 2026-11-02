@@ -25,6 +25,11 @@ func on_kill(_at: Vector3, _type_id: int) -> void:
 	pass
 
 
+## Run-start entrance of this character's own (see RosterKit.entrance); false = the comet.
+func entrance(_target: Vector3) -> bool:
+	return false
+
+
 func weapon_mult() -> float:
 	return 1.0
 

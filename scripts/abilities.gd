@@ -441,6 +441,8 @@ func _cast_meteor() -> void:
 ## explosion; no scorched
 ## ground, no cooldown). Emits entrance_landed when he hits the ground.
 func entrance_meteor(target: Vector3) -> void:
+	if roster and roster.entrance(target):   # a character with an entrance of its own
+		return
 	# No cast sound for the entrance; only the explosion when he lands
 	var marker := _ground_disc(METEOR_RADIUS, Color(1.0, 0.15, 0.05, 0.22))
 	marker.global_position = target

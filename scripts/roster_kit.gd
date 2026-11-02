@@ -277,6 +277,12 @@ func cast(i: int) -> void:
 
 # ------------------------------------------------------------------ weapon hooks
 
+## A character-specific run-start entrance (the Argyle Sock's washing machine...). Returns
+## false to use the comet; a part that takes it emits hub.entrance_landed when it's done.
+func entrance(target: Vector3) -> bool:
+	return part != null and part.entrance(target)
+
+
 ## Damage multiplier for the next weapon attack (Smoke Bomb's ambush).
 func weapon_mult() -> float:
 	return part.weapon_mult() if part else 1.0
