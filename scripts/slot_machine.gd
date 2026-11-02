@@ -105,7 +105,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	for k in ["slot_pull", "slot_tick", "slot_stop", "slot_win", "slot_jackpot"]:
+	for k in ["slot_pull", "slot_tick", "slot_stop", "slot_win", "slot_jackpot", "slot_lift", "slot_merge", "slot_land"]:
 		var p := AudioStreamPlayer.new()
 		p.bus = Settings.SFX_BUS
 		p.max_polyphony = 4
@@ -351,8 +351,93 @@ func _reveal() -> void:
 func _finish() -> void:
 	if _state != "done":
 		return
+	_state = "flying"
+	_fly_prize()
+
+
+## The prize flies home: the winning icons pop off the reels (the machine fades away), meet in
+## the middle of the screen as one if there's more than one, then drop into that ability's
+## square on the ability bar, which pulses. Whoosh, chime, thump. Then the run carries on.
+const FLY_GATHER := 0.4
+const FLY_MERGE := 0.25
+const FLY_DROP := 0.5
+var flown := false   # tests
+
+func _fly_prize() -> void:
+	var hud := get_parent()
+	var target: Control = null
+	if hud != null and "ability_slots" in hud and winner >= 0 and winner < (hud.ability_slots as Array).size():
+		target = hud.ability_slots[winner]
+	# the winning icons on the payline, where they are now
+	var starts: Array[Vector2] = []
+	for r in 3:
+		if showing(r) == winner:
+			var ic: AbilitySlot = _icons[r][1]
+			starts.append(ic.get_global_rect().get_center())
+	if starts.is_empty() or target == null:
+		_land_done(null)
+		return
+	# everything but the flying icons fades out
+	for ch in get_children():
+		if ch is CanvasItem:
+			var tw0 := (ch as CanvasItem).create_tween()
+			tw0.tween_property(ch, "modulate:a", 0.0, 0.25)
+	var fliers: Array[AbilitySlot] = []
+	for st in starts:
+		var f := AbilitySlot.new()
+		f.icon_only = true
+		f.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		f.top_level = true
+		add_child(f)
+		_set_icon(f, winner)
+		f.size = Vector2(AbilitySlot.SIZE, AbilitySlot.SIZE)
+		f.pivot_offset = f.size * 0.5
+		f.global_position = st - f.size * 0.5
+		fliers.append(f)
+	_play("slot_lift")
+	var center := get_viewport_rect().size * 0.5 - Vector2(AbilitySlot.SIZE, AbilitySlot.SIZE) * 0.5
+	var tw := create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.set_parallel(true)
+	for f in fliers:   # a little hop up off the reel first
+		tw.tween_property(f, "scale", Vector2.ONE * 1.25, 0.15).set_ease(Tween.EASE_OUT)
+	tw.set_parallel(false)
+	if fliers.size() > 1:   # gather in the middle and merge into one
+		tw.set_parallel(true)
+		for f in fliers:
+			tw.tween_property(f, "global_position", center, FLY_GATHER).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+		tw.set_parallel(false)
+		tw.tween_callback(func():
+			for k in range(1, fliers.size()):
+				fliers[k].queue_free()
+			_play("slot_merge"))
+		tw.tween_property(fliers[0], "scale", Vector2.ONE * 1.8, FLY_MERGE * 0.5).set_ease(Tween.EASE_OUT)
+		tw.tween_property(fliers[0], "scale", Vector2.ONE * 1.3, FLY_MERGE * 0.5).set_ease(Tween.EASE_IN)
+	# down into the ability's square
+	var dest := target.get_global_rect().get_center() - Vector2(AbilitySlot.SIZE, AbilitySlot.SIZE) * 0.5
+	var s_end := minf(target.size.x, target.size.y) / AbilitySlot.SIZE
+	tw.set_parallel(true)
+	tw.tween_property(fliers[0], "global_position", dest, FLY_DROP).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(fliers[0], "scale", Vector2.ONE * s_end, FLY_DROP).set_ease(Tween.EASE_IN)
+	tw.set_parallel(false)
+	tw.tween_callback(func(): _land_done(fliers[0], target))
+
+
+func _land_done(flier: Control, target: Control = null) -> void:
+	if flier != null:
+		_play("slot_land")
+		flier.queue_free()
+	if target != null:   # the ability's square pulses as the level goes in
+		target.pivot_offset = target.size * 0.5
+		var tw := target.create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.tween_property(target, "scale", Vector2.ONE * 1.25, 0.1).set_ease(Tween.EASE_OUT)
+		tw.tween_property(target, "scale", Vector2.ONE, 0.25).set_ease(Tween.EASE_IN_OUT)
+	flown = true
 	_state = "closed"
-	finished.emit(winner, levels)
+	# let the landing sound play out while the run resumes
+	var t := get_tree().create_timer(0.15 if flier != null else 0.0, true)
+	t.timeout.connect(func(): finished.emit(winner, levels))
 
 
 ## Which symbol is on the payline of reel `r` right now.

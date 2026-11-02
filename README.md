@@ -701,6 +701,8 @@ Killing a map's boss **doesn't end the run** on any map (`scripts/boss_aftermath
 
 ## Chests, keys and the slot machine
 
+**The prize flies home:** on Continue the machine fades and the winning icon pops off the reel (a soft whoosh). If two or three reels show it, they gather in the middle of the screen and merge into one (a glassy chime), then it drops into that ability's square on the ability bar, which pulses as it lands (a thump and a sparkle of bells). Sounds from `tools/gen_natural_sounds.py` (`slot_lift`, `slot_merge`, `slot_land`).
+
 Each run places **18-28 chests** on level pads around the map: **Bronze** most often (60%), **Silver** sometimes (30%), **Gold** rarely (10%). A chest only opens with a **key of its tier**: walk up to it with the key and it opens; without one it says which key it needs. **Elites drop keys** (24% of them): bronze usually (65%), silver sometimes (27%), gold rarely (8%). Keys spin on the ground until you pick them up, show at the top of the screen while you hold them, and don't carry over between runs. The **key counter** sits at the bottom left, above your upgrades: a bronze, silver and gold key with how many you hold.
 
 **Level-up cards:** under each card, a small **BAN 100** button (with a coin) throws the reward out of this and every later draft. Legendary cards also get **Convert**: skip the upgrade for one chest key, **60% bronze, 30% silver, 10% gold**. The key pops up big in the middle of the screen, then flies down into the key counter.

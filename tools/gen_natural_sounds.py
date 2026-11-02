@@ -233,3 +233,45 @@ if __name__ == "__main__":
     machine_land()
     door_open()
     door_close()
+
+
+# --- the slot machine's prize flying down to its ability ---------------------------------------
+
+UI = os.path.join(os.path.dirname(__file__), "..", "audio", "ui")
+
+
+def slot_lift():
+    """The prize icon lifting off the reel: a soft rising whoosh of air."""
+    total = int(0.55 * SR)
+    t = np.arange(total) / SR
+    noise = rng.standard_normal(total)
+    x = np.zeros(total)
+    for k, (lo, hi) in enumerate([(300, 900), (700, 1800), (1500, 3500)]):
+        seg = bp(noise, lo, hi) * np.sin(np.pi * np.clip(t / 0.5 - k * 0.12, 0, 1)) ** 2
+        x += seg * (1.0 - k * 0.25)
+    write_to(UI, "slot_lift.wav", room(x * np.exp(-t / 0.5), 0.25, 0.12))
+
+
+def slot_merge():
+    """Icons meeting in the middle: a bright cluster of glassy chimes, as if crystals touched."""
+    total = int(1.2 * SR)
+    x = np.zeros(total)
+    for k, f0 in enumerate([1568, 1976, 2349]):   # G6, B6, D7: a bright major chord
+        x += modal(0.02 + k * 0.035, total, [f0, f0 * 2.76, f0 * 5.4], [1, 0.4, 0.15], [0.7, 0.25, 0.1], 1.1) * 0.5
+    write_to(UI, "slot_merge.wav", room(x, 0.45, 0.3))
+
+
+def slot_land():
+    """The icon settling into the ability: a soft thump and a sparkle of tiny bells."""
+    total = int(1.0 * SR)
+    x = thud(0.01, total, f=180, amp=0.7, length=0.15)
+    for k in range(6):
+        f0 = rng.uniform(2600, 4200)
+        x += modal(0.04 + k * 0.05, total, [f0, f0 * 2.4], [1, 0.3], [0.18, 0.06], 0.4) * (0.3 - k * 0.04)
+    write_to(UI, "slot_land.wav", room(x, 0.35, 0.22))
+
+
+if __name__ == "__main__":
+    slot_lift()
+    slot_merge()
+    slot_land()

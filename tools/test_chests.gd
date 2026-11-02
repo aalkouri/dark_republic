@@ -231,8 +231,15 @@ func _test_keys_and_open() -> void:
 	_check("the winner levelled up (+1, or +3 on three of a kind)", main.abilities.ab_level[sm.winner] - before[sm.winner] == sm.levels and gained == sm.levels,
 		"%s -> %s" % [str(before), str(main.abilities.ab_level)])
 	sm._finish()
-	await _secs(0.2)
-	_check("Continue: back to the run", main.state == "playing" and not get_tree().paused and main.hud.slot_machine == null, main.state)
+	await _secs(0.3)
+	var fliers := sm.get_children().filter(func(n): return n is AbilitySlot and (n as Control).top_level)
+	_check("Continue: the winning icon pops off the reel and flies toward its ability", fliers.size() >= 1 and get_tree().paused, "%d flying" % fliers.size())
+	for f in 60:
+		if not is_instance_valid(sm) or sm.flown:
+			break
+		await _secs(0.05)
+	await _secs(0.3)
+	_check("...lands in the ability bar, then back to the run", main.state == "playing" and not get_tree().paused and main.hud.slot_machine == null, main.state)
 	_check("the opened chest is still there a moment after the slot machine closes", not c.gone and c.visible, "")
 	await _secs(1.2)
 	_check("...then it vanishes", c.gone and not c.visible, "")
