@@ -51,6 +51,8 @@ var _title: Label
 var _title_mat: ShaderMaterial
 var _menu: VBoxContainer
 var _settings: SettingsMenu
+var _stats: StatsScreen          # developer stats (temporary)
+var _stats_button: Button
 var _modes: ModeMenu
 var _reveal_sfx: AudioStreamPlayer
 var _fade: ColorRect
@@ -261,6 +263,8 @@ func _build_ui() -> void:
 	root.add_child(_menu)
 	var play := _menu_button("Play", _play)   # -> the mode cards (ModeMenu) -> character select...
 	_menu_button("Settings", _open_settings)
+	_stats_button = _menu_button("Stats", _open_stats)   # no-i18n  (developer stats: temporary)
+	_stats_button.visible = Settings.dev_stats
 	_menu_button("Quit", func(): get_tree().quit())
 	play.grab_focus.call_deferred()
 
@@ -287,8 +291,15 @@ func _build_ui() -> void:
 
 	_settings = SettingsMenu.new()
 	_settings.visible = false
-	_settings.closed.connect(func(): _menu.visible = true; (_menu.get_child(1) as Button).grab_focus())
+	_settings.closed.connect(func():
+		_menu.visible = true
+		_stats_button.visible = Settings.dev_stats
+		(_menu.get_child(1) as Button).grab_focus())
 	root.add_child(_settings)
+	_stats = StatsScreen.new()
+	_stats.visible = false
+	_stats.closed.connect(func(): _menu.visible = true; _stats_button.grab_focus())
+	root.add_child(_stats)
 
 	_fade = ColorRect.new()
 	_fade.color = Color(0, 0, 0, 1)
@@ -327,6 +338,12 @@ func _menu_button(text: String, cb: Callable) -> Button:
 	b.pressed.connect(cb)
 	_menu.add_child(b)
 	return b
+
+
+## Developer stats (temporary): every recorded run, per character.
+func _open_stats() -> void:
+	_menu.visible = false
+	_stats.open()
 
 
 func _open_settings() -> void:
@@ -441,6 +458,7 @@ func _unhandled_input(event: InputEvent) -> void:
 var _shot_path := ""
 var _shot_at := 3.0
 var _shot_tab := -1
+var _shot_stats := ""   # --shot-stats[=char]
 
 
 func _shot_setup() -> void:
@@ -456,6 +474,8 @@ func _shot_setup() -> void:
 			Wallet.seen_unlocks = []
 		elif a.begins_with("--shot-settings="):
 			_shot_tab = int(a.split("=")[1])
+		elif a.begins_with("--shot-stats"):   # the developer Stats screen (=char id to select one)
+			_shot_stats = a.get_slice("=", 1) if "=" in a else "-"
 
 
 func _shot_tick() -> void:
@@ -466,6 +486,11 @@ func _shot_tick() -> void:
 	if _shot_tab >= 0:
 		_open_settings()
 		_settings._tabs.current_tab = _shot_tab
+	if _shot_stats != "":
+		_open_stats()
+		if _shot_stats != "-":
+			_stats._char = _shot_stats
+			_stats._refresh()
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(path)

@@ -36,6 +36,7 @@ var skills_applied: Array = []   # skill ids active this run
 var rng := RandomNumberGenerator.new()
 var stats: Stats
 var db: UpgradeDB
+var run_stats: RunStats   # developer stats recorder (temporary, see RunStats)
 var player: Player
 var enemies: EnemyManager
 var weapons: WeaponSystem
@@ -379,6 +380,10 @@ func _ready() -> void:
 	add_child(powerups)
 	powerups.collected.connect(func(k: int): hud.flash_message(PowerupManager.PICKUP_TEXT[k], 2.5))
 	enemies.epic_killed.connect(func(p: Vector3): powerups.on_elite_killed(p))
+	if not smoke and shot_path == "":   # developer stats (temporary): your real runs only
+		run_stats = RunStats.new()
+		add_child(run_stats)
+		run_stats.setup(self)
 
 	enemies.exploded.connect(func(p: Vector3, r: float): fx.burst(p, r * 1.4, Color(1.0, 0.4, 0.08), 0.35))
 	enemies.burst.connect(func(p: Vector3, r: float): fx.burst(p, r * 1.3, Color(0.55, 1.0, 0.25), 0.35))
@@ -1050,6 +1055,8 @@ func _stop_music() -> void:
 func _end_run(won: bool) -> void:
 	_stop_music()
 	state = "won" if won else "dead"
+	if run_stats:
+		run_stats.save("WON" if won else "DIED")   # no-i18n
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	hud.show_end(won)
@@ -1059,12 +1066,16 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 
 
 func to_title() -> void:
+	if run_stats:
+		run_stats.save("QUIT")   # no-op if the run already ended  no-i18n
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().change_scene_to_file(TITLE_SCENE)
 
 
 func restart() -> void:
+	if run_stats:
+		run_stats.save("QUIT")   # no-i18n
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 

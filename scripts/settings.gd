@@ -63,6 +63,11 @@ var mouse_sensitivity := 1.0 # multiplier
 var invert_y := false
 var bindings := {}           # action -> physical keycode (only for remapped actions)
 
+# Developer tools (TEMPORARY — remove before release): the Developer tab in Settings is hidden
+# until Ctrl+Shift+D is pressed there (dev_tools, kept); dev_stats turns on the Stats screen.
+var dev_tools := false
+var dev_stats := false
+
 
 func _ready() -> void:
 	_ensure_bus(MUSIC_BUS)
@@ -205,6 +210,8 @@ func save_settings() -> void:
 	cf.set_value("controls", "mouse_sensitivity", mouse_sensitivity)
 	cf.set_value("controls", "invert_y", invert_y)
 	cf.set_value("controls", "bindings", bindings)
+	cf.set_value("developer", "dev_tools", dev_tools)
+	cf.set_value("developer", "dev_stats", dev_stats)
 	cf.save(PATH)
 
 
@@ -229,6 +236,21 @@ func load_settings() -> void:
 	mouse_sensitivity = cf.get_value("controls", "mouse_sensitivity", mouse_sensitivity)
 	invert_y = cf.get_value("controls", "invert_y", invert_y)
 	bindings = cf.get_value("controls", "bindings", bindings)
+	dev_tools = cf.get_value("developer", "dev_tools", dev_tools)
+	dev_stats = cf.get_value("developer", "dev_stats", dev_stats)
+
+
+## Reveal (or hide) the Developer tab; saved straight away, on its own.
+func set_dev_tools(on: bool) -> void:
+	dev_tools = on
+	if not on:
+		dev_stats = false
+	var cf := ConfigFile.new()
+	cf.load(PATH)
+	cf.set_value("developer", "dev_tools", dev_tools)
+	cf.set_value("developer", "dev_stats", dev_stats)
+	cf.save(PATH)
+	changed.emit()
 
 
 ## Set a value by name, apply it live and notify (used by the settings menu). Not saved
@@ -244,7 +266,7 @@ func set_value(key: String, value) -> void:
 
 const SAVED_KEYS := ["language", "play_intro", "music_volume", "music_muted", "sfx_volume", "sfx_muted",
 	"window_mode", "vsync", "render_scale", "fov", "max_fps", "show_fps",
-	"mouse_sensitivity", "invert_y", "bindings"]
+	"mouse_sensitivity", "invert_y", "bindings", "dev_stats"]
 
 
 ## The saved state, to compare against (is_dirty) or go back to (restore).

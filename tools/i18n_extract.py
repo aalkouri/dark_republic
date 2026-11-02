@@ -8,7 +8,7 @@ Run:  python3 tools/i18n_extract.py
 import json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKIP_SCRIPTS = {"hero_model.gd", "roster_hero.gd", "ground_disc.gd", "i18n.gd"}
+SKIP_SCRIPTS = {"hero_model.gd", "roster_hero.gd", "ground_disc.gd", "i18n.gd", "stats_screen.gd", "run_stats.gd"}   # the last two: developer-only (temporary)
 STR = re.compile(r'(?<![\w&^])"((?:[^"\\\n]|\\.)*)"')
 DATA_KEYS = {"name", "desc", "description", "bio", "epithet", "title", "text",
              "label", "ribbon", "tagline", "lines", "hint", "flavor", "unlock_text", "req", "blurb", "short"}

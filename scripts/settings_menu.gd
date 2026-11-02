@@ -122,10 +122,15 @@ func _build_tabs() -> void:
 	_tabs.add_child(_video_tab())
 	_tabs.add_child(_sound_tab())
 	_tabs.add_child(_controls_tab())
+	if Settings.dev_tools:
+		_tabs.add_child(_developer_tab())
 
 
 ## Returns true if the menu consumed this Esc press (e.g. cancelling a rebind).
 func handle_escape() -> bool:
+	if _stats != null and _stats.visible:
+		_stats.close()
+		return true
 	if _waiting_action != "":
 		_waiting_action = ""
 		_refresh_bindings()
@@ -260,6 +265,15 @@ func _start_rebind(action: String) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# Ctrl+Shift+D: show / hide the Developer tab (temporary, for the developer only)
+	if visible and _waiting_action == "" and (_stats == null or not _stats.visible) and event is InputEventKey \
+			and event.pressed and not event.echo and event.physical_keycode == KEY_D and event.ctrl_pressed and event.shift_pressed:
+		get_viewport().set_input_as_handled()
+		Settings.set_dev_tools(not Settings.dev_tools)
+		_sync_widgets()
+		if Settings.dev_tools:
+			_tabs.current_tab = _tabs.get_tab_count() - 1
+		return
 	if not visible or _waiting_action == "":
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -284,6 +298,36 @@ func _refresh_bindings() -> void:
 	for action in _bind_buttons:
 		var b: Button = _bind_buttons[action]
 		b.text = "Press a key..." if action == _waiting_action else Settings.key_text(action)
+
+
+# ------------------------------------------------------------------ developer (temporary)
+
+var _stats: StatsScreen
+
+
+## Developer tab (TEMPORARY — remove before release): only shown after Ctrl+Shift+D.
+func _developer_tab() -> Control:
+	var vb := _tab("Developer")   # no-i18n
+	_row(vb, "Developer stats", _check(Settings.dev_stats, func(on: bool): Settings.set_value("dev_stats", on)))   # no-i18n
+	var view := Button.new()
+	view.text = "View my stats  (%d runs recorded)" % RunStats.load_runs().size()   # no-i18n
+	view.add_theme_font_size_override("font_size", 18)
+	view.pressed.connect(open_stats)
+	_row(vb, "", view)
+	var note := Label.new()
+	note.text = "Temporary developer tools. Every run you play is recorded; with Developer stats on, a STATS button appears on the title screen and the end screen shows the full breakdown. Ctrl+Shift+D hides this tab again."   # no-i18n
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.modulate.a = 0.6
+	note.add_theme_font_size_override("font_size", 15)
+	vb.add_child(note)
+	return vb.get_parent().get_parent()
+
+
+func open_stats() -> void:
+	if _stats == null:
+		_stats = StatsScreen.new()
+		add_child(_stats)
+	_stats.open()
 
 
 # ------------------------------------------------------------------ widgets
