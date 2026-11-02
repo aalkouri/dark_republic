@@ -90,7 +90,7 @@ func _static_checks() -> void:
 				_check("desert: pyramid at %s is baked into the ground (summit %.1f m up)" % [str(c), top - base], absf((top - base) - float(p["h"])) < 0.6, "")
 			_check("desert: one great pyramid, 20 m+", big >= 20.0, "%.1f" % big)
 			_check("desert: the steps climb at under 45 degrees", climbable, "")
-			_check("desert: no more than two oases", water.pools.size() <= 2, str(water.pools.size()))
+			_check("desert: no pools of water at all", water.pools.size() == 0, str(water.pools.size()))
 			var on_stone := 0
 			for s in water.chest_sites:
 				if DesertBuilder.on_stone(s.x, s.z, 1.0):

@@ -29,7 +29,7 @@ static var active := false      # the current world is the Desert (EnemyManager,
 const STANDING := 180
 const LYING := 72
 const LANDMARKS := 24
-const OASES := 2
+const OASES := 0   # no water on the Desert (there used to be two oasis pools)
 const CHUNK := 40.0
 const DRAW_DIST := 75.0
 
