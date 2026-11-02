@@ -132,3 +132,6 @@ audio/ui/timer_tick.wav.import
 images/maps/desert.png.import
 images/maps/graveyard.png.import
 models/dr_croc/dr_croc_ripped.jpg.import
+
+# Local playtest results (tools/run_playtest.bat)
+playtest_results/
