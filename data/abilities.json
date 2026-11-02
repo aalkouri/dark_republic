@@ -111,7 +111,7 @@
 
     "ghast": {
       "role": "Untouchable spirit that terrifies the horde",
-      "weapon": { "name": "Wail", "icon": { "glyph": "burst", "cover": "#2a3a40", "tint": "#d8f4ff" }, "desc": "8 m cone of sound in front of you that pierces everything and slows 25%", "short": "Sound cone, slows", "damage": "20", "every": 0.5 },
+      "weapon": { "name": "Soul Leech", "icon": { "glyph": "burst", "cover": "#2a3a40", "tint": "#d8f4ff" }, "desc": "A ghostly orb possesses the nearest enemy, draining 60 damage a second and slowing it 25% until it dies, then leaps to the next enemy within 12 m. One orb per Quantity", "short": "Possessing orbs that chain", "damage": "20", "every": 0.5 },
       "abilities": [
         { "name": "Phase", "cooldown": 25, "icon": { "glyph": "ghost", "color": "#cfe9ea" },
           "text": "Drift through enemies, trees and walls.",

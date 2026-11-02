@@ -14,7 +14,8 @@ extends Node3D
 ##   dark     Shadow Bolts     slow, extra-piercing bolts; CURSE_CHANCE to curse for CURSE_TIME
 ##   arcane   Arcane Bolts     (Merlin) homing bolts that bounce to ARCANE_BOUNCES more enemies, triple damage to epics and bosses
 ##   trunk    Tree Trunk       (Ogre) 120 deg cleave, 3 m, heavy knockback (360 deg in Swamp Rage)
-##   wail     Wail             (Ghast) 8 m cone of sound: hits everything in it, slows 25%
+##   wail     Soul Leech       (Ghast) ghostly orbs that possess an enemy and drain it until it dies,
+##                             then leap to the next one; one orb per Quantity
 ##   silver   Silver Bolts     (Vampire Hunter) heavy bolts, pierce 3, double damage to epics
 ##   spear    Valkyrie Spear   (Vicki) 6 m piercing thrust; every 4th is a 25 m javelin
 ##   daggers  Twin Daggers     (Rogue) short throws in pairs; hits bleed 3% max HP/s for 3 s
@@ -48,7 +49,7 @@ const STYLE_CHAR := {
 	"venom": "arachnid",
 }
 const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static", "maracas", "acid", "spore", "venom"]
-const MELEE := ["trunk", "wail", "spear", "katana", "club", "maracas", "acid", "spore"]
+const MELEE := ["trunk", "spear", "katana", "club", "maracas", "acid", "spore"]
 const SIG_WEIGHT := 0.45        # vs 3-10 for normal rewards: a rare find...
 const SIG_WEIGHT_TOTAL := 1.35  # ...and all of them together stay rare
 const SIG_RARITY := 3           # always Legendary
@@ -107,10 +108,13 @@ const ARCANE_EPIC := 3.0          # ...and deal triple damage to epics (elites) 
 const TRUNK_REACH := 3.0         # Tree Trunk: 120 deg cleave
 const TRUNK_ARC := 120.0
 const TRUNK_KNOCK := 6.0
-const WAIL_REACH := 8.0          # Wail: cone
-const WAIL_ARC := 55.0
-const WAIL_SLOW := 0.75
-const WAIL_SLOW_TIME := 1.5
+const WAIL_SLOW := 0.75           # Soul Leech: the possessed enemy is slowed 25%...
+const WAIL_SLOW_TIME := 0.3
+const LEECH_DPS := 3.0            # ...and drained for 3x the weapon's damage per second
+const LEECH_SPEED := 16.0         # m/s the orbs fly
+const LEECH_CHAIN := 12.0         # a host dies: the orb leaps to the nearest enemy this close
+const LEECH_SEEK := 20.0          # idle orbs look for a host this far from you
+const LEECH_FEAR_R := 4.0         # forged: a host's death sends enemies this close fleeing
 const SILVER_PIERCE := 3         # Silver Bolts
 const SILVER_SPEED := 1.7
 const SILVER_EPIC := 2.0
@@ -498,6 +502,7 @@ func tick(dt: float) -> void:
 				var ok := fire(sty, sid, dmg_mult)
 				sig_t[sid] = stats.value(sid + "_cooldown") * scale_of(sty).y / (haste * tempo_of(sty)) if ok else 0.1
 	_update_projectiles(dt)
+	_update_leeches(dt)
 	_update_flasks(dt)
 	enemies.src = source_name("orb" if style == "acid" else "sig_acid")
 	_update_acid(dt)
@@ -592,7 +597,7 @@ func _fire_from(sty: String, pre: String, feet: Vector3, mult: float, model: Her
 		"trunk":
 			return _swing(feet, mult, pre, model, TRUNK_REACH, 360.0 if (kit != null and kit.rage_active() and pre == "orb") else TRUNK_ARC, sty)
 		"wail":
-			return _swing(feet, mult, pre, model, WAIL_REACH, WAIL_ARC, sty)
+			return _fire_leech(feet, mult, pre, model)
 		"katana":
 			return _swing(feet, mult, pre, model, KATANA_REACH, KATANA_ARC, sty)
 		"club":
@@ -618,6 +623,140 @@ func _dmg(pre: String, sty: String, mult: float) -> float:
 
 func _count(pre: String) -> int:
 	return maxi(1, int(stats.value(pre + "_count")) + int(stats.value("projectile_count")))
+
+
+# ------------------------------------------------------------------ Soul Leech (the Ghast)
+
+var _leeches: Array = []   # {pre, node, state: "seek"/"host"/"idle", uid, pos, dps, src, spin}
+var leech_jumps := 0       # tests: times an orb moved on to a new host
+var leech_kills := 0
+
+
+## Soul Leech: keeps one ghostly orb out per Quantity (orb_count + Tome of Quantity). Each
+## launch tops the orbs up; they find their own hosts. Always "fires" while any orb is out.
+func _fire_leech(feet: Vector3, mult: float, pre: String, model: HeroBase) -> bool:
+	var n := _count(pre)
+	var dps := _dmg(pre, "wail", mult) * LEECH_DPS
+	var mine := 0
+	for l in _leeches:
+		if l["pre"] == pre:
+			l["dps"] = dps   # upgrades apply to the orbs already out
+			mine += 1
+	if mine >= n:
+		return true
+	var near := enemies.nearest_k(feet + Vector3(0, 0.9, 0), LEECH_SEEK, 1)
+	if near.is_empty():
+		return false
+	if model != null:
+		model.attack(enemies.center_of(near[0]))
+	var from := feet + Vector3(0, 1.5, 0)
+	_leeches.append({"pre": pre, "node": _leech_orb(from), "state": "seek", "uid": enemies.uid[near[0]],
+		"pos": from, "dps": dps, "src": enemies.src, "spin": randf() * TAU})
+	return true
+
+
+func _leech_orb(at: Vector3) -> Node3D:
+	var root := Node3D.new()
+	root.top_level = true
+	add_child(root)
+	root.global_position = at
+	var core := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.22
+	sm.height = 0.44
+	sm.radial_segments = 12
+	sm.rings = 6
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(0.8, 1.0, 1.0)
+	sm.material = m
+	core.mesh = sm
+	core.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(core)
+	var halo := Abilities._flame_particles(0.5, 0.6, 26)
+	var g := Gradient.new()
+	g.set_color(0, Color(0.85, 1.0, 1.0, 0.9))
+	g.set_color(1, Color(0.2, 0.45, 0.6, 0.0))
+	halo.color_ramp = g
+	halo.emission_sphere_radius = 0.15
+	halo.gravity = Vector3.ZERO
+	halo.initial_velocity_min = 0.0
+	halo.initial_velocity_max = 0.3
+	root.add_child(halo)
+	return root
+
+
+## The orbs: fly to a host, cling to it (circling its head) draining it until it dies, then
+## leap to the nearest other enemy; with nothing near, drift back to you and wait.
+func _update_leeches(dt: float) -> void:
+	var me := player.global_position + Vector3(0, 2.2, 0)
+	for k in range(_leeches.size() - 1, -1, -1):
+		var l: Dictionary = _leeches[k]
+		var node: Node3D = l["node"]
+		if not is_instance_valid(node):
+			_leeches.remove_at(k)
+			continue
+		l["spin"] = float(l["spin"]) + dt * 4.0
+		var i := enemies.index_of(int(l["uid"])) if l["state"] != "idle" else -1
+		if l["state"] != "idle" and (i < 0 or enemies.dead[i]):
+			if l["state"] == "host":   # the host died: the orb moves on
+				leech_kills += 1
+				if special.has("wail"):
+					for e in enemies.query_radius(l["pos"], LEECH_FEAR_R, false):
+						enemies.scare(e, Forge.WAIL_FEAR_TIME)
+			var nx := _leech_target(l["pos"], LEECH_CHAIN)
+			if nx >= 0:
+				l["uid"] = enemies.uid[nx]
+				l["state"] = "seek"
+				leech_jumps += 1
+				i = nx
+			else:
+				l["state"] = "idle"
+				i = -1
+		var p: Vector3 = l["pos"]
+		match l["state"]:
+			"seek":
+				var to := enemies.center_of(i) + Vector3(0, 0.6, 0) - p
+				var d := to.length()
+				if d < 0.7:
+					l["state"] = "host"
+				else:
+					p += to / d * minf(LEECH_SPEED * dt, d)
+			"host":
+				var a := float(l["spin"])
+				var top := enemies.center_of(i) + Vector3(0, enemies.t_height[enemies.typ[i]] * enemies.sz[i] * 0.45 + 0.3, 0)
+				p = p.lerp(top + Vector3(cos(a) * 0.45, 0.1 * sin(a * 2.0), sin(a) * 0.45), minf(1.0, dt * 12.0))
+				enemies.src = str(l["src"])
+				enemies.dot_damage(i, float(l["dps"]) * dt)
+				enemies.slow(i, WAIL_SLOW, WAIL_SLOW_TIME)
+			"idle":   # bob over your shoulder, looking for the next host
+				var a2 := float(l["spin"]) * 0.5 + k * 2.1
+				p = p.lerp(me + Vector3(cos(a2) * 0.9, 0.2 * sin(a2 * 2.0), sin(a2) * 0.9), minf(1.0, dt * 4.0))
+				var nx2 := _leech_target(player.global_position, LEECH_SEEK)
+				if nx2 >= 0:
+					l["uid"] = enemies.uid[nx2]
+					l["state"] = "seek"
+		l["pos"] = p
+		node.global_position = p
+	enemies.src = ""
+
+
+## The nearest living enemy to `at` within `r`, preferring one no other orb is already on.
+func _leech_target(at: Vector3, r: float) -> int:
+	var taken := {}
+	for l in _leeches:
+		if l["state"] != "idle":
+			taken[int(l["uid"])] = true
+	var best := -1
+	var best_d := INF
+	for e in enemies.query_radius(at, r, false):
+		if enemies.dead[e] or enemies.ally_t[e] > 0.0:   # not your own risen allies
+			continue
+		var d := at.distance_squared_to(enemies.pos[e]) * (4.0 if taken.has(enemies.uid[e]) else 1.0)
+		if d < best_d:
+			best_d = d
+			best = e
+	return best
 
 
 ## Projectile weapons. `sty` picks the look/behaviour, `pre` the stat prefix ("orb" for the

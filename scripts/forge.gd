@@ -68,7 +68,7 @@ const SPECIALS := {
 	"dark": "Every hit curses",
 	"arcane": "Bolts bounce to 2 more enemies",
 	"trunk": "Every 4th swing is a full 360° sweep",
-	"wail": "Enemies hit flee in fear for 1.5 s",
+	"wail": "When a possessed enemy dies, enemies near it flee in fear for 1.5 s",
 	"silver": "Bolts pierce 2 more enemies",
 	"spear": "Every 3rd throw is a javelin",
 	"daggers": "Bleeds deal double damage",
