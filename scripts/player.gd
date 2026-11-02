@@ -2,8 +2,8 @@ class_name Player
 extends CharacterBody3D
 ## Kinematic character controller with Quake-style acceleration.
 ##  - Ground: friction + capped acceleration toward the camera-relative wish direction.
-##  - Air: classic air-strafe acceleration (small wishspeed cap) plus mild air control,
-##    so strafing while turning gains speed.
+##  - Air: classic air-strafe acceleration (small wishspeed cap), plus steering: the flight
+##    bends toward your input (AIR_STEER), so you can pick where you land.
 ##  - Bunny hop: no friction on the frame you jump, plus a short grace window after
 ##    landing, so chained jumps keep momentum.
 ##  - Slide: hold slide while running for a burst + very low friction; slopes accelerate you.
@@ -21,6 +21,7 @@ const STOP_SPEED := 3.0
 const AIR_ACCEL := 14.0
 const AIR_CAP := 1.0
 const AIR_CONTROL := 5.0
+const AIR_STEER := 26.0      # m/s² the flight bends toward your input while airborne
 const SLIDE_FRICTION := 0.45
 const SLIDE_BOOST := 5.0
 const SLIDE_MIN_SPEED := 4.0
@@ -327,6 +328,10 @@ func _physics_process(dt: float) -> void:
 			if hv.length() < move_speed:
 				hv = _accelerate(hv, wishdir, move_speed, AIR_CONTROL, dt)
 			hv = _accelerate(hv, wishdir, AIR_CAP, AIR_ACCEL, dt)
+			# Steering in the air: bend the flight toward where you're pressing (left/right to
+			# shift your landing, back to pull up short) without losing bunny-hop speed
+			var target := wishdir * maxf(hv.length(), move_speed * wish_len)
+			hv = hv.move_toward(target, AIR_STEER * dt)
 		velocity.y -= GRAVITY * dt
 		if glide:
 			velocity.y = maxf(velocity.y, -1.8)
