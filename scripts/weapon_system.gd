@@ -1552,21 +1552,24 @@ func _update_projectiles(dt: float) -> void:
 				tb = Basis(side * 0.22, up * 0.22, fwd * 1.1)
 			"ice":   # a slim glint behind the shard (the frost mist does the rest)
 				tb = Basis(side * 0.16, up * 0.16, fwd * 0.7)
-		var tc := p - fwd * (0.3 if kind == "ice" else 0.55)
-		if kind == "ice":
-			_frost_trail(p, fwd, dt)
+			"fire", "dark", "arcane":   # smaller orbs: a short glow (their puff trail does the rest)
+				tb = Basis(side * 0.3 * flick, up * 0.3 * flick, fwd * 0.9)
+		var small := kind in ["ice", "fire", "dark", "arcane"]
+		var tc := p - fwd * (0.3 if small else 0.55)
+		if TRAILS.has(kind):
+			_magic_trail(kind, p, fwd, dt)
 		tail_buf[b] = tb.x.x; tail_buf[b + 1] = tb.y.x; tail_buf[b + 2] = tb.z.x; tail_buf[b + 3] = tc.x
 		tail_buf[b + 4] = tb.x.y; tail_buf[b + 5] = tb.y.y; tail_buf[b + 6] = tb.z.y; tail_buf[b + 7] = tc.y
 		tail_buf[b + 8] = tb.x.z; tail_buf[b + 9] = tb.y.z; tail_buf[b + 10] = tb.z.z; tail_buf[b + 11] = tc.z
 		# Core: a round fireball / shadow orb, a long thin icicle or bolt, a spinning star...
-		var cb := Basis.IDENTITY
+		var cb := Basis.IDENTITY.scaled(Vector3.ONE * 0.55) if kind == "fire" else Basis.IDENTITY   # fireball about half its old size
 		match kind:
 			"ice":   # a slim icicle (was 0.45 x 2.2), spinning a little
 				cb = Basis(side * 0.2, up * 0.2, fwd * 1.15).rotated(fwd, p_life[i] * 12.0)
 			"dark":
-				cb = Basis.IDENTITY.scaled(Vector3.ONE * (1.15 + 0.15 * sin(p_life[i] * 25.0)))
+				cb = Basis.IDENTITY.scaled(Vector3.ONE * (0.6 + 0.08 * sin(p_life[i] * 25.0)))
 			"arcane":
-				cb = Basis.IDENTITY.scaled(Vector3.ONE * (0.75 + 0.2 * sin(p_life[i] * 30.0)))
+				cb = Basis.IDENTITY.scaled(Vector3.ONE * (0.42 + 0.1 * sin(p_life[i] * 30.0)))
 			"silver", "stake":
 				cb = Basis(side * 0.16, up * 0.16, fwd * 3.0)
 			"javelin":
@@ -1606,6 +1609,7 @@ var _fr_life := PackedFloat32Array()
 var _fr_max := PackedFloat32Array()
 var _fr_size := PackedFloat32Array()
 var _fr_chip := PackedByteArray()
+var _fr_col := PackedColorArray()
 var _fr_n := 0
 var _fr_mm: MultiMesh
 var _fr_buf := PackedFloat32Array()
@@ -1617,6 +1621,7 @@ func _build_frost() -> void:
 	for a in [_fr_life, _fr_max, _fr_size]:
 		a.resize(FROST_MAX)
 	_fr_chip.resize(FROST_MAX)
+	_fr_col.resize(FROST_MAX)
 	_fr_buf.resize(FROST_MAX * 16)
 	var quad := QuadMesh.new()
 	quad.size = Vector2.ONE
@@ -1642,18 +1647,29 @@ func _build_frost() -> void:
 	add_child(mi)
 
 
-## Behind a flying icicle: puffs of chilling mist that swell and fade in a third of a second,
-## and now and then a tiny glinting ice chip flicking off sideways.
-func _frost_trail(p: Vector3, fwd: Vector3, dt: float) -> void:
+## Each wizard bolt's trail: [puff colour, chip colour, puffs rise (m/s)]. Ice: chilling mist and
+## ice chips; fire: smoke and embers; shadow: violet wisps and sparks; arcane: starry motes.
+const TRAILS := {
+	"ice": [Color(0.75, 0.9, 1.0, 0.45), Color(0.92, 0.98, 1.0, 1.0), 0.2],
+	"fire": [Color(0.32, 0.28, 0.26, 0.4), Color(1.0, 0.62, 0.15, 1.0), 0.9],
+	"dark": [Color(0.42, 0.18, 0.6, 0.45), Color(0.85, 0.55, 1.0, 1.0), 0.3],
+	"arcane": [Color(0.55, 0.75, 1.0, 0.35), Color(1.0, 0.95, 0.75, 1.0), 0.1],
+}
+
+
+## Behind a flying bolt: puffs that swell and fade in a third of a second, and now and then a
+## tiny glinting chip / ember / spark flicking off sideways. Nothing lingers.
+func _magic_trail(kind: String, p: Vector3, fwd: Vector3, dt: float) -> void:
+	var tr_: Array = TRAILS[kind]
 	if randf() < dt / FROST_MIST_EVERY:
 		var j := Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * 0.08
-		_frost_add(p - fwd * 0.35 + j, -fwd * 0.8 + j * 4.0 + Vector3(0, 0.2, 0), 0.32, 0.32, false)
+		_frost_add(p - fwd * 0.3 + j, -fwd * 0.8 + j * 4.0 + Vector3(0, float(tr_[2]), 0), 0.32, 0.3, false, tr_[0])
 	if randf() < dt / FROST_CHIP_EVERY:
 		var out := Vector3(randf_range(-1, 1), randf_range(-0.3, 1), randf_range(-1, 1)).normalized()
-		_frost_add(p, out * randf_range(2.5, 4.5) - fwd * 1.0, 0.22, 0.07, true)
+		_frost_add(p, out * randf_range(2.5, 4.5) - fwd * 1.0, 0.22, 0.07, true, tr_[1])
 
 
-func _frost_add(at: Vector3, vel: Vector3, life: float, size: float, chip: bool) -> void:
+func _frost_add(at: Vector3, vel: Vector3, life: float, size: float, chip: bool, col := Color.WHITE) -> void:
 	if _fr_n >= FROST_MAX:
 		return
 	_fr_pos[_fr_n] = at
@@ -1662,6 +1678,7 @@ func _frost_add(at: Vector3, vel: Vector3, life: float, size: float, chip: bool)
 	_fr_max[_fr_n] = life
 	_fr_size[_fr_n] = size
 	_fr_chip[_fr_n] = 1 if chip else 0
+	_fr_col[_fr_n] = col
 	_fr_n += 1
 
 
@@ -1672,7 +1689,7 @@ func _update_frost(dt: float) -> void:
 		if _fr_life[k] <= 0.0:
 			_fr_n -= 1
 			_fr_pos[k] = _fr_pos[_fr_n]; _fr_vel[k] = _fr_vel[_fr_n]; _fr_life[k] = _fr_life[_fr_n]
-			_fr_max[k] = _fr_max[_fr_n]; _fr_size[k] = _fr_size[_fr_n]; _fr_chip[k] = _fr_chip[_fr_n]
+			_fr_max[k] = _fr_max[_fr_n]; _fr_size[k] = _fr_size[_fr_n]; _fr_chip[k] = _fr_chip[_fr_n]; _fr_col[k] = _fr_col[_fr_n]
 			continue
 		var chip := _fr_chip[k] == 1
 		if chip:
@@ -1682,8 +1699,8 @@ func _update_frost(dt: float) -> void:
 		_fr_pos[k] += _fr_vel[k] * dt
 		var t := 1.0 - _fr_life[k] / _fr_max[k]   # 0 -> 1 over its life
 		var s := _fr_size[k] * (1.0 if chip else (0.6 + 1.6 * t))
-		var a := (1.0 - t) * (1.0 if chip else 0.45)
-		var col := Color(0.92, 0.98, 1.0, a) if chip else Color(0.75, 0.9, 1.0, a)
+		var col := _fr_col[k]
+		col.a *= 1.0 - t
 		var b := k * 16
 		var p := _fr_pos[k]
 		_fr_buf[b] = s; _fr_buf[b + 1] = 0.0; _fr_buf[b + 2] = 0.0; _fr_buf[b + 3] = p.x
