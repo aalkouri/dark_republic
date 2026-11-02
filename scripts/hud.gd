@@ -5,6 +5,10 @@ extends CanvasLayer
 var main  # main.gd (untyped to avoid a cyclic class reference)
 
 var hp_bar: ProgressBar
+var hp_trail: ProgressBar      # the damage trail behind the health bar
+var _trail_hold := 0.0         # seconds the lost chunk stays lit before it slides
+const TRAIL_HOLD := 0.35
+const TRAIL_SPEED := 0.9       # fraction of max HP per second it slides down
 var hp_label: Label
 var shield_bar: ProgressBar
 var xp_bar: ProgressBar
@@ -97,9 +101,16 @@ func setup(m) -> void:
 	level_label.position = Vector2(20, 18)
 	root.add_child(level_label)
 
+	# Health: the red bar, with a damage trail behind it - the chunk a hit takes lights up
+	# white-hot for a moment, then slides down to where your health now is
+	hp_trail = _bar(Color(1.0, 0.92, 0.7))
+	hp_trail.position = Vector2(20, 52)
+	hp_trail.size = Vector2(320, 24)
+	root.add_child(hp_trail)
 	hp_bar = _bar(Color(0.9, 0.25, 0.25))
 	hp_bar.position = Vector2(20, 52)
 	hp_bar.size = Vector2(320, 24)
+	hp_bar.add_theme_stylebox_override("background", StyleBoxEmpty.new())   # the trail's backdrop shows
 	root.add_child(hp_bar)
 	shield_bar = _bar(Color(0.3, 0.65, 1.0))
 	shield_bar.position = Vector2(20, 78)
@@ -1060,6 +1071,31 @@ func _dev_list(d: Dictionary, n: int) -> String:
 	return "  ·  ".join(parts) if not parts.is_empty() else "-"
 
 
+## The damage trail: a hit lights up the chunk it took (a bright flash that cools to amber),
+## holds it for TRAIL_HOLD s, then slides it down to your health. Healing just moves both up.
+func _update_trail(p: Player, dt: float) -> void:
+	hp_trail.max_value = p.max_hp
+	if p.hp >= hp_trail.value:
+		hp_trail.value = p.hp
+		_trail_hold = 0.0
+		_trail_last = p.hp
+		return
+	if p.hp < _trail_last - 0.01:   # a fresh hit: light it up again
+		_trail_hold = TRAIL_HOLD
+	_trail_last = p.hp
+	var fg := hp_trail.get_theme_stylebox("fill") as StyleBoxFlat
+	if _trail_hold > 0.0:
+		_trail_hold -= dt
+		var k := clampf(_trail_hold / TRAIL_HOLD, 0.0, 1.0)
+		fg.bg_color = Color(1.0, 0.75, 0.35).lerp(Color(1.0, 1.0, 0.92), k)
+	else:
+		fg.bg_color = Color(1.0, 0.75, 0.35)
+		hp_trail.value = maxf(p.hp, hp_trail.value - p.max_hp * TRAIL_SPEED * dt)
+
+
+var _trail_last := 0.0
+
+
 ## A damage source (see Player.damage_by) in the player's language.
 func source_label(src: String) -> String:
 	if src.begins_with("Elite "):   # no-i18n
@@ -1391,6 +1427,7 @@ func _process(dt: float) -> void:
 	var p: Player = main.player
 	hp_bar.max_value = p.max_hp
 	hp_bar.value = p.hp
+	_update_trail(p, dt)
 	hp_label.text = "%d / %d" % [ceili(p.hp), roundi(p.max_hp)]
 	shield_bar.visible = p.shield > 0.5
 	if shield_bar.visible:
