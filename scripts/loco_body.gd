@@ -124,6 +124,10 @@ var turret_yaw := 0.0                 # ...world yaw the arms point along (set b
 var _destroy_f := 0.0
 var _hurt := 0.0
 var shakes := 0                       # maraca shakes (tests)
+var drawn := false                    # maracas in his claws, or tucked in his belt
+var _drawn_t := 0.0                   # ...seconds they stay out
+var _hand_maracas: Array[MeshInstance3D] = []
+var _belt_maracas: Array[MeshInstance3D] = []
 
 
 static func create() -> LocoBody:
@@ -280,17 +284,43 @@ func _build() -> void:
 		# A two-fingered claw round the handle
 		for cx in [-1.0, 1.0]:
 			f.add(MeshBuilder.box(Vector3(0.025, 0.05, 0.07)), _tf(Vector3(cx * 0.035, 0, -FORE - 0.03)), TIN_DARK)
-		# The maraca: handle up out of the claw, a striped bulb on top
-		var bulb_col := RED if k == 0 else GREEN
-		f.add(MeshBuilder.cyl(0.02, 0.024, 0.2, 8), _tf(Vector3(0, 0.06, -FORE - 0.03)), Color(0.55, 0.32, 0.14, 0.25))
-		f.add(MeshBuilder.sphere(0.1, 14, 8), Transform3D(Basis().scaled(Vector3(1, 1.25, 1)), Vector3(0, 0.25, -FORE - 0.03)), bulb_col)
-		f.add(MeshBuilder.cyl(0.098, 0.098, 0.04, 14), _tf(Vector3(0, 0.25, -FORE - 0.03)), Color(1.0, 0.82, 0.2, 0.25))
-		f.add(MeshBuilder.cyl(0.08, 0.08, 0.025, 14), _tf(Vector3(0, 0.32, -FORE - 0.03)), Color(0.15, 0.45, 0.85, 0.25))
 		_part(fo, f)
+		# The maraca: handle up out of the claw, a striped bulb on top (only while he shakes it;
+		# otherwise it's tucked in his belt at the back, the two splayed in a V)
+		_hand_maracas.append(_part(fo, _maraca(k), Vector3(0, 0, -FORE - 0.03)))
+		var belt := _part(_torso, _maraca(k), Vector3(sx * 0.1, 0.08, 0.26))
+		belt.rotation = Vector3(0.15, 0.0, -sx * 0.5)   # bulbs splayed up and out, a V
+		_belt_maracas.append(belt)
 		var tipn := _pivot(fo, Vector3(0, 0.25, -FORE - 0.03))
 		_shoulders.append(sh)
 		_fores.append(fo)
 		_maracas.append(tipn)
+	_set_drawn(false)
+
+
+## A maraca, handle at the origin, the bulb 0.25 m up: red (left hand) or green (right).
+func _maraca(k: int) -> MeshBuilder:
+	var m := MeshBuilder.new()
+	m.add(MeshBuilder.cyl(0.02, 0.024, 0.2, 8), _tf(Vector3(0, 0.06, 0)), Color(0.55, 0.32, 0.14, 0.25))
+	m.add(MeshBuilder.sphere(0.1, 14, 8), Transform3D(Basis().scaled(Vector3(1, 1.25, 1)), Vector3(0, 0.25, 0)), RED if k == 0 else GREEN)
+	m.add(MeshBuilder.cyl(0.098, 0.098, 0.04, 14), _tf(Vector3(0, 0.25, 0)), Color(1.0, 0.82, 0.2, 0.25))
+	m.add(MeshBuilder.cyl(0.08, 0.08, 0.025, 14), _tf(Vector3(0, 0.32, 0)), Color(0.15, 0.45, 0.85, 0.25))
+	return m
+
+
+func _set_drawn(on: bool) -> void:
+	drawn = on
+	for m in _hand_maracas:
+		m.visible = on
+	for m in _belt_maracas:
+		m.visible = not on
+
+
+## Pull the maracas out of his belt for a moment (a shake or a cast); they go back after.
+func draw(dur := 0.6) -> void:
+	_drawn_t = maxf(_drawn_t, maxf(dur + RosterHero.HOLSTER_DELAY, RosterHero.HOLSTER_MIN))
+	if not drawn:
+		_set_drawn(true)
 
 
 # ------------------------------------------------------------------ animation
@@ -300,6 +330,7 @@ func shake() -> int:
 	_side = 1 - _side
 	_shake[_side] = 1.0
 	shakes += 1
+	draw(0.35)
 	return _side
 
 
@@ -307,6 +338,10 @@ func shake() -> int:
 ## arms up; `flinch` (hit) knocks him back.
 func animate(dt: float, speed: float, airborne: bool, swell := 0.0, flinch := 0.0) -> void:
 	_time += dt
+	if drawn and not party and not destroy:   # Party / DESTROY Mode keep them out
+		_drawn_t -= dt
+		if _drawn_t <= 0.0:
+			_set_drawn(false)
 	var lean := clampf(speed / 7.0, 0.0, 1.0)
 	_roll += speed / WHEEL_R * dt
 	for w in _wheels:

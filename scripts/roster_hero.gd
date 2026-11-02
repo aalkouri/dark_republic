@@ -19,6 +19,11 @@ const RUN_SPEED := 6.5
 const MAX_TWIST := deg_to_rad(80.0)
 const HIT_SEG := [0.1, 0.95]
 const STAFF_HEAD := Vector3(0.0, 0.9, 0.0)   # staff space (RosterWeapons._staff)
+## Weapons are put away (RosterWeapons.STOW) when not in use: an attack or cast draws them into
+## the hand with a quick pop, and they go back this long after the move's clip ends...
+const HOLSTER_DELAY := 0.6
+const HOLSTER_MIN := 1.0       # ...but never sooner than this after the move started
+const DRAW_TIME := 0.12        # the draw flourish: the weapon grows into the hand
 
 ## Per character: clip segments [start, end] picked from contact sheets of the clips, the
 ## playback speed of the thrust, the colours of its magic and its idle particles.
@@ -76,7 +81,6 @@ const CFG := {
 		"cast": [[0.2, 1.4], [0.2, 1.4], [0.2, 1.4]], "cast_speed": [1.6, 1.4, 1.2],
 		"main": Color(1.0, 0.25, 0.3), "deep": Color(0.12, 0.08, 0.14), "light": Color(1.0, 0.85, 0.85),
 		"motes": false,
-		"weapon_when_attacking": true,   # the katana is only drawn while he swings or casts
 	},
 	"dr_croc": {
 		"fire": [1.2, 3.2], "fire_speed": 2.2,
@@ -136,8 +140,14 @@ const CFG := {
 var char_id := ""
 var tree: AnimationTree
 var skeleton: Skeleton3D
-var weapon: Node3D
-var _weapon_show := 0.0          # seconds the weapon stays drawn (weapon_when_attacking)
+var weapon: Node3D               # the right-hand weapon (where shots leave from)
+var weapons: Array[Node3D] = []  # every hand-held weapon (the Rogue has two)
+var stowed: Array[Node3D] = []   # ...their put-away copies on the back or belt, same order
+var drawn := false               # weapons in hand (true) or put away
+var _weapon_show := 0.0          # seconds the weapon stays drawn
+var _draw_t := 0.0               # the draw flourish, counting down
+var _hand_scale: Array[Vector3] = []
+var _weapon_rest := Transform3D()  # the right-hand weapon on its hand attachment, full size
 var twist: SpineTwist
 var _rig: Node3D
 var _mats: Array[StandardMaterial3D] = []
@@ -245,9 +255,16 @@ func _ready() -> void:
 			m.albedo_texture = skin
 	if not _floaty:
 		_build_tree()
-		weapon = RosterWeapons.attach(mid, skeleton)
+		var wscale := float(cfg0.get("weapon_scale", 1.0))
+		weapons = RosterWeapons.attach_all(mid, skeleton)
+		for w in weapons:
+			w.scale *= wscale
+			_hand_scale.append(w.scale)
+		weapon = weapons[0] if not weapons.is_empty() else null
 		if weapon:
-			weapon.scale *= float(cfg0.get("weapon_scale", 1.0))
+			_weapon_rest = weapon.transform
+		stowed = RosterWeapons.stow(mid, skeleton, wscale)
+		_set_drawn(false)
 		twist = SpineTwist.new()
 		skeleton.add_child(twist)
 
@@ -391,7 +408,7 @@ func attack(target: Vector3) -> Vector3:
 	if spider:   # jabs its head forward and spits
 		spider.spit()
 		return spider.tip()
-	if loco:   # shakes a maraca (alternating hands)
+	if loco:   # pulls the maracas from his belt and shakes one (alternating hands)
 		loco.shake()
 		return loco.tip()
 	if knight:   # the overhead cut, turning toward the target
@@ -423,7 +440,8 @@ func staff_tip() -> Vector3:
 		return global_transform * Vector3(0, 1.45, -0.35)
 	if weapon == null or not weapon.is_inside_tree():
 		return global_position + Vector3(0, 1.5, 0)
-	return weapon.global_transform * STAFF_HEAD
+	# From the hand copy at full size (it's there even while put away or mid-draw)
+	return (weapon.get_parent() as Node3D).global_transform * (_weapon_rest * STAFF_HEAD)
 
 
 func set_motion(speed: float, airborne: bool) -> void:
@@ -456,6 +474,8 @@ func play_ability(i: int) -> void:
 	if knight:
 		knight.cast()
 		return
+	if loco:   # maracas out for the cast
+		loco.draw()
 	if _floaty:
 		_swell = 1.0
 		return
@@ -473,19 +493,56 @@ func _fire(layer: String) -> void:
 		return
 	tree.set("parameters/%s/request" % layer, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 	_requested[layer] = _time
-	if bool(CFG.get(char_id, {}).get("weapon_when_attacking", false)):
-		var seg = CFG[char_id]["fire"] if layer == "fire" else CFG[char_id]["cast"][int(layer.substr(4))]
-		var spd: float = CFG[char_id]["fire_speed"] if layer == "fire" else CFG[char_id]["cast_speed"][int(layer.substr(4))]
-		var dur := (float(seg[1]) - float(seg[0])) / maxf(spd, 0.01) if seg.size() == 2 else 0.6
-		_weapon_show = maxf(_weapon_show, dur + 0.08)
-
-
-## Characters whose weapon only appears while they attack (Gaiden's katana).
-func _update_weapon_shown(dt: float) -> void:
-	if weapon == null or not bool(CFG.get(char_id, {}).get("weapon_when_attacking", false)):
+	if layer == "hit" or weapons.is_empty():
 		return
-	_weapon_show = maxf(0.0, _weapon_show - dt)
-	weapon.visible = _weapon_show > 0.0
+	# Attacks and casts draw the weapon; it stays out through the move and a moment after
+	var cfg: Dictionary = CFG[char_id]
+	var seg: Array = cfg["fire"] if layer == "fire" else cfg["cast"][int(layer.substr(4))]
+	var spd: float = cfg["fire_speed"] if layer == "fire" else cfg["cast_speed"][int(layer.substr(4))]
+	var dur := (float(seg[1]) - float(seg[0])) / maxf(spd, 0.01) if seg.size() == 2 else 0.6
+	_weapon_show = maxf(_weapon_show, maxf(dur + HOLSTER_DELAY, HOLSTER_MIN))
+	if not drawn:
+		_set_drawn(true)
+		_draw_t = DRAW_TIME
+
+
+## Weapons in the hand (true) or put away on the back / belt (false): toggles the two copies.
+func _set_drawn(on: bool) -> void:
+	drawn = on
+	for w in weapons:
+		w.visible = on
+	for w in stowed:
+		w.visible = not on
+	if not on:
+		_draw_t = 0.0
+		for k in weapons.size():
+			weapons[k].scale = _hand_scale[k]
+
+
+## Counts down to putting the weapon away, and plays the draw flourish.
+func _update_weapon_shown(dt: float) -> void:
+	if not drawn:
+		return
+	_weapon_show -= dt
+	if _weapon_show <= 0.0:
+		_weapon_show = 0.0
+		_set_drawn(false)
+		return
+	if _draw_t > 0.0:
+		_draw_t = maxf(0.0, _draw_t - dt)
+		var f := 1.0 - _draw_t / DRAW_TIME
+		var pop := 0.55 + 0.45 * f + 0.12 * sin(f * PI)   # grows in, overshoots a touch
+		for k in weapons.size():
+			weapons[k].scale = _hand_scale[k] * pop
+
+
+## True while the weapon is in hand (procedural bodies: the Toadstool Knight's sword, Loco's maracas).
+func is_drawn() -> bool:
+	if knight:
+		return knight.drawn
+	if loco:
+		return loco.drawn
+	return drawn
 
 
 func set_dim(f: float) -> void:

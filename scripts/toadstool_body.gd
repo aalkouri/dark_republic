@@ -31,6 +31,9 @@ var _twist_hold := 0.0
 var _spores: CPUParticles3D
 var _death: AnimationPlayer
 var _death_end := 0.0
+var stowed: Array[Node3D] = []        # the sword sheathed at his hip (RosterWeapons.STOW)
+var drawn := false                    # sword in hand (slashing / casting) or sheathed
+var _drawn_t := 0.0                   # ...seconds it stays out
 
 
 static func create() -> ToadstoolBody:
@@ -47,6 +50,7 @@ func _ready() -> void:
 	if sk:
 		twist = SpineTwist.new()
 		sk.add_child(twist)
+		_build_sheathed(sk)
 	# A few spores drifting up off the cap
 	_spores = Abilities._flame_particles(0.09, 1.8, 10)
 	var grad := Gradient.new()
@@ -61,6 +65,33 @@ func _ready() -> void:
 	(_spores.mesh as QuadMesh).size = Vector2(0.07, 0.07)
 	_spores.position = Vector3(0, 1.45, 0)
 	add_child(_spores)
+
+
+## The sheathed sword: a second copy at his hip in the same spore glow; the one in his hand only
+## shows while he slashes or casts.
+func _build_sheathed(sk: Skeleton3D) -> void:
+	stowed = RosterWeapons.stow("toadstool_knight", sk, 1.25)
+	for w in stowed:
+		for mi in w.find_children("*", "MeshInstance3D", true, false):
+			var bm := (mi as MeshInstance3D).mesh
+			if bm is BoxMesh and (bm as BoxMesh).size.y > 0.5 and not model._blade_mats.is_empty():
+				(bm as BoxMesh).material = model._blade_mats[0]
+	_set_drawn(false)
+
+
+func _set_drawn(on: bool) -> void:
+	drawn = on
+	if model != null and is_instance_valid(model.blade):
+		model.blade.visible = on
+	for w in stowed:
+		w.visible = not on
+
+
+## Draw the sword for a move lasting `dur` seconds (it goes back a moment after).
+func _draw_for(dur: float) -> void:
+	_drawn_t = maxf(_drawn_t, maxf(dur + RosterHero.HOLSTER_DELAY, RosterHero.HOLSTER_MIN))
+	if not drawn:
+		_set_drawn(true)
 
 
 func _clip(name: String, seg: Array, loop := false) -> AnimationNodeAnimation:
@@ -136,6 +167,8 @@ func slash(target := Vector3.INF) -> void:
 		return
 	slashes += 1
 	_fire("slash")
+	var seg: Array = ToadstoolModel.SEG["slash"]
+	_draw_for((float(seg[2]) - float(seg[1])) / SLASH_SPEED)
 	if twist != null and target != Vector3.INF:
 		var to := target - global_position
 		var local := global_transform.basis.orthonormalized().inverse() * to
@@ -148,6 +181,8 @@ func cast() -> void:
 		return
 	casts += 1
 	_fire("cast")
+	var seg: Array = ToadstoolModel.SEG["cast"]
+	_draw_for((float(seg[2]) - float(seg[1])) / CAST_SPEED)
 
 
 func hit() -> void:
@@ -191,6 +226,10 @@ func animate(dt: float, speed: float, _airborne := false) -> void:
 		return
 	tree.set("parameters/loco/blend_position", minf(speed, RUN_SPEED))
 	tree.set("parameters/loco_speed/scale", clampf(speed / RUN_SPEED, 1.0, 2.2) if speed > RUN_SPEED else 1.0)
+	if drawn:
+		_drawn_t -= dt
+		if _drawn_t <= 0.0:
+			_set_drawn(false)
 	_twist_hold -= dt
 	if _twist_hold <= 0.0 and twist != null:
 		twist.target_angle = 0.0

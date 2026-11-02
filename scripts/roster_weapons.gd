@@ -11,30 +11,159 @@ const FORWARD := Vector3(0, 0, 1)   # GLB characters face +Z in skeleton space
 
 ## Returns the right-hand weapon (staffs have their head 0.9 m up their local +Y).
 static func attach(id: String, skeleton: Skeleton3D) -> Node3D:
-	var w: Node3D = null
+	var all := attach_all(id, skeleton)
+	return all[0] if not all.is_empty() else null
+
+
+## Every weapon the character holds (the Rogue has a dagger in each hand), right hand first.
+static func attach_all(id: String, skeleton: Skeleton3D) -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	for k in count(id):
+		var spec: Array = _grip(id, k)
+		var w := _hold(skeleton, spec[0], make(id, k), spec[1])
+		if w:
+			out.append(w)
+	return out
+
+
+## How many weapons the character holds (0 for the ones without a weapon model here).
+static func count(id: String) -> int:
+	if id == "rogue":
+		return 2
+	return 1 if id in ["ice_wizard", "merlin", "thunder_wizard", "dark_wizard", "ogre", "vampire_hunter", "vicki", "gaiden", "dr_croc"] else 0
+
+
+## Builds weapon `k` of character `id` (a fresh instance each call), grip at the origin.
+static func make(id: String, _k := 0) -> Node3D:
 	match id:
 		"ice_wizard":
-			w = _hold(skeleton, "RightHand", _staff(Color(0.55, 0.6, 0.68), _crystal(Color(0.6, 0.9, 1.0))), SKIN_UP)
+			return _staff(Color(0.55, 0.6, 0.68), _crystal(Color(0.6, 0.9, 1.0)))
 		"merlin":
-			w = _hold(skeleton, "RightHand", _staff(Color(0.3, 0.2, 0.12), _orb(Color(0.45, 0.65, 1.0))), SKIN_UP)
+			return _staff(Color(0.3, 0.2, 0.12), _orb(Color(0.45, 0.65, 1.0)))
 		"thunder_wizard":
-			w = _hold(skeleton, "RightHand", _staff(Color(0.4, 0.38, 0.42), _orb(Color(1.0, 0.92, 0.35))), SKIN_UP)
+			return _staff(Color(0.4, 0.38, 0.42), _orb(Color(1.0, 0.92, 0.35)))
 		"dark_wizard":
-			w = _hold(skeleton, "RightHand", _staff(Color(0.08, 0.06, 0.1), _skull()), SKIN_UP)
+			return _staff(Color(0.08, 0.06, 0.1), _skull())
 		"ogre":
-			w = _hold(skeleton, "RightHand", _club(), (FORWARD + Vector3.DOWN * 0.6).normalized())
+			return _club()
 		"vampire_hunter":
-			w = _hold(skeleton, "RightHand", _crossbow(), (Vector3.DOWN + FORWARD * 0.35).normalized())
+			return _crossbow()
 		"vicki":
-			w = _hold(skeleton, "RightHand", _spear(), SKIN_UP)
+			return _spear()
 		"rogue":
-			w = _hold(skeleton, "RightHand", _blade(0.32, 0.035, Color(0.8, 0.82, 0.86)), FORWARD)
-			_hold(skeleton, "LeftHand", _blade(0.32, 0.035, Color(0.8, 0.82, 0.86)), FORWARD)
-		"gaiden":
-			w = _hold(skeleton, "RightHand", _blade(0.85, 0.03, Color(0.86, 0.88, 0.92), true), (Vector3.DOWN + FORWARD * 0.5).normalized())
+			return _blade(0.32, 0.035, Color(0.8, 0.82, 0.86))
+		"gaiden", "toadstool_knight":   # (the Knight's sword is Gaiden's katana, re-coloured)
+			return _blade(0.85, 0.03, Color(0.86, 0.88, 0.92), true)
 		"dr_croc":
-			w = _hold(skeleton, "RightHand", _flask(), SKIN_UP)
-	return w
+			return _flask()
+	return null
+
+
+## [hand bone, the weapon's +Y in the rest pose (skeleton space)] for weapon `k`.
+static func _grip(id: String, k: int) -> Array:
+	match id:
+		"ogre":
+			return ["RightHand", (FORWARD + Vector3.DOWN * 0.6).normalized()]
+		"vampire_hunter":
+			return ["RightHand", (Vector3.DOWN + FORWARD * 0.35).normalized()]
+		"rogue":
+			return ["RightHand" if k == 0 else "LeftHand", FORWARD]
+		"gaiden":
+			return ["RightHand", (Vector3.DOWN + FORWARD * 0.5).normalized()]
+	return ["RightHand", SKIN_UP]
+
+
+# ------------------------------------------------------------------ put away
+# Where each weapon goes when the character isn't fighting (RosterHero / RosterModel draw it
+# into the hand to attack and put it back after a moment). One entry per held weapon, in
+# attach_all()'s order: [body bone it rides on, grip position in metres (character space: +X
+# their left, +Y up, +Z forward, from the feet, before the rig's scale), the weapon's +Y, the
+# way its local +Z faces, sheath ("" none, "katana", "dagger")].
+const STOW := {
+	# Staffs slung diagonally across the back, the head up over the right shoulder
+	"ice_wizard": [["Spine01", Vector3(0.07, 1.12, -0.25), Vector3(-0.58, 1, 0), Vector3(0, 0, -1), ""]],
+	"thunder_wizard": [["Spine01", Vector3(0.07, 1.12, -0.19), Vector3(-0.58, 1, 0), Vector3(0, 0, -1), ""]],
+	"dark_wizard": [["Spine01", Vector3(0.07, 1.12, -0.22), Vector3(-0.58, 1, 0), Vector3(0, 0, -1), ""]],
+	"merlin": [["Spine01", Vector3(0.07, 1.12, -0.23), Vector3(-0.58, 1, 0), Vector3(0, 0, -1), ""]],
+	# The spear the same way, longer, so it rides lower
+	"vicki": [["Spine01", Vector3(0.1, 1.0, -0.22), Vector3(-0.55, 1, 0), Vector3(0, 0, -1), ""]],
+	# The tree-trunk club across the Ogre's back, the heavy end over his right shoulder
+	"ogre": [["Spine01", Vector3(0.28, 1.3, -0.43), Vector3(-0.55, 1, 0), Vector3(0, 0, -1), ""]],
+	# The crossbow on the back, stock up, the bow across the shoulder blades
+	"vampire_hunter": [["Spine01", Vector3(0.06, 0.98, -0.21), Vector3(-0.22, 1, 0), Vector3(0, 0, -1), ""]],
+	# Daggers in sheaths on both hips, hilts up
+	"rogue": [
+		["Hips", Vector3(-0.2, 0.97, 0.04), Vector3(-0.12, -1, -0.28), Vector3(-1, 0, 0), "dagger"],
+		["Hips", Vector3(0.2, 0.97, 0.04), Vector3(0.12, -1, -0.28), Vector3(1, 0, 0), "dagger"],
+	],
+	# The katana in its scabbard on the back, the hilt up over the right shoulder
+	"gaiden": [["Spine01", Vector3(-0.13, 1.42, -0.17), Vector3(0.62, -1, 0), Vector3(0, 0, -1), "katana"]],
+	# The Toadstool Knight (on Gaiden's rig, ToadstoolBody): his sword sheathed at the left hip,
+	# hilt forward, the scabbard hanging back
+	"toadstool_knight": [["Hips", Vector3(0.21, 1.0, 0.12), Vector3(0.14, -0.5, -0.86), Vector3(1, 0, 0), "katana"]],
+	# A flask hooked on the belt at the right hip
+	"dr_croc": [["Hips", Vector3(-0.27, 0.86, 0.1), Vector3(0, 1, 0), Vector3(0, 0, 1), ""]],
+}
+
+
+## The put-away copies of the character's weapons on their back or belt (scaled by `scale`), in
+## attach_all()'s order. Sheaths are added beside them and stay on when the weapon is drawn.
+static func stow(id: String, skeleton: Skeleton3D, scale := 1.0) -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	if not STOW.has(id) or skeleton == null:
+		return out
+	var specs: Array = STOW[id]
+	for k in specs.size():
+		var s: Array = specs[k]
+		var w := _stow(skeleton, s[0], make(id, k), s[1], s[2], s[3])
+		if w == null:
+			continue
+		w.scale *= scale
+		out.append(w)
+		if str(s[4]) != "":
+			var sheath := _sheath(str(s[4]))
+			sheath.transform = w.transform
+			w.get_parent().add_child(sheath)
+	return out
+
+
+## Attach `weapon` to `bone`, its grip at `pos` (metres, character space) with its +Y along
+## `ydir` and its +Z toward `zdir`, in the rest pose.
+static func _stow(sk: Skeleton3D, bone: String, weapon: Node3D, pos: Vector3, ydir: Vector3, zdir: Vector3) -> Node3D:
+	var b := sk.find_bone(bone)
+	if b < 0 or weapon == null:
+		return null
+	var rest := sk.get_bone_global_rest(b)
+	var y := ydir.normalized()
+	var z := (zdir - y * zdir.dot(y)).normalized()
+	var x := y.cross(z)
+	var want := Transform3D(Basis(x, y, z).scaled(Vector3.ONE * 100.0), pos * 100.0)
+	var attach := BoneAttachment3D.new()
+	attach.bone_name = bone
+	sk.add_child(attach)
+	weapon.transform = rest.affine_inverse() * want
+	attach.add_child(weapon)
+	return weapon
+
+
+## A scabbard around a put-away blade (weapon space: the blade runs up +Y from the guard).
+static func _sheath(kind: String) -> Node3D:
+	var n := Node3D.new()
+	var box := BoxMesh.new()
+	if kind == "katana":   # black lacquer with a gold collar and tip
+		box.size = Vector3(0.05, 0.88, 0.026)
+		box.material = _mat(Color(0.07, 0.05, 0.06), 0.0, 0.3)
+		n.add_child(_part(box, Vector3(0.0, 0.56, 0.0), Vector3(0, 0, 0.06)))   # follows the blade's curve
+		var collar := BoxMesh.new()
+		collar.size = Vector3(0.056, 0.03, 0.032)
+		collar.material = _mat(Color(0.6, 0.45, 0.18), 0.0, 0.8)
+		n.add_child(_part(collar, Vector3(0.0, 0.135, 0.0)))
+		n.add_child(_part(collar, Vector3(-0.026, 0.995, 0.0), Vector3(0, 0, 0.06)))
+	else:   # a leather dagger sheath
+		box.size = Vector3(0.052, 0.34, 0.026)
+		box.material = _mat(Color(0.26, 0.16, 0.09))
+		n.add_child(_part(box, Vector3(0.0, 0.225, 0.0)))
+	return n
 
 
 ## Attach `weapon` to `bone`, gripped in the palm, its +Y pointing along `dir` (skeleton space)

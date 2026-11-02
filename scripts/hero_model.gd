@@ -36,10 +36,22 @@ const RUN_SPEED := 6.5               # m/s where the run clip looks right
 const MAX_TWIST := deg_to_rad(80.0)
 const TIP := Vector3(0.0, 1.0, 0.0)    # in the flame above the coal, staff space (metres)
 const VANISH_TIME := 0.55            # slam lands ~(1.35 - 0.6) / 1.4 s in
+# Put away: the staff rides diagonally across his back (head over the right shoulder) and is
+# drawn into his hand for every fireball and cast (like RosterHero's weapons)
+const STOW_BONE := "Spine01"
+const STOW_POS := Vector3(0.07, 1.12, -0.2)    # metres, character space (+X his left, +Z forward)
+const STOW_DIR := Vector3(-0.58, 1.0, 0.0)
 
 var tree: AnimationTree
 var skeleton: Skeleton3D
 var staff: Node3D
+var drawn := false                   # staff in his hand, or on his back
+var _staff_hand: BoneAttachment3D
+var _staff_back: BoneAttachment3D
+var _staff_hand_xf := Transform3D()
+var _staff_back_xf := Transform3D()
+var _hand_tip: Node3D                # where the staff head is when it's in his hand
+var _weapon_show := 0.0
 var twist: SpineTwist
 var _rig: Node3D
 var flame: StaffFlame
@@ -191,6 +203,19 @@ func _build_staff() -> void:
 	staff = Node3D.new()
 	staff.transform = hand_rest.affine_inverse() * want
 	attach.add_child(staff)
+	_staff_hand = attach
+	_staff_hand_xf = staff.transform
+	_hand_tip = Node3D.new()
+	_hand_tip.transform = _staff_hand_xf * Transform3D(Basis(), TIP)
+	attach.add_child(_hand_tip)
+	_staff_back = BoneAttachment3D.new()
+	_staff_back.bone_name = STOW_BONE
+	skeleton.add_child(_staff_back)
+	var y := STOW_DIR.normalized()
+	var face := Vector3(0, 0, -1)   # its face away from his back (skeleton space faces +Z)
+	var z := (face - y * face.dot(y)).normalized()
+	var back := Transform3D(Basis(y.cross(z), y, z).scaled(Vector3.ONE * 100.0), STOW_POS * 100.0)
+	_staff_back_xf = skeleton.get_bone_global_rest(skeleton.find_bone(STOW_BONE)).affine_inverse() * back
 
 	var wood := _std(Color(0.25, 0.14, 0.08))
 	var shaft := CylinderMesh.new()
@@ -222,6 +247,16 @@ func _build_staff() -> void:
 	staff.add_child(flame)
 	for m in [wood]:
 		_staff_mats.append([m, m.albedo_color, m.emission_energy_multiplier])
+	_set_drawn(false)
+
+
+## The staff in his hand (true) or slung on his back: moves the one staff between the two.
+func _set_drawn(on: bool) -> void:
+	drawn = on
+	var to := _staff_hand if on else _staff_back
+	if staff.get_parent() != to:
+		staff.reparent(to, false)
+	staff.transform = _staff_hand_xf if on else _staff_back_xf
 
 
 func _std(c: Color) -> StandardMaterial3D:
@@ -247,7 +282,7 @@ func attack(target: Vector3) -> Vector3:
 
 
 func staff_tip() -> Vector3:
-	return staff.global_transform * TIP
+	return _hand_tip.global_position   # from the hand, even while the staff is on his back
 
 
 ## Ground speed (m/s) and whether he's in the air; called every frame by the player.
@@ -297,6 +332,14 @@ func is_playing(layer: String) -> bool:
 func _fire(layer: String) -> void:
 	tree.set("parameters/%s/request" % layer, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 	_requested[layer] = _time
+	if layer == "hit" or layer == "jump":
+		return
+	# Fireballs and casts draw the staff; it goes back on his back a moment after
+	var seg: Array = {"fire": FIRE_SEG, "nova": NOVA_SEG, "inferno": INFERNO_SEG, "meteor": METEOR_SEG}.get(layer, FIRE_SEG)
+	var spd: float = {"fire": FIRE_SPEED, "nova": 1.35, "inferno": 1.3, "meteor": 1.4}.get(layer, 1.0)
+	_weapon_show = maxf(_weapon_show, maxf((float(seg[1]) - float(seg[0])) / spd + RosterHero.HOLSTER_DELAY, RosterHero.HOLSTER_MIN))
+	if not drawn:
+		_set_drawn(true)
 
 
 ## Scale the whole character's brightness (1 = normal, 0.5 = immune).
@@ -325,8 +368,16 @@ func set_hurt(amount: float) -> void:
 		m.emission = Color(1.0, 0.85, 0.75) * clampf(amount, 0.0, 1.0)
 
 
+func is_drawn() -> bool:
+	return drawn
+
+
 func _process(dt: float) -> void:
 	_time += dt
+	if drawn:
+		_weapon_show -= dt
+		if _weapon_show <= 0.0:
+			_set_drawn(false)
 	tree.set("parameters/loco/blend_position", minf(_speed, RUN_SPEED))
 	tree.set("parameters/loco_speed/scale", clampf(_speed / RUN_SPEED, 1.0, 2.2) if _speed > RUN_SPEED else 1.0)
 	_twist_hold -= dt

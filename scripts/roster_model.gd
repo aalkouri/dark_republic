@@ -2,7 +2,8 @@ class_name RosterModel
 extends Node3D
 ## A roster character's rigged 3D model (from Higgsfield/Meshy) for previews: loads
 ## models/<id>/<id>.glb plus models/<id>/anims.res (made by tools/import_character.gd), faces
-## -Z, plays its idle loop, and holds its weapon (built in code, like the wizard's staff).
+## -Z, plays its idle loop, and holds its weapon (built in code, like the wizard's staff), put
+## away on its back or belt (RosterWeapons.STOW) unless it plays an attack or a cast.
 ## Characters without a skeleton (Ghast) float and sway procedurally instead.
 
 const DIR := "res://models/%s"
@@ -13,6 +14,9 @@ var skeleton: Skeleton3D
 var _rig: Node3D
 var _t := 0.0
 var _floaty := false
+var weapons: Array[Node3D] = []   # in hand (hidden while put away)
+var stowed: Array[Node3D] = []    # on the back / belt
+var _drawn_t := 0.0
 
 
 static func has_model(id: String) -> bool:
@@ -94,14 +98,39 @@ func _ready() -> void:
 			player.pause()
 	_floaty = skeleton == null
 	if skeleton:
-		var w := RosterWeapons.attach(mid, skeleton)
-		if w:
-			w.scale *= float(cfg.get("weapon_scale", 1.0))
+		var ws := float(cfg.get("weapon_scale", 1.0))
+		weapons = RosterWeapons.attach_all(mid, skeleton)
+		for w in weapons:
+			w.scale *= ws
+		stowed = RosterWeapons.stow(mid, skeleton, ws)
+		_set_drawn(false)
+
+
+## Weapons in hand (an attack or cast is playing) or put away.
+func _set_drawn(on: bool) -> void:
+	for w in weapons:
+		w.visible = on
+	for w in stowed:
+		w.visible = not on
+
+
+func is_drawn() -> bool:
+	if _knight:
+		return _knight.drawn
+	if _loco:
+		return _loco.drawn
+	return not weapons.is_empty() and weapons[0].visible
 
 
 func play(clip: String) -> void:
 	if player and player.has_animation("c/" + clip):
 		player.play("c/" + clip, 0.15)
+		if clip == "attack" or clip == "ability":   # draw the weapon for it
+			_drawn_t = player.get_animation("c/" + clip).length + RosterHero.HOLSTER_DELAY
+			_set_drawn(true)
+		elif _drawn_t > 0.0:
+			_drawn_t = 0.0
+			_set_drawn(false)
 
 
 func _process(dt: float) -> void:
@@ -118,16 +147,21 @@ func _process(dt: float) -> void:
 	if _sock:   # idles: sways, now and then a little hop
 		_sock.animate(dt, 0.0, false, 0.0, 0.3 if fmod(_t, 4.0) < 0.3 else 0.0)
 		return
-	if _knight:   # stands guard, now and then a practice cut with his sword
-		if fmod(_t, 4.0) < dt * 1.01 and _t > 1.0:
+	if _knight:   # stands guard, now and then draws his sword for a practice cut
+		if fmod(_t, 6.0) < dt * 1.01 and _t > 3.0:
 			_knight.slash()
 		_knight.animate(dt, 0.0)
 		return
-	if _loco:   # dances on the spot, shaking a maraca now and then
-		if fmod(_t, 0.9) < dt:
+	if _loco:   # dances on the spot, now and then pulls his maracas out for a few shakes
+		var c := fmod(_t, 6.0)
+		if _t > 3.0 and c < 2.0 and fmod(c, 0.6) < dt:
 			_loco.shake()
 		_loco.animate(dt, 0.0, false)
 		return
+	if _drawn_t > 0.0:
+		_drawn_t -= dt
+		if _drawn_t <= 0.0:
+			_set_drawn(false)
 	if _floaty:   # no skeleton: hover and sway
 		_rig.position.y = 0.35 + 0.08 * sin(_t * 1.8)
 		_rig.rotation.z = 0.05 * sin(_t * 1.1)
