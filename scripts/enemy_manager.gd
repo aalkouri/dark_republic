@@ -33,7 +33,11 @@ const PCT_BOSS := 0.08                     # Thog takes this share of "% of max 
 const THOG_HP := 5200.0                    # x the run's HP multiplier when he arrives (8:00)
 const GOBLIN_VAT := "res://models/goblin"   # baked vertex animation (tools/bake_vat.gd)
 const GOBLIN_HEIGHT := 0.95                 # model height at scale 1
-const STRIDE_LEN := 0.9                     # metres covered per run cycle at scale 1
+const STRIDE_LEN := 1.5                     # metres covered per run cycle at scale 1 (was 0.9: legs blurred)
+## Longer strides (so slower, calmer legs) for the human-sized and shambling kinds. The cycle
+## still follows ground speed, so faster movers step faster.
+const STRIDE_BY_TYPE := {"Goblin Scamp": 1.7, "Goblin Brute": 1.6, "Skeleton": 2.0, "Zombie": 1.9,
+	"Sprinting Zombie": 2.1, "Zombie Brute": 1.9, "Mummy": 2.2, "Ghoul": 1.8}
 const ATTACK_REACH := 0.55                  # start swinging this close to the player (+ radius)
 
 # Burn tuning (set by the ultimate; % of max HP)
@@ -181,6 +185,7 @@ var t_hp := PackedFloat32Array()
 var t_speed := PackedFloat32Array()
 var t_radius := PackedFloat32Array()
 var t_scale := PackedFloat32Array()
+var t_stride := PackedFloat32Array()   # metres per walk/run cycle at scale 1 (STRIDE_BY_TYPE)
 var t_height := PackedFloat32Array()
 var t_damage := PackedFloat32Array()
 var t_xp := PackedFloat32Array()
@@ -282,6 +287,8 @@ func _ready() -> void:
 	_add_type("Thog the Troll", THOG_HP, 3.4, 3.4, 10.5, 55.0, 400.0, Color(0.3, 0.5, 0.8))
 	_add_desert_types()   # ZOMBIE..VULTURE (indices 6-10); any types after them append from 11
 	_add_graveyard_types()   # GHOUL, GHOST (indices 11-12)
+	for k in type_names.size():   # calmer legs per kind
+		t_stride[k] = float(STRIDE_BY_TYPE.get(type_names[k], STRIDE_LEN))
 	skeletons = SkeletonCrowd.new()
 	skeletons.em = self
 	add_child(skeletons)
@@ -387,6 +394,7 @@ func _put_type(id: int, n: String, p_hp: float, speed: float, radius: float, sca
 	t_speed[id] = speed
 	t_radius[id] = radius
 	t_scale[id] = scale
+	t_stride[id] = STRIDE_LEN
 	t_height[id] = GOBLIN_HEIGHT * scale
 	t_damage[id] = damage
 	t_xp[id] = xp
@@ -399,6 +407,7 @@ func _add_type(n: String, p_hp: float, speed: float, radius: float, scale: float
 	t_speed.append(speed)
 	t_radius.append(radius)
 	t_scale.append(scale)
+	t_stride.append(STRIDE_LEN)
 	t_height.append(GOBLIN_HEIGHT * scale)
 	t_damage.append(damage)
 	t_xp.append(xp)
@@ -1098,7 +1107,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 			clip = _clip_attack
 			ph += dt * _attack_rate
 		else:
-			ph += dt * maxf(spd, 0.8) / (STRIDE_LEN * sc)
+			ph += dt * maxf(spd, 0.8) / (t_stride[t] * sc)
 		ph -= floorf(ph)
 		aph[i] = ph
 		buf[b] = fz * sc
