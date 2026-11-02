@@ -240,6 +240,12 @@ func load_settings() -> void:
 	dev_stats = cf.get_value("developer", "dev_stats", dev_stats)
 
 
+## The Developer tab is there when the game runs from the Godot editor, or once revealed with
+## Ctrl+Shift+D / F9 in Settings (an exported build).
+func dev_tools_shown() -> bool:
+	return dev_tools or OS.has_feature("editor")
+
+
 ## Reveal (or hide) the Developer tab; saved straight away, on its own.
 func set_dev_tools(on: bool) -> void:
 	dev_tools = on

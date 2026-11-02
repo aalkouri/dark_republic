@@ -122,7 +122,7 @@ func _build_tabs() -> void:
 	_tabs.add_child(_video_tab())
 	_tabs.add_child(_sound_tab())
 	_tabs.add_child(_controls_tab())
-	if Settings.dev_tools:
+	if Settings.dev_tools_shown():
 		_tabs.add_child(_developer_tab())
 
 
@@ -267,11 +267,12 @@ func _start_rebind(action: String) -> void:
 func _input(event: InputEvent) -> void:
 	# Ctrl+Shift+D: show / hide the Developer tab (temporary, for the developer only)
 	if visible and _waiting_action == "" and (_stats == null or not _stats.visible) and event is InputEventKey \
-			and event.pressed and not event.echo and event.physical_keycode == KEY_D and event.ctrl_pressed and event.shift_pressed:
+			and event.pressed and not event.echo and (event.keycode == KEY_F9 or event.physical_keycode == KEY_F9 \
+			or ((event.physical_keycode == KEY_D or event.keycode == KEY_D) and event.ctrl_pressed and event.shift_pressed)):
 		get_viewport().set_input_as_handled()
 		Settings.set_dev_tools(not Settings.dev_tools)
 		_sync_widgets()
-		if Settings.dev_tools:
+		if Settings.dev_tools_shown():
 			_tabs.current_tab = _tabs.get_tab_count() - 1
 		return
 	if not visible or _waiting_action == "":
@@ -315,7 +316,7 @@ func _developer_tab() -> Control:
 	view.pressed.connect(open_stats)
 	_row(vb, "", view)
 	var note := Label.new()
-	note.text = "Temporary developer tools. Every run you play is recorded; with Developer stats on, a STATS button appears on the title screen and the end screen shows the full breakdown. Ctrl+Shift+D hides this tab again."   # no-i18n
+	note.text = "Temporary developer tools. Every run you play is recorded; with Developer stats on, a STATS button appears on the title screen and the end screen shows the full breakdown. This tab is always shown when the game runs from the Godot editor; in an exported build, Ctrl+Shift+D (or F9) on this screen shows or hides it."   # no-i18n
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.modulate.a = 0.6
 	note.add_theme_font_size_override("font_size", 15)
