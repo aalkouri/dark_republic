@@ -87,6 +87,57 @@ void sky() {
 }
 """
 
+## Detailed pond banks, shared by every map's ground shader (inserted before fragment() with
+## with_shore()): needs hash() and noise(). `edge` = distance outside the nearest pool's shore;
+## returns the ground colour with the bank painted over it and raises `wet` for the gloss.
+const SHORE_GLSL := """
+vec3 shore_bank(vec3 col, vec2 p, float edge, float n, float amount, vec3 c_wet, vec3 c_dry, vec3 c_algae, vec3 c_peb, inout float wet) {
+	float shore = (1.0 - smoothstep(0.0, 5.5, edge + (noise(p * 0.55) - 0.5) * 2.4)) * amount;
+	if (shore <= 0.001) { return col; }
+	float dry = smoothstep(0.8, 4.0, edge + (n - 0.5) * 1.2);
+	vec3 wetmud = c_wet * (0.75 + 0.5 * n);
+	vec3 drymud = c_dry * (0.8 + 0.4 * noise(p * 3.1));
+	vec3 sc = mix(wetmud, drymud, dry);
+	// cracks in the drying soil (cell edges)
+	vec2 g = p * 1.4;
+	vec2 ip = floor(g);
+	vec2 fp = fract(g);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 o = vec2(float(x), float(y));
+			vec2 r = o + vec2(hash(ip + o), hash(ip + o + 17.3)) - fp;
+			float dd = dot(r, r);
+			if (dd < d1) { d2 = d1; d1 = dd; } else if (dd < d2) { d2 = dd; }
+		}
+	}
+	float crack = 1.0 - smoothstep(0.0, 0.07, sqrt(d2) - sqrt(d1));
+	crack *= smoothstep(0.3, 0.7, noise(p * 0.45 + 7.0));   // patchy, not a tiled floor
+	sc = mix(sc, sc * 0.45, crack * dry * 0.7);
+	// tide lines: wavy darker bands parallel to the shore
+	float tide = smoothstep(0.82, 1.0, sin(edge * 5.5 + noise(p * 1.1) * 5.0)) * (1.0 - smoothstep(0.6, 3.2, edge));
+	sc = mix(sc, wetmud * 0.6, tide * 0.7);
+	// a fringe of algae / moss right at the waterline
+	float algae = (1.0 - smoothstep(0.0, 0.9, edge)) * smoothstep(0.35, 0.7, noise(p * 2.3));
+	sc = mix(sc, c_algae * (0.8 + 0.4 * n), algae * 0.85);
+	// pebbles
+	vec2 pg = p * 2.6;
+	vec2 pi = floor(pg);
+	vec2 pf = fract(pg) - 0.5 - (vec2(hash(pi + 3.1), hash(pi + 9.7)) - 0.5) * 0.5;
+	float peb = (1.0 - smoothstep(0.1, 0.17, length(pf * vec2(1.0, 1.0 + hash(pi + 5.5))))) * step(0.84, hash(pi + 1.7));
+	sc = mix(sc, c_peb * (0.6 + 0.7 * hash(pi + 2.2)), peb);
+	wet = max(wet, (1.0 - dry) * (1.0 - peb) * shore);
+	return mix(col, sc, shore);
+}
+"""
+
+
+## `code` with SHORE_GLSL inserted just before its fragment().
+static func with_shore(code: String) -> String:
+	return code.replace("void fragment()", SHORE_GLSL + "\nvoid fragment()")
+
+
 const GROUND_SHADER := """
 shader_type spatial;
 uniform sampler2D patch_map : filter_linear, repeat_disable;
@@ -98,8 +149,12 @@ uniform vec3 base_col : source_color = vec3(0.17, 0.16, 0.1);
 uniform vec3 grass_col : source_color = vec3(0.15, 0.21, 0.08);
 uniform vec3 mud_col : source_color = vec3(0.12, 0.085, 0.055);
 uniform float wet_amount = 1.0;   // how wet and dark the mud patches look (0 = dry meadow)
-uniform float shore_detail = 0.0; // detailed pond banks: wet glossy mud at the waterline, algae, tide
-                                  // lines, drying cracked mud further up and pebbles (the Swamp)
+uniform float shore_detail = 0.0; // detailed pond banks: wet glossy soil at the waterline, algae, tide
+                                  // lines, drying cracked soil further up and pebbles (every map with water)
+uniform vec3 shore_wet : source_color = vec3(0.065, 0.048, 0.033);
+uniform vec3 shore_dry : source_color = vec3(0.21, 0.16, 0.105);
+uniform vec3 shore_algae : source_color = vec3(0.1, 0.17, 0.05);
+uniform vec3 shore_pebble : source_color = vec3(0.3, 0.29, 0.25);
 uniform float quake = 0.0;        // Thog's quake: the whole ground glows red (0 = off, 1 = on)
 uniform float quake_fill = 0.0;   // ...brighter and faster as it's about to land (0..1)
 varying vec3 wpos;
@@ -140,47 +195,10 @@ void fragment() {
 	col = mix(col, mud_col * (0.85 + 0.3 * n), mud);
 	float wet = max(mud * (0.6 + 0.4 * n) * wet_amount, bank * max(wet_amount, 0.35));
 	col *= 1.0 - 0.35 * wet;
-	// Pond banks: a ragged band of mud round every pool, glossy and black-brown at the water's
-	// edge with a fringe of algae, old tide lines a little way up, then paler drying mud split
-	// by cracks, with pebbles pressed into it
-	float shore = (1.0 - smoothstep(0.0, 5.5, edge + (noise(wpos.xz * 0.55) - 0.5) * 2.4)) * shore_detail;
-	if (shore > 0.001) {
-		float dry = smoothstep(0.8, 4.0, edge + (n - 0.5) * 1.2);
-		vec3 wetmud = vec3(0.065, 0.048, 0.033) * (0.75 + 0.5 * n);
-		vec3 drymud = vec3(0.21, 0.16, 0.105) * (0.8 + 0.4 * noise(wpos.xz * 3.1));
-		vec3 sc = mix(wetmud, drymud, dry);
-		// cracks in the drying mud (cell edges)
-		vec2 g = wpos.xz * 1.4;
-		vec2 ip = floor(g);
-		vec2 fp = fract(g);
-		float d1 = 8.0;
-		float d2 = 8.0;
-		for (int y = -1; y <= 1; y++) {
-			for (int x = -1; x <= 1; x++) {
-				vec2 o = vec2(float(x), float(y));
-				vec2 r = o + vec2(hash(ip + o), hash(ip + o + 17.3)) - fp;
-				float dd = dot(r, r);
-				if (dd < d1) { d2 = d1; d1 = dd; } else if (dd < d2) { d2 = dd; }
-			}
-		}
-		float crack = 1.0 - smoothstep(0.0, 0.07, sqrt(d2) - sqrt(d1));
-		crack *= smoothstep(0.3, 0.7, noise(wpos.xz * 0.45 + 7.0));   // patchy, not a tiled floor
-		sc = mix(sc, sc * 0.45, crack * dry * 0.7);
-		// tide lines: wavy darker bands parallel to the shore
-		float tide = smoothstep(0.82, 1.0, sin(edge * 5.5 + noise(wpos.xz * 1.1) * 5.0)) * (1.0 - smoothstep(0.6, 3.2, edge));
-		sc = mix(sc, wetmud * 0.6, tide * 0.7);
-		// a fringe of green algae right at the waterline
-		float algae = (1.0 - smoothstep(0.0, 0.9, edge)) * smoothstep(0.35, 0.7, noise(wpos.xz * 2.3));
-		sc = mix(sc, vec3(0.1, 0.17, 0.05) * (0.8 + 0.4 * n), algae * 0.85);
-		// pebbles
-		vec2 pg = wpos.xz * 2.6;
-		vec2 pi = floor(pg);
-		vec2 pf = fract(pg) - 0.5 - (vec2(hash(pi + 3.1), hash(pi + 9.7)) - 0.5) * 0.5;
-		float peb = (1.0 - smoothstep(0.1, 0.17, length(pf * vec2(1.0, 1.0 + hash(pi + 5.5))))) * step(0.84, hash(pi + 1.7));
-		sc = mix(sc, vec3(0.3, 0.29, 0.25) * (0.6 + 0.7 * hash(pi + 2.2)), peb);
-		col = mix(col, sc, shore);
-		wet = max(wet, (1.0 - dry) * (1.0 - peb) * shore);
-	}
+	// Pond banks: a ragged band of soil round every pool (WorldBuilder.SHORE_GLSL), in this
+	// map's colours: glossy and dark at the water's edge with a fringe of algae, old tide
+	// lines a little way up, then paler drying soil split by cracks, with pebbles pressed in
+	col = shore_bank(col, wpos.xz, edge, n, shore_detail, shore_wet, shore_dry, shore_algae, shore_pebble, wet);
 	if (quake > 0.0) {
 		// Danger everywhere but the pools: pulsing red with stripes crawling toward the water,
 		// and a bright safe rim round every pool's shore
@@ -437,7 +455,7 @@ static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Ima
 	var body := water.heightmap_body()
 	var mesh := water.ground_mesh(1)   # same 1 m grid as collision + placement, so nothing floats
 	var sh := Shader.new()
-	sh.code = GROUND_SHADER
+	sh.code = with_shore(GROUND_SHADER)
 	var sm := ShaderMaterial.new()
 	sm.shader = sh
 	sm.set_shader_parameter("patch_map", ImageTexture.create_from_image(patches))

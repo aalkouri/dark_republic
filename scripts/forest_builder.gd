@@ -27,6 +27,12 @@ const GROUND := {
 	"grass_col": Color(0.42, 0.74, 0.18),
 	"mud_col": Color(0.62, 0.74, 0.22),      # sunny meadow, not mud
 	"wet_amount": 0.0,
+	# Pond banks: dark wet loam at the water, drying to a warm brown earth with mossy edges
+	"shore_detail": 1.0,
+	"shore_wet": Color(0.075, 0.06, 0.04),
+	"shore_dry": Color(0.3, 0.22, 0.13),
+	"shore_algae": Color(0.16, 0.32, 0.08),
+	"shore_pebble": Color(0.42, 0.4, 0.36),
 }
 const POND := {
 	"deep": Color(0.03, 0.22, 0.38),

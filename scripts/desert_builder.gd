@@ -173,6 +173,10 @@ void fragment() {
 	col *= 1.0 - 0.32 * damp;
 	float green = (1.0 - smoothstep(0.5, 5.0, edge + (noise(wpos.xz * 0.7) - 0.5) * 2.5)) * smoothstep(0.35, 0.6, noise(wpos.xz * 1.6));
 	col = mix(col, vec3(0.26, 0.34, 0.1) * (0.8 + 0.4 * n), green * 0.8);
+	// Detailed oasis banks: dark wet sand at the water, cracked drying silt, reeds' green, pebbles
+	float shore_wet_f = 0.0;
+	col = shore_bank(col, wpos.xz, edge, n, 1.0, vec3(0.2, 0.14, 0.08), vec3(0.52, 0.4, 0.26), vec3(0.22, 0.32, 0.1), vec3(0.48, 0.38, 0.28), shore_wet_f);
+	damp = max(damp, shore_wet_f);
 	// Gravel: scattered dark pebbles on the harder ground
 	vec2 pg = wpos.xz * 3.1;
 	vec2 pi = floor(pg);
@@ -710,7 +714,7 @@ static func _ground(parent: Node3D, half: float, water: SwampWater, patches: Ima
 	var body := water.heightmap_body()
 	var mesh := water.ground_mesh(1)
 	var sh := Shader.new()
-	sh.code = GROUND_SHADER
+	sh.code = WorldBuilder.with_shore(GROUND_SHADER)
 	var sm := ShaderMaterial.new()
 	sm.shader = sh
 	sm.set_shader_parameter("patch_map", ImageTexture.create_from_image(patches))

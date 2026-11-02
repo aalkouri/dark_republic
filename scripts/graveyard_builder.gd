@@ -81,6 +81,7 @@ void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 void fragment() {
 	// holes for the ponds (their beds fill them) and for the open graves (their pits do)
 	float bank = 0.0;
+	float edge = 1e6;   // distance outside the nearest pond's shore
 	for (int i = 0; i < 16; i++) {
 		vec4 p = pools[i];
 		if (p.w < 0.5) { continue; }
@@ -93,6 +94,7 @@ void fragment() {
 		float dist = length(d);
 		if (dist < r * 0.985) { discard; }
 		bank = max(bank, 1.0 - smoothstep(r, r + 3.5, dist));
+		edge = min(edge, dist - r);
 	}
 	for (int i = 0; i < 48; i++) {
 		if (i >= hole_count) { break; }
@@ -162,9 +164,11 @@ void fragment() {
 			col = mix(col, lc * (0.55 + 0.25 * n), leaf * 0.85 * (1.0 - pth * 0.6));
 		}
 	}
-	// damp, darker banks round the ponds
+	// damp, darker banks round the ponds, then the detailed bank: black peat at the water,
+	// cracked grey-brown earth drying out, a scum of sickly moss, grey stones
 	col *= 1.0 - 0.35 * bank;
 	wet = max(wet, bank * 0.6);
+	col = shore_bank(col, wpos.xz, edge, n, 1.0, vec3(0.045, 0.04, 0.035), vec3(0.17, 0.145, 0.11), vec3(0.12, 0.16, 0.07), vec3(0.32, 0.31, 0.29), wet);
 	if (curse > 0.0) {
 		// the graves open: everything glows a sickly green, cracks crawling through it, but for
 		// the consecrated ground, which shines warm and safe with a bright rim
@@ -923,7 +927,7 @@ static func _ground(parent: Node3D, water: SwampWater, path_img: Image, dirt_img
 	var body := water.heightmap_body()
 	var mesh := water.ground_mesh(1)
 	var sh := Shader.new()
-	sh.code = GROUND_SHADER
+	sh.code = WorldBuilder.with_shore(GROUND_SHADER)
 	var sm := ShaderMaterial.new()
 	sm.shader = sh
 	sm.set_shader_parameter("path_map", ImageTexture.create_from_image(path_img))

@@ -62,6 +62,44 @@ void fragment() {
 """
 
 const BED_COLOR := Color(0.13, 0.1, 0.07)
+## The pond bed: the bank sloping down into the water and the bottom under it. Mottled soil,
+## glossy-wet and darker toward the waterline with a dark tide stain at it, stones and pebbles,
+## silt and weed below the surface; drier and matte up at the top of the bank.
+const BED_SHADER := """
+shader_type spatial;
+uniform vec3 bed_col : source_color = vec3(0.13, 0.1, 0.07);
+instance uniform float water_y = 0.0;
+varying vec3 wpos;
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+	vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void fragment() {
+	float h = wpos.y - water_y;   // height above the water surface
+	float n = noise(wpos.xz * 1.6) * 0.6 + noise(wpos.xz * 6.5) * 0.4;
+	vec3 col = bed_col * (0.7 + 0.55 * n);
+	// soaked and darker near and below the waterline, a dark tide stain right at it
+	float soak = 1.0 - smoothstep(0.0, 0.7, h);
+	col *= mix(1.0, 0.55, soak);
+	col *= 1.0 - 0.35 * (1.0 - smoothstep(0.0, 0.12, abs(h - 0.04)));
+	// streaks running down the bank where water drained off it
+	float streak = smoothstep(0.55, 0.8, noise(vec2(atan(wpos.x, wpos.z) * 18.0, h * 0.6)));
+	col *= 1.0 - 0.18 * streak * smoothstep(0.0, 0.3, h);
+	// green silt and weed under the surface
+	col = mix(col, vec3(0.1, 0.16, 0.06) * (0.7 + 0.5 * n), (1.0 - smoothstep(-0.6, 0.0, h)) * smoothstep(0.4, 0.7, noise(wpos.xz * 1.1)) * 0.6);
+	// stones and pebbles
+	vec2 pg = wpos.xz * 2.2;
+	vec2 pi = floor(pg);
+	vec2 pf = fract(pg) - 0.5 - (vec2(hash(pi + 3.1), hash(pi + 9.7)) - 0.5) * 0.5;
+	float peb = (1.0 - smoothstep(0.12, 0.2, length(pf * vec2(1.0, 1.0 + hash(pi + 5.5))))) * step(0.78, hash(pi + 1.7));
+	col = mix(col, vec3(0.36, 0.34, 0.3) * (0.5 + 0.7 * hash(pi + 2.2)) * mix(1.0, 0.6, soak), peb);
+	ALBEDO = col;
+	ROUGHNESS = mix(0.92, 0.35, soak * (1.0 - peb * 0.5));
+	SPECULAR = mix(0.3, 0.55, soak);
+}
+"""
 
 # Terrain shape
 const HILL_HEIGHT := 6.5        # broad hills: up to about +/- this many metres
@@ -396,9 +434,11 @@ func near_pool(x: float, z: float, margin: float) -> bool:
 
 ## `look` overrides the water colours: deep, shallow, scum (Color), glow (float), bed (Color).
 func build_meshes(parent: Node3D, look := {}) -> void:
-	var bed_mat := StandardMaterial3D.new()
-	bed_mat.albedo_color = look.get("bed", BED_COLOR)
-	bed_mat.roughness = 0.35
+	var bsh := Shader.new()
+	bsh.code = BED_SHADER
+	var bed_mat := ShaderMaterial.new()
+	bed_mat.shader = bsh
+	bed_mat.set_shader_parameter("bed_col", look.get("bed", BED_COLOR))
 	var wsh := Shader.new()
 	wsh.code = WATER_SHADER
 	var water_mat := ShaderMaterial.new()
@@ -411,6 +451,7 @@ func build_meshes(parent: Node3D, look := {}) -> void:
 		bed.mesh = _polar_mesh(p, true)
 		bed.material_override = bed_mat
 		parent.add_child(bed)
+		bed.set_instance_shader_parameter("water_y", float(p.get("base", 0.0)) + float(p["water_y"]))
 		var water := MeshInstance3D.new()
 		water.mesh = _polar_mesh(p, false)
 		water.material_override = water_mat
