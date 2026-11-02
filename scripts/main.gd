@@ -592,7 +592,7 @@ func _contact_damage() -> void:
 		if thorns > 0.0:
 			for i in hits:
 				if not enemies.is_harmless(i):
-					enemies.damage(i, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * thorns)
+					enemies.damage(i, enemies.t_damage[enemies.typ[i]] * enemy_damage_mult() * thorns, Vector3.ZERO, "Thorns")
 					if db.level_of("weapon_thorns") > 0:
 						fx.burst(enemies.center_of(i), 0.9, Color(0.72, 0.9, 0.3), 0.2)
 		if push.length_squared() < 0.0001:

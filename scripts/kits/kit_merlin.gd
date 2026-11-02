@@ -46,6 +46,7 @@ func _ready() -> void:
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _time_warp()
 		1: _polymorph()
@@ -77,7 +78,9 @@ func tick(dt: float) -> void:
 		var keep := int(REWIND_BACK / HISTORY_STEP) + 1
 		if _history.size() > keep:
 			_history = _history.slice(_history.size() - keep)
+	src(0)
 	_tick_warp(dt)
+	src(1)
 	_tick_frogs(dt)
 
 

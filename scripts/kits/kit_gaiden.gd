@@ -30,6 +30,7 @@ var _clone_spin := 0.0
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _shadow_step()
 		1: _shuriken_storm()
@@ -75,7 +76,9 @@ func tick(dt: float) -> void:
 			k.hub.cooldown = c
 			if charges < STEP_CHARGES:
 				_recharge = float(k.hub.defs()[0]["cooldown"])
+	src(1)
 	_tick_storm(dt)
+	src(2)
 	_tick_clones(dt)
 
 

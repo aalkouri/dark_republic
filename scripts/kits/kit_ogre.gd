@@ -33,6 +33,7 @@ var _rage_light: OmniLight3D
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _bellow()
 		1: _belly_flop()
@@ -52,6 +53,7 @@ func tick(dt: float) -> void:
 		_armor_t -= dt
 		if _armor_t <= 0.0:
 			player.dmg_taken *= BELLOW_ARMOR
+	src(1)
 	_tick_flop(dt)
 	if _rage_t > 0.0:
 		_rage_t -= dt

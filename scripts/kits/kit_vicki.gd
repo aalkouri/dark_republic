@@ -40,6 +40,7 @@ var _horse: Node3D
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _shield_wall()
 		1: _wings_of_valhalla()
@@ -55,8 +56,11 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_wall(dt)
+	src(1)
 	_tick_wings(dt)
+	src(2)
 	_tick_ride(dt)
 
 

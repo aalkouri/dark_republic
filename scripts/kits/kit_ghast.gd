@@ -36,6 +36,7 @@ var _host_glow: OmniLight3D
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _phase()
 		1: _haunt()
@@ -50,7 +51,9 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_phase(dt)
+	src(1)
 	_tick_haunt(dt)
 
 

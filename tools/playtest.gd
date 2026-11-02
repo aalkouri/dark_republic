@@ -199,6 +199,7 @@ func _record(st: String) -> void:
 	detail["shards"] = main.shards_won.duplicate()
 	detail["killed_by"] = main.player.last_hit_by if st == "dead" else ""
 	detail["damage_by"] = main.player.damage_by.duplicate()
+	detail["dealt_by"] = main.enemies.damage_by.duplicate()
 	if st == "dead":
 		detail["last_10s"] = _trace.duplicate()
 		print("  last 10 s:\n    " + "\n    ".join(PackedStringArray(_trace)))

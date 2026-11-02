@@ -127,6 +127,7 @@ func _exit_tree() -> void:
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _web_trap()
 		1: _brood()
@@ -142,8 +143,11 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_web(dt)
+	src(1)
 	_tick_brood(dt)
+	src(2)
 	_tick_cocoon(dt)
 
 

@@ -44,6 +44,7 @@ func _exit_tree() -> void:
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _toll()
 		1: _charge()
@@ -59,8 +60,11 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_toll(dt)
+	src(1)
 	_tick_charge(dt)
+	src(2)
 	_tick_rubble(dt)
 
 

@@ -80,6 +80,11 @@ func mote(at: Vector3, vel: Vector3, life: float, color: Color, size: float, hom
 	k._mote(at, vel, life, color, size, home, drag)
 
 
+## Credit the damage that follows to ability `i` (EnemyManager.damage_by).
+func src(i: int) -> void:
+	k.src(i)
+
+
 func after(secs: float, f: Callable) -> void:
 	k._after(secs, f)
 

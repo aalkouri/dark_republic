@@ -254,7 +254,12 @@ func _dmg() -> float:
 
 
 func _after(secs: float, f: Callable) -> void:
-	_waits.append([secs, f])
+	_waits.append([secs, f, enemies.src])   # the delayed effect is credited like its cast
+
+
+## Credit the damage that follows to ability `i` (EnemyManager.damage_by).
+func src(i: int) -> void:
+	hub.src(i)
 
 
 func cast(i: int) -> void:
@@ -332,18 +337,34 @@ func tick(dt: float) -> void:
 		_waits[k][0] -= dt
 		if _waits[k][0] <= 0.0:
 			var f: Callable = _waits[k][1]
+			enemies.src = str(_waits[k][2])
 			_waits.remove_at(k)
 			f.call()
 	if part:
 		part.tick(dt)
+	if kit == "ice_wizard":
+		src(1)
 	_tick_glacial(dt)
+	if kit == "ice_wizard":
+		src(2)
 	_tick_zero(dt)
+	if kit == "thunder_wizard":
+		src(0)
 	_tick_charge(dt)
+	if kit == "thunder_wizard":
+		src(1)
 	_tick_clap(dt)
+	if kit == "thunder_wizard":
+		src(2)
 	_tick_storm(dt)
+	if kit == "dark_wizard":
+		src(0)
 	_tick_siphon(dt)
+	if kit == "dark_wizard":
+		src(2)
 	_tick_eclipse(dt)
 	if allies:
+		src(1)   # Raise Dead's allies (the Dark Wizard's 2)
 		allies.tick(dt, _dmg() * pw(1))
 	_tick_motes(dt)
 

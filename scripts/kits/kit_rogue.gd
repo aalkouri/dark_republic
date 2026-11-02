@@ -36,6 +36,7 @@ var _cuts_step := 0.15
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _smoke_bomb()
 		1: _pickpocket()
@@ -62,8 +63,11 @@ func weapon_fired() -> void:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_smoke(dt)
+	src(1)
 	_tick_dash(dt)
+	src(2)
 	_tick_cuts(dt)
 
 

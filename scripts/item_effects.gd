@@ -46,7 +46,7 @@ func _on_enemy_killed(p: Vector3, _type_id: int) -> void:
 ## A Blast-Bomb-style explosion at `at` for `dmg` within `r` (queued, resolved next tick).
 func blast(at: Vector3, dmg: float, r: float) -> void:
 	if _blasts.size() < MAX_QUEUED:
-		_blasts.append([at, dmg, r])
+		_blasts.append([at, dmg, r, enemies.src])   # credited to whatever set it off
 
 
 func tick(dt: float) -> void:
@@ -58,7 +58,7 @@ func tick(dt: float) -> void:
 		for e in enemies.query_radius(c, b[2]):
 			var away := enemies.pos[e] - bp
 			away.y = 0.0
-			enemies.damage(e, b[1], away.normalized() * 8.0)
+			enemies.damage(e, b[1], away.normalized() * 8.0, str(b[3]) if b.size() > 3 else "")
 		_spawn_fx(c, b[2])
 	if nb > 0:
 		_blasts = _blasts.slice(nb)
@@ -73,7 +73,7 @@ func tick(dt: float) -> void:
 			for e in enemies.query_radius(c, r):
 				var away := enemies.pos[e] - p
 				away.y = 0.0
-				enemies.damage(e, d, away.normalized() * 8.0)
+				enemies.damage(e, d, away.normalized() * 8.0, "Blast Bomb")
 			_spawn_fx(c, r)
 	_update_fx(dt)
 

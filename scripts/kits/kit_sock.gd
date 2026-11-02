@@ -46,6 +46,7 @@ func _exit_tree() -> void:
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _spin()
 		1: _lost_pair()
@@ -61,8 +62,11 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_spin(dt)
+	src(1)
 	_tick_pair(dt)
+	src(2)
 	_tick_wash(dt)
 
 

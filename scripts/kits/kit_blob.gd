@@ -58,6 +58,7 @@ func _exit_tree() -> void:
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _engulf()
 		1: _split()
@@ -73,8 +74,11 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_engulf(dt)
+	src(1)
 	_tick_split(dt)
+	src(2)
 	_tick_puddle(dt)
 
 

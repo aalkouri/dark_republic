@@ -47,6 +47,7 @@ var _spill_root: Node3D
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _mutagen()
 		1: _death_roll()
@@ -62,9 +63,13 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_mutagen(dt)
+	src(0)
 	_tick_grow(dt)
+	src(1)
 	_tick_roll(dt)
+	src(2)
 	_tick_spill(dt)
 
 

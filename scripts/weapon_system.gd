@@ -84,6 +84,7 @@ var p_hits: Array = []     # PackedInt32Array of enemy uids already hit, per pro
 var p_style := PackedByteArray()   # index into P_KINDS
 var p_target := PackedInt32Array() # homing: uid of the target (0 = none)
 var p_tidx := PackedInt32Array()   # ...and its row last time we looked
+var p_src := PackedStringArray()   # the weapon / ability that fired it (EnemyManager.damage_by)
 
 const SHARD_SLOW := 0.7          # Frost Shards: goblins move at 70% speed...
 const SHARD_SLOW_TIME := 2.0     # ...for 2 s
@@ -249,6 +250,7 @@ func _ready() -> void:
 	p_style.resize(P_MAX)
 	p_target.resize(P_MAX)
 	p_tidx.resize(P_MAX)
+	p_src.resize(P_MAX)
 	buf.resize(P_MAX * P_STRIDE)
 
 	# Projectiles: a hot core, plus a glowing tail (second MultiMesh) stretched along the flight path
@@ -497,8 +499,10 @@ func tick(dt: float) -> void:
 				sig_t[sid] = stats.value(sid + "_cooldown") * scale_of(sty).y / (haste * tempo_of(sty)) if ok else 0.1
 	_update_projectiles(dt)
 	_update_flasks(dt)
+	enemies.src = source_name("orb" if style == "acid" else "sig_acid")
 	_update_acid(dt)
 	_update_clouds(dt)
+	enemies.src = source_name("weapon_aura")
 
 	# --- Stink Aura: damage ticks in a radius
 	if db != null and db.level_of("weapon_aura") > 0:
@@ -537,6 +541,7 @@ func tick(dt: float) -> void:
 				enemies.slow(e, slow, 0.35)
 
 	# --- Ground Slam: periodic knockback nova
+	enemies.src = source_name("weapon_slam")
 	if db != null and db.level_of("weapon_slam") > 0:
 		slam_t -= dt
 		if slam_t <= 0.0:
@@ -549,11 +554,23 @@ func tick(dt: float) -> void:
 				enemies.damage(e, d, away.normalized() * 14.0)
 			_spawn_ring(feet, r)
 	_update_rings(dt)
+	enemies.src = ""
+
+
+## What a weapon's damage is credited to (EnemyManager.damage_by): its card's name ("orb" is
+## your own weapon, renamed to it; "sig_<style>" another character's; "weapon_aura" ...).
+func source_name(id: String) -> String:
+	if id == "orb":
+		id = "weapon_orb"
+	if db != null and db.defs.has(id):
+		return str(db.defs[id]["name"])
+	return id
 
 
 ## Fire one attack of weapon `sty` with stat prefix `pre` ("orb" or "sig_<style>"), from the
 ## player and from any shadow clones (Reed Clones). False if there was nothing to hit.
 func fire(sty: String, pre: String, dmg_mult: float) -> bool:
+	enemies.src = source_name(pre)
 	var mult := dmg_mult
 	if pre == "orb" and kit != null:
 		mult *= kit.weapon_mult()
@@ -1032,7 +1049,7 @@ func _throw_flasks(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase)
 		add_child(mi)
 		mi.global_position = from
 		# a touch of spread in flight time, so a volley lands as a clatter of separate vials
-		_flasks.append({"from": from, "to": to, "t": 0.0, "dmg": dmg, "node": mi, "flight": FLASK_FLIGHT * randf_range(0.92, 1.1)})
+		_flasks.append({"from": from, "to": to, "t": 0.0, "dmg": dmg, "src": enemies.src, "node": mi, "flight": FLASK_FLIGHT * randf_range(0.92, 1.1)})
 	return true
 
 
@@ -1049,6 +1066,7 @@ func _update_flasks(dt: float) -> void:
 		if t >= 1.0:
 			mi.queue_free()
 			_flasks.remove_at(k)
+			enemies.src = str(f.get("src", ""))
 			_flask_burst(f["to"], f["dmg"])
 	for k in range(_puddles.size() - 1, -1, -1):
 		var pd: Dictionary = _puddles[k]
@@ -1062,6 +1080,7 @@ func _update_flasks(dt: float) -> void:
 		pd["tick"] -= dt
 		if pd["tick"] <= 0.0:
 			pd["tick"] = 0.25
+			enemies.src = str(pd.get("src", ""))
 			for e in enemies.query_radius((pd["pos"] as Vector3) + Vector3(0, 0.6, 0), float(pd["r"]), false):
 				enemies.afflict(e, ACID_FRAC, 1.0)
 
@@ -1073,7 +1092,7 @@ func _flask_burst(at: Vector3, dmg: float) -> void:
 		enemies.afflict(e, ACID_FRAC, ACID_TIME)
 	var disc := AcidPuddle.create(r, at, self)
 	_shatter()
-	_puddles.append({"pos": at, "t": ACID_TIME, "disc": disc, "tick": 0.25, "r": r})
+	_puddles.append({"pos": at, "t": ACID_TIME, "disc": disc, "tick": 0.25, "r": r, "src": enemies.src})
 	_spawn_ring(at, r)
 	var light := OmniLight3D.new()
 	light.light_color = Color(0.5, 1.0, 0.3)
@@ -1120,7 +1139,7 @@ func _spore_cloud(at: Vector3) -> void:
 	puff.top_level = true
 	add_child(puff)
 	puff.global_position = at + Vector3(0, 0.7, 0)
-	_clouds.append({"pos": at, "t": SPORE_TIME, "r": r, "tick": 0.0, "disc": disc, "puff": puff})
+	_clouds.append({"pos": at, "t": SPORE_TIME, "r": r, "tick": 0.0, "disc": disc, "puff": puff, "src": enemies.src})
 	spore_clouds = _clouds.size()
 
 
@@ -1160,6 +1179,7 @@ func _update_clouds(dt: float) -> void:
 		c["tick"] -= dt
 		if c["tick"] <= 0.0:
 			c["tick"] = 0.25
+			enemies.src = str(c.get("src", ""))
 			for e in enemies.query_radius((c["pos"] as Vector3) + Vector3(0, 0.6, 0), float(c["r"]), false):
 				enemies.afflict(e, SPORE_FRAC, 1.0)
 	spore_clouds = _clouds.size()
@@ -1268,6 +1288,7 @@ func spawn_projectile(p: Vector3, v: Vector3, life: float, dmg: float, pierce: i
 	p_hits[pc] = PackedInt32Array()
 	p_target[pc] = homing
 	p_tidx[pc] = -1
+	p_src[pc] = enemies.src
 	pc += 1
 
 
@@ -1312,6 +1333,7 @@ func _update_projectiles(dt: float) -> void:
 					dmg *= ARCANE_EPIC
 				elif kind == "ice" and enemies.freeze_t[e] > 0.0:
 					dmg *= SHARD_FROZEN / (1.0 + enemies.freeze_bonus)   # x2 in total, not x2 on top of +50%
+				enemies.src = p_src[i]   # its hit (and a forged blast) count for whoever fired it
 				enemies.damage(e, dmg, p_vel[i].normalized() * 2.5)
 				match kind:
 					"fire":
@@ -1361,6 +1383,7 @@ func _update_projectiles(dt: float) -> void:
 			p_style[i] = p_style[last]
 			p_target[i] = p_target[last]
 			p_tidx[i] = p_tidx[last]
+			p_src[i] = p_src[last]
 			pc -= 1
 			continue
 		var b := i * P_STRIDE

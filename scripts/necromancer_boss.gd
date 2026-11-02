@@ -661,7 +661,7 @@ func _on_die() -> void:
 	for u in _risen_uids:
 		var r := em.index_of(u)
 		if r >= 0:
-			em.damage(r, 1e9)
+			em.damage(r, 1e9, Vector3.ZERO, "-")
 	_risen_uids.clear()
 
 

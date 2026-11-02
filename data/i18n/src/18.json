@@ -1,0 +1,9 @@
+{
+ "Your damage: %s": ["Tu daño: %s", "Vos dégâts : %s", "ضررك: %s", "Dein Schaden: %s", "你的伤害：%s", "与ダメージ：%s"],
+ "Bleed": ["Sangrado", "Saignement", "نزيف", "Blutung", "流血", "出血"],
+ "Burning": ["Quemadura", "Brûlure", "احتراق", "Verbrennung", "燃烧", "炎上"],
+ "Burning Explosions": ["Explosiones ardientes", "Explosions brûlantes", "انفجارات مشتعلة", "Brennende Explosionen", "燃烧爆炸", "炎上爆発"],
+ "Frozen Shatter": ["Estallido helado", "Éclat gelé", "تحطّم متجمّد", "Frostsplitter", "冰冻碎裂", "凍結粉砕"],
+ "Other": ["Otros", "Autre", "أخرى", "Sonstiges", "其他", "その他"],
+ "Poison": ["Veneno", "Poison", "سمّ", "Gift", "毒", "毒"]
+}

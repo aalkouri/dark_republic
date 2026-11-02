@@ -32,6 +32,7 @@ var _moon: OmniLight3D
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _holy_water()
 		1: _stake_volley()
@@ -46,8 +47,11 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_vial(dt)
+	src(0)
 	_tick_pools(dt)
+	src(2)
 	_tick_night(dt)
 
 

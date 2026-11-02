@@ -285,6 +285,7 @@ func reset_cooldowns() -> void:
 func try_cast(i: int) -> bool:
 	if i < 0 or i >= defs().size() or not is_ready(i):
 		return false
+	src(i)
 	if roster:
 		roster.cast(i)
 		if i == METEOR:   # every ultimate sets the woods around it on fire
@@ -300,7 +301,13 @@ func try_cast(i: int) -> bool:
 	var cd: float = defs()[i]["cooldown"] * (stats.value("ability_cdr") if stats.has_stat("ability_cdr") else 1.0) * cd_mult(i)
 	cooldown[i] = roster.adjust_cooldown(i, cd) if roster else cd
 	cast.emit(i)
+	enemies.src = ""
 	return true
+
+
+## Credit the damage that follows to ability `i` (EnemyManager.damage_by).
+func src(i: int) -> void:
+	enemies.src = str(defs()[i]["name"])
 
 
 ## Strength multiplier of ability `i` from its level: 1x at level 1 ... 4x at level 10.
@@ -370,19 +377,24 @@ static func _fmt_mult(m: float) -> String:
 func tick(dt: float) -> void:
 	for i in cooldown.size():
 		cooldown[i] = maxf(0.0, cooldown[i] - dt)
+	src(INFERNO)
 	if _inferno_wait >= 0.0:
 		_inferno_wait -= dt
 		if _inferno_wait < 0.0:
 			_erupt_inferno()
+	src(SHOCKWAVE)
 	if _nova_wait >= 0.0:
 		_nova_wait -= dt
 		if _nova_wait < 0.0:
 			_erupt_shockwave()
+	src(METEOR)
 	_update_meteors(dt)
-	_update_scorches(dt)
+	_update_scorches(dt)   # the Meteor's burning crater
+	src(SHOCKWAVE)
 	_update_shocks(dt)
 	if roster:
 		roster.tick(dt)
+	enemies.src = ""
 
 
 # ------------------------------------------------------------------ 1: Meteor

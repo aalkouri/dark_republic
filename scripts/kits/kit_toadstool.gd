@@ -69,6 +69,7 @@ func _exit_tree() -> void:   # the run is over: no tweens, just go
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _fungal_shield()
 		1: _fairy_ring()
@@ -84,8 +85,11 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_shield(dt)
+	src(1)
 	_tick_ring(dt)
+	src(2)
 	_tick_court(dt)
 
 

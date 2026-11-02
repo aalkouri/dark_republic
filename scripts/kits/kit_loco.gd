@@ -51,6 +51,7 @@ var beam_hits := 0
 
 
 func cast(i: int) -> void:
+	src(i)
 	match i:
 		0: _party()
 		1: _pinata_drop()
@@ -66,9 +67,13 @@ func active(name: String) -> bool:
 
 
 func tick(dt: float) -> void:
+	src(0)
 	_tick_party(dt)
+	src(1)
 	_tick_pinata(dt)
+	src(1)
 	_tick_bombs(dt)
+	src(2)
 	_tick_destroy(dt)
 
 

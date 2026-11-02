@@ -60,6 +60,7 @@ var _hover_slot := -1
 var end_title: Label
 var end_stats: Label
 var end_killer: Label   # what killed you and what hurt most, on a death
+var end_dealt: Label    # your top weapons / abilities by damage dealt
 var end_coin_lines: Label
 var end_exp: Label
 var end_shards: HBoxContainer   # elemental shards won from bosses this run
@@ -660,6 +661,13 @@ func _build_end(root: Control) -> void:
 	end_killer.add_theme_color_override("font_color", Color(1.0, 0.6, 0.5))
 	end_killer.visible = false
 	vb.add_child(end_killer)
+	# Your damage: the weapons and abilities that dealt the most this run
+	end_dealt = _label("", 19)
+	end_dealt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	end_dealt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	end_dealt.add_theme_color_override("font_color", Color(0.75, 0.9, 0.65))
+	end_dealt.visible = false
+	vb.add_child(end_dealt)
 	# Unlocks (after a first boss kill)
 	end_unlocks = VBoxContainer.new()
 	end_unlocks.add_theme_constant_override("separation", 8)
@@ -971,6 +979,13 @@ func show_end(won: bool) -> void:
 		var top: Array = main.player.top_damage_source()
 		end_killer.text = tr("Killed by %s") % source_label(main.player.last_hit_by) + "   ·   " \
 			+ tr("Most damage: %s (%d)") % [source_label(top[0]), int(round(top[1]))]
+	var dealt: Array = main.enemies.top_damage_sources(3)
+	end_dealt.visible = not dealt.is_empty()
+	if end_dealt.visible:
+		var parts := PackedStringArray()
+		for d in dealt:
+			parts.append("%s %s" % [source_label(d[0]), Wallet.fmt(int(round(d[1])))])
+		end_dealt.text = tr("Your damage: %s") % "   ·   ".join(parts)
 	end_root.visible = true
 	# EXP for the character played (kills, elites, boss, chests, time alive, win bonus), banked now
 	var cid := Settings.selected_character

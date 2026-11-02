@@ -146,6 +146,35 @@ void fragment() {
 }
 """
 
+# Damage dealt this run by each weapon / ability / effect (the death screen and the playtest
+# bot read it). Whoever deals damage sets `src` first (WeaponSystem, Abilities and the kits do,
+# per weapon and per ability) or passes a source; damage over time is credited to the effect
+# (Burning, Bleed, Poison) and chain blasts to theirs. Only HP actually removed counts (no
+# overkill). One dictionary add per hit: no measurable cost.
+var src := ""
+var damage_by := {}
+var pct_src := PackedStringArray()      # who applied each enemy's bleed / acid...
+var poison_src := PackedStringArray()   # ...and its poison (credited for the damage over time)
+
+
+func _credit(i: int, amount: float, source: String) -> void:
+	if source == "":
+		source = src if src != "" else "Other"
+	elif source == "-":
+		return   # not the player's doing (a boss culling its own minions)
+	damage_by[source] = float(damage_by.get(source, 0.0)) + minf(amount, maxf(hp[i], 0.0))
+
+
+## The weapons / abilities that have dealt the most damage this run, best first:
+## [[name, damage], ...] (at most `n`).
+func top_damage_sources(n := 3) -> Array:
+	var all := []
+	for k in damage_by:
+		all.append([k, float(damage_by[k])])
+	all.sort_custom(func(a, b): return a[1] > b[1])
+	return all.slice(0, n)
+
+
 # Type table (index = type id)
 var type_names := PackedStringArray()
 var t_hp := PackedFloat32Array()
@@ -223,6 +252,8 @@ func _ready() -> void:
 	for a in [poison_t, poison_f, web_t]:
 		a.resize(MAX)
 	poison_n.resize(MAX)
+	pct_src.resize(MAX)
+	poison_src.resize(MAX)
 	for a in [slow_t, slow_f, freeze_t, stun_t, curse_t, throw_t, throw_anim, fear_t, frog_t, ally_t, pct_t, pct_f, shrink_t, confuse_t, rise_t]:
 		a.resize(MAX)
 	bomber.resize(MAX)
@@ -432,10 +463,11 @@ func spawn(t: int, p: Vector3, hp_mult := 1.0, is_epic := false) -> int:
 
 ## Returns true if this hit killed the enemy. Kill events fire immediately;
 ## the row is removed at the start of the next tick.
-func damage(i: int, amount: float, knockback := Vector3.ZERO) -> bool:
+func damage(i: int, amount: float, knockback := Vector3.ZERO, source := "") -> bool:
 	if dead[i]:
 		return false
 	amount *= damage_mult * taken_mult(i)
+	_credit(i, amount, source)
 	hp[i] -= amount
 	flash[i] = 0.08
 	if numbers != null:
@@ -544,6 +576,7 @@ func afflict(i: int, frac: float, secs: float) -> void:
 		return
 	pct_f[i] = maxf(pct_f[i], frac) if pct_t[i] > 0.0 else frac
 	pct_t[i] = maxf(pct_t[i], secs)
+	pct_src[i] = src
 
 
 ## Poison (Venom Spit, spiderlings): adds a stack (up to `max_stacks`), each `frac` of max HP
@@ -556,6 +589,7 @@ func poison(i: int, frac: float, secs: float, max_stacks: int) -> void:
 	poison_n[i] = mini(poison_n[i] + 1, max_stacks)
 	poison_f[i] = frac
 	poison_t[i] = maxf(poison_t[i], secs)
+	poison_src[i] = src
 
 
 ## Stuck in a web (Web Trap) for `secs`: held in place (the bosses only slowed by half), and
@@ -624,10 +658,11 @@ func pct_scale(i: int) -> float:
 
 
 ## Damage over time (burning ground etc.): no hit flash, numbers totalled twice a second.
-func dot_damage(i: int, amount: float) -> void:
+func dot_damage(i: int, amount: float, source := "") -> void:
 	if dead[i]:
 		return
 	amount *= damage_mult * taken_mult(i)
+	_credit(i, amount, source)
 	hp[i] -= amount
 	burn_acc[i] += amount
 	if hp[i] <= 0.0 or _time >= dot_next[i]:
@@ -818,6 +853,7 @@ func tick(dt: float, player_pos: Vector3) -> void:
 		if burning and not dead[i]:
 			burn_t[i] -= dt
 			var bd := hp_max[i] * burn_dps_frac * dt * damage_mult * (PCT_BOSS if t == TROLL else 1.0)
+			_credit(i, bd, "Burning")
 			hp[i] -= bd
 			burn_acc[i] += bd
 			burn_num_t[i] -= dt
@@ -846,13 +882,13 @@ func tick(dt: float, player_pos: Vector3) -> void:
 				sz[i] /= SHRINK_SIZE
 		if pct_t[i] > 0.0 and not dead[i]:
 			pct_t[i] -= dt
-			dot_damage(i, hp_max[i] * pct_f[i] * dt * (PCT_BOSS if t == TROLL else 1.0))
+			dot_damage(i, hp_max[i] * pct_f[i] * dt * (PCT_BOSS if t == TROLL else 1.0), pct_src[i] if pct_src[i] != "" else "Bleed")
 		if web_t[i] > 0.0:
 			web_t[i] -= dt
 		if poison_t[i] > 0.0 and not dead[i]:
 			poison_t[i] -= dt
 			var pz := hp_max[i] * poison_f[i] * poison_n[i] * dt * (PCT_BOSS if t == TROLL else 1.0)
-			dot_damage(i, pz * (1.0 + web_poison_bonus if web_t[i] > 0.0 else 1.0))
+			dot_damage(i, pz * (1.0 + web_poison_bonus if web_t[i] > 0.0 else 1.0), poison_src[i] if poison_src[i] != "" else "Poison")
 			if poison_t[i] <= 0.0:
 				poison_n[i] = 0
 
@@ -1201,7 +1237,7 @@ func _resolve_explosions() -> void:
 	for e in now:
 		var c := Vector3(e.x, 0.8, e.y)
 		for j in query_radius(c, burn_explode_radius, false):
-			damage(j, e.z)
+			damage(j, e.z, Vector3.ZERO, "Burning Explosions")
 		exploded.emit(Vector3(e.x, 0.6, e.y), burn_explode_radius)
 
 
@@ -1215,7 +1251,7 @@ func _resolve_shatters() -> void:
 	for e in now:
 		var c := Vector3(e.x, 0.8, e.y)
 		for j in query_radius(c, shatter_radius, false):
-			damage(j, e.z)
+			damage(j, e.z, Vector3.ZERO, "Frozen Shatter")
 		shattered.emit(Vector3(e.x, SwampWater.height_at(e.x, e.y) + 0.6, e.y), shatter_radius)
 
 
@@ -1228,7 +1264,7 @@ func _resolve_bursts() -> void:
 	_bursts = _bursts.slice(n)
 	for e in now:
 		for j in query_radius(Vector3(e.x, 0.8, e.y), burst_blast, false):
-			damage(j, e.z)
+			damage(j, e.z, Vector3.ZERO, "Toxic Spill")
 		burst.emit(Vector3(e.x, SwampWater.height_at(e.x, e.y) + 0.5, e.y), burst_blast)
 
 
@@ -1305,6 +1341,8 @@ func _compact() -> void:
 			ally_goal[i] = ally_goal[last]
 			pct_t[i] = pct_t[last]
 			pct_f[i] = pct_f[last]
+			pct_src[i] = pct_src[last]
+			poison_src[i] = poison_src[last]
 			poison_n[i] = poison_n[last]
 			poison_t[i] = poison_t[last]
 			poison_f[i] = poison_f[last]
