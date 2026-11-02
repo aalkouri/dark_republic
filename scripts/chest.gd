@@ -129,4 +129,13 @@ func open() -> void:
 	_hint.visible = false
 	prompt.visible = false
 	_light.light_energy = 3.0
+	var snd := AudioStreamPlayer3D.new()   # latch, creaking hinges, the lid thudding back
+	snd.bus = Settings.SFX_BUS
+	snd.process_mode = Node.PROCESS_MODE_ALWAYS   # the game pauses for the slot machine
+	snd.unit_size = 8.0
+	if ResourceLoader.exists("res://audio/ui/chest_open.wav"):
+		snd.stream = load("res://audio/ui/chest_open.wav")
+	add_child(snd)
+	snd.position.y = 0.5
+	snd.play()
 	opened.emit(self)

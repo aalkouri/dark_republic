@@ -992,7 +992,6 @@ func _open_slot_machine(tier: int) -> void:
 	state = "chest"
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	hud.play_ui("levelup")
 	var m := hud.show_slot_machine(tier, func(a: int, n: int): _on_slot_done(a, n))
 	if smoke:   # smoke runs pull the handle and take the prize by themselves
 		m.pull.call_deferred()
