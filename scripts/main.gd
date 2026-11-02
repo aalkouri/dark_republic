@@ -869,7 +869,7 @@ func _add_xp(v: float) -> void:
 func _open_draft(chained := false) -> void:
 	current_draft = db.draft(3, stats.value("luck"), MAX_WEAPONS)
 	if not chained:
-		hud.play_ui("levelup")   # once per level-up moment, not again for each stacked level
+		hud.play_ui("level_up")   # once per level-up moment, not again for each stacked level
 	if current_draft.is_empty():   # everything maxed: just heal
 		pending_levels = 0
 		player.heal(player.max_hp)
