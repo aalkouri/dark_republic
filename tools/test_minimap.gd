@@ -124,11 +124,12 @@ func _test_blips() -> void:
 	var pm := mm.to_map(pu_at)
 	_check("power-up blip shown, to your right", mm.shown["powerups"].size() >= 1 and absf((pm.x - c.x) - 20.0 * px) < 2.0 and absf(pm.y - c.y) < 2.0, str(pm))
 	_check("ordinary enemies aren't shown (no dots for the crowd)", mm.shown["enemies"] == 0 and mm.shown["elites"] == 0, "%d dots" % mm.shown["enemies"])
-	var all_cols: Array = Minimap.CHEST_COLS + Minimap.KEY_COLS + Minimap.POTION_COLS + Minimap.POWERUP_COLS + Minimap.WAYGATE_COLS + [Minimap.SAFE, Minimap.BOSS, Minimap.SUBBOSS]
+	var all_cols: Array = Minimap.CHEST_COLS + Minimap.POTION_COLS + Minimap.POWERUP_COLS + Minimap.WAYGATE_COLS + [Minimap.SAFE, Minimap.BOSS, Minimap.SUBBOSS]
 	var uniq := {}
 	for col in all_cols:
 		uniq[(col as Color).to_html(false)] = true
-	_check("every kind of blip has its own colour", uniq.size() == all_cols.size(), "%d colours for %d kinds" % [uniq.size(), all_cols.size()])
+	_check("keys match their chest's tier colour", Minimap.KEY_COLS == Minimap.CHEST_COLS, "")
+	_check("every kind of blip has its own colour (keys share their chest's)", uniq.size() == all_cols.size(), "%d colours for %d kinds" % [uniq.size(), all_cols.size()])
 	_check("a power-up past the edge sits on the rim as an arrow", mm.shown["rim"] >= 1, "%d rim arrows" % mm.shown["rim"])
 	# opened chests disappear
 	ch.is_open = true
