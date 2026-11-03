@@ -116,6 +116,12 @@ func _test_select() -> void:
 		await get_tree().process_frame
 		grew = maxf(grew, cs._weapon_icon.scale.x)
 	_check("all collected: the weapon pulses under green plus signs", cs._pluses.active and grew > 1.03 and cs._pluses._plus.size() > 0, "x%.2f, %d pluses" % [grew, cs._pluses._plus.size()])
+	var keep := cs._shown
+	cs._show(cs.index_of("fire_wizard"))   # someone with nothing to forge
+	await get_tree().process_frame
+	_check("switching to a character who can't forge clears the pluses at once (no trailing ones)", not cs._pluses.active and cs._pluses._plus.is_empty(), "%d left" % cs._pluses._plus.size())
+	cs._show(keep)
+	await get_tree().process_frame
 	cs.open_forge()
 	await get_tree().process_frame
 	var fm: ForgeMenu = cs._forge_menu

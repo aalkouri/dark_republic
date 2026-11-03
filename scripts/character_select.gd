@@ -1178,8 +1178,15 @@ class ReqMark extends Control:
 ## Green plus signs popping in and out at random spots on and around the weapon icon while it
 ## can be forged.
 class _PlusSigns extends Control:
-	var active := false
 	var _plus: Array = []   # [pos (0..1 of the icon, a bit beyond), age, life, size]
+	## Off (another character, or nothing to forge): the pluses vanish at once, no trailing fade.
+	var active := false:
+		set(v):
+			if active and not v:
+				_plus.clear()
+				_spawn = 0.0
+				queue_redraw()
+			active = v
 	var _spawn := 0.0
 
 	func _process(dt: float) -> void:
