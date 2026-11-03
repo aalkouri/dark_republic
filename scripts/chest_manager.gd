@@ -84,6 +84,15 @@ func tick(_dt: float) -> void:
 			return   # one at a time
 
 
+## The boss has fallen: every chest still standing vanishes in a puff (opened or not).
+func clear_all() -> void:
+	for c in chests:
+		if is_instance_valid(c) and not c.gone:
+			c.is_open = true   # can't be opened any more
+			c.prompt.visible = false
+			c._vanish()
+
+
 ## Unopened chests, for the minimap / tests.
 func closed_count() -> int:
 	var n := 0

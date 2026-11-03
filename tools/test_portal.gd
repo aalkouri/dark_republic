@@ -60,6 +60,11 @@ func _map(map: String) -> void:
 		if not k in Wallet.map_shards(map):
 			kinds_ok = false
 	_check("%s: killing him doesn't end the run" % map, main.state == "playing" and not main.boss_won and main.boss_down, main.state)
+	var standing := 0
+	for c in main.chests.chests:
+		if is_instance_valid(c) and not c.gone:
+			standing += 1
+	_check("%s: every chest on the map vanishes when he falls" % map, standing == 0 and main.chests.chests.size() > 0, "%d still standing of %d" % [standing, main.chests.chests.size()])
 	_check("%s: he drops 1-5 shard crystals, only the map's kinds %s" % [map, str(Wallet.map_shards(map))], n >= 1 and n <= 5 and kinds_ok, str(rolled))
 	_check("%s: nothing banked yet" % map, _sum(Wallet.shards) == total_before and main.shards_won.is_empty(), str(Wallet.shards))
 	var fall: Vector3 = main._boss_fall_point() if is_instance_valid(boss) else bp

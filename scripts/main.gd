@@ -863,6 +863,7 @@ func _award_shards() -> void:
 ## as before (spawns keep coming), with the portal as a way out.
 func _on_boss_defeated() -> void:
 	gems.magnetise_all()
+	chests.clear_all()   # the map's done: every chest left vanishes
 	first_boss_kill = Wallet.defeat_boss(boss_id)
 	if boss_id == "thog":
 		hud.flash_message("THOG IS DEFEATED!", 4.0)
