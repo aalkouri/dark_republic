@@ -158,5 +158,21 @@
   "Karte",
   "地图",
   "マップ"
+ ],
+ "STAMINA": [
+  "AGUANTE",
+  "ENDURANCE",
+  "القدرة على التحمل",
+  "AUSDAUER",
+  "体力",
+  "スタミナ"
+ ],
+ "Sprint (hold)": [
+  "Correr (mantener)",
+  "Sprint (maintenir)",
+  "ركض سريع (اضغط باستمرار)",
+  "Sprinten (halten)",
+  "冲刺（按住）",
+  "ダッシュ（長押し）"
  ]
 }

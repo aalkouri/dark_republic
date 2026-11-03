@@ -80,6 +80,7 @@ func _ready() -> void:
 	_check("mirror: each dodge signalled", got[0] == dodges, "%d vs %d" % [got[0], dodges])
 
 	_test_draft_slots()
+	await _test_sprint()
 	await _test_world_items()
 	await _test_crypts_and_statues()
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
@@ -89,6 +90,37 @@ func _ready() -> void:
 func _secs(t: float) -> void:
 	for f in int(t * 60):
 		await get_tree().physics_frame
+
+
+## Sprint (Shift): faster while stamina lasts; the HUD bar shows it live; winded at 0.
+func _test_sprint() -> void:
+	var p: Player = main.player
+	p.god_mode = true
+	_check("Sprint is bound to Shift and Slide isn't any more", InputMap.has_action("sprint") and _has_key("sprint", KEY_SHIFT) and not _has_key("slide", KEY_SHIFT), "")
+	p.bot = true
+	p.bot_move = Vector2(0, -1)
+	await _secs(1.0)
+	var walk := p.horizontal_speed()
+	p.bot_sprint = true
+	await _secs(1.0)
+	var run := p.horizontal_speed()
+	_check("sprinting is ~40% faster", run > walk * 1.3, "%.1f vs %.1f m/s" % [run, walk])
+	_check("...and drains stamina (the HUD bar shows it)", p.stamina < 85.0 and p.stamina > 60.0 and is_equal_approx(main.hud.stamina_bar.value, p.stamina), "%.1f, bar %.1f" % [p.stamina, main.hud.stamina_bar.value])
+	await _secs(3.5)
+	_check("run it dry and you're winded (back to walking)", p.winded and not p.sprinting and p.stamina < 5.0, "%.1f" % p.stamina)
+	p.bot_sprint = false
+	p.bot_move = Vector2.ZERO
+	await _secs(2.5)
+	_check("resting refills it", p.stamina > 30.0 and not p.winded, "%.1f" % p.stamina)
+	p.bot = false
+	p.stamina = Player.STAMINA_MAX
+
+
+func _has_key(action: String, key: int) -> bool:
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventKey and (ev as InputEventKey).physical_keycode == key:
+			return true
+	return false
 
 
 ## Items only come from the world: a burnt tree drops one; picking it up pauses on its card.

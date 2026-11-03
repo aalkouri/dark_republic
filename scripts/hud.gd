@@ -11,6 +11,10 @@ const TRAIL_HOLD := 0.35
 const TRAIL_SPEED := 0.9       # fraction of max HP per second it slides down
 var hp_label: Label
 var shield_bar: ProgressBar
+var stamina_bar: ProgressBar
+var stamina_label: Label
+const STAMINA_COL := Color(0.75, 0.95, 0.3)
+const WINDED_COL := Color(1.0, 0.45, 0.12)
 var xp_bar: ProgressBar
 var level_label: Label
 var timer_label: Label
@@ -123,6 +127,16 @@ func setup(m) -> void:
 	hp_label = _label("", 16)
 	hp_label.position = Vector2(30, 53)
 	root.add_child(hp_label)
+	# Stamina (Sprint): a thin yellow-green bar under the health bar, live; it flashes orange
+	# while you're winded (ran it dry) and dims when it's full
+	stamina_bar = _bar(STAMINA_COL)
+	stamina_bar.position = Vector2(20, 89)
+	stamina_bar.size = Vector2(240, 9)
+	stamina_bar.max_value = Player.STAMINA_MAX
+	root.add_child(stamina_bar)
+	stamina_label = _label(tr("STAMINA"), 11)
+	stamina_label.position = Vector2(266, 85)
+	root.add_child(stamina_label)
 
 	timer_label = _label("00:00", 40)
 	timer_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -251,6 +265,21 @@ func _bar(fill: Color) -> ProgressBar:
 	b.add_theme_stylebox_override("fill", fg)
 	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return b
+
+
+func _update_stamina(p: Player) -> void:
+	stamina_bar.value = p.stamina
+	var full := p.stamina >= Player.STAMINA_MAX - 0.01
+	var fg := stamina_bar.get_theme_stylebox("fill") as StyleBoxFlat
+	if p.winded:
+		var f := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.012)
+		fg.bg_color = WINDED_COL.lerp(Color(1.0, 0.8, 0.5), f * 0.4)
+	else:
+		fg.bg_color = STAMINA_COL.lightened(0.15) if p.sprinting else STAMINA_COL
+	var a := 0.55 if full else 1.0
+	stamina_bar.modulate.a = a
+	stamina_label.modulate.a = a
+	stamina_label.add_theme_color_override("font_color", WINDED_COL if p.winded else Color(0.85, 0.95, 0.7))
 
 
 func _dim(root: Control) -> Control:
@@ -1618,6 +1647,7 @@ func _process(dt: float) -> void:
 		hp_label.text += "   " + tr("+%d shield") % ceili(p.shield)
 		shield_bar.max_value = p.max_hp
 		shield_bar.value = minf(p.shield, p.max_hp)
+	_update_stamina(p)
 	xp_bar.max_value = main.xp_next
 	xp_bar.value = main.xp
 	level_label.text = tr("LV %d") % main.level

@@ -14,7 +14,8 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 |---|---|---|
 | Move / look | WASD + mouse | Left / right stick |
 | Jump (buffered, coyote time) | Space | A |
-| Slide | Shift, Ctrl or C | B / LB |
+| Sprint (hold) | Shift | Left stick click |
+| Slide | Ctrl or C | B / LB |
 | Abilities: Inferno / Fire Nova / Meteor (ultimate) | 1 / 2 / 3 (or click the slot) | X / Y / RB |
 | Pick level-up card | Mouse click | |
 | Pause | Esc | Start |
@@ -22,6 +23,8 @@ A 3D survivors-like roguelite prototype in **Godot 4.7 (GDScript)**: survive 10 
 | Inspect (pauses; hover an ability or one of your upgrades for details) | Hold Alt | |
 | Activate: open a chest (with its key), take a power-up | E ("Press E" shows over them) | D-pad up |
 | Debug overlay / spawn 200 enemies / reset cooldowns | F1 / F2 / F3 | |
+
+**Sprint and stamina:** hold Sprint while moving on the ground to run 40% faster. It drains stamina (full lasts 4 s); stop sprinting and it starts refilling after 0.7 s (full again in about 4.5 s). Run it dry and you're **winded**: no sprint until it's back to 30%. The thin yellow-green **STAMINA** bar under your health shows it live (brighter while sprinting, flashing orange while winded, dimmed when full). `Player.STAMINA_*`, `hud._update_stamina`.
 
 **Movement tech:** jump on the frame you land to keep momentum (bhop), and strafe and turn in the air to gain speed. Slide while running for a burst; sliding down ramps accelerates you, and slide-jumping keeps the speed.
 

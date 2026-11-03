@@ -26,6 +26,14 @@ const SLIDE_FRICTION := 0.45
 const SLIDE_BOOST := 5.0
 const SLIDE_MIN_SPEED := 4.0
 const SLIDE_COOLDOWN := 0.8
+# Sprint (hold Sprint while moving on the ground): faster, draining stamina; it refills after a
+# short rest. Run it dry and you're winded until it's back to SPRINT_RESUME.
+const SPRINT_MULT := 1.4
+const STAMINA_MAX := 100.0
+const STAMINA_DRAIN := 25.0       # per second sprinting (4 s from full)
+const STAMINA_REGEN := 22.0       # per second once resting
+const STAMINA_DELAY := 0.7        # rest this long before it refills
+const SPRINT_RESUME := 30.0       # winded: can't sprint again until it's back to this
 const SLIDE_STEER := 6.0
 const SLOPE_GAIN := 1.3
 const MAX_HSPEED := 32.0
@@ -117,6 +125,11 @@ var _air_jumps := 0
 var _land_grace := 0.0
 var _prev_floor := false
 var _slide_cd := 0.0
+var stamina := STAMINA_MAX
+var sprinting := false
+var winded := false               # ran it dry: no sprint until SPRINT_RESUME
+var _stamina_rest := 0.0
+var bot_sprint := false
 
 var rig: Node3D
 var spring: SpringArm3D
@@ -233,14 +246,17 @@ func _physics_process(dt: float) -> void:
 	var input: Vector2
 	var jump_pressed: bool
 	var slide_held: bool
+	var sprint_held: bool
 	if bot:
 		input = bot_move
 		jump_pressed = bot_jump
 		slide_held = bot_slide
+		sprint_held = bot_sprint
 	else:
 		input = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 		jump_pressed = Input.is_action_just_pressed("jump")
 		slide_held = Input.is_action_pressed("slide")
+		sprint_held = InputMap.has_action("sprint") and Input.is_action_pressed("sprint")
 		var look := Input.get_vector("look_left", "look_right", "look_up", "look_down")
 		cam_yaw -= look.x * PAD_LOOK_SPEED * dt
 		cam_pitch = clampf(cam_pitch - look.y * PAD_LOOK_SPEED * dt, -1.25, 0.4)
@@ -266,6 +282,7 @@ func _physics_process(dt: float) -> void:
 		web_t -= dt
 		jump_pressed = false
 		_jump_buf = 0.0
+	move_speed *= _tick_stamina(dt, sprint_held and wish_len > 0.1 and root_t <= 0.0)
 
 	if jump_pressed:
 		_jump_buf = JUMP_BUFFER
@@ -367,6 +384,24 @@ func _physics_process(dt: float) -> void:
 	hp = minf(hp + stats.value("regen") * dt, max_hp)
 	invuln -= dt
 	_update_visuals(dt)
+
+
+## Sprint and stamina. Returns the speed multiplier for this frame.
+func _tick_stamina(dt: float, want: bool) -> float:
+	if winded and stamina >= SPRINT_RESUME:
+		winded = false
+	sprinting = want and not winded and stamina > 0.0
+	if sprinting:
+		stamina = maxf(0.0, stamina - STAMINA_DRAIN * dt)
+		_stamina_rest = STAMINA_DELAY
+		if stamina <= 0.0:
+			winded = true
+			sprinting = false
+	else:
+		_stamina_rest -= dt
+		if _stamina_rest <= 0.0:
+			stamina = minf(STAMINA_MAX, stamina + STAMINA_REGEN * dt)
+	return SPRINT_MULT if sprinting else 1.0
 
 
 ## Phased: slide straight through walls and trees, feet kept on whatever floor is below.

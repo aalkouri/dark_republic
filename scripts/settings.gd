@@ -21,7 +21,7 @@ const SFX_BUS := "SFX"
 const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"],
 	["move_left", "Move left"], ["move_right", "Move right"],
-	["jump", "Jump"], ["slide", "Slide"],
+	["jump", "Jump"], ["sprint", "Sprint (hold)"], ["slide", "Slide"],
 	["ability_1", "Ability 1"], ["ability_2", "Ability 2"],
 	["ability_3", "Ultimate"], ["pause", "Pause / menu"],
 	["inspect", "Inspect abilities (hold)"],
