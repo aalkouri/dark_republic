@@ -209,7 +209,20 @@ Once bought, every character's weapon can also turn up for the others as a rare 
 
 New goblin statuses for these: flee, frog, possessed and bleed/acid (`EnemyManager.scare / frog / afflict`, `ally_t`). Frogs, possessed and fleeing goblins can't hurt you. Sounds come from `tools/gen_kit_sounds.py`. **Test:** `godot --headless --path . res://tools/test_kits.tscn [-- --only=<id>]` plays each of the nine and checks its model, weapon and all three abilities. Thog's sounds come from `tools/gen_thog_kit_sounds.py`, the sock's from `tools/gen_sock_sounds.py`, Loco Robotico's (and his maraca shake) from `tools/gen_loco_sounds.py`, the Blob's from `tools/gen_blob_sounds.py`, the Arachnid's (and her spit) from `tools/gen_arachnid_sounds.py`, the Toadstool Knight's (and his sword's swish) from `tools/gen_toadstool_sounds.py`, the Pharaoh's, the Necromancer's and Singe's (and their weapons' shots) from `tools/gen_playable_boss_sounds.py`. **Test:** `godot --headless --fixed-fps 60 --path . res://tools/test_playable_bosses.tscn [-- --only=pharaoh|necromancer|singe]` checks their bodies (size, holstering, poses), weapons, all three abilities and their cooldowns, the forge recipe and special, the character select preview, the unlock rules and a run on a map that isn't home.
 
-**The last six** (Death, Billy Bulldog, Cowboy, the Sentient Platypus, the Bog Witch and Kong) are built in code from primitives by `HeroBody` (`scripts/hero_body.gd`): one jointed humanoid (hips, torso, head, two-part arms and legs) dressed per character (a robed skeleton with a scythe who glides, a stocky bulldog on his hind legs with a spiked collar and wagging tail, a gunslinger in a hat, a platypus in a top hat and monocle with a beaver tail and heel spurs, a hunched green witch with her ladle, a gorilla with long arms and broken shackles) and posed by hand every frame: walk / run, idle breathing, the weapon move (a full spin, a lunging bite, aim and recoil, a spur kick, an overhead lob), casts with both arms up (Kong beats his chest), a flinch, and a topple (Death's robe empties and sinks). They plug in through `PlayableBoss` like the boss bodies. Their kits (`kit_death.gd`, `kit_bulldog.gd`, `kit_cowboy.gd`, `kit_platypus.gd`, `kit_witch.gd`, `kit_kong.gd`):
+**The last six** are Death, Billy Bulldog, Cowboy, the Sentient Platypus, the Bog Witch and Kong. **Kong has a rigged model of his own** (`models/kong/`): a fur-textured silverback in rusty broken shackles, made with Higgsfield (a concept image, then Tripo H3.1 image-to-3D with detailed PBR textures, rigged by Meshy, textures shrunk to 2K JPEGs). He plays the Ogre's clips (idle, run, the two-handed smash, the ground slam, hit), re-targeted onto his skeleton by `tools/retarget_clips.gd`. Copying clips straight across between Meshy rigs twists the body, because each rig has its own rest pose, so the tool carries every bone's rotation away from its rest over in skeleton space and scales the hip movement to the new height:
+
+```bash
+godot --headless --path . --script res://tools/retarget_clips.gd -- ogre $PWD/models/kong/kong.glb res://models/kong/anims.res
+```
+
+(Meshy's rigger expects the model to face +Z. Tripo's output faced +X and had to be turned first, or the skeleton gets fitted to the side profile.) The other five are built in code from primitives by `HeroBody` (`scripts/hero_body.gd`), which still has a code-built gorilla too. `HeroBody` is one jointed humanoid (hips, torso, head, two-part arms and legs) dressed per character:
+- a robed skeleton with a scythe who glides
+- a stocky bulldog on his hind legs with a spiked collar and wagging tail
+- a gunslinger in a hat
+- a platypus in a top hat and monocle, with a beaver tail and heel spurs
+- a hunched green witch with her ladle
+
+They are posed by hand every frame: walk / run, idle breathing, the weapon move (a full spin, a lunging bite, aim and recoil, a spur kick, an overhead lob), casts with both arms up, a flinch, and a topple (Death's robe empties and sinks). They plug in through `PlayableBoss` like the boss bodies. Their kits (`kit_death.gd`, `kit_bulldog.gd`, `kit_cowboy.gd`, `kit_platypus.gd`, `kit_witch.gd`, `kit_kong.gd`):
 
 | Character | 1 | 2 (Lv 5) | 3 Ultimate (Lv 10) |
 |---|---|---|---|

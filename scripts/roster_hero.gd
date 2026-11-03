@@ -148,7 +148,7 @@ const CFG := {
 		"main": Color(1.0, 0.5, 0.12), "deep": Color(0.25, 0.06, 0.03), "light": Color(1.0, 0.85, 0.4),
 		"motes": false,
 	},
-	# The last six, built in code from primitives (HeroBody, through PlayableBoss)
+	# Five of the last six, built in code from primitives (HeroBody, through PlayableBoss)
 	"death": {
 		"procedural": "death",
 		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
@@ -179,9 +179,11 @@ const CFG := {
 		"main": Color(0.72, 0.9, 0.25), "deep": Color(0.15, 0.25, 0.08), "light": Color(0.92, 1.0, 0.7),
 		"motes": false,
 	},
+	# Kong has his own rigged model (Higgsfield/Tripo, rigged by Meshy) playing the Ogre's clips,
+	# re-targeted to his skeleton by tools/retarget_clips.gd
 	"kong": {
-		"procedural": "kong",
-		"fire": [], "fire_speed": 1.0, "cast": [[], [], []], "cast_speed": [1.0, 1.0, 1.0],
+		"fire": [0.75, 1.87], "fire_speed": 1.4,
+		"cast": [[0.4, 1.5], [1.5, 2.7], [0.4, 1.5]], "cast_speed": [1.2, 1.4, 1.0],
 		"main": Color(1.0, 0.6, 0.25), "deep": Color(0.25, 0.2, 0.15), "light": Color(1.0, 0.88, 0.65),
 		"motes": false,
 	},
