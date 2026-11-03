@@ -4,16 +4,22 @@ extends SceneTree
 ## the local rotations straight across twists the body). Each frame, every bone's rotation away
 ## from its rest is taken in skeleton space and applied to the target's rest; the Hips' movement
 ## is scaled by the ratio of hip heights. Clips are resampled at 30 fps.
-##   godot --headless --path . --script res://tools/retarget_clips.gd -- <from id> <target .glb> <out anims.res>
+##   godot --headless --path . --script res://tools/retarget_clips.gd -- <from id | rigged .glb with clips> <target .glb> <out anims.res>
 
 const FPS := 30.0
 
 
 func _initialize() -> void:
 	var a := OS.get_cmdline_user_args()
-	var src_sk := _skeleton("res://models/%s/%s.glb" % [a[0], a[0]])
+	var src_sk: Skeleton3D
+	var lib_in: AnimationLibrary
+	if a[0].ends_with(".glb"):   # a clip baked into a rigged GLB (e.g. a Meshy animation)
+		src_sk = _skeleton(a[0])
+		lib_in = _clips_of(a[0])
+	else:
+		src_sk = _skeleton("res://models/%s/%s.glb" % [a[0], a[0]])
+		lib_in = load("res://models/%s/anims.res" % a[0])
 	var dst_sk := _skeleton(a[1])
-	var lib_in: AnimationLibrary = load("res://models/%s/anims.res" % a[0])
 	var lib_out := AnimationLibrary.new()
 	var hips_s := src_sk.find_bone("Hips")
 	var hips_d := dst_sk.find_bone("Hips")
@@ -24,6 +30,20 @@ func _initialize() -> void:
 		print("retargeted %-8s %.2fs" % [an, anim.length])
 	ResourceSaver.save(lib_out, a[2], ResourceSaver.FLAG_COMPRESS)
 	quit()
+
+
+## The clips inside a rigged GLB, named without the "Armature|" prefix.
+func _clips_of(path: String) -> AnimationLibrary:
+	var doc := GLTFDocument.new()
+	var st := GLTFState.new()
+	doc.append_from_file(path, st)
+	var scene := doc.generate_scene(st)
+	var lib := AnimationLibrary.new()
+	for ap in scene.find_children("*", "AnimationPlayer", true, false):
+		for an in (ap as AnimationPlayer).get_animation_list():
+			var raw := an.split("|")[1] if "|" in an else str(an)
+			lib.add_animation(raw, (ap as AnimationPlayer).get_animation(an))
+	return lib
 
 
 func _skeleton(path: String) -> Skeleton3D:

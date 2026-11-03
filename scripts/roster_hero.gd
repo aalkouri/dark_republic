@@ -180,10 +180,12 @@ const CFG := {
 		"motes": false,
 	},
 	# Kong has his own rigged model (Higgsfield/Tripo, rigged by Meshy) playing the Ogre's clips,
-	# re-targeted to his skeleton by tools/retarget_clips.gd
+	# re-targeted to his skeleton by tools/retarget_clips.gd. His "ability" clip is the Ogre's
+	# (0-3.03 s) with Meshy's Chest_Pound_Taunt appended (from 3.08 s): Chest Pound and Rampage
+	# beat his chest, Log Toss keeps the Ogre's heave.
 	"kong": {
 		"fire": [0.75, 1.87], "fire_speed": 1.4,
-		"cast": [[0.4, 1.5], [1.5, 2.7], [0.4, 1.5]], "cast_speed": [1.2, 1.4, 1.0],
+		"cast": [[4.4, 6.5], [1.5, 2.7], [4.4, 6.5]], "cast_speed": [1.4, 1.4, 1.3],
 		"main": Color(1.0, 0.6, 0.25), "deep": Color(0.25, 0.2, 0.15), "light": Color(1.0, 0.88, 0.65),
 		"motes": false,
 	},
