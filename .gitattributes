@@ -1,0 +1,7 @@
+# Godot writes its text files (.gd, .tscn, .import, ...) with LF line endings.
+# Check them out with LF too, so Windows git tools (GitHub Desktop) don't convert
+# them to CRLF and make Godot's rewrites show up as changes.
+* text=auto eol=lf
+
+# Windows batch files need CRLF; leave them exactly as committed.
+*.bat -text
