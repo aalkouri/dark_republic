@@ -11,6 +11,7 @@ signal closed
 
 const TABS := [["upgrades", "Upgrades"], ["weapon", "Weapons"], ["tome", "Tomes"], ["item", "Items"], ["map", "Maps"]]
 const SQ := 112.0
+const GREY := Color(0.38, 0.38, 0.4)   # a new weapon / tome / item before you hover it
 const DOT := Color(1.0, 0.22, 0.2)
 
 var tab := "upgrades"
@@ -282,6 +283,30 @@ func _add_square(key: String, kind: String, id: String) -> void:
 	dot.position = Vector2(SQ - 22, 4)
 	dot.visible = Wallet.is_new(key)
 	b.add_child(dot)
+	# A newly found weapon, tome or item waits greyed out with its reward on it ("150" and a
+	# coin, in full colour); hovering it pays out and brings the square back to life.
+	var reward: Control = null
+	if kind in Unlocks.REWARD_KINDS and Wallet.is_new(key):
+		b.self_modulate = GREY
+		if art != null:
+			art.modulate = GREY
+		var row := HBoxContainer.new()
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.add_theme_constant_override("separation", 4)
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.set_anchors_preset(Control.PRESET_FULL_RECT)
+		var amt := _lbl(str(Unlocks.DISCOVERY_REWARD), 26, Color(1.0, 0.85, 0.3))
+		amt.add_theme_color_override("font_outline_color", Color(0.1, 0.06, 0.02))
+		amt.add_theme_constant_override("outline_size", 6)
+		amt.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(amt)
+		var coin := CoinIcon.new()
+		coin.custom_minimum_size = Vector2(26, 26)
+		coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(coin)
+		b.add_child(row)
+		reward = row
 	# Under it: the name; upgrades add their level pips and the next level's cost
 	var name_s := _name_of(kind, id) if open else "???"
 	var nl := _lbl(name_s, 15, Color(0.9, 0.85, 0.78) if open else Color(0.5, 0.46, 0.42))
@@ -300,7 +325,7 @@ func _add_square(key: String, kind: String, id: String) -> void:
 		cl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(cl)
 		b.pressed.connect(func(): buy(id))
-	var sq := {"btn": b, "key": key, "kind": kind, "id": id, "dot": dot}
+	var sq := {"btn": b, "key": key, "kind": kind, "id": id, "dot": dot, "art": art, "reward": reward}
 	_squares.append(sq)
 	b.mouse_entered.connect(func(): _hover(sq, true))
 	b.mouse_exited.connect(func(): _hover(sq, false))
@@ -339,6 +364,12 @@ func _hover(sq: Dictionary, on: bool) -> void:
 		# a newly found weapon, tome or item pays out (coins fly from it into the counter)
 		if str(sq["kind"]) in Unlocks.REWARD_KINDS:
 			Wallet.payout(Unlocks.DISCOVERY_REWARD, (sq["btn"] as Control).get_global_rect().get_center())
+			(sq["btn"] as Control).self_modulate = Color.WHITE
+			if sq.get("art") != null:
+				(sq["art"] as Control).modulate = Color.WHITE
+			if sq.get("reward") != null:
+				(sq["reward"] as Control).queue_free()
+				sq["reward"] = null
 	_tip_text.text = _describe(str(sq["kind"]), str(sq["id"]))
 	_tip.visible = true
 	_tip.reset_size()
