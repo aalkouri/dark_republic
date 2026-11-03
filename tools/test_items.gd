@@ -161,8 +161,15 @@ func _test_world_items() -> void:
 		main.enemies.fire_hits.append(tree.global_position + Vector3(1, 0, 0))
 		await _secs(0.4)
 		_check("an ability hitting a goblin by a tree sets it alight", TreeFire.state_of(tree) == "burning", TreeFire.state_of(tree))
+		idrops.shard_chance = 0.0
+		var n_before := idrops.count()
 		await _secs(TreeFire.BURN_TIME + 0.3)
-		_check("...it burns out in 3 s and drops an item", TreeFire.state_of(tree) == "charred" and idrops.count() >= 1, "%s, %d drops" % [TreeFire.state_of(tree), idrops.count()])
+		_check("...it burns out in 3 s and crumbles to dust", is_instance_valid(tree) and TreeFire.state_of(tree) == "charred" and idrops.count() == n_before, "%d drops" % idrops.count())
+		var spot := tree.global_position
+		await _secs(TreeFire.COLLAPSE + 0.3)
+		_check("...then it's gone and its item is left where it stood", not is_instance_valid(tree) and idrops.count() == n_before + 1
+			and Vector2((idrops.drops[idrops.drops.size() - 1]["to"] as Vector3).x - spot.x, (idrops.drops[idrops.drops.size() - 1]["to"] as Vector3).z - spot.z).length() < 2.5, "%d drops" % idrops.count())
+	idrops.shard_chance = ItemDrops.SHARD_CHANCE
 	# a rare shard instead of an item: one of this map's kinds
 	idrops.shard_chance = 1.0
 	var got := idrops.loot(p.global_position + Vector3(6, 0, 0))

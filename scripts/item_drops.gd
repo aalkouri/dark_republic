@@ -45,12 +45,12 @@ func _exit_tree() -> void:
 func _on_prop_burnt(at: Vector3) -> void:
 	if main == null or main.state in ["dead", "won"]:
 		return
-	loot(at)
+	loot(at, Vector3.INF, true)   # left in the ash where the tree stood
 
 
 ## Drop a random item (or, rarely, a shard of this map) bursting out of `at`. Returns what dropped:
 ## an item id, "shard:<kind>", or "" if every item is maxed.
-func loot(at: Vector3, toward := Vector3.INF) -> String:
+func loot(at: Vector3, toward := Vector3.INF, in_place := false) -> String:
 	if main.rng.randf() < shard_chance and main.aftermath != null:
 		var kinds: Array = Wallet.map_shards(Settings.selected_map)
 		var kind: String = kinds[main.rng.randi() % kinds.size()]
@@ -60,16 +60,18 @@ func loot(at: Vector3, toward := Vector3.INF) -> String:
 	if id == "":
 		return ""
 	var pick: Dictionary = main.db.item_pick(id, main.stats.value("luck"))
-	spawn(pick, at, toward)
+	spawn(pick, at, toward, in_place)
 	return id
 
 
-func spawn(pick: Dictionary, at: Vector3, toward := Vector3.INF) -> void:
+func spawn(pick: Dictionary, at: Vector3, toward := Vector3.INF, in_place := false) -> void:
 	var rng: RandomNumberGenerator = main.rng
 	var from := at + Vector3(0, 1.6, 0)
 	var to := at
 	var dir := Vector3(toward.x - at.x, 0, toward.z - at.z) if toward != Vector3.INF else Vector3.ZERO
-	for tries in 10:   # land on good ground a few metres out (toward the player for doors)
+	if in_place:   # rises gently out of the ash where it was (a burnt tree)
+		from = at + Vector3(0, 0.1, 0)
+	for tries in (0 if in_place else 10):   # land on good ground a few metres out (toward the player for doors)
 		var a := (atan2(dir.z, dir.x) + rng.randf_range(-0.5, 0.5)) if dir.length() > 0.1 else rng.randf() * TAU
 		var q := at + Vector3(cos(a), 0, sin(a)) * rng.randf_range(1.8, 3.2) * (1.0 - tries * 0.08)
 		if main.aftermath == null or main.aftermath._good_ground(q):
@@ -110,7 +112,7 @@ func spawn(pick: Dictionary, at: Vector3, toward := Vector3.INF) -> void:
 	ring.visible = false
 	add_child(ring)
 	drops.append({"node": root, "spin": spin, "ring": ring, "id": pick["id"], "rarity": int(pick["rarity"]),
-		"from": from, "to": to, "t": 0.0, "time": rng.randf_range(0.7, 0.9), "peak": rng.randf_range(2.2, 3.2),
+		"from": from, "to": to, "t": 0.0, "time": rng.randf_range(0.7, 0.9) if not in_place else 0.9, "peak": rng.randf_range(2.2, 3.2) if not in_place else 0.5,
 		"landed": false, "pulled": false, "age": 0.0})
 	_play("item_drop", at, -4.0)
 

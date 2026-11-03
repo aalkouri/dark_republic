@@ -320,7 +320,7 @@ Each map card in the picker shows its two shards over the corner of the picture.
 
 Items don't come from level-ups. They come from the world (`item_drops.gd`):
 
-- **Burning trees:** every ability (not just ultimates) sets trees, fallen logs and burnable props alight: those within 6 m of you when you cast, and those near any goblin an ability hits. A tree burns for **3 s** (`TreeFire.BURN_TIME`, was 15 s), then crumbles and **drops a random item** that can still level up (weighted, rarity rolled with your Luck).
+- **Burning trees:** every ability (not just ultimates) sets trees, fallen logs and burnable props alight: those within 6 m of you when you cast, and those near any goblin an ability hits. A tree burns for **3 s** (`TreeFire.BURN_TIME`, was 15 s), then crumbles to dust and **leaves a random item** where it stood, one that can still level up (weighted, rarity rolled with your Luck).
 - **Graveyard crypts:** walk up to a crypt door and press Activate (E): the item comes out of the door, then the whole crypt grinds down into the earth and is gone (so you never try the same one twice), clearing the path.
 - **Desert statues:** the colossi and ram-sphinx avenues work the same way: Activate at the base, the item comes out, the statue sinks into the sand.
 - **Rarely (2%) a shard** of the current map's kinds drops instead of an item.
@@ -512,7 +512,7 @@ The two outdoor maps share the same 440 m arena, terrain generator (hills, berm,
 
 ### Fire in the woods
 
-Trees, fallen logs and bushes all burn (`TreeFire`, `BushField.ignite`). The Fire Wizard's Meteor lights everything in its blast. **Every other character's ultimate** sets the woods around them ablaze too (`Abilities.ULT_FIRE_RADIUS`: 10-30 m depending on the ultimate's reach). A tree burns for 3 s and a bush for 7 s, charring black. Then the remains crumble into the ground and are **gone**, collision and all, leaving the ground clean (no scorch mark). Nothing burns twice.
+Trees, fallen logs and bushes all burn (`TreeFire`, `BushField.ignite`). The Fire Wizard's Meteor lights everything in its blast. **Every other character's ultimate** sets the woods around them ablaze too (`Abilities.ULT_FIRE_RADIUS`: 10-30 m depending on the ultimate's reach). A tree burns for 3 s and a bush for 7 s, charring black. Then the charred remains **crumble to dust** (a cloud of ash and cinders pouring off as it sinks in on itself, 1.4 s) and are **gone**, collision and all, leaving the ground clean (no scorch mark) and the tree's **item left in the ash where it stood**. Nothing burns twice.
 
 ## The Castle
 
