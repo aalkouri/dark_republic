@@ -185,6 +185,16 @@ func _test_unlocks(title: Node) -> void:
 	um.show_tab("map")
 	await get_tree().process_frame
 	_check("Maps tab: one square per map", um._squares.size() == MapPicker.MAPS.size(), "")
+	Wallet.mark_new("map:swamp")
+	um.show_tab("map")
+	await get_tree().process_frame
+	var msq: Dictionary = um._squares.filter(func(q): return q["key"] == "map:swamp")[0]
+	_check("a new map waits greyed out with its reward on it", msq["reward"] != null and (msq["btn"] as Control).self_modulate != Color.WHITE, "")
+	var c1 := Wallet.coins
+	um._hover(msq, true)
+	_check("hovering the new Swamp pays 1,000 coins", Wallet.coins == c1 + 1000 and (msq["btn"] as Control).self_modulate == Color.WHITE, "%d -> %d" % [c1, Wallet.coins])
+	um._hover(msq, false)
+	_check("map rewards: Forest 1,500, Castle and Desert 3,000, Graveyard and Caldera 5,000", Unlocks.reward_for("map", "forest") == 1500 and Unlocks.reward_for("map", "castle") == 3000 and Unlocks.reward_for("map", "desert") == 3000 and Unlocks.reward_for("map", "graveyard") == 5000 and Unlocks.reward_for("map", "caldera") == 5000, "")
 	um.close()
 	await get_tree().process_frame
 	_check("Back closes it", not um.visible and title._menu.visible, "")

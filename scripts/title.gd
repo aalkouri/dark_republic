@@ -618,12 +618,12 @@ func _leave(scene: String, fade: float) -> void:
 	tw.chain().tween_callback(func(): Loader.go(scene))
 
 
-## Testing cheat (remove before release): F8 on the title adds 100,000 coins.
+## Testing cheat (remove before release): F10 on the title adds 100,000 coins.
 const CHEAT_COINS := 100000
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_F8:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_F10:
 		Wallet.add(CHEAT_COINS)
 		get_viewport().set_input_as_handled()
 		return

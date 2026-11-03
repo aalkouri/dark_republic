@@ -283,10 +283,10 @@ func _add_square(key: String, kind: String, id: String) -> void:
 	dot.position = Vector2(SQ - 22, 4)
 	dot.visible = Wallet.is_new(key)
 	b.add_child(dot)
-	# A newly found weapon, tome or item waits greyed out with its reward on it ("150" and a
-	# coin, in full colour); hovering it pays out and brings the square back to life.
+	# A newly found weapon, tome or item (or a newly opened map) waits greyed out with its reward
+	# on it ("150" and a coin, in full colour); hovering it pays out and brings the square back to life.
 	var reward: Control = null
-	if kind in Unlocks.REWARD_KINDS and Wallet.is_new(key):
+	if Unlocks.reward_for(kind, id) > 0 and Wallet.is_new(key):
 		b.self_modulate = GREY
 		if art != null:
 			art.modulate = GREY
@@ -295,7 +295,7 @@ func _add_square(key: String, kind: String, id: String) -> void:
 		row.add_theme_constant_override("separation", 4)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.set_anchors_preset(Control.PRESET_FULL_RECT)
-		var amt := _lbl(str(Unlocks.DISCOVERY_REWARD), 26, Color(1.0, 0.85, 0.3))
+		var amt := _lbl(Wallet.fmt(Unlocks.reward_for(kind, id)), 26, Color(1.0, 0.85, 0.3))
 		amt.add_theme_color_override("font_outline_color", Color(0.1, 0.06, 0.02))
 		amt.add_theme_constant_override("outline_size", 6)
 		amt.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -362,8 +362,9 @@ func _hover(sq: Dictionary, on: bool) -> void:
 		(sq["dot"] as Control).visible = false
 		_refresh_tabs()
 		# a newly found weapon, tome or item pays out (coins fly from it into the counter)
-		if str(sq["kind"]) in Unlocks.REWARD_KINDS:
-			Wallet.payout(Unlocks.DISCOVERY_REWARD, (sq["btn"] as Control).get_global_rect().get_center())
+		var pay := Unlocks.reward_for(str(sq["kind"]), str(sq["id"]))
+		if pay > 0:
+			Wallet.payout(pay, (sq["btn"] as Control).get_global_rect().get_center())
 			(sq["btn"] as Control).self_modulate = Color.WHITE
 			if sq.get("art") != null:
 				(sq["art"] as Control).modulate = Color.WHITE

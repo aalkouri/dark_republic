@@ -335,7 +335,7 @@ Coins are saved between sessions (`user://progress.cfg`, autoload `Wallet`), and
 
 Quitting a run from the pause menu forfeits its coins.
 
-**Testing cheat:** press **F8** on the title screen for +100,000 coins (`title.gd`, `CHEAT_COINS`); remove it before release.
+**Testing cheat:** press **F10** on the title screen for +100,000 coins (`title.gd`, `CHEAT_COINS`); remove it before release.
 
 
 **Boss targeting:** whenever a boss is within an attack's range, every weapon and attack goes for it before any other enemy (`EnemyManager.nearest_k` puts bosses in range first; bouncing bolts jump to one first too).
@@ -660,7 +660,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 | Free Ban | 3 | 500 / 1,000 / 2,000 | That many of the run's 3 bans cost nothing (the BAN button reads FREE) |
 | Reroll | 5 | 500 / 1,000 / 2,000 / 5,000 / 10,000 | That many **Refreshes** a run: a REFRESH button beside "Bans left" on the level-up cards deals a whole new set for 100 coins. Hidden until level 1 |
 
-- **Weapons, Tomes, Items, Maps:** a catalogue of everything there is. Weapons, tomes and items stay dark with a "?" until you first pick one up in a run (`Wallet.discover`, from `UpgradeDB.apply`); maps until their boss falls. Anything found through play gets a **red dot** on its square, on its tab and on the title's Unlocks button (`Wallet.new_marks`); hovering the square clears it, and the tab's dot goes when its last one does. Hovering a new **weapon, tome or item** also pays **150 coins** (`Unlocks.DISCOVERY_REWARD`, once each), with the usual coin payout: coins fly from the square into the counter in the top right, with the jingle and ding. Until then the square waits greyed out with "150" and a coin on it in full colour; the hover brings it back to colour.
+- **Weapons, Tomes, Items, Maps:** a catalogue of everything there is. Weapons, tomes and items stay dark with a "?" until you first pick one up in a run (`Wallet.discover`, from `UpgradeDB.apply`); maps until their boss falls. Anything found through play gets a **red dot** on its square, on its tab and on the title's Unlocks button (`Wallet.new_marks`); hovering the square clears it, and the tab's dot goes when its last one does. Hovering a new **weapon, tome or item** also pays **150 coins** (`Unlocks.DISCOVERY_REWARD`, once each), with the usual coin payout: coins fly from the square into the counter in the top right, with the jingle and ding. Until then the square waits greyed out with "150" and a coin on it in full colour; the hover brings it back to colour. A newly opened **map** pays more (`Unlocks.MAP_REWARDS`): the Swamp 1,000 (waiting from the start), the Magical Forest 1,500, the Castle and the Desert 3,000, the Graveyard and the Ashen Caldera 5,000.
 
 **Test:** `test_title` (buying, the tabs and dots), `test_items` (Free Ban and Refresh in a run).
 

@@ -613,6 +613,11 @@ func _load() -> void:
 		var sh: Dictionary = cfg.get_value("wallet", "shards", {})
 		for kind in SHARDS:
 			shards[kind] = int(sh.get(kind, 0))
+	# The Swamp is open from the start, so its map reward waits in the Unlocks catalogue once
+	if not "map_reward:swamp" in seen_unlocks:
+		seen_unlocks.append("map_reward:swamp")
+		if not "map:swamp" in new_marks:
+			new_marks.append("map:swamp")
 
 
 func save_progress() -> void:

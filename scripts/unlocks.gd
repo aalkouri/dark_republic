@@ -21,9 +21,18 @@ const LIST := [
 		"levels": ["1 refresh a run", "2 refreshes a run", "3 refreshes a run", "4 refreshes a run", "5 refreshes a run"]},
 ]
 const REFRESH_COST := 100
-## Hovering a newly found weapon, tome or item (its red dot) pays this many coins, once.
+## Hovering a newly found weapon, tome or item (its red dot) pays this many coins, once; a newly
+## opened map pays MAP_REWARDS (the Swamp's is waiting from the start).
 const DISCOVERY_REWARD := 150
-const REWARD_KINDS := ["weapon", "tome", "item"]
+const MAP_REWARDS := {"swamp": 1000, "forest": 1500, "castle": 3000, "desert": 3000, "graveyard": 5000, "caldera": 5000}
+const REWARD_KINDS := ["weapon", "tome", "item", "map"]
+
+
+## Coins for hovering the new square of `kind`:`id` (0 if it pays nothing).
+static func reward_for(kind: String, id: String) -> int:
+	if kind == "map":
+		return int(MAP_REWARDS.get(id, 0))
+	return DISCOVERY_REWARD if kind in REWARD_KINDS else 0
 
 static func find(id: String) -> Dictionary:
 	for u in LIST:
