@@ -87,30 +87,23 @@ func _ready() -> void:
 	_cost_row.size = Vector2(270, 36)
 	panel.add_child(_cost_row)
 	# Right: what the forge does
-	var head_now := _lbl(tr("Now"), 20, Color(0.75, 0.7, 0.65))
-	head_now.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	head_now.position = Vector2(330, 90)
-	head_now.size = Vector2(240, 28)
-	panel.add_child(head_now)
+	# Now -> after forging (no headings: the arrow says it)
 	_now = _lbl("", 19, Color(0.85, 0.8, 0.75))
 	_now.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_now.position = Vector2(330, 122)
-	_now.size = Vector2(240, 200)
+	_now.position = Vector2(330, 100)
+	_now.size = Vector2(225, 220)
 	_now.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	panel.add_child(_now)
-	var arrow := _lbl(">", 34, Color(1.0, 0.6, 0.25))
-	arrow.position = Vector2(560, 150)
-	arrow.size = Vector2(40, 40)
-	panel.add_child(arrow)
-	var head_next := _lbl(tr("After forging"), 20, Color(0.55, 1.0, 0.55))
-	head_next.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	head_next.position = Vector2(610, 90)
-	head_next.size = Vector2(240, 28)
-	panel.add_child(head_next)
+	_arrow = Control.new()   # a forged iron arrow, its edges glowing like metal fresh from the fire
+	_arrow.position = Vector2(556, 146)
+	_arrow.size = Vector2(52, 36)
+	_arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_arrow.draw.connect(_draw_arrow)
+	panel.add_child(_arrow)
 	_next = _lbl("", 19, Color(0.7, 1.0, 0.7))
 	_next.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_next.position = Vector2(610, 122)
-	_next.size = Vector2(230, 200)
+	_next.position = Vector2(612, 100)
+	_next.size = Vector2(230, 220)
 	_next.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	panel.add_child(_next)
 	# Short on shards? Buy the missing ones with coins
@@ -159,6 +152,29 @@ func _ready() -> void:
 	_panel = panel
 	_refresh()
 	_btn.grab_focus()
+
+
+var _arrow: Control
+
+## The arrow between "now" and "after forging": a dark iron arrow with a hot orange rim that
+## glows and fades like cooling metal.
+func _draw_arrow() -> void:
+	var t := Time.get_ticks_msec() / 1000.0
+	var glow := 0.65 + 0.35 * sin(t * 2.4)
+	var h := _arrow.size.y
+	var pts := PackedVector2Array([Vector2(2, h * 0.36), Vector2(30, h * 0.36), Vector2(30, 2), Vector2(_arrow.size.x - 2, h * 0.5),
+		Vector2(30, h - 2), Vector2(30, h * 0.64), Vector2(2, h * 0.64)])
+	var hot := Color(1.0, 0.5, 0.12).lerp(Color(1.0, 0.85, 0.45), glow * 0.4)
+	for k in 3:   # soft heat haze round it
+		var grown := PackedVector2Array()
+		for p in pts:
+			grown.append(p + (p - Vector2(_arrow.size.x * 0.5, h * 0.5)).normalized() * (k + 1) * 1.6)
+		grown.append(grown[0])
+		_arrow.draw_polyline(grown, Color(hot, 0.12 * glow), 3.0, true)
+	_arrow.draw_colored_polygon(pts, Color(0.16, 0.12, 0.1))
+	pts.append(pts[0])
+	_arrow.draw_polyline(pts, hot, 2.2, true)
+	_arrow.draw_line(Vector2(6, h * 0.5), Vector2(36, h * 0.5), Color(1.0, 0.62, 0.2, 0.55 * glow), 2.0)   # a glowing seam
 
 
 func _lbl(text: String, fs: int, col: Color) -> Label:
@@ -246,6 +262,8 @@ func do_forge() -> bool:
 
 
 func _process(dt: float) -> void:
+	if _arrow != null:
+		_arrow.queue_redraw()   # its glow breathes
 	_flash = maxf(0.0, _flash - dt * 2.0)
 	_icon.scale = Vector2.ONE * (1.0 + 0.18 * _flash)
 	_icon.modulate = Color(1.0 + _flash, 1.0 + _flash * 0.7, 1.0 + _flash * 0.3)

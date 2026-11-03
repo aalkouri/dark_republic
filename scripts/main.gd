@@ -1291,8 +1291,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		elif state == "paused":
 			_resume()
-	elif (state == "dead" or state == "won") and event.is_action_pressed("restart"):
-		restart()
+	elif (state == "dead" or state == "won") and (event.is_action_pressed("activate") or event.is_action_pressed("ui_accept")):
+		to_title()   # the end screen's only button: Continue
 	elif state == "playing":
 		if event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED

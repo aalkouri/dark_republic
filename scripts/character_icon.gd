@@ -42,7 +42,9 @@ func _draw() -> void:
 	draw_polygon(PackedVector2Array([Vector2(0, 0), Vector2(128, 0), Vector2(128, 128), Vector2(0, 128)]),
 		PackedColorArray([Color.html(bg[0]), Color.html(bg[0]), Color.html(bg[1]), Color.html(bg[1])]))
 	var fx: String = data.get("fx", "none")
-	if fx in ["shadow", "wisps"]:
+	if fx == "none" or fx == "":
+		fx = "motes"   # every portrait has a particle motif
+	if fx in ["shadow", "wisps", "spiders", "bats"]:
 		_fx(fx)
 	var item: String = data.get("item", "none")
 	if item in ["web", "katana", "scythe"]:
@@ -60,7 +62,7 @@ func _draw() -> void:
 	_extras()
 	if item not in ["web", "katana", "scythe", "none"]:
 		_item(item)
-	if fx not in ["shadow", "wisps", "none"]:
+	if fx not in ["shadow", "wisps", "spiders", "bats"]:
 		_fx(fx)
 	if locked:
 		_padlock()
@@ -518,35 +520,118 @@ func _item(kind: String) -> void:
 			draw_line(Vector2(106, 104), Vector2(106, 118), Color(0.35, 0.2, 0.1), 4.0)
 
 
+## Particle motifs: every character has one (data "fx"; a missing / "none" one falls back to
+## "motes"), and every one moves with _t, so a tile comes alive when it's hovered / selected
+## (`animate`). A new character just picks one of FX_KINDS (test_character_select checks).
+const FX_KINDS := ["embers", "snow", "stars", "sparks", "shadow", "wisps", "bubbles", "spores", "sand",
+	"flies", "bats", "feathers", "coins", "petals", "spiders", "paws", "dust", "static", "ripples", "leaves", "rain", "motes"]
+
+
 func _fx(kind: String) -> void:
+	if not kind in FX_KINDS:
+		kind = "motes"
 	for k in 14:
 		var h := fmod(float(k) * 0.6180339 + 0.13, 1.0)
 		var x := 8.0 + h * 112.0
 		var speed := 10.0 + (k % 5) * 4.0
-		var y := 128.0 - fmod(_t * speed + k * 37.0, 128.0)
+		var y := 128.0 - fmod(_t * speed + k * 37.0, 128.0)   # rising
+		var fall := 128.0 - y                                  # falling
 		match kind:
 			"embers":
 				draw_circle(Vector2(x, y), 1.4 + (k % 3) * 0.6, Color(1.0, 0.55 + 0.1 * (k % 3), 0.15, 0.85))
 			"snow":
-				draw_circle(Vector2(x + 3.0 * sin(_t + k), 128.0 - y), 1.5 + (k % 2), Color(1, 1, 1, 0.85))
-			"stars":
+				draw_circle(Vector2(x + 3.0 * sin(_t + k), fall), 1.5 + (k % 2), Color(1, 1, 1, 0.85))
+			"stars":   # twinkling stars drifting slowly down the night sky
 				if k % 2 == 0:
-					_star(Vector2(x, fmod(h * 300.0, 60.0) + 4.0), 2.0 + (k % 3) * 0.6 * (0.6 + 0.4 * sin(_t * 3.0 + k)), Color(1.0, 0.95, 0.7))
-			"sparks":
+					var sy := fmod(h * 300.0 + _t * (3.0 + k % 3), 128.0)
+					_star(Vector2(x + 2.0 * sin(_t * 0.7 + k), sy), (2.0 + (k % 3) * 0.6) * (0.6 + 0.4 * sin(_t * 3.0 + k)), Color(1.0, 0.95, 0.7))
+			"sparks":   # little lightning forks flickering as they slide across
 				if fmod(_t * 3.0 + k * 0.7, 2.0) < 0.6:
-					var p := Vector2(x, fmod(h * 500.0, 110.0) + 8.0)
+					var p := Vector2(fmod(x + _t * 14.0, 128.0), fmod(h * 500.0 + _t * 9.0, 110.0) + 8.0)
 					draw_polyline(PackedVector2Array([p, p + Vector2(4, 5), p + Vector2(-1, 8), p + Vector2(5, 14)]), Color(1.0, 0.95, 0.4), 1.5)
 			"shadow":
-				_ellipse(Vector2(x, 120 + 4.0 * sin(_t + k)), 14, 6, Color(0.35, 0.1, 0.5, 0.18))
+				_ellipse(Vector2(fmod(x + _t * 6.0 * (1.0 if k % 2 else -1.0) + 128.0, 128.0), 120 + 4.0 * sin(_t + k)), 14, 6, Color(0.35, 0.1, 0.5, 0.18))
 			"wisps":
-				draw_circle(Vector2(x, y), 3.0 + (k % 3), Color(0.8, 0.95, 1.0, 0.12))
+				draw_circle(Vector2(x + 3.0 * sin(_t * 1.3 + k), y), 3.0 + (k % 3), Color(0.8, 0.95, 1.0, 0.12))
 			"bubbles":
 				if k % 2 == 0:
-					draw_arc(Vector2(x, y), 2.0 + (k % 3), 0, TAU, 12, Color(0.6, 1.0, 0.5, 0.7), 1.0)
+					draw_arc(Vector2(x + 1.5 * sin(_t * 2.0 + k), y), 2.0 + (k % 3), 0, TAU, 12, Color(0.6, 1.0, 0.5, 0.7), 1.0)
 			"spores":
 				draw_circle(Vector2(x + 2.0 * sin(_t * 2.0 + k), y), 1.2, Color(1.0, 0.95, 0.8, 0.6))
 			"sand":   # grains blowing across on the wind
 				draw_circle(Vector2(fmod(x + _t * speed * 2.5, 128.0), 30.0 + h * 92.0 + 2.0 * sin(_t * 2.0 + k)), 1.1 + (k % 3) * 0.4, Color(0.98, 0.82, 0.5, 0.75))
+			"flies":   # bog flies buzzing in little loops
+				if k % 2 == 0:
+					var c := Vector2(x, 20.0 + h * 90.0) + Vector2(cos(_t * 5.0 + k), sin(_t * 7.0 + k * 2.0)) * 5.0
+					draw_circle(c, 1.2, Color(0.1, 0.1, 0.06, 0.9))
+					draw_circle(c + Vector2(-1.2, -1.0), 1.0, Color(0.8, 0.9, 1.0, 0.35))
+			"bats":   # little bats flapping across
+				if k % 3 == 0:
+					var c := Vector2(fmod(x + _t * (12.0 + k), 140.0) - 6.0, 18.0 + h * 50.0 + 3.0 * sin(_t * 3.0 + k))
+					var flap := 2.5 * sin(_t * 14.0 + k)
+					_poly([c, c + Vector2(-6, -flap), c + Vector2(-3, 1), c + Vector2(0, 2), c + Vector2(3, 1), c + Vector2(6, -flap)], Color(0.08, 0.02, 0.04, 0.9))
+			"feathers":   # white feathers swaying down
+				if k % 2 == 0:
+					var c := Vector2(x + 6.0 * sin(_t * 1.2 + k), fall * 0.8)
+					var a := 0.5 * sin(_t * 1.2 + k)
+					var d := Vector2(cos(a), sin(a)) * 5.0
+					draw_line(c - d, c + d, Color(0.95, 0.97, 1.0, 0.85), 2.4)
+					draw_line(c - d * 1.3, c + d * 0.6, Color(0.7, 0.75, 0.85, 0.7), 0.8)
+			"coins":   # stolen coins glinting as they tumble down
+				if k % 2 == 0:
+					var w := absf(cos(_t * 4.0 + k)) * 2.6 + 0.4
+					_ellipse(Vector2(x, fall), w, 2.8, Color(1.0, 0.8, 0.25, 0.9))
+			"petals":   # blossom petals spinning down
+				var c := Vector2(x + 5.0 * sin(_t + k), fall)
+				var a := _t * 2.0 + k
+				_poly([c + Vector2(cos(a), sin(a)) * 3.0, c + Vector2(cos(a + 1.9), sin(a + 1.9)) * 1.4, c - Vector2(cos(a), sin(a)) * 2.0, c + Vector2(cos(a - 1.9), sin(a - 1.9)) * 1.4], Color(1.0, 0.6, 0.7, 0.8))
+			"spiders":   # tiny spiders letting themselves down on threads
+				if k % 3 == 0:
+					var drop := 20.0 + 40.0 * (0.5 + 0.5 * sin(_t * 0.8 + k))
+					draw_line(Vector2(x, 0), Vector2(x, drop), Color(0.9, 0.9, 1.0, 0.35), 0.7)
+					draw_circle(Vector2(x, drop), 2.0, Color(0.12, 0.05, 0.14, 0.95))
+					for leg in 4:
+						var ly := drop - 1.5 + leg
+						draw_line(Vector2(x - 4, ly - 1), Vector2(x + 4, ly - 1), Color(0.12, 0.05, 0.14, 0.8), 0.6)
+			"paws":   # paw prints appearing one after another, then fading
+				var age := fmod(_t * 0.8 + h * 4.0, 2.0)
+				if age < 1.5:
+					var c := Vector2(x, 100.0 - fmod(k * 13.0, 70.0))
+					var col := Color(0.95, 0.85, 0.65, 0.5 * (1.0 - age / 1.5))
+					draw_circle(c, 2.4, col)
+					for t2 in 3:
+						draw_circle(c + Vector2(-2.6 + t2 * 2.6, -3.2), 1.0, col)
+			"dust":   # dust blowing across the plains
+				var c := Vector2(fmod(x + _t * (20.0 + k * 2.0), 140.0) - 6.0, 80.0 + h * 44.0 + 3.0 * sin(_t * 1.5 + k))
+				draw_circle(c, 1.6 + (k % 3), Color(0.85, 0.65, 0.4, 0.35))
+			"static":   # purple static crackling over the knit
+				if fmod(_t * 4.0 + k * 0.9, 2.0) < 0.5:
+					var p := Vector2(fmod(x + _t * 6.0, 128.0), 20.0 + fmod(h * 400.0, 96.0))
+					draw_polyline(PackedVector2Array([p, p + Vector2(3, -3), p + Vector2(5, 2), p + Vector2(8, -2)]), Color(0.8, 0.5, 1.0), 1.3)
+			"ripples":   # rings spreading on the water
+				if k % 3 == 0:
+					var age := fmod(_t * 0.6 + h * 3.0, 1.0)
+					_ellipse_arc(Vector2(x, 96.0 + h * 26.0), 2.0 + age * 14.0, (2.0 + age * 14.0) * 0.35, Color(0.6, 0.9, 1.0, 0.5 * (1.0 - age)))
+			"leaves":   # jungle leaves tumbling down
+				var c := Vector2(x + 7.0 * sin(_t * 0.9 + k), fall)
+				var a := _t * 1.5 + k
+				var d := Vector2(cos(a), sin(a)) * 3.5
+				_poly([c - d, c + Vector2(-d.y, d.x) * 0.45, c + d, c - Vector2(-d.y, d.x) * 0.45], Color(0.4, 0.7, 0.25, 0.8))
+			"rain":   # rain streaking down
+				var c := Vector2(fmod(x + fall * 0.15, 128.0), fmod(fall * 2.2 + k * 17.0, 136.0) - 6.0)
+				draw_line(c, c + Vector2(1.2, 6.0), Color(0.65, 0.8, 1.0, 0.45), 1.0)
+			"motes":   # soft motes of light in the character's own colours (the fallback)
+				var bg: Array = data.get("bg", ["#888888", "#000000"])
+				var col := Color.html(str(bg[0])).lightened(0.6)
+				draw_circle(Vector2(x + 3.0 * sin(_t + k), y), 1.3 + (k % 3) * 0.5, Color(col, 0.55))
+
+
+func _ellipse_arc(c: Vector2, rx: float, ry: float, col: Color) -> void:
+	var pts := PackedVector2Array()
+	for i in 21:
+		var a := TAU * i / 20.0
+		pts.append(c + Vector2(cos(a) * rx, sin(a) * ry))
+	draw_polyline(pts, col, 1.0, true)
 
 
 func _star(c: Vector2, r: float, col: Color) -> void:

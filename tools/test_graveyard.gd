@@ -395,7 +395,7 @@ func _boss_checks() -> void:
 	_check("killing him opens the portal (the run goes on)", main.state != "won" and main.boss_down, main.state)
 	await _through_portal()
 	_check("stepping through it wins the run", main.state == "won" and main.boss_won, main.state)
-	_check("the end screen names him", main.hud.end_title.text == "THE NECROMANCER DEFEATED!", main.hud.end_title.text)
+	_check("the end screen names him", main.hud.end_title.text == "YOU WON!", main.hud.end_title.text)
 	_check("his defeat is recorded", Wallet.has_defeated("necromancer"), str(Wallet.bosses_defeated))
 	var names := []
 	for c in main.hud.unlock_cards:

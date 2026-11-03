@@ -37,6 +37,9 @@ func _ready() -> void:
 		var want := 0 if c["id"] == "fire_wizard" else (2000 if c["id"] in ["ice_wizard", "thunder_wizard", "dark_wizard"] else (7000 if c["id"] == "merlin" else 10000))
 		price_ok = price_ok and int(c.get("price", 0)) == want
 	_check("prices: wizards 2,000, Merlin 7,000, the rest 10,000", price_ok, "")
+	# every portrait has its own particle motif, and it moves (a hovered / selected tile animates)
+	var no_fx := chars.filter(func(c): return not str(c["icon"].get("fx", "none")) in CharacterIcon.FX_KINDS or str(c["icon"].get("fx", "")) == "motes")
+	_check("every character's portrait has a particle motif of its own (CharacterIcon.FX_KINDS)", no_fx.is_empty(), str(no_fx.map(func(c): return c["id"])))
 	var names := chars.map(func(c): return c["name"])
 	var missing := REQUESTED.filter(func(n): return n not in names)
 	_check("all 22 requested characters present", missing.is_empty(), str(missing))

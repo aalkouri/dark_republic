@@ -70,6 +70,7 @@ var _popups: Array = []   # [Label, age, base_pos]
 const POPUP_LIFE := 0.9
 var _hover_slot := -1
 var end_title: Label
+var end_continue: Button
 var end_stats: Label
 var end_killer: Label   # what killed you and what hurt most, on a death
 var end_dealt: Label    # your top weapons / abilities by damage dealt
@@ -829,24 +830,12 @@ func _build_end(root: Control) -> void:
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 24)
 	vb.add_child(buttons)
-	var btn := Button.new()
-	btn.text = tr("Restart  [R]")
-	btn.custom_minimum_size = Vector2(220, 52)
-	btn.add_theme_font_size_override("font_size", 24)
-	btn.pressed.connect(func(): main.restart())
-	buttons.add_child(btn)
-	var menu_btn := Button.new()
-	menu_btn.text = tr("Main menu")
-	menu_btn.custom_minimum_size = Vector2(220, 52)
-	menu_btn.add_theme_font_size_override("font_size", 24)
-	menu_btn.pressed.connect(func(): main.to_title())
-	buttons.add_child(menu_btn)
-	var chars_btn := Button.new()   # back to the roster (behind the loading screen)
-	chars_btn.text = tr("Characters")
-	chars_btn.custom_minimum_size = Vector2(220, 52)
-	chars_btn.add_theme_font_size_override("font_size", 24)
-	chars_btn.pressed.connect(func(): main.to_character_select())
-	buttons.add_child(chars_btn)
+	end_continue = Button.new()   # the only way on: back to the main menu (behind the loading screen)
+	end_continue.text = tr("Continue")
+	end_continue.custom_minimum_size = Vector2(260, 56)
+	end_continue.add_theme_font_size_override("font_size", 26)
+	end_continue.pressed.connect(func(): main.to_title())
+	buttons.add_child(end_continue)
 
 
 ## A small section heading with a thin rule under it, for the end screen.
@@ -1129,7 +1118,7 @@ func set_paused(p: bool) -> void:
 
 
 func show_end(won: bool) -> void:
-	end_title.text = (tr("%s DEFEATED!") % tr(main.boss_name) if main.boss_won else tr("YOU SURVIVED!")) if won else tr("YOU DIED")
+	end_title.text = tr("YOU WON!") if won else tr("YOU DIED")
 	end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if won else Color(1.0, 0.35, 0.3))
 	end_stats.text = tr("Time %s   ·   Level %d   ·   Kills %d") % [_fmt_time(main.run_time), main.level, main.kills]
 	show_unlocks(unlocks_for(main.boss_id) if main.first_boss_kill else [])
