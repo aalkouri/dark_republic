@@ -162,6 +162,7 @@ const MARACA_ARC := 60.0
 const MARACA_BUILD := 1.0        # ...tempo built per second while moving (0..1)...
 const MARACA_DRAIN := 1.5        # ...and lost per second standing still
 const MARACA_HASTE := 0.3        # full tempo: pulses come 30% faster
+const MARACA_STILL := 0.5        # standing still: pulses at half speed
 const MARACA_TARGETS := 2         # each pulse hits at most 2 enemies (+1 per extra Quantity), elites and bosses first
 const ACID_RADIUS := 2.5         # Acid Body: burns everything touching you...
 const ACID_EVERY := 0.5          # ...in pulses this far apart ("every" in its kit: 30/s = 15 a pulse)
@@ -278,6 +279,7 @@ var _puddles: Array = []   # {pos, t, disc: AcidPuddle, tick}
 var _sectors := {}         # arc degrees -> unit fan mesh
 var _flask_mesh: Mesh
 var _bile_mesh: Mesh
+var maraca_still := false         # standing still this frame (Maraca Blasters slow right down)
 var _rev_shots := 0               # Six-Shooter: shots left in the cylinder before a reload
 var _rev_reload := 0.0
 var _whoosh: AudioStreamPlayer
@@ -632,6 +634,7 @@ func tick(dt: float) -> void:
 	# --- Maraca Blasters pick up the tempo while you keep moving (yours or a Legendary copy)
 	var moving_now := Vector2(player.velocity.x, player.velocity.z).length() > 1.5
 	maraca_tempo = clampf(maraca_tempo + (MARACA_BUILD if moving_now else -MARACA_DRAIN) * dt, 0.0, 1.0)
+	maraca_still = not moving_now
 	# --- The starting weapon
 	if db == null or db.level_of("weapon_orb") > 0:
 		orb_t -= dt
@@ -1166,9 +1169,16 @@ func _update_acid(dt: float) -> void:
 		(body as BlobBody).set_growth(acid_growth)
 
 
-## Attack-rate multiplier of a style right now (Maraca Blasters speed up as you keep moving).
+## Attack-rate multiplier of a style right now. Maraca Blasters: half speed standing still,
+## building up to full tempo as you keep moving, and full tempo at once while sprinting.
 func tempo_of(sty: String) -> float:
-	return 1.0 + MARACA_HASTE * maraca_tempo if sty == "maracas" else 1.0
+	if sty != "maracas":
+		return 1.0
+	if player != null and player.sprinting:
+		return 1.0 + MARACA_HASTE
+	if maraca_still:
+		return MARACA_STILL
+	return 1.0 + MARACA_HASTE * maraca_tempo
 
 
 ## Maraca Blasters: one maraca shakes (alternating hands) and a sonic pulse fills a cone toward

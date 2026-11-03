@@ -46,6 +46,9 @@ const PARTS := {
 	"pharaoh": "res://scripts/kits/kit_pharaoh.gd",
 	"necromancer": "res://scripts/kits/kit_necromancer.gd",
 	"singe": "res://scripts/kits/kit_singe.gd",
+	"death": "res://scripts/kits/kit_death.gd", "billy_bulldog": "res://scripts/kits/kit_bulldog.gd",
+	"cowboy": "res://scripts/kits/kit_cowboy.gd", "platypus": "res://scripts/kits/kit_platypus.gd",
+	"bog_witch": "res://scripts/kits/kit_witch.gd", "kong": "res://scripts/kits/kit_kong.gd",
 }
 
 const YARD := 0.9144

@@ -53,6 +53,12 @@ const LEVEL_STATS := {
 	"pharaoh": [["damage"], ["damage"], ["damage", "mummy damage"]],
 	"necromancer": [["risen dead damage"], ["damage"], ["damage"]],
 	"singe": [["damage"], ["damage"], ["bomb damage"]],
+	"death": [["radius"], ["damage"], ["damage bonus"]],
+	"billy_bulldog": [["damage"], ["trail damage"], ["damage"]],
+	"cowboy": [["damage"], ["damage"], ["damage"]],
+	"platypus": [["damage", "radius"], ["damage"], ["duration"]],
+	"bog_witch": [["damage"], ["duration"], ["damage"]],
+	"kong": [["damage"], ["damage"], ["damage bonus"]],
 }
 
 # Ability slots (index into DEFS / cooldown; key = index + 1)

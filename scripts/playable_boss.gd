@@ -12,7 +12,7 @@ extends RefCounted
 ##   drawn                          weapon in hand (attacking / casting) or put away
 ##   set_dim(f) / set_hurt(f)
 
-const KINDS := ["pharaoh", "necromancer", "singe"]
+const KINDS := ["pharaoh", "necromancer", "singe", "death", "billy_bulldog", "cowboy", "platypus", "bog_witch", "kong"]
 
 
 static func create(kind: String) -> Node3D:
@@ -23,6 +23,8 @@ static func create(kind: String) -> Node3D:
 			return NecromancerBody.create()
 		"singe":
 			return SingeBody.create()
+	if kind in HeroBody.KINDS:   # the six built from primitives (HeroBody)
+		return HeroBody.create(kind)
 	return null
 
 

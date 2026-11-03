@@ -396,7 +396,7 @@
         { "name": "The Lecture", "cooldown": 120, "icon": { "glyph": "book", "color": "#c8a06a" },
           "text": "Reads aloud from his treatise on monotremes.",
           "lines": ["Every enemy within {25 m} falls asleep for {6 s} (the boss is only slowed)",
-                    "Sleeping enemies take {double} poison damage; the first hit wakes them for {3x} damage"] }
+                    "Sleeping enemies take {+25%} damage"] }
       ]
     },
 
@@ -410,7 +410,7 @@
                     "You heal {2%} of max HP per second while standing next to it"] },
         { "name": "Hex of Silence", "cooldown": 45, "icon": { "glyph": "eye", "color": "#a85ad8" },
           "text": "Three hundred years, and now THIS noise.",
-          "lines": ["Enemies within {20 m} are hexed for {8 s} and take {+40%} damage",
+          "lines": ["Enemies within {20 m} are hexed for {8 s} and take {+25%} damage",
                     "A hexed enemy that dies passes the hex on to {2} neighbours"] },
         { "name": "Swamp's Fury", "cooldown": 120, "icon": { "glyph": "wave", "color": "#3a8a4a" },
           "text": "The bog rises up and grabs them.",
@@ -453,7 +453,7 @@
         { "name": "Rampage", "cooldown": 120, "icon": { "glyph": "chain", "color": "#d8d8d8" },
           "text": "Snaps his shackles. Uses the pieces.",
           "lines": ["For {12 s}: {+80%} damage and {+50%} move speed",
-                    "Every {3rd} step quakes for {60} damage within {6 m}",
+                    "Every {3 m} he runs, the ground quakes for {60} damage within {6 m}",
                     "The broken chains fly out to {25 m}, lashing enemies"] }
       ]
     },

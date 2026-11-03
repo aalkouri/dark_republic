@@ -206,5 +206,93 @@
   "Max. Ausdauer",
   "最大体力",
   "最大スタミナ"
+ ],
+ "Alternating sonic pulses in a 6 m cone: 20 damage to up to 2 enemies (elites and bosses first; more with Quantity), faster while you keep moving": [
+  "Pulsos sónicos alternos en un cono de 6 m: 20 de daño a hasta 2 enemigos (élites y jefes primero; más con Cantidad), más rápido mientras te mueves",
+  "Impulsions soniques alternées dans un cône de 6 m : 20 dégâts à 2 ennemis maximum (élites et boss d'abord ; plus avec Quantité), plus rapide en mouvement",
+  "نبضات صوتية متناوبة في مخروط 6 م: 20 ضرراً لعدوّين كحد أقصى (النخبة والزعماء أولاً؛ أكثر مع الكمية)، أسرع أثناء الحركة",
+  "Abwechselnde Schallstöße in einem 6-m-Kegel: 20 Schaden an bis zu 2 Gegnern (Eliten und Bosse zuerst; mehr mit Menge), schneller in Bewegung",
+  "在6米锥形范围内交替发出声波脉冲：对最多2名敌人造成20点伤害（优先精英和首领；数量越多越多），移动时更快",
+  "6mの円錐に交互に音波パルス：最大2体に20ダメージ（エリートとボス優先、数量で増加）、移動中は速くなる"
+ ],
+ "Enemies within {20 m} are hexed for {8 s} and take {+25%} damage": [
+  "Los enemigos a {20 m} quedan maldecidos {8 s} y reciben {+25%} de daño",
+  "Les ennemis à {20 m} sont maudits {8 s} et subissent {+25%} de dégâts",
+  "الأعداء ضمن {20 م} يُلعنون لمدة {8 ث} ويتلقون {+25%} ضرراً",
+  "Gegner im Umkreis von {20 m} werden {8 s} verhext und erleiden {+25%} Schaden",
+  "{20 米}内的敌人被诅咒{8 秒}，受到的伤害{+25%}",
+  "{20 m}以内の敵は{8秒}呪われ、受けるダメージ{+25%}"
+ ],
+ "Every bite stuns for 0.4 s": [
+  "Cada mordisco aturde 0,4 s",
+  "Chaque morsure étourdit 0,4 s",
+  "كل عضة تصعق لمدة 0.4 ث",
+  "Jeder Biss betäubt 0,4 s",
+  "每次撕咬眩晕0.4秒",
+  "噛みつくたびに0.4秒スタン"
+ ],
+ "Every {3 m} he runs, the ground quakes for {60} damage within {6 m}": [
+  "Cada {3 m} que corre, el suelo tiembla: {60} de daño en {6 m}",
+  "Tous les {3 m} qu'il court, le sol tremble : {60} dégâts dans {6 m}",
+  "كل {3 م} يركضها، تهتز الأرض بضرر {60} ضمن {6 م}",
+  "Alle {3 m}, die er läuft, bebt der Boden: {60} Schaden im Umkreis von {6 m}",
+  "每奔跑{3 米}，地面震动，对{6 米}内造成{60}点伤害",
+  "{3 m}走るごとに地面が揺れ、{6 m}以内に{60}ダメージ"
+ ],
+ "Knockback is twice as strong": [
+  "El retroceso es el doble de fuerte",
+  "Le recul est deux fois plus fort",
+  "الدفع للخلف أقوى مرتين",
+  "Rückstoß ist doppelt so stark",
+  "击退效果翻倍",
+  "ノックバックが2倍"
+ ],
+ "Poison stacks 8 times": [
+  "El veneno se acumula 8 veces",
+  "Le poison se cumule 8 fois",
+  "السم يتراكم 8 مرات",
+  "Gift stapelt sich 8-mal",
+  "毒素可叠加8层",
+  "毒が8回まで重なる"
+ ],
+ "Reaps enemies under 20% HP": [
+  "Siega a los enemigos con menos del 20% de vida",
+  "Fauche les ennemis sous 20 % de PV",
+  "يحصد الأعداء تحت 20% من الصحة",
+  "Mäht Gegner unter 20 % LP nieder",
+  "收割生命低于20%的敌人",
+  "HP20%未満の敵を刈り取る"
+ ],
+ "Reloads twice as fast": [
+  "Recarga el doble de rápido",
+  "Recharge deux fois plus vite",
+  "يعيد التلقيم أسرع مرتين",
+  "Lädt doppelt so schnell nach",
+  "装填速度翻倍",
+  "リロードが2倍速"
+ ],
+ "Sleeping enemies take {+25%} damage": [
+  "Los enemigos dormidos reciben {+25%} de daño",
+  "Les ennemis endormis subissent {+25%} de dégâts",
+  "الأعداء النائمون يتلقون {+25%} ضرراً",
+  "Schlafende Gegner erleiden {+25%} Schaden",
+  "沉睡的敌人受到的伤害{+25%}",
+  "眠っている敵は受けるダメージ{+25%}"
+ ],
+ "Splashes are 50% bigger": [
+  "Las salpicaduras son un 50% más grandes",
+  "Les éclaboussures sont 50 % plus grandes",
+  "الرذاذ أكبر بنسبة 50%",
+  "Spritzer sind 50 % größer",
+  "飞溅范围扩大50%",
+  "しぶきが50%大きい"
+ ],
+ "Yellow Potion: 5x damage": [
+  "Poción amarilla: daño x5",
+  "Potion jaune : dégâts x5",
+  "الجرعة الصفراء: ضرر ×5",
+  "Gelber Trank: 5-facher Schaden",
+  "黄色药水：5倍伤害",
+  "黄色のポーション：5倍ダメージ"
  ]
 }

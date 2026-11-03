@@ -222,7 +222,11 @@ func _loco_robotico() -> void:
 	var fast_cd := ws.orb_t
 	player.velocity = Vector3.ZERO
 	ws.orb_t = 999.0
-	_check("...faster while he keeps moving", tempo > 0.4 and fast_cd < slow_cd * 0.7, "tempo %.2f, %.2f s vs %.2f s" % [tempo, fast_cd, slow_cd])
+	_check("...half speed standing still, faster while he keeps moving", tempo > 0.4 and fast_cd < slow_cd * 0.45, "tempo %.2f, %.2f s vs %.2f s" % [tempo, fast_cd, slow_cd])
+	ws.maraca_tempo = 0.0
+	player.sprinting = true
+	_check("...and full tempo straight away while sprinting", is_equal_approx(ws.tempo_of("maracas"), 1.0 + WeaponSystem.MARACA_HASTE), "%.2f" % ws.tempo_of("maracas"))
+	player.sprinting = false
 
 	var kit: KitLoco = ab.roster.part
 	_clear()
