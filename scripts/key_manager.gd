@@ -6,8 +6,10 @@ extends Node3D
 
 signal collected(tier: int)
 
-const DROP_CHANCE := 0.24            # per elite killed (was 0.12: more chests need more keys)
-const DROP_WEIGHTS := [65.0, 27.0, 8.0]   # bronze, silver, gold
+# Per elite killed. Bronze and silver were too plentiful (~30 / ~15 a run), so both are cut by
+# 65% while gold stays as it was: per-kill odds bronze 5.5%, silver 2.3%, gold 1.9%.
+const DROP_CHANCE := 0.0965
+const DROP_WEIGHTS := [56.6, 23.5, 19.9]   # bronze, silver, gold
 const NAMES := ["Bronze Key", "Silver Key", "Gold Key"]
 const PICKUP_DIST := 1.2
 const SPIN_SPEED := 1.6
