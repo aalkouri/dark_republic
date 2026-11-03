@@ -173,7 +173,7 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	_check("burning ground: ~3%/s while it lasts (3 s)", absf(burned - 0.09) < 0.01, "lost %.1f%% of max HP" % (burned * 100.0))
 	_check("burning ground goes out", ab.scorch_count() == 0, "zones %d" % ab.scorch_count())
 
-	# Meteor sets trees on fire; they char black over 15 s, then crumble away leaving a scorch mark
+	# Meteor sets trees on fire; they char black over 3 s (TreeFire.BURN_TIME), then crumble away leaving a scorch mark
 	var trees := get_tree().get_nodes_in_group(TreeFire.GROUP)
 	var standing: Node3D = null
 	for t in trees:
@@ -198,16 +198,16 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 		if c is TreeFire:
 			fire = c
 	fire.set_process(false)   # drive it manually
-	for f in 60 * 7:
+	for f in int(60 * TreeFire.BURN_TIME * 0.5):
 		fire._process(1.0 / 60.0)
 	var mid_char: float = fire._mat.get_shader_parameter("char_amount")
-	_check("tree is charring while it burns", mid_char > 0.4 and mid_char < 0.6 and TreeFire.state_of(standing) == "burning", "char %.2f at 7 s" % mid_char)
+	_check("tree is charring while it burns", mid_char > 0.4 and mid_char < 0.6 and TreeFire.state_of(standing) == "burning", "char %.2f half way" % mid_char)
 	var mat: ShaderMaterial = (standing.get_meta("mesh_instance") as MeshInstance3D).material_override
 	fire.set_process(false)
-	for f in 60 * 8 + 2:
+	for f in int(60 * TreeFire.BURN_TIME * 0.5) + 4:
 		if is_instance_valid(fire):
 			fire._process(1.0 / 60.0)
-	_check("after 15 s the tree is charred black and the fire is out", TreeFire.state_of(standing) == "charred" and is_equal_approx(mat.get_shader_parameter("char_amount"), 1.0) and is_equal_approx(mat.get_shader_parameter("burning"), 0.0), TreeFire.state_of(standing))
+	_check("after %.0f s the tree is charred" % TreeFire.BURN_TIME + " black and the fire is out", TreeFire.state_of(standing) == "charred" and is_equal_approx(mat.get_shader_parameter("char_amount"), 1.0) and is_equal_approx(mat.get_shader_parameter("burning"), 0.0), TreeFire.state_of(standing))
 	_check("a charred tree can't burn again", not TreeFire.ignite(standing), "")
 	await get_tree().physics_frame
 	_check("...and it's no longer a tree (out of the burnable group, no collision)", not standing.is_in_group(TreeFire.GROUP)

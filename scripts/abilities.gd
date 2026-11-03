@@ -62,6 +62,7 @@ const METEOR := 2
 
 ## Every ultimate sets the trees and bushes around it ablaze, like the Meteor does: this far
 ## from the caster (the reach of each ultimate's effect).
+const ABILITY_FIRE_RADIUS := 6.0   # every ability cast sets trees this close to you alight
 const ULT_FIRE_RADIUS := {
 	"ice_wizard": 25.0, "thunder_wizard": 18.0, "dark_wizard": 15.0, "merlin": 25.0, "ogre": 10.0,
 	"ghast": 30.0, "vampire_hunter": 20.0, "vicki": 25.0, "rogue": 20.0, "gaiden": 12.0, "dr_croc": 20.0,
@@ -304,6 +305,8 @@ func try_cast(i: int) -> bool:
 				_cast_shockwave()
 			METEOR:
 				_cast_meteor()
+	# every ability scorches the trees right round you (and near the goblins it hits: main)
+	ignite_area(get_tree(), player.global_position, ABILITY_FIRE_RADIUS)
 	var cd: float = defs()[i]["cooldown"] * (stats.value("ability_cdr") if stats.has_stat("ability_cdr") else 1.0) * cd_mult(i)
 	cooldown[i] = roster.adjust_cooldown(i, cd) if roster else cd
 	cast.emit(i)

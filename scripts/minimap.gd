@@ -9,7 +9,9 @@ extends Control
 ##   - Sub-bosses: an orange skull hexagon (smaller than the boss's). Waygates: a little arch,
 ##     dim while inactive, bright aqua when active, muted teal while recharging (rim arrows once
 ##     active, when out of range).
-##   - Unopened chests (tier colour), power-ups (their own icons), keys and potions.
+##   - Unopened chests (tier colour), power-ups (their own icons), keys, potions, items on the
+##     ground (a magenta star) and crypts / statues you can still open (a stone tombstone).
+## The big map (M) is a second Minimap made full (make_full): square, north-up, the whole arena.
 ##   - Map context: the arena edge, swamp pools, the Caldera's lava, the castle's walls.
 ##   - BOSS ULTIMATES: while one is coming, the places to stand pulse bright green (Thog's quake
 ##     ponds, the Pharaoh's golden safe spots, the Necromancer's consecrated ground, Singe's basalt
@@ -44,6 +46,8 @@ const KEY_COLS := CHEST_COLS   # a key is the colour of the chest it opens (bron
 const POTION_COLS := [Color("8a3dff"), Color("ff5c8a"), Color("2f6bff")]     # purple, rose, royal blue
 const POWERUP_COLS := [Color("ff6a00"), Color("19d6b0"), Color("ffb000"), Color("00ff9c"), Color("b8ff2e")]   # magnet, fear, damage, speed, nuke
 const WAYGATE_COLS := [Color("5a6e6a"), Color("6ffff0"), Color("2b8a9a")]   # waygates: inactive (dim), active (bright aqua), recharging
+const ITEM_COL := Color("ff4fd8")             # an item on the ground (burnt trees, crypts, statues): a magenta star
+const LOOT_COL := Color("d8b98a")             # a crypt / statue you can still open: a pale stone tombstone
 const SUBBOSS := Color("e85d04")              # a sub-boss: a deep orange skull hexagon (the boss's is a red diamond)
 const DANGER := Color(1.0, 0.12, 0.08)
 const WATER := Color(0.25, 0.5, 0.6, 0.55)
@@ -51,6 +55,9 @@ const LAVA := Color(1.0, 0.42, 0.08, 0.6)
 const WALL := Color(0.75, 0.68, 0.55, 0.55)
 
 var main                         # main.gd (untyped: no cyclic class reference)
+var full := false                # the big map (M): square, north-up, the whole arena (make_full)
+var _size := SIZE
+var _range := RANGE
 var _bg: Control
 var _layer: Control              # world content, north-up, turned with the camera
 var _overlay: Control            # rim, N, player arrow
@@ -61,23 +68,23 @@ var _k := 1.0                    # pixels per metre
 var last_draw_ms := 0.0          # how long the last content redraw took (tests, perf)
 # what the last redraw showed (tests)
 var shown := {"enemies": 0, "elites": 0, "bosses": [], "chests": [], "powerups": [], "keys": 0, "potions": 0,
-	"safe": [], "danger": 0, "rim": 0, "boss_arrows": [], "subbosses": [], "waygates": []}
+	"safe": [], "danger": 0, "rim": 0, "boss_arrows": [], "subbosses": [], "waygates": [], "items": 0, "loot": 0}
 
 
 func _init() -> void:
 	name = "Minimap"   # no-i18n
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	offset_left = -MARGIN - SIZE
+	offset_left = -MARGIN - _size
 	offset_right = -MARGIN
 	offset_top = TOP
-	offset_bottom = TOP + SIZE
+	offset_bottom = TOP + _size
 	clip_children = CanvasItem.CLIP_CHILDREN_ONLY   # everything inside is cut to the disc
-	_k = (SIZE * 0.5 - 4.0) / RANGE
+	_k = (_size * 0.5 - 4.0) / _range
 	_bg = _child()
 	_bg.draw.connect(_draw_bg)
 	_layer = _child()
-	_layer.pivot_offset = Vector2(SIZE, SIZE) * 0.5
+	_layer.pivot_offset = Vector2(_size, _size) * 0.5
 	_layer.draw.connect(_draw_layer)
 	_overlay = _child()
 	_overlay.draw.connect(_draw_overlay)
@@ -86,16 +93,51 @@ func _init() -> void:
 func _child() -> Control:
 	var c := Control.new()
 	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	c.size = Vector2(SIZE, SIZE)
+	c.size = Vector2(_size, _size)
 	add_child(c)
 	return c
 
 
 func _draw() -> void:
-	draw_circle(Vector2(SIZE, SIZE) * 0.5, SIZE * 0.5, Color.WHITE)   # the clip mask (not shown itself)
+	if full:
+		draw_rect(Rect2(Vector2.ZERO, Vector2(_size, _size)), Color.WHITE)   # the clip mask (not shown itself)
+	else:
+		draw_circle(Vector2(_size, _size) * 0.5, _size * 0.5, Color.WHITE)
+
+
+## Turn this into the big map (M): a square `px` across showing the whole arena, north up,
+## centred on the screen; you're the arrow wherever you are on it, turned the way you look.
+func make_full(px: float, arena_half: float) -> void:
+	full = true
+	_size = px
+	_range = arena_half
+	set_anchors_preset(Control.PRESET_CENTER)
+	offset_left = -px * 0.5
+	offset_right = px * 0.5
+	offset_top = -px * 0.5
+	offset_bottom = px * 0.5
+	_k = (_size * 0.5 - 8.0) / _range
+	for c in [_bg, _layer, _overlay]:
+		(c as Control).size = Vector2(px, px)
+	_layer.pivot_offset = Vector2(px, px) * 0.5
+	queue_redraw()
+	_bg.queue_redraw()
 
 
 func _process(dt: float) -> void:
+	if full:   # the big map: shown by the HUD while the run is paused on it
+		if not visible or main == null or main.player == null:
+			return
+		_time += 1.0 / 60.0
+		_redraw_t -= 1.0 / 60.0
+		if _redraw_t <= 0.0:
+			_redraw_t = 1.0 / REDRAW_HZ
+			_p0 = Vector3.ZERO
+			_layer.queue_redraw()
+		_layer.rotation = 0.0
+		_layer.position = Vector2.ZERO
+		_overlay.queue_redraw()
+		return
 	var on: bool = Settings.show_minimap and main != null and main.player != null and not main.intro
 	visible = on
 	if not on:
@@ -117,26 +159,35 @@ func _process(dt: float) -> void:
 func refresh() -> void:
 	_redraw_t = 0.0
 	_process(0.0)
+	if full:
+		_layer.queue_redraw()
 
 
 ## Where world point `w` lands on the minimap (control coordinates), for tests.
 func to_map(w: Vector3) -> Vector2:
+	if full:
+		return Vector2(_size, _size) * 0.5 + Vector2(w.x, w.z) * _k
 	var p: Vector3 = main.player.global_position
 	var d := Vector2(w.x - p.x, w.z - p.z) * _k
-	return Vector2(SIZE, SIZE) * 0.5 + d.rotated(main.player.cam_yaw)
+	return Vector2(_size, _size) * 0.5 + d.rotated(main.player.cam_yaw)
 
 
 # ------------------------------------------------------------------ drawing
 
 func _draw_bg() -> void:
-	var c := Vector2(SIZE, SIZE) * 0.5
-	_bg.draw_circle(c, SIZE * 0.5, BG)
-	_bg.draw_arc(c, SIZE * 0.25, 0.0, TAU, 48, Color(GOLD, 0.12), 1.0, true)
+	var c := Vector2(_size, _size) * 0.5
+	if full:
+		_bg.draw_rect(Rect2(Vector2.ZERO, Vector2(_size, _size)), Color(BG, 0.9))
+	else:
+		_bg.draw_circle(c, _size * 0.5, BG)
 
 
 func _draw_overlay() -> void:
-	var c := Vector2(SIZE, SIZE) * 0.5
-	var r := SIZE * 0.5
+	if full:
+		_draw_full_overlay()
+		return
+	var c := Vector2(_size, _size) * 0.5
+	var r := _size * 0.5
 	_overlay.draw_arc(c, r - 2.0, 0.0, TAU, 72, GOLD, 3.0, true)
 	_overlay.draw_arc(c, r - 5.5, 0.0, TAU, 72, Color(0.0, 0.0, 0.0, 0.45), 1.5, true)
 	# N on the rim
@@ -154,13 +205,39 @@ func _draw_overlay() -> void:
 	_overlay.draw_polyline(pts, Color(0.1, 0.06, 0.02), 1.5, true)
 
 
+## The big map's frame: a gold square, N at the top, and you as an arrow where you stand,
+## pointing the way the camera looks.
+func _draw_full_overlay() -> void:
+	var r := Rect2(Vector2.ZERO, Vector2(_size, _size))
+	_overlay.draw_rect(r.grow(-1.5), GOLD, false, 3.0)
+	_overlay.draw_rect(r.grow(-5.0), Color(0, 0, 0, 0.45), false, 1.5)
+	var npos := Vector2(_size * 0.5, 16.0)
+	_overlay.draw_circle(npos, 10.0, Color(0.08, 0.05, 0.02, 0.9))
+	_overlay.draw_arc(npos, 10.0, 0.0, TAU, 20, GOLD, 1.5, true)
+	_overlay.draw_string(get_theme_default_font(), npos + Vector2(-6.0, 6.0), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(1.0, 0.86, 0.4))   # no-i18n
+	if main == null or main.player == null:
+		return
+	var p: Vector3 = main.player.global_position
+	var at := Vector2(_size, _size) * 0.5 + Vector2(p.x, p.z) * _k
+	var pulse := 0.5 + 0.5 * sin(_time * 5.0)
+	_overlay.draw_circle(at, 13.0 + 3.0 * pulse, Color(1, 1, 1, 0.12 + 0.1 * pulse))
+	_overlay.draw_set_transform(at, -main.player.cam_yaw, Vector2.ONE * 1.4)
+	var pts := PackedVector2Array([Vector2(0, -9), Vector2(6.5, 7), Vector2(0, 3.5), Vector2(-6.5, 7)])
+	_overlay.draw_colored_polygon(pts, Color.WHITE)
+	pts.append(pts[0])
+	_overlay.draw_polyline(pts, Color(0.1, 0.06, 0.02), 1.5, true)
+	_overlay.draw_set_transform(Vector2.ZERO)
+
+
 ## Map position (layer coordinates, north-up, centred on _p0) of a world point.
 func _at(w: Vector3) -> Vector2:
-	return Vector2(SIZE, SIZE) * 0.5 + Vector2(w.x - _p0.x, w.z - _p0.z) * _k
+	return Vector2(_size, _size) * 0.5 + Vector2(w.x - _p0.x, w.z - _p0.z) * _k
 
 
 func _in_range(w: Vector3, extra := 0.0) -> bool:
-	return Vector2(w.x - _p0.x, w.z - _p0.z).length() <= RANGE + extra
+	if full:
+		return absf(w.x) <= _range + extra and absf(w.z) <= _range + extra
+	return Vector2(w.x - _p0.x, w.z - _p0.z).length() <= _range + extra
 
 
 func _draw_layer() -> void:
@@ -168,7 +245,7 @@ func _draw_layer() -> void:
 		return
 	var t0 := Time.get_ticks_usec()
 	shown = {"enemies": 0, "elites": 0, "bosses": [], "chests": [], "powerups": [], "keys": 0, "potions": 0,
-		"safe": [], "danger": 0, "rim": 0, "boss_arrows": [], "subbosses": [], "waygates": []}
+		"safe": [], "danger": 0, "rim": 0, "boss_arrows": [], "subbosses": [], "waygates": [], "items": 0, "loot": 0}
 	_draw_terrain()
 	var boss = _boss()
 	if boss != null and boss.has_method("map_danger_zones"):
@@ -195,7 +272,7 @@ func _boss():
 
 func _draw_terrain() -> void:
 	var L := _layer
-	var view := RANGE * 1.6
+	var view := _range * 1.6
 	if CastleNav.current != null:   # the castle: its walls (with the doorways left open)
 		for w in CastleBuilder.WALLS:
 			var gaps: Array = w[4]
@@ -232,14 +309,14 @@ func _draw_terrain() -> void:
 			var pc: Vector2 = p["center"]
 			var pr: float = float(p["r"])
 			var at := Vector3(pc.x, 0, pc.y)
-			if _in_range(at, pr + view - RANGE):
+			if _in_range(at, pr + view - _range):
 				L.draw_circle(_at(at), pr * _k, WATER)
 	# the Caldera's lava
 	if CalderaBuilder.active:
 		for p in CalderaBuilder.pools:
 			var pc: Vector2 = p["c"]
 			var at := Vector3(pc.x, 0, pc.y)
-			if _in_range(at, float(p["r"]) + view - RANGE):
+			if _in_range(at, float(p["r"]) + view - _range):
 				L.draw_circle(_at(at), float(p["r"]) * _k, LAVA)
 		for rv in CalderaBuilder.rivers:
 			var pts: PackedVector2Array = rv["pts"]
@@ -416,6 +493,34 @@ func _draw_pickups() -> void:
 			L.draw_line(Vector2(-4.2, -0.6), Vector2(4.2, -0.6), Color(0.06, 0.04, 0.02), 1.2)
 			L.draw_set_transform(Vector2.ZERO)
 			shown["chests"].append(at)
+	# items on the ground: a magenta star
+	if main.get("item_drops") != null:
+		for d in main.item_drops.drops:
+			var node: Node3D = d["node"]
+			if not is_instance_valid(node) or not _in_range(node.global_position):
+				continue
+			var c := _at(node.global_position)
+			var star := PackedVector2Array()
+			for k in 10:
+				var a := TAU * k / 10.0 - PI / 2.0
+				star.append(c + Vector2(cos(a), sin(a)) * (6.0 if k % 2 == 0 else 2.6))
+			L.draw_colored_polygon(star, ITEM_COL)
+			star.append(star[0])
+			L.draw_polyline(star, Color(0.08, 0.02, 0.06), 1.2, true)
+			shown["items"] += 1
+	# crypts / statues still to open: a little stone tombstone
+	for n in get_tree().get_nodes_in_group(ItemDrops.LOOT_GROUP):
+		var at: Vector3 = (n as Node3D).get_meta("use_at", (n as Node3D).global_position)
+		if not _in_range(at):
+			continue
+		var c := _at(at)
+		L.draw_set_transform(c, -_layer.rotation)
+		var stone := PackedVector2Array([Vector2(-4, 5), Vector2(-4, -2), Vector2(-2.5, -4.5), Vector2(2.5, -4.5), Vector2(4, -2), Vector2(4, 5)])
+		L.draw_colored_polygon(stone, Color(0.06, 0.04, 0.02, 0.9))
+		var inner := PackedVector2Array([Vector2(-2.8, 4), Vector2(-2.8, -1.6), Vector2(-1.8, -3.3), Vector2(1.8, -3.3), Vector2(2.8, -1.6), Vector2(2.8, 4)])
+		L.draw_colored_polygon(inner, LOOT_COL)
+		L.draw_set_transform(Vector2.ZERO)
+		shown["loot"] += 1
 	# power-ups
 	if main.powerups != null:
 		for p in main.powerups._pickups:
@@ -451,7 +556,7 @@ func _draw_safe(zones: Array) -> void:
 		var r: float = float(z["radius"])
 		shown["safe"].append(at)
 		var d := Vector2(at.x - _p0.x, at.z - _p0.z).length()
-		if d - r > RANGE:
+		if not _in_range(at, r):
 			off.append([d, at])
 			continue
 		var c := _at(at)
@@ -491,7 +596,7 @@ func _boss_arrow(at: Vector3) -> void:
 	dir = dir.normalized()
 	var pulse := 0.5 + 0.5 * sin(_time * 8.0)
 	var s := 12.0 + 3.0 * pulse
-	var c := Vector2(SIZE, SIZE) * 0.5 + dir * (SIZE * 0.5 - 10.0 - s * 0.55)
+	var c := Vector2(_size, _size) * 0.5 + dir * (_size * 0.5 - 10.0 - s * 0.55)
 	var side := Vector2(-dir.y, dir.x)
 	var tip := c + dir * s
 	var L := _layer
@@ -515,7 +620,7 @@ func _rim_arrow(at: Vector3, col: Color, s: float) -> void:
 	if dir.length_squared() < 0.0001:
 		return
 	dir = dir.normalized()
-	var c := Vector2(SIZE, SIZE) * 0.5 + dir * (SIZE * 0.5 - 9.0 - s * 0.5)
+	var c := Vector2(_size, _size) * 0.5 + dir * (_size * 0.5 - 9.0 - s * 0.5)
 	var side := Vector2(-dir.y, dir.x)
 	var pts := PackedVector2Array([c + dir * s, c - dir * s * 0.6 + side * s * 0.75, c - dir * s * 0.6 - side * s * 0.75])
 	_layer.draw_colored_polygon(pts, col)

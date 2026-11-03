@@ -321,6 +321,13 @@ static func build(parent: Node3D, rng: RandomNumberGenerator, half: float) -> Sw
 		var lb := parent.get_child(parent.get_child_count() - 1)
 		lb.add_to_group("obstacle")
 		lb.set_meta("reach", 3.0)
+		if i % 5 == 1 or i % 5 == 4:   # the statues (colossi, ram sphinxes): Activate for an item (ItemDrops)
+			lb.add_to_group(ItemDrops.LOOT_GROUP)
+			lb.set_meta("loot_kind", "statue")
+			var front := Vector3(0, 0, 3.3) if i % 5 == 1 else Vector3(2.0, 0, 0)
+			var u := xf * front
+			u.y = water.ground_height(u.x, u.z)
+			lb.set_meta("use_at", u)
 		if night and i % 3 == 0:   # braziers burn by the landmarks at night
 			_brazier_light(parent, xf * Vector3(2.4, 0, 2.4))
 		placed.append(p)

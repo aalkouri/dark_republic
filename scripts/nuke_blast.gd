@@ -11,13 +11,15 @@ extends Node3D
 ##   - It never hurts you (bomber skeletons it kills don't drop their barrels).
 ## Spectacle (_process): a white flash, a fireball, a mushroom cloud of billowing puffs (stem,
 ## rolling cap and a ground skirt; fire cooling to smoke) rising over you, a condensation ring,
-## a shockwave racing along the ground, a big light, heavy camera shake and a deep boom.
+## a shockwave racing along the ground, a light, a little shake and a boom. All of it is kept
+## small (VISUAL_SCALE): a tiny mushroom cloud as a marker of what happened, not a real bomb.
 ## Indoors (Abilities.ceiling) the cloud is squashed under the ceiling and spreads wider.
 
+const VISUAL_SCALE := 0.16      # the mushroom cloud is a small marker, not a real bomb going off
 const WAVE_TIME := 0.6          # the farthest marked enemy dies this long after the blast
 const MIN_SPEED := 45.0         # m/s: the shockwave never runs slower than this
 const BOSS_FRAC := 0.15         # bosses lose this share of their max HP
-const RING_MAX := 95.0          # the visible shockwave fades out past this radius
+const RING_MAX := 22.0          # the visible shockwave fades out past this radius (was 95)
 const CLOUD_H := 30.0           # height of the cap outdoors
 const RISE_TIME := 3.6
 const LIFE := 10.0
@@ -160,18 +162,25 @@ func _ready() -> void:
 	_build_fireball()
 	_build_cloud()
 	_build_rings()
+	var vis := Node3D.new()   # the fireball, cloud and condensation ring, shrunk to a little marker
+	vis.scale = Vector3.ONE * VISUAL_SCALE
+	add_child(vis)
+	for n in [_fireball, _puffs, _halo]:
+		if n != null:
+			remove_child(n)
+			vis.add_child(n)
 	_light = OmniLight3D.new()
 	_light.light_color = Color(1.0, 0.95, 0.85)
 	_light.light_energy = 14.0
-	_light.omni_range = 90.0
+	_light.omni_range = 90.0 * VISUAL_SCALE * 1.5
 	_light.omni_attenuation = 0.6
 	_light.shadow_enabled = false
 	_light.position.y = 6.0
 	add_child(_light)
-	_sound(SND_BOOM, 0.0, 2.0)
-	_sound(SND_WIND, 0.12, 0.0)
+	_sound(SND_BOOM, 0.0, -5.0)
+	_sound(SND_WIND, 0.12, -9.0)
 	if player != null and player.has_method("add_shake"):
-		player.add_shake(1.0)
+		player.add_shake(0.3)
 
 
 # ------------------------------------------------------------------ gameplay
@@ -192,7 +201,7 @@ func tick(dt: float) -> bool:
 			_pending.erase(u)
 			_hit(i)
 	if player != null and player.has_method("add_shake"):
-		player.add_shake(clampf(1.1 - t / 2.4, 0.3, 1.0))
+		player.add_shake(clampf(0.3 - t / 2.4, 0.08, 0.3))
 	if _pending.is_empty() or t > WAVE_TIME + 0.4:
 		_pending.clear()
 		wave_done = true
@@ -228,7 +237,7 @@ func _process(delta: float) -> void:
 	# the flash: blinding white, then a warm afterglow
 	if _flash != null:
 		var fa := 1.0 if v < 0.07 else clampf(1.0 - (v - 0.07) / 0.75, 0.0, 1.0)
-		_flash.color = Color(1.0, lerpf(0.75, 1.0, fa), lerpf(0.45, 1.0, fa), pow(fa, 1.4) * 0.95)
+		_flash.color = Color(1.0, lerpf(0.75, 1.0, fa), lerpf(0.45, 1.0, fa), pow(fa, 1.4) * 0.22)   # a brief glint, not a blinding flash
 		if v > 0.9:
 			_flash_layer.queue_free()
 			_flash_layer = null
@@ -269,10 +278,10 @@ func _process(delta: float) -> void:
 			_halo.queue_free()
 			_halo = null
 	if _light != null:
-		var le := 14.0 * exp(-v * 1.6) + 2.5 * clampf(1.0 - v / 7.0, 0.0, 1.0)
+		var le := 4.0 * exp(-v * 1.6) + 0.8 * clampf(1.0 - v / 7.0, 0.0, 1.0)
 		_light.light_energy = le
 		_light.light_color = Color(1.0, lerpf(0.45, 0.95, exp(-v * 1.2)), lerpf(0.15, 0.85, exp(-v * 1.5)))
-		_light.position.y = 3.0 + _height * 0.6 * _rise(v)
+		_light.position.y = (3.0 + _height * 0.6 * _rise(v)) * VISUAL_SCALE
 	if v >= LIFE:
 		queue_free()
 

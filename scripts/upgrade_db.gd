@@ -50,6 +50,8 @@ func _eligible(max_weapons: int, max_tomes := MAX_TOMES) -> Array:
 		var lv := level_of(id)
 		if (lv >= int(d["max_level"]) and not uncapped) or banned.has(id):
 			continue
+		if d["kind"] == "item":
+			continue   # items don't come from level-ups: burnt trees, crypts and statues drop them (ItemDrops)
 		if d["kind"] == "weapon" and lv == 0 and owned_of_kind("weapon") >= max_weapons:
 			continue
 		if d["kind"] == "tome" and lv == 0 and owned_of_kind("tome") >= max_tomes:
@@ -133,6 +135,22 @@ func _pick(chosen: String, luck: float) -> Dictionary:
 	if d.has("rarity_fixed"):   # signature weapons are always Legendary
 		rarity = int(d["rarity_fixed"])
 	return {"id": chosen, "rarity": rarity}
+
+
+## A random item that can still level up (weighted), or "" if every item is maxed.
+func roll_item() -> String:
+	var pool := []
+	for id in order:
+		var d: Dictionary = defs[id]
+		if d["kind"] == "item" and (level_of(id) < int(d["max_level"]) or uncapped):
+			pool.append(id)
+	return "" if pool.is_empty() else _weighted(pool)
+
+
+## An item found in the world: its id and a rarity (fixed items are always Common).
+func item_pick(id: String, luck: float) -> Dictionary:
+	var d: Dictionary = defs[id]
+	return {"id": id, "rarity": 0 if d.get("fixed", false) else roll_rarity(luck)}
 
 
 func roll_rarity(luck: float) -> int:

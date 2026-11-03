@@ -1014,7 +1014,13 @@ static func _build_landmarks(parent: Node3D, rng: RandomNumberGenerator, landmar
 		body.add_to_group("graveyard_crypt")
 		body.set_meta("reach", 5.0)
 		if ci % CRYPT_LIGHT_EVERY == 0:
-			lights.append(_light(parent, xf * (d["light_at"] as Vector3), d["light"], 1.3, 8.0))
+			var lamp := _light(parent, xf * (d["light_at"] as Vector3), d["light"], 1.3, 8.0)
+			lights.append(lamp)
+			body.set_meta("light", lamp)
+		# Activate at its door: an item comes out and the crypt sinks into the ground (ItemDrops)
+		body.add_to_group(ItemDrops.LOOT_GROUP)
+		body.set_meta("loot_kind", "crypt")
+		body.set_meta("use_at", xf * (d["door"] as Vector3))
 		wisp_homes.append(xf * (d["door"] as Vector3) + basis.z * 3.0)
 		lm["door_w"] = xf * (d["door"] as Vector3)
 		ci += 1

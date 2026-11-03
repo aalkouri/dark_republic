@@ -1,15 +1,15 @@
 class_name TreeFire
 extends Node3D
 ## A burning tree. Ignite a burnable prop (trees and fallen trees, in GROUP) and it burns for
-## BURN_TIME seconds: flames over its whole shape, ember glow, flickering light, while the wood
+## BURN_TIME seconds (then it drops loot: Events.prop_burnt -> ItemDrops): flames over its whole shape, ember glow, flickering light, while the wood
 ## and foliage char patchily to black. When the fire dies the blackened tree crumbles into the
 ## ground (COLLAPSE seconds) and is gone, leaving a ScorchMark: a charred patch that smokes and
 ## sizzles for the rest of the match. Nothing burns twice.
 
 const GROUP := "burnable"
-const BURN_TIME := 15.0
-const RAMP_UP := 1.5          # flames grow
-const DIE_DOWN := 3.0         # flames shrink at the end
+const BURN_TIME := 3.0        # was 15 s: a quick, fierce blaze, then the tree drops its loot
+const RAMP_UP := 0.35         # flames grow
+const DIE_DOWN := 0.8         # flames shrink at the end
 const COLLAPSE := 1.6         # the charred remains sink and crumble away
 
 var _mat: ShaderMaterial
@@ -81,6 +81,7 @@ func _burnt_out() -> void:
 	var at := body.global_transform * Vector3(_aabb.get_center().x, 0.0, _aabb.get_center().z)
 	at.y = SwampWater.height_at(at.x, at.z)
 	ScorchMark.spawn(body.get_parent(), at, r)
+	Events.prop_burnt.emit(at)   # a random item (or, rarely, a shard) drops where it stood
 	for c in body.get_children():
 		if c is CollisionShape3D:
 			(c as CollisionShape3D).set_deferred("disabled", true)

@@ -315,7 +315,15 @@ Each map card in the picker shows its two shards over the corner of the picture.
 
 ## Items
 
-Items come up on level-up cards alongside weapons and tomes (`data/upgrades.json`, behaviour in `item_effects.gd`, `main.gd` and `player.gd`):
+Items don't come from level-ups. They come from the world (`item_drops.gd`):
+
+- **Burning trees:** every ability (not just ultimates) sets trees, fallen logs and burnable props alight: those within 6 m of you when you cast, and those near any goblin an ability hits. A tree burns for **3 s** (`TreeFire.BURN_TIME`, was 15 s), then crumbles and **drops a random item** that can still level up (weighted, rarity rolled with your Luck).
+- **Graveyard crypts:** walk up to a crypt door and press Activate (E): the item comes out of the door, then the whole crypt grinds down into the earth and is gone (so you never try the same one twice), clearing the path.
+- **Desert statues:** the colossi and ram-sphinx avenues work the same way: Activate at the base, the item comes out, the statue sinks into the sand.
+- **Rarely (2%) a shard** of the current map's kinds drops instead of an item.
+- Items hover where they land (their charm icon, a rarity-coloured glow); walk over one (pulled in by your pickup range) and the run **pauses on an "ITEM FOUND!" card**: the icon, its name in its rarity colour, NEW ITEM or LEVEL n (MAX at the cap), what it does and the stats it just added. Continue / E / Enter / Esc goes on. Sounds from `tools/gen_item_sounds.py`. On the minimap, items are magenta stars and unopened crypts / statues pale stone tombstones.
+
+The items (`data/upgrades.json`, behaviour in `item_effects.gd`, `main.gd` and `player.gd`):
 
 | Item | Per level | Max |
 |---|---|---|
@@ -450,12 +458,14 @@ Picking one up while it's active refreshes its timer; active power-ups and their
 - **Rewards:** kills count and drop XP gems as usual (the gem cap merges them), then every gem on the map flies to you. Elites can still drop keys, potions and power-ups.
 - **Safe:** it never hurts you; bomber skeletons it kills don't drop their barrels.
 - **Untouchable enemies too:** it kills enemies directly rather than through `damage()`, so vultures circling out of reach on the Desert (`EnemyManager.is_airborne`) die with the rest.
-- **Spectacle:** a blinding white flash fading to a warm glow, a fireball at your feet, a **mushroom cloud** of churning puffs (a stem, a cap rolling over on itself and a ground skirt; white-hot fire cooling to smoke, its underside glowing) rising 30 m over you, a condensation ring round the stem, a **shockwave** racing out along the ground (a bright ring draped over the hills with a glowing wall), a big light, heavy camera shake and a deep synthesised boom with a rush of wind (`audio/powerups/nuke*.wav`, from `tools/gen_nuke_sounds.py`). Indoors (the Castle) the cloud is squashed under the ceiling (`Abilities.ceiling`) and spreads wider.
+- **Spectacle (kept small, an indicator rather than a real bomb, `NukeBlast.VISUAL_SCALE` 0.16):** a faint glint, a tiny fireball and a little **mushroom cloud** of churning puffs (fire cooling to smoke) about 5 m tall over you, a condensation ring, a short **shockwave** ring along the ground (fades by 22 m), a small light, a light shake and a softer boom with a rush of wind (`audio/powerups/nuke*.wav`, from `tools/gen_nuke_sounds.py`). Indoors (the Castle) the cloud is squashed under the ceiling (`Abilities.ceiling`).
 - **Icon:** `PowerupIcon` (`scripts/powerup_icon.gd`) draws every power-up in 2D (the NUKE as a little bomb with the trefoil); the minimap uses it for power-up blips. Screenshots: `--shot-powerups` lays out all five, `--shot-nuke=T` sets one off at T seconds.
 
 ## The minimap
 
 `scripts/minimap.gd`, in the HUD's **top-right corner** just under the coin and shard counters (the kills / enemies counter moved down below it). A round, semi-transparent dark map with a gold rim, 216 px across, showing **65 m** around you. It **turns with the camera**: you're the white arrow in the middle, always pointing the way the camera looks, and a gold **N** on the rim shows north.
+
+**The big map (M, rebindable as "Map"):** pauses the run on a big square map in the middle of the screen: the **whole arena, north up**, with everything the minimap shows (chests, keys, potions, power-ups, items, crypts / statues to open, waygates, the boss, safe zones) and you as an arrow where you stand, turned the way you look. Like holding Alt, the mouse is free so you can **hover your weapons, tomes and items** in the bottom left for their details. M or Esc closes it and the run carries on. It's a second `Minimap` made full (`make_full`); `hud.set_big_map`, `main.open_map` / `close_map`.
 - **Blips:** enemies as tiny dim red dots (sampled, at most 300), elites purple, bosses a big red diamond with a skull; unopened chests in their tier's colour (opened ones disappear); power-ups as their own icons in a pulsing ring; dropped keys and potions; the portal out once the boss is down (a violet swirl, or a violet arrow on the rim); sub-bosses (an orange skull hexagon) and waygates (an arch: dim, bright aqua or muted teal; see **Sub-bosses and waygates**).
 - **Map context:** the arena edge, the swamp pools, the Caldera's lava pools and rivers, and the Castle's walls with their doorways.
 - **Boss ultimates:** while one is coming, the places to stand **pulse bright green**: Thog's quake ponds, the Pharaoh's three golden safe spots (Wrath of the Sands), the Necromancer's churchyard and holy-light circles (The Graves Open) and Singe's basalt islands (Caldera Eruption). The Arachnid's web swath is the reverse: the webbed half of the keep is **tinted red**. Bosses report these through `map_safe_zones()` / `map_danger_zones()` (default empty in `MapBoss`; `ThogBoss` has the same pair), returning `{pos, radius}` circles or `{rect}` areas.

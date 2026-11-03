@@ -53,6 +53,8 @@ var tooltip_text: RichTextLabel
 var inspect_hint: Label
 var buff_label: RichTextLabel
 var minimap: Minimap
+var big_map: Minimap               # M: the whole arena (made full when opened)
+var big_map_hint: Label
 var key_row: HBoxContainer        # keys held (chests): bottom left, above the inventory
 var key_icons: Array = []           # KeyIcon per tier
 var key_labels: Array[Label] = []
@@ -141,6 +143,17 @@ func setup(m) -> void:
 	minimap = Minimap.new()   # top right, under the coin and shard counters
 	minimap.main = main
 	root.add_child(minimap)
+	big_map = Minimap.new()   # the big map (M): the whole arena, under the inventory so you can hover it
+	big_map.main = main
+	big_map.visible = false
+	root.add_child(big_map)
+	big_map_hint = _label(tr("MAP  ·  hover your upgrades for details  ·  M or Esc to close"), 20)
+	big_map_hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	big_map_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	big_map_hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	big_map_hint.offset_top = 12
+	big_map_hint.visible = false
+	root.add_child(big_map_hint)
 
 	debug_label = _label("", 14)
 	debug_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -1002,6 +1015,49 @@ func show_slot_machine(tier: int, done: Callable) -> SlotMachine:
 	slot_machine.finished.connect(func(a: int, n: int): done.call(a, n))
 	add_child(slot_machine)
 	return slot_machine
+
+
+var item_found: ItemFound
+
+## Show / hide the big map (M), sized to fit between the screen's edges and the inventory.
+func set_big_map(on: bool) -> void:
+	if on:
+		var vp := get_viewport().get_visible_rect().size
+		var px := clampf(minf(vp.y - 150.0, vp.x - 760.0), 320.0, 1000.0)
+		var half: float = main.enemies.arena_half if main.enemies != null else 220.0
+		big_map.make_full(px, half)
+		big_map.refresh()
+	big_map.visible = on
+	big_map_hint.visible = on
+	minimap.modulate.a = 0.0 if on else 1.0
+	if not on:
+		tooltip.visible = false
+
+
+## The "item found" card (the run is paused): `done` runs when it's dismissed.
+func show_item_found(pick: Dictionary, before: int, lines: Array, done: Callable) -> void:
+	hide_item_found()
+	item_found = ItemFound.new()
+	item_found.build(main.db, pick, before, lines)
+	item_found.closed.connect(done)
+	add_child(item_found)
+	if _item_sfx == null:
+		_item_sfx = AudioStreamPlayer.new()
+		_item_sfx.bus = Settings.SFX_BUS
+		_item_sfx.process_mode = Node.PROCESS_MODE_ALWAYS
+		if ResourceLoader.exists("res://audio/items/item_found.wav"):
+			_item_sfx.stream = load("res://audio/items/item_found.wav")
+		add_child(_item_sfx)
+	if _item_sfx.stream != null:
+		_item_sfx.play()
+
+
+var _item_sfx: AudioStreamPlayer
+
+func hide_item_found() -> void:
+	if is_instance_valid(item_found):
+		item_found.queue_free()
+	item_found = null
 
 
 func hide_slot_machine() -> void:

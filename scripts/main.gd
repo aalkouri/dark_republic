@@ -86,6 +86,8 @@ var map_boss: MapBoss              # the Forest's / Castle's boss once it has ar
 var boss_won := false              # the run was won by killing the boss (and leaving through the portal)
 var boss_down := false             # Classic: the boss has fallen; no more monsters come (BossAftermath opens the portal)
 var _boss_down_at := 0.0           # run_time when he fell (the run's time and coins stop there)
+var item_drops: ItemDrops         # items dropped by burnt trees / crypts / statues
+var _item_queue: Array = []        # items picked up while a menu was up
 var aftermath: BossAftermath       # the boss's shards on the ground and the portal out
 var sub_bosses: SubBosses          # the map's sub-bosses and their waygates (SubBosses.MAPS: the Swamp)
 ## Unrelenting mode: no time limit (the clock counts up), spawns never stop, upgrades have no
@@ -430,8 +432,12 @@ func _ready() -> void:
 	sub_bosses = SubBosses.new()   # sub-bosses at set times, the waygates they drop
 	sub_bosses.setup(self)
 	add_child(sub_bosses)
+	item_drops = ItemDrops.new()   # items from burnt trees, crypts and statues
+	item_drops.setup(self)
+	add_child(item_drops)
+	item_drops.picked.connect(found_item)
 	# Main runs while paused (menus, input); all gameplay nodes freeze with the pause.
-	for n in [fx, enemies, numbers, corpses, powerups, chests, keys, gems, weapons, abilities, potions, goblin_audio, items, aftermath]:
+	for n in [fx, enemies, numbers, corpses, powerups, chests, keys, gems, weapons, abilities, potions, goblin_audio, items, aftermath, item_drops]:
 		(n as Node).process_mode = Node.PROCESS_MODE_PAUSABLE
 
 	Events.enemy_killed.connect(_on_enemy_killed)
@@ -527,7 +533,7 @@ func _exit_tree() -> void:
 ## Hold Alt: freeze the game and free the cursor to inspect abilities; release to resume.
 func _process(_dt: float) -> void:
 	# Music sounds muffled (like in a cave) while a menu holds the run: level-up, chest, pause
-	Settings.update_muffle(get_process_delta_time(), get_tree().paused and state in ["levelup", "chest", "paused"])
+	Settings.update_muffle(get_process_delta_time(), get_tree().paused and state in ["levelup", "chest", "paused", "item", "map"])
 	if _shot_inspect >= 0:
 		return   # screenshot mode holds inspect open without a real key press
 	var held := Input.is_action_pressed("inspect")
@@ -553,6 +559,7 @@ func _physics_process(dt: float) -> void:
 		_castle_intro()
 		return
 	run_time += dt
+	_ability_fire(dt)
 	_spawn_director(dt)
 
 	var t0 := Time.get_ticks_usec()
@@ -901,7 +908,7 @@ func complete_run() -> void:
 	if state == "chest":
 		hud.hide_slot_machine()
 		state = "playing"
-	while state == "paused" or state == "inspect":
+	while state == "paused" or state == "inspect" or state == "map" or state == "item":
 		await get_tree().process_frame
 	if state == "playing":
 		boss_won = true
@@ -918,6 +925,24 @@ func _on_enemy_killed(p: Vector3, type_id: int) -> void:
 		gems.magnetise_all()
 		_award_shards()
 		hud.flash_message("GOBLIN WARLORD SLAIN!", 4.0)
+
+
+const ABILITY_FIRE_REACH := 2.5   # trees this close to a goblin an ability hits catch fire
+var _fire_t := 0.0
+
+## Every ability burns trees: those near where abilities hit goblins (a few times a second).
+func _ability_fire(dt: float) -> void:
+	_fire_t -= dt
+	if _fire_t > 0.0 or enemies.fire_hits.is_empty():
+		return
+	_fire_t = 0.25
+	var seen := {}
+	for p in enemies.fire_hits:
+		var cell := Vector2i(floori(p.x / 3.0), floori(p.z / 3.0))
+		if not seen.has(cell):
+			seen[cell] = true
+			Abilities.ignite_area(get_tree(), p, ABILITY_FIRE_REACH)
+	enemies.fire_hits.clear()
 
 
 ## Cursed Coin: this kill dropped a coin (banked with the run's coins at the end).
@@ -1111,6 +1136,46 @@ func _open_slot_machine(tier: int) -> void:
 		get_tree().create_timer(3.5, true).timeout.connect(func(): if is_instance_valid(m): m._finish())
 
 
+## M: pause on the big map (the whole arena, every pickup and marker); the inventory stays
+## hoverable like the Alt view. M or Esc closes it.
+func open_map() -> void:
+	hud.set_inspect(false)
+	state = "map"
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	hud.set_big_map(true)
+
+
+func close_map() -> void:
+	if state != "map":
+		return
+	hud.set_big_map(false)
+	_resume()
+
+
+## An item was picked up off the ground: level it up, pause and show what it is.
+func found_item(pick: Dictionary) -> void:
+	if state != "playing":
+		_item_queue.append(pick)
+		return
+	var id: String = pick["id"]
+	var before := db.level_of(id)
+	var lines: Array = []
+	for m in db._scaled_mods(db.defs[id], int(pick["rarity"])):
+		lines.append(db._fmt_mod(m))
+	db.apply(pick, stats)
+	if smoke:   # smoke runs just take it
+		return
+	state = "item"
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	hud.show_item_found(pick, before, lines, func():
+		hud.hide_item_found()
+		_resume()
+		if pending_levels > 0 and state == "playing":
+			_open_draft())
+
+
 func _on_slot_done(a: int, n: int) -> void:
 	hud.hide_slot_machine()
 	_resume()
@@ -1126,6 +1191,8 @@ func _resume() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if not _chest_queue.is_empty():   # a chest opened while a menu was up
 		_open_slot_machine.call_deferred(_chest_queue.pop_front())
+	elif not _item_queue.is_empty():
+		found_item.call_deferred(_item_queue.pop_front())
 
 
 func _on_player_died() -> void:
@@ -1211,6 +1278,10 @@ func restart() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause") and hud.settings_open():
 		hud.settings_menu.handle_escape()
+	elif state == "map" and (event.is_action_pressed("map") or event.is_action_pressed("pause")):
+		close_map()
+	elif event.is_action_pressed("map") and (state == "playing" or state == "inspect"):
+		open_map()
 	elif event.is_action_pressed("pause"):
 		if state == "playing" or state == "inspect":
 			hud.set_inspect(false)
@@ -1262,6 +1333,7 @@ static func setup_inputs() -> void:
 	_bind("debug_cooldowns", [KEY_F3], [], [])
 	_bind("inspect", [KEY_ALT], [], [])
 	_bind("activate", [KEY_E], [JOY_BUTTON_DPAD_UP], [])
+	_bind("map", [KEY_M], [], [])
 
 
 static func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:

@@ -80,8 +80,91 @@ func _ready() -> void:
 	_check("mirror: each dodge signalled", got[0] == dodges, "%d vs %d" % [got[0], dodges])
 
 	_test_draft_slots()
+	await _test_world_items()
+	await _test_crypts_and_statues()
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails > 0 else 0)
+
+
+func _secs(t: float) -> void:
+	for f in int(t * 60):
+		await get_tree().physics_frame
+
+
+## Items only come from the world: a burnt tree drops one; picking it up pauses on its card.
+func _test_world_items() -> void:
+	var db: UpgradeDB = main.db
+	var only_items := true
+	for k in 200:
+		for pk in db.draft(3, 0.0, 4):
+			only_items = only_items and db.defs[pk["id"]]["kind"] != "item"
+	_check("items never come up on level-up cards", only_items, "")
+	_check("trees burn for 3 s", is_equal_approx(TreeFire.BURN_TIME, 3.0), "")
+	var idrops: ItemDrops = main.item_drops
+	var p: Player = main.player
+	p.god_mode = true
+	var at := p.global_position + Vector3(12, 0, 0)
+	var n0 := idrops.count()
+	Events.prop_burnt.emit(at)
+	_check("a burnt tree drops an item", idrops.count() == n0 + 1, str(idrops.count()))
+	var drop: Dictionary = idrops.drops[idrops.drops.size() - 1]
+	var id: String = drop["id"]
+	var before := db.level_of(id)
+	await _secs(1.2)
+	p.global_position = (drop["node"] as Node3D).global_position - Vector3(0, 0.9, 0)
+	await _secs(0.3)
+	_check("picking it up pauses the run on the item card", main.state == "item" and get_tree().paused and is_instance_valid(main.hud.item_found), main.state)
+	_check("...and levels the item up", db.level_of(id) == before + 1, "%s %d" % [id, db.level_of(id)])
+	main.hud.item_found._close()
+	await get_tree().process_frame
+	_check("Continue resumes the run", main.state == "playing" and not get_tree().paused, main.state)
+	# all abilities burn trees
+	var tree: Node3D = null
+	for t in get_tree().get_nodes_in_group(TreeFire.GROUP):
+		var tb := t as Node3D
+		if not tb.has_meta("burn_state") and float(tb.get_meta("reach")) < 2.0:
+			tree = tb
+			break
+	if tree != null:
+		main.enemies.fire_hits.append(tree.global_position + Vector3(1, 0, 0))
+		await _secs(0.4)
+		_check("an ability hitting a goblin by a tree sets it alight", TreeFire.state_of(tree) == "burning", TreeFire.state_of(tree))
+		await _secs(TreeFire.BURN_TIME + 0.3)
+		_check("...it burns out in 3 s and drops an item", TreeFire.state_of(tree) == "charred" and idrops.count() >= 1, "%s, %d drops" % [TreeFire.state_of(tree), idrops.count()])
+	# a rare shard instead of an item: one of this map's kinds
+	idrops.shard_chance = 1.0
+	var got := idrops.loot(p.global_position + Vector3(6, 0, 0))
+	idrops.shard_chance = ItemDrops.SHARD_CHANCE
+	_check("a rare shard drop is one of the map's shards", got.begins_with("shard:") and got.substr(6) in Wallet.map_shards("swamp"), got)
+
+
+## The Graveyard's crypts and the Desert's statues: Activate for an item, then they sink away.
+func _test_crypts_and_statues() -> void:
+	for map in ["graveyard", "desert"]:
+		Settings.selected_map = map
+		get_tree().change_scene_to_file.call_deferred("res://scenes/main.tscn")
+		await get_tree().scene_changed
+		for f in 3:
+			await get_tree().process_frame
+		main = get_tree().current_scene
+		for f in 60 * 8:
+			await get_tree().physics_frame
+			if not main.intro:
+				break
+		main.xp_next = 1e12
+		main._next_swarm = 1e9
+		main.player.god_mode = true
+		var srcs := get_tree().get_nodes_in_group(ItemDrops.LOOT_GROUP)
+		_check("%s: has loot sources (%d)" % [map, srcs.size()], srcs.size() >= (15 if map == "graveyard" else 6), "")
+		if srcs.is_empty():
+			continue
+		var s: Node3D = srcs[0]
+		var n0: int = main.item_drops.count()
+		main.item_drops.open_source(s)
+		_check("%s: opening one drops an item" % map, main.item_drops.count() == n0 + 1, "")
+		_check("%s: ...and it can't be opened again" % map, not s.is_in_group(ItemDrops.LOOT_GROUP) and main.item_drops.open_source(s) == "", "")
+		await _secs(ItemDrops.SINK_TIME + 0.3)
+		_check("%s: it sinks into the ground and is gone" % map, not is_instance_valid(s), "")
 
 
 ## Level-up drafts: while weapon / tome slots are open, a new one of each is always offered.

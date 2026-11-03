@@ -162,6 +162,7 @@ void fragment() {
 # (Burning, Bleed, Poison) and chain blasts to theirs. Only HP actually removed counts (no
 # overkill). One dictionary add per hit: no measurable cost.
 var src := ""
+var fire_hits := PackedVector3Array()   # where abilities hit goblins lately (trees there catch fire)
 var damage_by := {}
 var pct_src := PackedStringArray()      # who applied each enemy's bleed / acid...
 var poison_src := PackedStringArray()   # ...and its poison (credited for the damage over time)
@@ -517,6 +518,8 @@ func damage(i: int, amount: float, knockback := Vector3.ZERO, source := "") -> b
 	amount *= damage_mult * taken_mult(i)
 	if ability_names.has(source if source != "" else src):
 		amount *= ABILITY_DAMAGE_MULT
+		if fire_hits.size() < 48:
+			fire_hits.append(pos[i])   # abilities set trees near what they hit on fire (main)
 	var crit := crit_chance > 0.0 and randf() < crit_chance
 	if crit:
 		amount *= crit_mult

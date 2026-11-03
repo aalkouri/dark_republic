@@ -16,6 +16,7 @@ func _ready() -> void:
 	_test_layout()
 	await _test_blips()
 	await _test_toggle()
+	await _test_big_map()
 	await _test_thog_quake()
 	await _start("fire_wizard", "desert")
 	await _test_pharaoh_wrath()
@@ -124,7 +125,7 @@ func _test_blips() -> void:
 	var pm := mm.to_map(pu_at)
 	_check("power-up blip shown, to your right", mm.shown["powerups"].size() >= 1 and absf((pm.x - c.x) - 20.0 * px) < 2.0 and absf(pm.y - c.y) < 2.0, str(pm))
 	_check("ordinary enemies aren't shown (no dots for the crowd)", mm.shown["enemies"] == 0 and mm.shown["elites"] == 0, "%d dots" % mm.shown["enemies"])
-	var all_cols: Array = Minimap.CHEST_COLS + Minimap.POTION_COLS + Minimap.POWERUP_COLS + Minimap.WAYGATE_COLS + [Minimap.SAFE, Minimap.BOSS, Minimap.SUBBOSS]
+	var all_cols: Array = Minimap.CHEST_COLS + Minimap.POTION_COLS + Minimap.POWERUP_COLS + Minimap.WAYGATE_COLS + [Minimap.SAFE, Minimap.BOSS, Minimap.SUBBOSS, Minimap.ITEM_COL, Minimap.LOOT_COL]
 	var uniq := {}
 	for col in all_cols:
 		uniq[(col as Color).to_html(false)] = true
@@ -162,6 +163,38 @@ func _test_toggle() -> void:
 	await get_tree().process_frame
 	_check("...and on shows it again", mm.visible, "")
 	_check("Show minimap is a saved setting", "show_minimap" in Settings.SAVED_KEYS, "")
+
+
+## M: the big map pauses the run, shows the whole arena north-up, and M / Esc close it.
+func _test_big_map() -> void:
+	var ev := InputEventAction.new()
+	ev.action = "map"
+	ev.pressed = true
+	main._unhandled_input(ev)
+	await get_tree().process_frame
+	var bm: Minimap = main.hud.big_map
+	_check("M opens the big map and pauses", main.state == "map" and get_tree().paused and bm.visible and bm.full, main.state)
+	var r := bm.get_global_rect()
+	var vp := bm.get_viewport_rect().size
+	_check("...a big square in the middle of the screen", r.size.x >= 320.0 and is_equal_approx(r.size.x, r.size.y) and absf(r.get_center().x - vp.x * 0.5) < 2.0, str(r))
+	_check("...clear of the bottom-left inventory (hoverable)", r.position.x > main.hud.inv_box.get_global_rect().end.x, "%s vs %s" % [str(r), str(main.hud.inv_box.get_global_rect())])
+	_check("...and it lets the mouse through", bm.mouse_filter == Control.MOUSE_FILTER_IGNORE and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "")
+	bm.refresh()
+	await get_tree().process_frame
+	_check("...showing the whole arena: chests everywhere are on it", bm.shown["chests"].size() == main.chests.chests.filter(func(c): return not c.is_open and not c.gone).size(), "%d" % bm.shown["chests"].size())
+	_check("...the world origin is its centre", bm.to_map(Vector3.ZERO).distance_to(Vector2(bm._size, bm._size) * 0.5) < 0.5, "")
+	_check("no inner ring on the minimap any more", not ("SIZE * 0.25" in FileAccess.get_file_as_string("res://scripts/minimap.gd")), "")
+	main._unhandled_input(ev)
+	await get_tree().process_frame
+	_check("M again closes it and the run goes on", main.state == "playing" and not get_tree().paused and not bm.visible, main.state)
+	main._unhandled_input(ev)
+	await get_tree().process_frame
+	var esc := InputEventAction.new()
+	esc.action = "pause"
+	esc.pressed = true
+	main._unhandled_input(esc)
+	await get_tree().process_frame
+	_check("Esc closes it too (straight back to the run)", main.state == "playing" and not get_tree().paused, main.state)
 
 
 func _test_thog_quake() -> void:

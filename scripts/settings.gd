@@ -26,6 +26,7 @@ const REBINDABLE := [
 	["ability_3", "Ultimate"], ["pause", "Pause / menu"],
 	["inspect", "Inspect abilities (hold)"],
 	["activate", "Activate (open chests, pick up power-ups)"],
+	["map", "Map"],
 ]
 
 ## Language choices: [locale, name shown in the dropdown (in that language)].
