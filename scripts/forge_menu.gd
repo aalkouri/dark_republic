@@ -100,9 +100,9 @@ func _ready() -> void:
 	_arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_arrow.draw.connect(_draw_arrow)
 	panel.add_child(_arrow)
-	for x in [537.0, 619.0]:   # thin dividers keep the arrow clear of the text either side
+	for x in [537.0, 619.0]:   # (invisible) spacers keep the arrow clear of the text either side
 		var rule := ColorRect.new()
-		rule.color = Color(0.85, 0.55, 0.22, 0.35)
+		rule.color = Color(0, 0, 0, 0)   # invisible: just the space either side of the arrow
 		rule.position = Vector2(x, 100)
 		rule.size = Vector2(2, 100)
 		rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
