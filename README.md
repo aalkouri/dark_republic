@@ -328,15 +328,18 @@ Items don't come from level-ups. They come from the world (`item_drops.gd`):
 
 The items (`data/upgrades.json`, behaviour in `item_effects.gd`, `main.gd` and `player.gd`):
 
-| Item | Per level | Max |
-|---|---|---|
-| Blast Bomb | Enemies have a chance to explode on death | 5 |
-| Vampire Fang | +4% chance to heal on a kill | 5 |
-| Feather | +1 mid-air jump | 2 |
-| **Cursed Coin** | +2% chance a kill drops a coin (banked with the run's coins, shown as "Cursed Coin" on the end screen), but +6% damage taken. Rarity doesn't scale it | 5 |
-| **Glass Cannon Skull** | +20% damage, -10% max HP. Rarity doesn't scale it | 4 |
-| **Hourglass** | Each elite kill cuts every running ability cooldown by 1 s (scaled by rarity) | 5 |
-| **Mirror Shard** | +4% chance (scaled by rarity, capped at 60%) to dodge a hit completely: a glassy shimmer, a DODGE pop and a short grace window | 5 |
+Every item has a **tier** (`"tier"` in the JSON): it's the colour it shows in (on the ground, on the ITEM FOUND card) and how often it drops (`UpgradeDB.ITEM_TIER_WEIGHTS`: Common 10, Rare 6, Epic 3, Legendary 1, so the Legendary Glass Cannon Skull is about 1 drop in 45). Items don't roll a rarity: their numbers are fixed.
+
+| Item | Tier | Per level | Max |
+|---|---|---|---|
+| Vampire Fang | Common | +4% chance to heal on a kill | 5 |
+| **Second Wind Flask** | Common | +25% max stamina (the stamina bar grows longer) | 4 |
+| Blast Bomb | Rare | Enemies have a chance to explode on death | 5 |
+| Feather | Rare | +1 mid-air jump | 2 |
+| **Cursed Coin** | Rare | +2% chance a kill drops a coin (banked with the run's coins, shown as "Cursed Coin" on the end screen), but +6% damage taken. | 5 |
+| **Glass Cannon Skull** | Legendary | +20% damage, -10% max HP | 4 |
+| **Hourglass** | Epic | Each elite kill cuts every running ability cooldown by 1 s | 5 |
+| **Mirror Shard** | Epic | +4% chance (capped at 60%) to dodge a hit completely: a glassy shimmer, a DODGE pop and a short grace window | 5 |
 
 Sounds for the new items come from `tools/gen_item_sounds.py` (`audio/items/`).
 

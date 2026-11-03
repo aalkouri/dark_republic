@@ -51,6 +51,15 @@ func _draw() -> void:
 			_poly(inner, dark)
 			_poly([Vector2(28, 17), Vector2(36, 17), Vector2(34, 36), Vector2(30, 36)], Color(1.0, 0.9, 0.4) * dim)
 			draw_circle(Vector2(32, 43), 3.5, Color(1.0, 0.9, 0.4) * dim)
+		"wind_flask":   # a round flask of green tonic with gusts of wind curling round it
+			draw_circle(Vector2(30, 38), 17, Color(c, 0.35))
+			draw_circle(Vector2(30, 40), 14, c)
+			draw_circle(Vector2(25, 35), 4, light)
+			_poly([Vector2(25, 10), Vector2(35, 10), Vector2(35, 24), Vector2(25, 24)], Color(c, 0.5))
+			_poly([Vector2(23, 6), Vector2(37, 6), Vector2(37, 11), Vector2(23, 11)], Color(0.55, 0.38, 0.22))
+			draw_arc(Vector2(30, 38), 17, 0, TAU, 32, dark, 2)
+			for k in 3:
+				draw_arc(Vector2(48 + k * 2, 22 + k * 14), 7, -PI * 0.9, PI * 0.4, 12, Color(0.92, 1.0, 0.96, 0.9), 2.2)
 		"cursed_coin":   # a gold coin with a skull stamped on it, a purple curse wisp curling off
 			draw_circle(Vector2(30, 34), 21, c.darkened(0.3))
 			draw_circle(Vector2(30, 34), 17, c)

@@ -386,6 +386,11 @@ func _physics_process(dt: float) -> void:
 	_update_visuals(dt)
 
 
+## Full stamina (the Second Wind Flask raises it).
+func stamina_max() -> float:
+	return STAMINA_MAX * (stats.value("max_stamina") if stats != null and stats.has_stat("max_stamina") else 1.0)
+
+
 ## Sprint and stamina. Returns the speed multiplier for this frame.
 func _tick_stamina(dt: float, want: bool) -> float:
 	if winded and stamina >= SPRINT_RESUME:
@@ -400,7 +405,7 @@ func _tick_stamina(dt: float, want: bool) -> float:
 	else:
 		_stamina_rest -= dt
 		if _stamina_rest <= 0.0:
-			stamina = minf(STAMINA_MAX, stamina + STAMINA_REGEN * dt)
+			stamina = minf(stamina_max(), stamina + STAMINA_REGEN * dt)
 	return SPRINT_MULT if sprinting else 1.0
 
 

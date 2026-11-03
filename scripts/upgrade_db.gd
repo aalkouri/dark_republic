@@ -137,20 +137,45 @@ func _pick(chosen: String, luck: float) -> Dictionary:
 	return {"id": chosen, "rarity": rarity}
 
 
-## A random item that can still level up (weighted), or "" if every item is maxed.
+## How often an item of each tier drops, relative to each other: a Legendary (the Glass Cannon
+## Skull) is a rare find.
+const ITEM_TIER_WEIGHTS := {"common": 10.0, "rare": 6.0, "epic": 3.0, "legendary": 1.0}
+
+## An item's tier (data "tier"): its rarity index, which sets its colour and how often it drops.
+func item_tier(id: String) -> int:
+	var t: String = str(defs[id].get("tier", "common"))
+	for i in rarities.size():
+		if rarities[i]["id"] == t:
+			return i
+	return 0
+
+
+func item_weight(id: String) -> float:
+	return float(ITEM_TIER_WEIGHTS.get(str(defs[id].get("tier", "common")), 10.0))
+
+
+## A random item that can still level up (weighted by tier), or "" if every item is maxed.
 func roll_item() -> String:
 	var pool := []
+	var total := 0.0
 	for id in order:
 		var d: Dictionary = defs[id]
 		if d["kind"] == "item" and (level_of(id) < int(d["max_level"]) or uncapped):
 			pool.append(id)
-	return "" if pool.is_empty() else _weighted(pool)
+			total += item_weight(id)
+	if pool.is_empty():
+		return ""
+	var r := rng.randf() * total
+	for id in pool:
+		r -= item_weight(id)
+		if r <= 0.0:
+			return id
+	return pool[pool.size() - 1]
 
 
-## An item found in the world: its id and a rarity (fixed items are always Common).
-func item_pick(id: String, luck: float) -> Dictionary:
-	var d: Dictionary = defs[id]
-	return {"id": id, "rarity": 0 if d.get("fixed", false) else roll_rarity(luck)}
+## An item found in the world: its id and its tier (items don't roll a rarity).
+func item_pick(id: String, _luck := 0.0) -> Dictionary:
+	return {"id": id, "rarity": item_tier(id)}
 
 
 func roll_rarity(luck: float) -> int:
@@ -183,7 +208,8 @@ func apply(pick: Dictionary, stats: Stats) -> void:
 
 
 func _scaled_mods(d: Dictionary, rarity: int) -> Array:
-	var mult := 1.0 if d.get("fixed", false) else float(rarities[rarity]["mult"])
+	# items have a fixed tier (their numbers are their own); level-up cards scale with rarity
+	var mult := 1.0 if (d.get("fixed", false) or d["kind"] == "item") else float(rarities[rarity]["mult"])
 	var out := []
 	for m in d.get("per_level", []):
 		var v := float(m["value"])

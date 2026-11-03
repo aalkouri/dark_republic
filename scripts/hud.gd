@@ -269,8 +269,11 @@ func _bar(fill: Color) -> ProgressBar:
 
 
 func _update_stamina(p: Player) -> void:
+	stamina_bar.max_value = p.stamina_max()
+	stamina_bar.size.x = 240.0 * minf(p.stamina_max() / Player.STAMINA_MAX, 1.6)   # a longer bar with the Second Wind Flask
+	stamina_label.position.x = stamina_bar.position.x + stamina_bar.size.x + 6.0
 	stamina_bar.value = p.stamina
-	var full := p.stamina >= Player.STAMINA_MAX - 0.01
+	var full := p.stamina >= p.stamina_max() - 0.01
 	var fg := stamina_bar.get_theme_stylebox("fill") as StyleBoxFlat
 	if p.winded:
 		var f := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.012)

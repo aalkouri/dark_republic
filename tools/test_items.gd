@@ -80,6 +80,7 @@ func _ready() -> void:
 	_check("mirror: each dodge signalled", got[0] == dodges, "%d vs %d" % [got[0], dodges])
 
 	_test_draft_slots()
+	_test_item_tiers()
 	await _test_sprint()
 	await _test_world_items()
 	await _test_crypts_and_statues()
@@ -114,6 +115,31 @@ func _test_sprint() -> void:
 	_check("resting refills it", p.stamina > 30.0 and not p.winded, "%.1f" % p.stamina)
 	p.bot = false
 	p.stamina = Player.STAMINA_MAX
+
+
+## Items have tiers: each drops at its tier's weight and shows in its colour; the Glass Cannon
+## Skull is Legendary and rare. The Second Wind Flask (Common) raises max stamina.
+func _test_item_tiers() -> void:
+	var r := RandomNumberGenerator.new()
+	r.seed = 3
+	var d := UpgradeDB.new("res://data/upgrades.json", r)
+	var all_tiered := true
+	for id in d.order:
+		if d.defs[id]["kind"] == "item":
+			all_tiered = all_tiered and d.defs[id].has("tier")
+	_check("every item has a tier", all_tiered, "")
+	_check("the Glass Cannon Skull is Legendary", d.item_pick("item_skull")["rarity"] == 3, "")
+	var counts := {}
+	for k in 20000:
+		var id := d.roll_item()
+		counts[id] = int(counts.get(id, 0)) + 1
+	var skull: int = counts.get("item_skull", 0)
+	_check("...and much rarer than anything else (~2%)", skull > 150 and skull < 700 and skull * 3 < int(counts.get("item_hourglass", 0)) * 1 + 1000 and skull * 5 < int(counts.get("item_fang", 0)), str(counts))
+	var st := Stats.new()
+	st.define("max_stamina", 1.0)
+	for m in d._scaled_mods(d.defs["item_flask"], d.item_tier("item_flask")):
+		st.apply(m["stat"], m["op"], m["value"])
+	_check("Second Wind Flask: +25% max stamina a level", is_equal_approx(st.value("max_stamina"), 1.25), "%.2f" % st.value("max_stamina"))
 
 
 func _has_key(action: String, key: int) -> bool:

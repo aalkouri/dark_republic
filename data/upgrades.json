@@ -18,7 +18,7 @@
     "bomb_chance": "Explode Chance", "bomb_damage": "Explosion Damage", "fang_chance": "Heal-on-Kill Chance",
     "crit_chance": "Critical Hit Chance", "crit_damage": "Critical Damage",
     "coin_drop_chance": "Coin Drop Chance", "damage_taken": "Damage Taken", "dodge_chance": "Dodge Chance",
-    "hourglass_cut": "Seconds Cut per Elite Kill"
+    "hourglass_cut": "Seconds Cut per Elite Kill", "max_stamina": "Max Stamina"
   },
   "percent_stats": ["luck", "bomb_chance", "fang_chance", "crit_chance", "crit_damage", "coin_drop_chance", "dodge_chance"],
 
@@ -82,26 +82,29 @@
     { "id": "tome_quantity", "kind": "tome", "icon": { "glyph": "triple", "cover": "#8e5a1f" }, "name": "Tome of Quantity", "weight": 3, "max_level": 3, "fixed": true,
       "desc": "Every projectile weapon fires more.", "per_level": [ { "stat": "projectile_count", "op": "flat", "value": 1 } ] },
 
-    { "id": "item_bomb", "kind": "item", "icon": { "glyph": "bomb", "cover": "#7a3a1a", "tint": "#ffb020" }, "name": "Blast Bomb", "weight": 5, "max_level": 5,
+    { "id": "item_bomb", "kind": "item", "tier": "rare", "icon": { "glyph": "bomb", "cover": "#7a3a1a", "tint": "#ffb020" }, "name": "Blast Bomb", "weight": 5, "max_level": 5,
       "desc": "Enemies have a chance to explode on death.",
       "per_level": [ { "stat": "bomb_chance", "op": "flat", "value": 0.06 }, { "stat": "bomb_damage", "op": "add", "value": 0.15 } ] },
-    { "id": "item_fang", "kind": "item", "icon": { "glyph": "fang", "cover": "#3a1020", "tint": "#e0303a" }, "name": "Vampire Fang", "weight": 5, "max_level": 5,
+    { "id": "item_fang", "kind": "item", "tier": "common", "icon": { "glyph": "fang", "cover": "#3a1020", "tint": "#e0303a" }, "name": "Vampire Fang", "weight": 5, "max_level": 5,
       "desc": "Chance to heal when you kill an enemy.",
       "per_level": [ { "stat": "fang_chance", "op": "flat", "value": 0.04 } ] },
-    { "id": "item_feather", "kind": "item", "icon": { "glyph": "feather", "cover": "#1f3a5a", "tint": "#e8f0ff" }, "name": "Feather", "weight": 4, "max_level": 2, "fixed": true,
+    { "id": "item_feather", "kind": "item", "tier": "rare", "icon": { "glyph": "feather", "cover": "#1f3a5a", "tint": "#e8f0ff" }, "name": "Feather", "weight": 4, "max_level": 2, "fixed": true,
       "desc": "Jump again in mid-air.",
       "per_level": [ { "stat": "extra_jumps", "op": "flat", "value": 1 } ] },
-    { "id": "item_coin", "kind": "item", "icon": { "glyph": "cursed_coin", "cover": "#2a1838", "tint": "#e8c040" }, "name": "Cursed Coin", "weight": 4, "max_level": 5, "fixed": true,
+    { "id": "item_coin", "kind": "item", "tier": "rare", "icon": { "glyph": "cursed_coin", "cover": "#2a1838", "tint": "#e8c040" }, "name": "Cursed Coin", "weight": 4, "max_level": 5, "fixed": true,
       "desc": "Enemies sometimes drop a coin, but you take more damage.",
       "per_level": [ { "stat": "coin_drop_chance", "op": "flat", "value": 0.02 }, { "stat": "damage_taken", "op": "add", "value": 0.06 } ] },
-    { "id": "item_skull", "kind": "item", "icon": { "glyph": "glass_skull", "cover": "#1a2a3a", "tint": "#bfe8ff" }, "name": "Glass Cannon Skull", "weight": 3, "max_level": 4, "fixed": true,
+    { "id": "item_skull", "kind": "item", "tier": "legendary", "icon": { "glyph": "glass_skull", "cover": "#1a2a3a", "tint": "#bfe8ff" }, "name": "Glass Cannon Skull", "weight": 3, "max_level": 4, "fixed": true,
       "desc": "Hit much harder, but with less health.",
       "per_level": [ { "stat": "damage", "op": "add", "value": 0.2 }, { "stat": "max_hp", "op": "add", "value": -0.1 } ] },
-    { "id": "item_hourglass", "kind": "item", "icon": { "glyph": "hourglass", "cover": "#3a2a14", "tint": "#f0d080" }, "name": "Hourglass", "weight": 4, "max_level": 5,
+    { "id": "item_hourglass", "kind": "item", "tier": "epic", "icon": { "glyph": "hourglass", "cover": "#3a2a14", "tint": "#f0d080" }, "name": "Hourglass", "weight": 4, "max_level": 5,
       "desc": "Killing an elite cuts your ability cooldowns.",
       "per_level": [ { "stat": "hourglass_cut", "op": "flat", "value": 1.0 } ] },
-    { "id": "item_mirror", "kind": "item", "icon": { "glyph": "mirror", "cover": "#203040", "tint": "#e0f4ff" }, "name": "Mirror Shard", "weight": 4, "max_level": 5,
+    { "id": "item_mirror", "kind": "item", "tier": "epic", "icon": { "glyph": "mirror", "cover": "#203040", "tint": "#e0f4ff" }, "name": "Mirror Shard", "weight": 4, "max_level": 5,
       "desc": "Chance to dodge an attack entirely.",
-      "per_level": [ { "stat": "dodge_chance", "op": "flat", "value": 0.04 } ] }
+      "per_level": [ { "stat": "dodge_chance", "op": "flat", "value": 0.04 } ] },
+    { "id": "item_flask", "kind": "item", "tier": "common", "icon": { "glyph": "wind_flask", "cover": "#173a2e", "tint": "#8cf0c0" }, "name": "Second Wind Flask", "weight": 4, "max_level": 4,
+      "desc": "More stamina for sprinting.",
+      "per_level": [ { "stat": "max_stamina", "op": "add", "value": 0.25 } ] }
   ]
 }

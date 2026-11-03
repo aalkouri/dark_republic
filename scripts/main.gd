@@ -32,6 +32,7 @@ const BASE_STATS := {
 	"coin_gain": 1.0, "ability_cdr": 1.0, "start_shield": 0.0,   # from character skills
 	"jump_height": 1.0,   # jump apex multiplier (character bonuses)
 	"coin_drop_chance": 0.0, "damage_taken": 1.0, "dodge_chance": 0.0, "hourglass_cut": 0.0,   # items
+	"max_stamina": 1.0,   # Second Wind Flask: x Player.STAMINA_MAX
 }
 
 static var smoke_restarts := 0
