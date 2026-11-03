@@ -204,6 +204,7 @@ const SPUR_STACKS := 5
 const BILE_RADIUS := 3.0          # Ladle of Bile (Bog Witch): lobbed splashes, slowing 20%
 const BILE_SLOW := 0.8
 const BILE_RANGE := 16.0
+const BILE_PUDDLE_TIME := 1.6   # its sizzling splash (for show) evaporates
 const CHAINS_REACH := 4.0         # Shackle Swing (Kong): chains all round, knockback
 const CHAINS_KNOCK := 3.0
 const MELEE_SEEK := 1.6          # melee weapons swing once an enemy is within reach x this
@@ -279,6 +280,10 @@ var _puddles: Array = []   # {pos, t, disc: AcidPuddle, tick}
 var _sectors := {}         # arc degrees -> unit fan mesh
 var _flask_mesh: Mesh
 var _bile_mesh: Mesh
+var _bile_splats: Array[CPUParticles3D] = []   # pooled one-shot emitters for the bile splashes
+var _bile_smokes: Array[CPUParticles3D] = []
+var _bile_next := 0
+var _bile_hiss_gap := 0.0      # landings closer together than this share one sizzle
 var maraca_still := false         # standing still this frame (Maraca Blasters slow right down)
 var _rev_shots := 0               # Six-Shooter: shots left in the cylinder before a reload
 var _rev_reload := 0.0
@@ -1480,7 +1485,8 @@ func _throw_flasks(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase)
 
 
 ## Ladle of Bile (the Bog Witch): lobs a glob of bile at the nearest enemies; it splashes for
-## damage in BILE_RADIUS and slows 20% (no puddle).
+## damage in BILE_RADIUS and slows 20%. The glob wobbles and drips in flight; it lands with a
+## splatter, a puff of acid smoke and a small sizzling puddle that does no damage.
 func _throw_bile(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase) -> bool:
 	var chest := feet + Vector3(0, 0.9, 0)
 	var targets := enemies.nearest_k(chest, BILE_RANGE, _count(pre))
@@ -1490,18 +1496,9 @@ func _throw_bile(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase) -
 	if model != null:
 		from = model.attack(enemies.center_of(targets[0]))
 	if _bile_mesh == null:
-		var sm := SphereMesh.new()
-		sm.radius = 0.18
-		sm.height = 0.3
-		sm.radial_segments = 10
-		sm.rings = 5
-		var m := StandardMaterial3D.new()
-		m.albedo_color = Color(0.62, 0.8, 0.18)
-		m.emission_enabled = true
-		m.emission = Color(0.45, 0.65, 0.1)
-		m.emission_energy_multiplier = 0.8
-		sm.material = m
-		_bile_mesh = sm
+		_bile_mesh = _make_bile_glob()
+	_ensure_bile_fx()
+	_play_shot("bile_throw")
 	var dmg := _dmg(pre, "bile", dmg_mult)
 	for t in targets:
 		var to := enemies.pos[t] + enemies.heading(t) * FLASK_FLIGHT * 0.6
@@ -1512,8 +1509,194 @@ func _throw_bile(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase) -
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mi)
 		mi.global_position = from
+		mi.rotation = Vector3(randf() * TAU, randf() * TAU, 0.0)
+		mi.add_child(_bile_drips())
 		_flasks.append({"from": from, "to": to, "t": 0.0, "dmg": dmg, "src": enemies.src, "node": mi, "flight": FLASK_FLIGHT * randf_range(0.95, 1.1), "bile": true})
 	return true
+
+
+## A glob of bile: a lumpy sphere that wobbles as it flies, glossy murky green with paler
+## bubbles in it and a sickly lime rim.
+const BILE_GLOB_SHADER := """
+shader_type spatial;
+render_mode cull_back;
+uniform vec4 murk : source_color = vec4(0.22, 0.34, 0.05, 1.0);
+uniform vec4 bright : source_color = vec4(0.62, 0.82, 0.18, 1.0);
+uniform vec4 rim : source_color = vec4(0.8, 1.0, 0.35, 1.0);
+varying vec3 obj;
+
+void vertex() {
+	obj = VERTEX;
+	float w = sin(TIME * 17.0 + VERTEX.y * 22.0) * 0.022 + sin(TIME * 11.0 + VERTEX.x * 18.0 + 1.3) * 0.018
+		+ sin(TIME * 23.0 + VERTEX.z * 26.0 + 2.1) * 0.012;
+	VERTEX += NORMAL * w;
+	VERTEX.y *= 1.0 + 0.12 * sin(TIME * 9.0);
+}
+
+void fragment() {
+	vec3 p = obj * 14.0;
+	float bub = sin(p.x + sin(p.y * 1.3 + TIME * 3.0)) * sin(p.y + sin(p.z * 1.7)) * sin(p.z + sin(p.x * 1.1 + TIME * 2.0));
+	float spots = smoothstep(0.35, 0.6, bub);
+	vec3 c = mix(murk.rgb, bright.rgb, 0.35 + 0.4 * spots);
+	float fres = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 2.5);
+	ALBEDO = c;
+	ROUGHNESS = 0.12;
+	SPECULAR = 0.7;
+	EMISSION = bright.rgb * (0.25 + 0.5 * spots) + rim.rgb * fres * 0.9;
+}
+"""
+
+
+func _make_bile_glob() -> Mesh:
+	var sm := SphereMesh.new()
+	sm.radius = 0.2
+	sm.height = 0.36
+	sm.radial_segments = 14
+	sm.rings = 8
+	var m := ShaderMaterial.new()
+	var sh := Shader.new()
+	sh.code = BILE_GLOB_SHADER
+	m.shader = sh
+	sm.material = m
+	return sm
+
+
+## Drips falling off a glob in flight (world space, so they hang behind it as it arcs).
+func _bile_drips() -> CPUParticles3D:
+	var p := CPUParticles3D.new()
+	p.amount = 10
+	p.lifetime = 0.4
+	p.local_coords = false
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 0.12
+	p.direction = Vector3.DOWN
+	p.spread = 30.0
+	p.initial_velocity_min = 0.2
+	p.initial_velocity_max = 0.8
+	p.gravity = Vector3(0, -9.0, 0)
+	p.scale_amount_min = 0.5
+	p.scale_amount_max = 1.0
+	var shrink := Curve.new()
+	shrink.add_point(Vector2(0, 1.0))
+	shrink.add_point(Vector2(1, 0.3))
+	p.scale_amount_curve = shrink
+	p.mesh = _bile_drop_mesh()
+	p.color = Color(0.5, 0.72, 0.14)
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return p
+
+
+static var _drop_mesh: SphereMesh
+
+static func _bile_drop_mesh() -> SphereMesh:
+	if _drop_mesh == null:
+		_drop_mesh = SphereMesh.new()
+		_drop_mesh.radius = 0.05
+		_drop_mesh.height = 0.12
+		_drop_mesh.radial_segments = 6
+		_drop_mesh.rings = 3
+		var m := StandardMaterial3D.new()
+		m.vertex_color_use_as_albedo = true
+		m.roughness = 0.15
+		m.emission_enabled = true
+		m.emission = Color(0.35, 0.5, 0.08)
+		m.emission_energy_multiplier = 0.6
+		_drop_mesh.material = m
+	return _drop_mesh
+
+
+## The pooled splash emitters: flung droplets and a rising puff of acid smoke (made once).
+func _ensure_bile_fx() -> void:
+	if not _bile_splats.is_empty():
+		return
+	for k in 6:
+		var sp := CPUParticles3D.new()
+		sp.one_shot = true
+		sp.emitting = false
+		sp.explosiveness = 0.95
+		sp.amount = 16
+		sp.lifetime = 0.7
+		sp.top_level = true
+		sp.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+		sp.emission_sphere_radius = 0.2
+		sp.direction = Vector3.UP
+		sp.spread = 70.0
+		sp.initial_velocity_min = 2.5
+		sp.initial_velocity_max = 5.5
+		sp.gravity = Vector3(0, -15.0, 0)
+		sp.scale_amount_min = 0.6
+		sp.scale_amount_max = 1.5
+		sp.mesh = _bile_drop_mesh()
+		sp.color = Color(0.5, 0.72, 0.14)
+		sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(sp)
+		_bile_splats.append(sp)
+		var sm := CPUParticles3D.new()
+		sm.one_shot = true
+		sm.emitting = false
+		sm.explosiveness = 0.8
+		sm.amount = 7
+		sm.lifetime = 1.3
+		sm.top_level = true
+		sm.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+		sm.emission_sphere_radius = 0.5
+		sm.direction = Vector3.UP
+		sm.spread = 25.0
+		sm.initial_velocity_min = 0.6
+		sm.initial_velocity_max = 1.4
+		sm.gravity = Vector3(0, 0.6, 0)
+		sm.damping_min = 0.6
+		sm.damping_max = 1.0
+		sm.angle_min = 0.0
+		sm.angle_max = 360.0
+		sm.angular_velocity_min = -40.0
+		sm.angular_velocity_max = 40.0
+		var grow := Curve.new()
+		grow.add_point(Vector2(0, 0.35))
+		grow.add_point(Vector2(1, 1.5))
+		sm.scale_amount_curve = grow
+		var ramp := Gradient.new()   # the colour is in the texture; this tints it acid-yellow and fades
+		ramp.set_color(0, Color(1.0, 1.0, 0.75, 0.0))
+		ramp.add_point(0.12, Color(1.0, 1.0, 0.75, 0.8))
+		ramp.add_point(0.6, Color(0.85, 0.95, 0.7, 0.45))
+		ramp.set_color(1, Color(0.7, 0.8, 0.6, 0.0))
+		sm.color_ramp = ramp
+		var q := QuadMesh.new()
+		q.size = Vector2(1.1, 1.1)
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		m.vertex_color_use_as_albedo = true
+		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		m.albedo_texture = _stink_cloud_tex()
+		m.disable_fog = true
+		q.material = m
+		sm.mesh = q
+		sm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(sm)
+		_bile_smokes.append(sm)
+
+
+## A glob landing: droplets splatter out, a puff of acid smoke rises off a small sizzling
+## puddle (for show: the damage is the splash), and it hisses.
+func _bile_burst_fx(at: Vector3, r: float) -> void:
+	_ensure_bile_fx()
+	var k := _bile_next
+	_bile_next = (_bile_next + 1) % _bile_splats.size()
+	var sp := _bile_splats[k]
+	sp.global_position = at + Vector3(0, 0.25, 0)
+	sp.restart()
+	var sm := _bile_smokes[k]
+	sm.emission_sphere_radius = r * 0.25
+	sm.global_position = at + Vector3(0, 0.5, 0)
+	sm.restart()
+	var disc := AcidPuddle.create(r * 0.55, at, self)
+	disc.as_bile()
+	_puddles.append({"pos": at, "t": BILE_PUDDLE_TIME, "disc": disc, "tick": 0.0, "r": 0.0, "src": "", "visual": true})
+	if _bile_hiss_gap <= 0.0:
+		_bile_hiss_gap = 0.05
+		_play_shot("bile_splash")
 
 
 func _bile_splash(at: Vector3, dmg: float) -> void:
@@ -1524,10 +1707,12 @@ func _bile_splash(at: Vector3, dmg: float) -> void:
 	_spawn_ring(at, r)
 	if _fx_mgr != null:
 		_fx_mgr.burst(at + Vector3(0, 0.4, 0), r * 0.8, Color(0.55, 0.75, 0.15, 0.7), 0.35)
+	_bile_burst_fx(at, r)
 
 
 func _update_flasks(dt: float) -> void:
 	_glass_gap -= dt
+	_bile_hiss_gap -= dt
 	for k in range(_flasks.size() - 1, -1, -1):
 		var f: Dictionary = _flasks[k]
 		f["t"] += dt / float(f.get("flight", FLASK_FLIGHT))
@@ -1552,6 +1737,8 @@ func _update_flasks(dt: float) -> void:
 		if pd["t"] <= 0.0:
 			disc.queue_free()
 			_puddles.remove_at(k)
+			continue
+		if pd.get("visual", false):   # bile's sizzling splash: just for show
 			continue
 		pd["tick"] -= dt
 		if pd["tick"] <= 0.0:

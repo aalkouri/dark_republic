@@ -180,7 +180,7 @@ Their risen dead (the Pharaoh's mummies, the Necromancer's skeletons) are the Da
 | Billy Bulldog | Bite | A lunge at the nearest enemy (2 m, 25, every 0.6 s); every 5th bite shakes it for 3x |
 | Cowboy | Six-Shooter | 6 quick shots (40 each, pierce 1, every 0.25 s), then a 1.5 s reload |
 | Sentient Platypus | Venom Spur | A kick (2.2 m, 15, every 0.6 s) that poisons for 2% of max HP a second; each stack (max 5) slows 10% |
-| Bog Witch | Ladle of Bile | Lobs bile that splashes for 25 within 3 m and slows 20% |
+| Bog Witch | Ladle of Bile | Lobs bile that splashes for 25 within 3 m and slows 20%. The glob wobbles, glistens and drips in flight. It lands with a splatter of droplets, a puff of acid smoke and a small bubbling puddle that hisses away in 1.6 s (only for show). Sounds: a wet slosh on the throw (`bile_throw.wav`), and a splat with an acid sizzle and a puff on landing (`bile_splash.wav`, from `tools/gen_six_sounds.py`) |
 | Kong | Shackle Swing | Swings his chains all round him (4 m, 30, every 1 s) with knockback |
 
 Once bought, every character's weapon can also turn up for the others as a rare Legendary level-up reward. The odds are shared out, so the rewards stay rare however many characters you own.

@@ -9,7 +9,8 @@ Cowboy:         lasso (a rope whirling), dynamite (a fuse hiss), high_noon (a lo
 Platypus:       electro_bill (an electric zap), eggs (soft plops), pop (a popping burst),
                 lecture (a drowsy descending tone)
 Bog Witch:      cauldron (bubbling), hex (a dark whisper chord), swamp_fury (a deep bog
-                gurgle and rumble)
+                gurgle and rumble), bile_throw (a wet slosh and glugs) and bile_splash (a splat,
+                an acid sizzle and a puff of smoke) for her Ladle of Bile
 Kong:           chest_pound (three hollow drum thumps), log_toss (a heave and a rolling
                 rumble), rampage (a roar)
 
@@ -169,6 +170,41 @@ def main():
     f = 110 + 40 * np.sin(np.pi * t / 1.4)
     roar = np.sin(2 * np.pi * np.cumsum(f) / SR) * 0.6 + bp(noise(1.4), 200, 2500) * 0.8
     save("rampage", lp(roar, 2500) * np.minimum(1, t / 0.1) * np.exp(-t * 1.0))
+    bile()
+
+
+def bile():
+    """The Bog Witch's Ladle of Bile: bile_throw (a wet slosh as the ladle flings a glob, a
+    couple of glugs), bile_splash (a wet splat, an acid sizzle that crackles away and a soft
+    puff of smoke)."""
+    r = np.random.default_rng(77)
+    b = np.zeros(int(SR * 0.45))
+    # the slosh: a band of liquid noise swelling and falling, wobbling like liquid in a ladle
+    d = 0.32
+    t = t_of(d)
+    slosh = bp(r.standard_normal(len(t)), 250, 1400) * np.sin(np.pi * t / d) ** 1.5
+    slosh *= 0.7 + 0.3 * np.sin(2 * np.pi * 14 * t)
+    place(b, slosh * 0.9, 0.0)
+    # two glugs: short resonant blips sweeping up, like bubbles leaving the ladle
+    for at, f in [(0.05, 260), (0.14, 340)]:
+        place(b, sweep(f, f * 2.2, 0.07, 0.5) * env(0.07, 0.004, 0.025), at)
+    save("bile_throw", b, 0.7)
+    b = np.zeros(int(SR * 1.3))
+    # the splat: a wet low thud with a smack of mid noise
+    place(b, thump(110, 0.25, 0.8) + bp(r.standard_normal(int(SR * 0.25)), 300, 2500) * env(0.25, 0.002, 0.05) * 1.4, 0.0)
+    # the sizzle: bright hissing noise that crackles (random pops) and dies away
+    d = 1.15
+    t = t_of(d)
+    hiss = bp(r.standard_normal(len(t)), 3500, 11000) * np.exp(-t * 2.4) * np.minimum(1, t / 0.03)
+    crackle = (r.random(len(t)) < 0.004) * r.uniform(0.5, 1.0, len(t))
+    crackle = bp(crackle, 2000, 9000) * np.exp(-t * 2.0) * 6.0
+    place(b, (hiss * 0.55 + crackle * 0.5), 0.04)
+    # the puff: a soft low whoomp of air as the smoke goes up
+    d = 0.5
+    t = t_of(d)
+    puff = lp(r.standard_normal(len(t)), 500) * np.sin(np.pi * t / d) ** 2 * 1.6
+    place(b, puff, 0.08)
+    save("bile_splash", b, 0.75)
 
 
 def entrances():

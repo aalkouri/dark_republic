@@ -127,6 +127,22 @@ var shards: CPUParticles3D
 var _mat: ShaderMaterial
 
 
+## The Bog Witch's bile instead of flask acid: murkier swamp greens and no glass shards
+## (a glob of bile, not a vial). Call right after create().
+func as_bile() -> void:
+	_mat.set_shader_parameter("body", Color(0.42, 0.62, 0.1))
+	_mat.set_shader_parameter("deep", Color(0.16, 0.24, 0.04))
+	_mat.set_shader_parameter("glow", Color(0.78, 0.9, 0.3))
+	if shards != null:
+		shards.queue_free()
+		shards = null
+	if bubbles != null:
+		var g := Gradient.new()
+		g.set_color(0, Color(0.45, 0.7, 0.12, 0.75))
+		g.set_color(1, Color(0.75, 0.88, 0.35, 0.9))
+		bubbles.color_ramp = g
+
+
 ## Puddle edge (in units of the puddle's scale) at `angle` radians, matching the shader's
 ## outline without the droplets and wobble. Used by the bubble emitter and the tests.
 func edge_radius(angle: float) -> float:
