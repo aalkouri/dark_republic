@@ -15,7 +15,7 @@ extends Node3D
 ##   SWEEP   a wide swing across a 130-degree wedge in front of him: big damage and knockback.
 ##   BELLOW  a roar that calls a ring of goblins (and a brute) around you.
 ## And at 75%, 50% and 10% health, the QUAKE: he stomps the ground over and over (your camera
-## shakes the whole time) while the entire map lights up red - everything but the swamp pools.
+## trembles the whole time) while the entire map lights up red - everything but the swamp pools.
 ## You have QUAKE_WARN seconds to get into a pool (a glowing arrow floats down over each one); if you're anywhere else when it lands, it
 ## takes QUAKE_FRAC of your max HP straight through your shield, and wipes the shield out.
 
@@ -49,7 +49,9 @@ const BELLOW_GOBLINS := 14
 const QUAKE_AT := [0.75, 0.5, 0.1]  # health fractions that set off a quake
 const QUAKE_WARN := 10.0            # seconds to get into a pool (arrows float over every pool)
 const QUAKE_FRAC := 0.5             # of max HP, through shields
-const QUAKE_STOMP := 0.6            # seconds between stomps
+const QUAKE_STOMP := 2.1            # seconds between pounds (quickening to 1.6 s as it builds)
+const POUND_SPEED := 0.95           # the slam animation's speed: heavy, both fists overhead then down
+const POUND_IMPACT := 0.82          # seconds into a pound when the fists hit the ground
 const MELEE_RANGE := 12.0           # closer than this he slams or sweeps; further, he walks / roars
 const SOUNDS := {
 	"roar": "res://audio/thog/roar.wav",
@@ -74,6 +76,7 @@ var counts := {"slam": 0, "sweep": 0, "bellow": 0, "hits": 0, "quake": 0, "quake
 var _arrows: Node3D                 # the quake's arrows over the pools (get in here!)
 var _quakes_done := 0               # QUAKE_AT thresholds already used
 var _stomp_t := 0.0
+var _impact_t := -1.0               # counts down to the current pound's impact
 var _t := 0.0                       # time into the current attack
 var _windup := 0.0                  # seconds from the start of the attack to its impact
 var _total := 0.0                   # seconds the attack's animation takes
@@ -408,18 +411,24 @@ func _tick_quake(dt: float) -> void:
 	if not _landed:
 		_quake_ground(1.0, f)
 	_stomp_t -= dt
-	if _stomp_t <= 0.0 and not _landed:   # stomp, stomp, stomp - faster as it builds
-		_stomp_t = QUAKE_STOMP * lerpf(1.0, 0.6, f)
-		model.play("slam", 2.2)
-		_play_sfx("step" if randi() % 2 else "slam")
-		if fx:
-			var i := row()
-			fx.burst(em.pos[i] + _aim * 3.0 + Vector3(0, 0.4, 0), 4.0, Color(0.5, 0.42, 0.3), 0.35)
-	player.add_shake(lerpf(0.35, 0.75, f))   # the whole map trembles
+	if _stomp_t <= 0.0 and not _landed and _t < QUAKE_WARN - POUND_IMPACT * 0.5:
+		# a slow, heavy pound: both fists raised overhead, then brought crashing down
+		_stomp_t = QUAKE_STOMP * lerpf(1.0, 0.76, f)
+		model.play("slam", POUND_SPEED)
+		_impact_t = POUND_IMPACT
+	if _impact_t >= 0.0:
+		_impact_t -= dt
+		if _impact_t < 0.0:   # the fists hit the ground: dust, a thud and a jolt
+			_play_sfx("slam")
+			player.add_shake(0.45)
+			if fx:
+				var i := row()
+				fx.burst(em.pos[i] + _aim * 3.0 + Vector3(0, 0.4, 0), 4.5, Color(0.5, 0.42, 0.3), 0.45)
+	player.add_shake(lerpf(0.12, 0.26, f))   # a light tremble, growing as it builds
 	if not _landed and _t >= QUAKE_WARN:
 		_landed = true
 		_play_sfx("slam")
-		player.add_shake(1.6)
+		player.add_shake(1.0)
 		var safe: bool = main.water != null and main.water.in_pool_xz(player.global_position.x, player.global_position.z)
 		if not safe and player.hurt_true(QUAKE_FRAC, "THOG"):
 			counts["quake_hits"] += 1
