@@ -671,7 +671,7 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 
 `scripts/thog_boss.gd`, body in `scripts/thog_model.gd`. With **2 minutes left (8:00)** a 10 m blue troll with a studded club walks out of the swamp (the Goblin Warlord no longer comes on the Swamp). A health bar appears under the timer with a countdown to his enrage.
 
-- **Must be killed to win:** the 10:00 mark no longer ends a Swamp run. When Thog falls (he topples backwards into the bog and gems fly to you) he drops his shards and a portal opens; step through it and the end screen says **THOG DEFEATED!** (see **Boss rules: after the boss**). Any level-up choice still open then is skipped.
+- **Must be killed to win:** the 10:00 mark no longer ends a Swamp run. When Thog falls (he topples backwards into the bog and gems fly to you) he drops his shards and a portal opens; step through it and the end screen's title names the map: **THE SWAMP DEFEATED** (every map the same way: "THE CASTLE DEFEATED", "THE ASHEN CALDERA DEFEATED"; "YOU DIED" when you die) (see **Boss rules: after the boss**). Any level-up choice still open then is skipped.
 - **Enrage:** if he's alive 2 minutes after arriving (10:00) he **enrages**: his attacks come **twice as fast** (animations, wind-ups and the pauses between them), though every telegraph still gives at least 1 s of warning, his skin smoulders red and flames pour off him, and the bar turns red.
 - **Three attacks,** each telegraphed on the ground in red that fills up until it lands:
   - **Slam** (close): both fists overhead and down into the ground in front of him: 40 damage in the marked circle, then a **shockwave ring** rolls out to 20 m (22 damage; **jump over it**).

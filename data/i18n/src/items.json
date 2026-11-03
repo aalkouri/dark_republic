@@ -294,5 +294,13 @@
   "Gelber Trank: 5-facher Schaden",
   "黄色药水：5倍伤害",
   "黄色のポーション：5倍ダメージ"
+ ],
+ "%s DEFEATED": [
+  "%s SUPERADO",
+  "%s VAINCU",
+  "تم التغلب على %s",
+  "%s BEZWUNGEN",
+  "%s 已征服",
+  "%s 制覇"
  ]
 }

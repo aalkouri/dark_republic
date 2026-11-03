@@ -1164,7 +1164,7 @@ func set_paused(p: bool) -> void:
 
 
 func show_end(won: bool) -> void:
-	end_title.text = tr("YOU WON!") if won else tr("YOU DIED")
+	end_title.text = (tr("%s DEFEATED") % tr(MapPicker.name_of(Settings.selected_map)).to_upper()) if won else tr("YOU DIED")
 	end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3) if won else Color(1.0, 0.35, 0.3))
 	end_stats.text = tr("Time %s   ·   Level %d   ·   Kills %d") % [_fmt_time(main.run_time), main.level, main.kills]
 	show_unlocks(unlocks_for(main.boss_id) if main.first_boss_kill else [])

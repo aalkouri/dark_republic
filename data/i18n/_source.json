@@ -60,14 +60,17 @@
   "slot_machine.gd:143"
  ],
  "%s Cooldown": [
-  "weapon_system.gd:440"
+  "weapon_system.gd:445"
+ ],
+ "%s DEFEATED": [
+  "hud.gd:1167"
  ],
  "%s DEFEATED!": [
   "main.gd:85"
  ],
  "%s Damage": [
-  "weapon_system.gd:439",
-  "weapon_system.gd:477"
+  "weapon_system.gd:444",
+  "weapon_system.gd:482"
  ],
  "%s IS DEFEATED!": [
   "main.gd:893"
@@ -76,14 +79,14 @@
   "map_boss.gd:408"
  ],
  "%s Pierce": [
-  "weapon_system.gd:442",
-  "weapon_system.gd:479"
+  "weapon_system.gd:447",
+  "weapon_system.gd:484"
  ],
  "%s Reach": [
-  "weapon_system.gd:441"
+  "weapon_system.gd:446"
  ],
  "%s can't fight here: it's home turf": [
-  "map_picker.gd:96"
+  "map_picker.gd:104"
  ],
  "%s coins": [
   "character_select.gd:134"
@@ -462,7 +465,7 @@
  "Back": [
   "character_select.gd:807",
   "settings_menu.gd:63",
-  "unlocks_menu.gd:102"
+  "unlocks_menu.gd:104"
  ],
  "Bans left": [
   "hud.gd:358"
@@ -637,7 +640,7 @@
   "singe_boss.gd:630"
  ],
  "CHOOSE YOUR BATTLEGROUND": [
-  "map_picker.gd:57"
+  "map_picker.gd:65"
  ],
  "CHOOSE YOUR CHAMPION": [
   "character_select.gd:220"
@@ -652,7 +655,7 @@
   "characters.json"
  ],
  "Chain Lightning": [
-  "weapon_system.gd:217",
+  "weapon_system.gd:218",
   "abilities.json"
  ],
  "Chain spin, knockback": [
@@ -710,7 +713,7 @@
   "loader.gd:249"
  ],
  "Click to buy: %s coins": [
-  "unlocks_menu.gd:371"
+  "unlocks_menu.gd:373"
  ],
  "Click to continue": [
   "unlock_reveal.gd:52"
@@ -865,8 +868,8 @@
   "taglines.json"
  ],
  "Defeat %s to unlock": [
-  "map_picker.gd:94",
-  "map_picker.gd:135"
+  "map_picker.gd:102",
+  "map_picker.gd:143"
  ],
  "Defeat Singe in the Ashen Caldera": [
   "character_select.gd:125"
@@ -1126,7 +1129,7 @@
   "abilities.json"
  ],
  "Enter: choose   ·   Esc: back": [
-  "map_picker.gd:68"
+  "map_picker.gd:76"
  ],
  "Epic": [
   "upgrades.json"
@@ -1289,7 +1292,7 @@
   "taglines.json"
  ],
  "Fireballs": [
-  "weapon_system.gd:213",
+  "weapon_system.gd:214",
   "abilities.json",
   "upgrades.json",
   "upgrades.json"
@@ -1376,7 +1379,7 @@
   "abilities.json"
  ],
  "Frost Shards": [
-  "weapon_system.gd:215",
+  "weapon_system.gd:216",
   "abilities.json"
  ],
  "Frozen Shatter": [
@@ -1392,7 +1395,7 @@
   "character_select.gd:503"
  ],
  "Fully upgraded": [
-  "unlocks_menu.gd:373"
+  "unlocks_menu.gd:375"
  ],
  "Fungal Shield": [
   "abilities.json"
@@ -1596,11 +1599,11 @@
   "abilities.json"
  ],
  "Hurls fireballs from your staff at the nearest enemies.": [
-  "weapon_system.gd:213",
+  "weapon_system.gd:214",
   "upgrades.json"
  ],
  "Hurls icicles from your staff that slow the enemies they hit.": [
-  "weapon_system.gd:215"
+  "weapon_system.gd:216"
  ],
  "I cast Magic Missile at the darkness!": [
   "taglines.json"
@@ -1740,7 +1743,7 @@
   "hud.gd:1022"
  ],
  "LEGENDARY: the %s's weapon. %s": [
-  "weapon_system.gd:482"
+  "weapon_system.gd:487"
  ],
  "LEVEL %d": [
   "item_found.gd:56"
@@ -1837,7 +1840,7 @@
  ],
  "Level %d / %d": [
   "abilities.gd:377",
-  "unlocks_menu.gd:365"
+  "unlocks_menu.gd:367"
  ],
  "Level reached": [
   "hud.gd:1230"
@@ -1864,7 +1867,7 @@
   "wallet.gd:326"
  ],
  "Lightning arcs from your staff and jumps between enemies.": [
-  "weapon_system.gd:217"
+  "weapon_system.gd:218"
  ],
  "Lightning chains to 2 more enemies": [
   "forge.gd:86"
@@ -1936,7 +1939,7 @@
  "MAX": [
   "ability_slot.gd:163",
   "item_found.gd:58",
-  "unlocks_menu.gd:297"
+  "unlocks_menu.gd:299"
  ],
  "MOVEMENT +80% for 15 s!": [
   "powerup_manager.gd:21"
@@ -1990,7 +1993,7 @@
   "forge_menu.gd:239"
  ],
  "Max level %d": [
-  "unlocks_menu.gd:383"
+  "unlocks_menu.gd:385"
  ],
  "Melee kick that poisons for 2% of max HP per second; each stack slows 10% (max 5)": [
   "abilities.json"
@@ -2104,7 +2107,7 @@
   "abilities.gd:382"
  ],
  "Next: %s": [
-  "unlocks_menu.gd:369"
+  "unlocks_menu.gd:371"
  ],
  "No skill points (earn one each level)": [
   "skill_tree.gd:175"
@@ -2129,13 +2132,13 @@
   "forge_menu.gd:214"
  ],
  "Not found yet: pick it up in a run to add it here.": [
-  "unlocks_menu.gd:356"
+  "unlocks_menu.gd:358"
  ],
  "Now for sale in Characters: %s coins": [
   "hud.gd:1357"
  ],
  "Now: %s": [
-  "unlocks_menu.gd:367"
+  "unlocks_menu.gd:369"
  ],
  "Now: %s x%s, cooldown -%d%%": [
   "abilities.gd:380"
@@ -2533,7 +2536,7 @@
   "abilities.json"
  ],
  "Shadow Bolts": [
-  "weapon_system.gd:219",
+  "weapon_system.gd:220",
   "abilities.json"
  ],
  "Shadow Step": [
@@ -2632,7 +2635,7 @@
   "tips.json"
  ],
  "Slow bolts of shadow that pierce and curse the enemies they hit.": [
-  "weapon_system.gd:219"
+  "weapon_system.gd:220"
  ],
  "Slow, piercing bolts; 20% chance to curse (+25% damage taken for 4 s)": [
   "abilities.json"
@@ -3225,7 +3228,7 @@
   "hud.gd:1374"
  ],
  "UNLOCKS": [
-  "unlocks_menu.gd:68"
+  "unlocks_menu.gd:70"
  ],
  "UNRELENTING": [
   "character_select.gd:232",
@@ -3241,7 +3244,7 @@
   "player.gd:621"
  ],
  "Unknown map": [
-  "map_picker.gd:98"
+  "map_picker.gd:106"
  ],
  "Unknown skill": [
   "skill_tree.gd:162"
@@ -3427,9 +3430,6 @@
   "upgrades.json"
  ],
  "YOU DIED": [
-  "hud.gd:1167"
- ],
- "YOU WON!": [
   "hud.gd:1167"
  ],
  "YOUR DAMAGE": [

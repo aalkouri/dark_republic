@@ -178,7 +178,7 @@ func _ready() -> void:
 	var names := []
 	for c in hud.unlock_cards:
 		names.append((c.find_children("*", "Label", true, false)[1] as Label).text)
-	_check("the end screen says so", hud.end_title.text == "YOU WON!", hud.end_title.text)
+	_check("the end screen says so", hud.end_title.text == "THE SWAMP DEFEATED", hud.end_title.text)
 	_check("it lists what was unlocked: the Forest and Thog", hud.end_unlocks.visible and hud.unlock_cards.size() == 2
 		and "MAGICAL FOREST" in names and "THOG THE TROLL" in names, str(names))
 	var start_far: bool = hud.unlock_cards[-1].modulate.a < 0.05

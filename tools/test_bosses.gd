@@ -103,7 +103,7 @@ func _forest() -> void:
 	_check("killing him doesn't end the run: a portal opens instead", main.state != "won" and main.boss_down, main.state)
 	await _through_portal()
 	_check("stepping through the portal wins the run", main.state == "won" and main.boss_won, main.state)
-	_check("the end screen names him", main.hud.end_title.text == "YOU WON!", main.hud.end_title.text)
+	_check("the end screen names the map, defeated", main.hud.end_title.text == MapPicker.name_of(Settings.selected_map).to_upper() + " DEFEATED", main.hud.end_title.text)
 	_check("the Castle unlocks", Wallet.has_defeated("toadstool_knight") and MapPicker.lock_reason("castle", "fire_wizard") == "", "")
 	var names := []
 	for c in main.hud.unlock_cards:

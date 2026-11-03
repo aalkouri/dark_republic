@@ -34,6 +34,14 @@ var _reveal: Array[Button] = []   # newly unlocked cards still to play their pad
 var revealing := false
 
 
+## A map's display name ("The Swamp"), untranslated; the id itself if it isn't listed.
+static func name_of(map: String) -> String:
+	for m in MAPS:
+		if m["id"] == map:
+			return str(m["name"])
+	return map
+
+
 static func create(font: Font) -> MapPicker:
 	var m := MapPicker.new()
 	m._font = font
