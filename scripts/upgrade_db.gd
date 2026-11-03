@@ -89,28 +89,50 @@ func weapon_weight() -> float:
 
 
 ## Returns up to n picks: [{ "id": String, "rarity": int }, ...] with distinct ids.
+## While weapon slots are open, one card is always a new weapon, and while tome slots are open,
+## one is always a new tome (so you fill all eight slots quickly); the rest use the usual weights.
 func draft(n: int, luck: float, max_weapons: int) -> Array:
 	var pool := _eligible(max_weapons)
 	var picks := []
+	for slot in [["weapon", max_weapons], ["tome", MAX_TOMES]]:
+		if picks.size() >= n or owned_of_kind(slot[0]) >= int(slot[1]):
+			continue
+		var fresh := pool.filter(func(id): return defs[id]["kind"] == slot[0] and level_of(id) == 0)
+		if not fresh.is_empty():
+			var id := _weighted(fresh)
+			pool.erase(id)
+			picks.append(_pick(id, luck))
 	while picks.size() < n and not pool.is_empty():
-		var total := 0.0
-		for id in pool:
-			total += weight_of(id)
-		var r := rng.randf() * total
-		var chosen: String = pool[pool.size() - 1]
-		for id in pool:
-			r -= weight_of(id)
-			if r <= 0.0:
-				chosen = id
-				break
+		var chosen := _weighted(pool)
 		pool.erase(chosen)
-		var d: Dictionary = defs[chosen]
-		var is_unlock: bool = d["kind"] == "weapon" and level_of(chosen) == 0
-		var rarity := 0 if (is_unlock or d.get("fixed", false)) else roll_rarity(luck)
-		if d.has("rarity_fixed"):   # signature weapons are always Legendary
-			rarity = int(d["rarity_fixed"])
-		picks.append({"id": chosen, "rarity": rarity})
+		picks.append(_pick(chosen, luck))
+	for i in range(picks.size() - 1, 0, -1):   # shuffle so the guaranteed cards aren't always first
+		var j := rng.randi_range(0, i)
+		var tmp = picks[i]
+		picks[i] = picks[j]
+		picks[j] = tmp
 	return picks
+
+
+func _weighted(ids: Array) -> String:
+	var total := 0.0
+	for id in ids:
+		total += weight_of(id)
+	var r := rng.randf() * total
+	for id in ids:
+		r -= weight_of(id)
+		if r <= 0.0:
+			return id
+	return ids[ids.size() - 1]
+
+
+func _pick(chosen: String, luck: float) -> Dictionary:
+	var d: Dictionary = defs[chosen]
+	var is_unlock: bool = d["kind"] == "weapon" and level_of(chosen) == 0
+	var rarity := 0 if (is_unlock or d.get("fixed", false)) else roll_rarity(luck)
+	if d.has("rarity_fixed"):   # signature weapons are always Legendary
+		rarity = int(d["rarity_fixed"])
+	return {"id": chosen, "rarity": rarity}
 
 
 func roll_rarity(luck: float) -> int:

@@ -79,8 +79,55 @@ func _ready() -> void:
 	_check("mirror: dodge capped near 60%", dodges > 200 and dodges < 280, "%d / 400" % dodges)
 	_check("mirror: each dodge signalled", got[0] == dodges, "%d vs %d" % [got[0], dodges])
 
+	_test_draft_slots()
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails > 0 else 0)
+
+
+## Level-up drafts: while weapon / tome slots are open, a new one of each is always offered.
+func _test_draft_slots() -> void:
+	var r := RandomNumberGenerator.new()
+	r.seed = 11
+	var d := UpgradeDB.new("res://data/upgrades.json", r)
+	d.levels["weapon_orb"] = 1   # the starting weapon
+	var both := true
+	for k in 300:
+		var kinds := _new_kinds(d, d.draft(3, 0.0, 4))
+		both = both and kinds.has("weapon") and kinds.has("tome")
+	_check("open weapon and tome slots: every draft has a new weapon and a new tome", both, "")
+	var tomes := 0
+	for id in d.order:
+		if d.defs[id]["kind"] == "tome" and tomes < 4:
+			d.levels[id] = 1
+			tomes += 1
+	var w_ok := true
+	for k in 300:
+		w_ok = w_ok and _new_kinds(d, d.draft(3, 0.0, 4)).has("weapon")
+	_check("tomes full, weapons open: every draft has a new weapon", w_ok, "")
+	for id in d.order:
+		if d.defs[id]["kind"] == "tome":
+			d.levels.erase(id)
+	var ws := 0
+	for id in d.order:
+		if d.defs[id]["kind"] == "weapon" and not d.defs[id].has("signature") and ws < 4:
+			d.levels[id] = 1
+			ws += 1
+	var t_ok := true
+	var no_new_w := true
+	for k in 300:
+		var picks := d.draft(3, 0.0, 4)
+		var kinds := _new_kinds(d, picks)
+		t_ok = t_ok and kinds.has("tome")
+		no_new_w = no_new_w and not kinds.has("weapon")
+	_check("weapons full, tomes open: every draft has a new tome (and no new weapon)", t_ok and no_new_w, "")
+
+
+func _new_kinds(d: UpgradeDB, picks: Array) -> Dictionary:
+	var out := {}
+	for pk in picks:
+		if d.level_of(pk["id"]) == 0:
+			out[d.defs[pk["id"]]["kind"]] = true
+	return out
 
 
 func _check(what: String, ok: bool, info: String) -> void:

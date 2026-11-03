@@ -186,8 +186,8 @@ func _ready() -> void:
 			match pk["id"]:
 				"sig_dark": dark += 1
 				"sig_fire": fire += 1
-				"weapon_aura": orb += 1
-	_check("taking another character's weapon: it now comes up as often as any weapon", is_equal_approx(sdb.weight_of("sig_dark"), sdb.weapon_weight()) and dark > orb * 0.6, "%d vs Stink Aura %d" % [dark, orb])
+				"weapon_orb": orb += 1   # another weapon you own (new ones get the open-slot guarantee)
+	_check("taking another character's weapon: it now comes up as often as any weapon", is_equal_approx(sdb.weight_of("sig_dark"), sdb.weapon_weight()) and dark > orb * 0.6, "%d vs Fireballs %d" % [dark, orb])
 	_check("...and no other legendary weapon can be pulled", fire == 0 and not sdb._eligible(3).has("sig_fire"), "%d" % fire)
 	db.banned["tome_damage"] = true
 	var seen_banned := false
