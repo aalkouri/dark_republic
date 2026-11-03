@@ -108,7 +108,7 @@ func _ready() -> void:
 	var tally := [0, 0, 0]
 	for n in 20000:
 		tally[pm.roll_kind()] += 1
-	_check("drop odds ~30/50/20", absf(tally[0] / 200.0 - 30.0) < 1.5 and absf(tally[1] / 200.0 - 50.0) < 1.5 and absf(tally[2] / 200.0 - 20.0) < 1.5,
+	_check("drop odds ~20/55/25 (yellow / red / blue)", absf(tally[0] / 200.0 - 20.0) < 1.5 and absf(tally[1] / 200.0 - 55.0) < 1.5 and absf(tally[2] / 200.0 - 25.0) < 1.5,
 		"%.1f / %.1f / %.1f %%" % [tally[0] / 200.0, tally[1] / 200.0, tally[2] / 200.0])
 
 	ab.level = 1
@@ -167,10 +167,8 @@ func _ready() -> void:
 	var d_met: Dictionary = Abilities.DEFS[Abilities.METEOR]
 	_check("slot 1 is Inferno, 30 s", d_inf["key"] == "1" and d_inf["name"] == "Inferno" and d_inf["cooldown"] == 30.0 and not d_inf["ult"], str(d_inf))
 	_check("slot 3 is the Meteor ultimate, 2 min", d_met["key"] == "3" and d_met["name"] == "Meteor" and d_met["cooldown"] == 120.0 and d_met["ult"], str(d_met))
-	ab.cooldown = PackedFloat32Array([20.0, 40.0, 100.0])
-	pm._apply(PotionManager.PURPLE)
-	_check("purple cuts 30% of each full cooldown", is_equal_approx(ab.cooldown[0], 11.0) and is_equal_approx(ab.cooldown[1], 26.5) and is_equal_approx(ab.cooldown[2], 64.0),
-		"%s" % str(ab.cooldown))
+	pm._apply(PotionManager.YELLOW)   # no power-up manager here: it just mustn't break
+	_check("the yellow potion is 5x damage", "5x" in PotionManager.NAMES[PotionManager.YELLOW], "")
 	player.hp = 100.0
 	pm._apply(PotionManager.RED)
 	_check("red heals 10% max HP", is_equal_approx(player.hp, 120.0), "hp %.1f" % player.hp)

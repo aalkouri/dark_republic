@@ -43,7 +43,7 @@ const SAFE := Color(0.24, 1.0, 0.4)
 # each potion and each power-up. Shapes differ too (boxes, keys, dots, ringed icons).
 const CHEST_COLS := [Color("c8742f"), Color("eef2fa"), Color("ffd21f")]      # copper, silver-white, gold
 const KEY_COLS := CHEST_COLS   # a key is the colour of the chest it opens (bronze, silver, gold)
-const POTION_COLS := [Color("8a3dff"), Color("ff5c8a"), Color("2f6bff")]     # purple, rose, royal blue
+const POTION_COLS := [Color("fff176"), Color("ff5c8a"), Color("2f6bff")]     # pale yellow, rose, royal blue
 const POWERUP_COLS := [Color("ff6a00"), Color("19d6b0"), Color("ffb000"), Color("00ff9c"), Color("b8ff2e")]   # magnet, fear, damage, speed, nuke
 const WAYGATE_COLS := [Color("5a6e6a"), Color("6ffff0"), Color("2b8a9a")]   # waygates: inactive (dim), active (bright aqua), recharging
 const ITEM_COL := Color("ff4fd8")             # an item on the ground (burnt trees, crypts, statues): a magenta star

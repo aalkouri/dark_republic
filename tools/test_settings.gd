@@ -186,11 +186,14 @@ func _ready() -> void:
 	_check("no heal pop-up at full health", hud._popups.size() == n_before, "")
 	main.abilities.cooldown = PackedFloat32Array([20.0, 0.0, 100.0])
 	n_before = hud._popups.size()
-	main.potions._apply(PotionManager.PURPLE)
+	main.stats.apply("hourglass_cut", "flat", 5.0)   # the Hourglass item's cut uses the same pop-ups
+	main._hourglass()
 	var cut_txt := []
 	for k in range(n_before, hud._popups.size()):
 		cut_txt.append((hud._popups[k][0] as Label).text)
-	_check("purple potion: time cut shown above abilities on cooldown", cut_txt == ["-9s", "-36s"], str(cut_txt))
+	_check("Hourglass: time cut shown above abilities on cooldown", cut_txt == ["-5s", "-5s"], str(cut_txt))
+	main.potions._apply(PotionManager.YELLOW)
+	_check("yellow potion: 5x damage (the power-up's effect)", is_equal_approx(main.enemies.damage_mult, PowerupManager.DAMAGE_MULT), str(main.enemies.damage_mult))
 	var slot_r: Rect2 = (hud.ability_slots[2] as Control).get_global_rect()
 	var cut_pop: Label = hud._popups[hud._popups.size() - 1][0]
 	_check("cut pop-up sits above its ability", cut_pop.position.y < slot_r.position.y and absf(cut_pop.position.x - slot_r.get_center().x) < 40, "")

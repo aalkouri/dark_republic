@@ -435,11 +435,11 @@ To add a clip: generate it on the same rig in Higgsfield, then run `godot --head
 
 | Potion | Chance | Effect |
 |---|---|---|
-| Purple | 30% | Every ability's cooldown is reduced by 30% of its full duration ("-Ns" pops up above each ability that was cooling down) |
-| Red | 50% | Heal 10% of max HP (a red "+N" pops up next to the health bar and above the wizard) |
-| Blue | 20% | Shield worth 10% of max HP (absorbs damage first, stacks) |
+| Yellow (Liquid Soul-Amber: a squat glass jar of glowing amber in a dark iron frame with glowing runes) | 20% | 5x damage for 10 s (the 5x Damage power-up's effect) |
+| Red (Vampiric Dew: a tall teardrop vial of deep red in an ornate silver cage, spiked foot, horn-tipped stopper) | 55% | Heal 10% of max HP (a red "+N" pops up next to the health bar and above the wizard) |
+| Blue (Bioluminescent Nectar: a round flask of glowing cyan wrapped in luminous veins, ball stopper, sparkles) | 25% | Shield worth 10% of max HP (absorbs damage first, stacks) |
 
-Potions lean and spin slowly so they're easy to spot. They never despawn and there's no limit on how many can lie around: they wait until you pick them up.
+The bottles are built from primitives in `potion_model.gd`. Potions lean and spin slowly so they're easy to spot. They never despawn and there's no limit on how many can lie around: they wait until you pick them up.
 
 **Power-ups:** each elite kill also has a 2% chance to drop one of these, plus 10% per point of Luck (+1% per Tome of Luck level). The NUKE is half as likely as each of the others (`PowerupManager.WEIGHTS`: 2 / 2 / 2 / 2 / 1, so about 11% of drops):
 
@@ -821,7 +821,7 @@ scripts/
   hero_model.gd      rigged fire wizard: AnimationTree layers, staff, dimming, hit flash
   spine_twist.gd     SkeletonModifier3D that turns the torso toward a fireball's target
   wizard_model.gd    old procedural wizard (its head is still the giant Meteor head)
-  potion_manager.gd  epic drops: purple / red / blue potions
+  potion_manager.gd  epic drops: yellow / red / blue potions (bottles: potion_model.gd)
   fx_manager.gd      pooled bursts and ash footprints (MultiMesh)
   ability_slot.gd    one ability-bar slot (procedural icon, cooldown, ult outline)
   ability_glyphs.gd  procedural icons for the roster kits' abilities

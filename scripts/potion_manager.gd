@@ -2,21 +2,20 @@ class_name PotionManager
 extends Node3D
 ## Potions dropped by epic enemies: each one killed has a DROP_CHANCE of dropping a potion. They
 ## stay where they fell until picked up (no despawning, no limit on how many). Which potion:
-##   30% purple  -> every ability's cooldown is reduced by 30% of its full duration
-##   50% red     -> heal 10% of max HP
-##   20% blue    -> shield worth 10% of max HP (absorbs damage first, stacks)
+##   20% yellow  (Liquid Soul-Amber)      -> 5x damage for 10 s (the 5x Damage power-up's effect)
+##   55% red     (Vampiric Dew)           -> heal 10% of max HP
+##   25% blue    (Bioluminescent Nectar)  -> shield worth 10% of max HP (absorbs damage first, stacks)
+## The bottles are PotionModel (built from primitives).
 ## Potions bob and spin, are pulled in by the player's pickup range, and expire after a while.
 
 signal collected(kind: int)
 signal healed(amount: float)                    # HP actually restored
-signal cooldowns_cut(amounts: PackedFloat32Array)  # seconds removed per ability
 
-enum { PURPLE, RED, BLUE }
+enum { YELLOW, RED, BLUE }
 
-const DROP_WEIGHTS := [30.0, 50.0, 20.0]   # purple, red, blue
-const COLORS := [Color(0.72, 0.25, 1.0), Color(1.0, 0.15, 0.15), Color(0.2, 0.55, 1.0)]
-const NAMES := ["Purple Potion: cooldowns -30%", "Red Potion: +10% health", "Blue Potion: +10% shield"]
-const COOLDOWN_CUT := 0.30
+const DROP_WEIGHTS := [20.0, 55.0, 25.0]   # yellow, red, blue
+const COLORS := [Color(1.0, 0.68, 0.12), Color(1.0, 0.1, 0.12), Color(0.2, 0.8, 1.0)]
+const NAMES := ["Yellow Potion: 5x damage", "Red Potion: +10% health", "Blue Potion: +10% shield"]
 const HEAL_FRAC := 0.10
 const SHIELD_FRAC := 0.10
 const DROP_CHANCE := 0.15
@@ -26,32 +25,15 @@ const PICKUP_DIST := 1.2
 
 var player: Player
 var abilities: Abilities
+var powerups: PowerupManager   # the yellow potion borrows the 5x Damage power-up's effect
 var rng: RandomNumberGenerator
 var _potions: Array = []   # {node, kind, age, pulled}
-var _meshes: Array = []    # per kind: [glass Mesh, liquid Mesh]
 
 
 func setup(p_player: Player, p_abilities: Abilities, p_rng: RandomNumberGenerator) -> void:
 	player = p_player
 	abilities = p_abilities
 	rng = p_rng
-
-
-func _ready() -> void:
-	for kind in 3:
-		var c: Color = COLORS[kind]
-		var liquid := StandardMaterial3D.new()
-		liquid.albedo_color = c
-		liquid.emission_enabled = true
-		liquid.emission = c
-		liquid.emission_energy_multiplier = 1.6
-		var body := SphereMesh.new()
-		body.radius = 0.26
-		body.height = 0.5
-		body.radial_segments = 14
-		body.rings = 7
-		body.material = liquid
-		_meshes.append(body)
 
 
 func roll_kind() -> int:
@@ -84,39 +66,13 @@ func drop(at: Vector3, kind := -1) -> void:
 
 	# spinner (turns around vertical, bobs) -> tilt (leans the bottle) -> bottle mesh
 	var spinner := Node3D.new()
-	spinner.position.y = 0.55
+	spinner.position.y = 0.65
 	spinner.rotation.y = rng.randf() * TAU
 	root.add_child(spinner)
 	var tilt := Node3D.new()
 	tilt.rotation.z = LEAN
 	spinner.add_child(tilt)
-	var bottle := MeshInstance3D.new()
-	bottle.mesh = _meshes[kind]
-	tilt.add_child(bottle)
-	var glass := StandardMaterial3D.new()
-	glass.albedo_color = Color(0.9, 0.95, 1.0, 0.35)
-	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	glass.roughness = 0.1
-	var neck := CylinderMesh.new()
-	neck.top_radius = 0.08
-	neck.bottom_radius = 0.1
-	neck.height = 0.2
-	neck.material = glass
-	var neck_mi := MeshInstance3D.new()
-	neck_mi.mesh = neck
-	neck_mi.position.y = 0.3
-	bottle.add_child(neck_mi)
-	var cork := CylinderMesh.new()
-	cork.top_radius = 0.085
-	cork.bottom_radius = 0.075
-	cork.height = 0.09
-	var cork_mat := StandardMaterial3D.new()
-	cork_mat.albedo_color = Color(0.55, 0.38, 0.22)
-	cork.material = cork_mat
-	var cork_mi := MeshInstance3D.new()
-	cork_mi.mesh = cork
-	cork_mi.position.y = 0.44
-	bottle.add_child(cork_mi)
+	tilt.add_child(PotionModel.build(kind))
 
 	var light := OmniLight3D.new()
 	light.light_color = COLORS[kind]
@@ -153,7 +109,7 @@ func tick(dt: float, pickup_range: float) -> void:
 		var bottle: Node3D = p["bottle"]
 		p["age"] += dt
 		var age: float = p["age"]
-		bottle.position.y = 0.55 + 0.12 * sin(age * 2.2)
+		bottle.position.y = 0.65 + 0.12 * sin(age * 2.2)
 		bottle.rotation.y += SPIN_SPEED * dt
 		var to := target - (root.global_position + Vector3(0, 0.6, 0))
 		var d := to.length()
@@ -186,14 +142,9 @@ func _drink_sfx() -> void:
 
 func _apply(kind: int) -> void:
 	match kind:
-		PURPLE:
-			var cut := PackedFloat32Array()
-			for i in abilities.cooldown.size():
-				var full: float = abilities.defs()[i]["cooldown"]
-				var before := abilities.cooldown[i]
-				abilities.cooldown[i] = maxf(0.0, before - full * COOLDOWN_CUT)
-				cut.append(before - abilities.cooldown[i])
-			cooldowns_cut.emit(cut)
+		YELLOW:
+			if powerups != null:
+				powerups.activate(PowerupManager.DAMAGE)
 		RED:
 			var before := player.hp
 			player.heal(player.max_hp * HEAL_FRAC)

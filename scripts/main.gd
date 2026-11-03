@@ -384,7 +384,6 @@ func _ready() -> void:
 	potions.healed.connect(func(amount: float):
 		hud.show_heal(amount)
 		numbers.add(player.global_position + Vector3(0, 2.6, 0), amount, DamageNumbers.HEAL))
-	potions.cooldowns_cut.connect(func(cuts: PackedFloat32Array): hud.show_cooldown_cuts(cuts))
 	keys = KeyManager.new()
 	keys.setup(player, rng)
 	add_child(keys)
@@ -401,6 +400,7 @@ func _ready() -> void:
 
 	powerups = PowerupManager.new()
 	powerups.setup(player, stats, enemies, gems, db, rng)
+	potions.powerups = powerups   # the yellow potion is 5x damage
 	add_child(powerups)
 	enemies.epic_killed.connect(func(p: Vector3): powerups.on_elite_killed(p))
 	if not smoke and shot_path == "":   # developer stats (temporary): your real runs only
