@@ -22,9 +22,9 @@ const LIST := [
 ]
 const REFRESH_COST := 100
 ## Hovering a newly found weapon, tome or item (its red dot) pays this many coins, once; a newly
-## opened map pays MAP_REWARDS (the Swamp's is waiting from the start).
+## opened map pays MAP_REWARDS (not the Swamp: it's open from the start and pays nothing).
 const DISCOVERY_REWARD := 150
-const MAP_REWARDS := {"swamp": 1000, "forest": 1500, "castle": 3000, "desert": 3000, "graveyard": 5000, "caldera": 5000}
+const MAP_REWARDS := {"forest": 1500, "castle": 3000, "desert": 3000, "graveyard": 5000, "caldera": 5000}
 const REWARD_KINDS := ["weapon", "tome", "item", "map"]
 
 
