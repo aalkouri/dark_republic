@@ -13,6 +13,10 @@ Bog Witch:      cauldron (bubbling), hex (a dark whisper chord), swamp_fury (a d
 Kong:           chest_pound (three hollow drum thumps), log_toss (a heave and a rolling
                 rumble), rampage (a roar)
 
+Entrances (audio/entrances/<id>.wav, timed to HeroEntrances' timelines): death (mist and a toll),
+billy_bulldog (digging and a bark), cowboy (wind and jingling spurs), platypus (a splash),
+bog_witch (bubbling bog), kong (a whistling drop and a huge landing).
+
     python3 tools/gen_six_sounds.py
 """
 import os
@@ -167,5 +171,41 @@ def main():
     save("rampage", lp(roar, 2500) * np.minimum(1, t / 0.1) * np.exp(-t * 1.0))
 
 
+def entrances():
+    global OUT
+    OUT = "audio/entrances/"
+    b = np.zeros(int(SR * 3.4))
+    place(b, whoosh(2.2, 200, 1500, 0.5), 0.0)
+    place(b, bell(196, 1.2, 2.0, 0.9), 2.2)
+    save("death", b)
+    b = np.zeros(int(SR * 3.2))
+    for k in range(24):
+        place(b, lp(noise(0.05), 1500) * env(0.05, 0.002, 0.02), 0.2 + k * 0.055)
+    t = t_of(0.35)
+    place(b, bp(noise(0.35) * 0.6 + np.sin(2 * np.pi * 180 * t * (1 - 0.3 * t)) * 0.8, 150, 1800) * env(0.35, 0.01, 0.12), 1.7)
+    save("billy_bulldog", b)
+    b = np.zeros(int(SR * 3.4))
+    place(b, bp(noise(2.2), 300, 1200) * np.sin(np.pi * np.linspace(0, 1, int(SR * 2.2))) * 0.6, 0.0)
+    for k in range(4):
+        place(b, bell(3200 + 300 * k, 0.3, 14.0, 0.25), 1.9 + k * 0.28)
+    save("cowboy", b)
+    b = np.zeros(int(SR * 3.2))
+    place(b, bp(noise(0.8), 300, 4000) * env(0.8, 0.005, 0.2) * 1.2, 1.7)
+    for k in range(12):
+        place(b, sweep(R.uniform(400, 900), R.uniform(900, 1600), 0.05, 0.3) * env(0.05, 0.005, 0.02), 1.75 + R.uniform(0, 0.6))
+    save("platypus", b)
+    b = np.zeros(int(SR * 3.4))
+    for k in range(30):
+        f = R.uniform(140, 380)
+        place(b, sweep(f, f * 1.8, 0.07, 0.4) * env(0.07, 0.005, 0.035), R.uniform(0.0, 2.6))
+    place(b, lp(noise(1.0), 300) * env(1.0, 0.02, 0.3) * 2.0, 2.1)
+    save("bog_witch", b)
+    b = np.zeros(int(SR * 3.2))
+    place(b, sweep(2400, 500, 1.6, 0.25) * np.linspace(0.2, 1, int(SR * 1.6)), 0.3)
+    place(b, thump(50, 1.2, 1.6) + lp(noise(1.2), 400) * env(1.2, 0.002, 0.3) * 2.5, 1.9)
+    save("kong", b)
+
+
 if __name__ == "__main__":
     main()
+    entrances()

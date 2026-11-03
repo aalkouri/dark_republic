@@ -186,7 +186,7 @@ func _ready() -> void:
 	Wallet.unlocked_chars.append("cowboy")
 	cs._shown = -1
 	cs._show(bi)
-	_check("unlocked Cowboy (no model yet): Skills open, Play waits for his kit", not cs._skills_btn.disabled and cs._play_btn.disabled and cs._level_box.visible, "")
+	_check("unlocked Cowboy (built in code, with his kit): Skills open and Play is ready", not cs._skills_btn.disabled and not cs._play_btn.disabled and cs._level_box.visible, "")
 	cs._shown = -1
 	cs._show(mi)
 	Wallet.unlocked_chars.erase("merlin")
@@ -229,8 +229,8 @@ func _ready() -> void:
 	var k: int = cs.index_of("death")
 	cs._tiles[k].grab_focus()
 	await get_tree().process_frame
-	_check("a locked character without a model shows its portrait", cs._shown == k and cs._big_icon.visible
-		and not cs._view_box.visible and cs._name.text == "Death", cs._name.text)
+	_check("Death (built in code) previews in 3D too", cs._shown == k and cs._view_box.visible and cs._previews.has("death")
+		and cs._name.text == "Death", cs._name.text)
 	_check("Play disabled for locked characters", cs._play_btn.disabled, "")
 	cs._tiles[k].pressed.emit()
 	await get_tree().process_frame

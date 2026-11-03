@@ -278,6 +278,12 @@ Every playable character starts a run its own way, tied to who they are; nobody 
 | The Pharaoh | **Sarcophagus rise:** the sand turns into a whirlpool and a gilded sarcophagus rises out of it, sand pouring off; the lid falls open with a thud, scarabs scatter, and it sinks back down leaving him standing there |
 | The Necromancer | **Grave rise:** green ghost-fire rings the spot, skeletal hands claw up out of the earth, a headstone heaves up, its cracks glow green and it bursts apart: he's standing where it was |
 | Singe | **Fuse flare:** a lit fuse burns its way in over the ground in a spiral, scorching a trail, the spot glows and cracks, and a pillar of flame erupts that the little imp hops out of (the bushes nearby catch) |
+| Death | **Reaper mist:** a cold blue mist pools on the spot and he rises slowly out of it to a tolling bell |
+| Billy Bulldog | **Dig out:** the dirt churns and he digs his way out with a hop and a bark |
+| Cowboy | **Dust devil:** a dust devil spins up and he strolls out of it, spurs jingling |
+| Sentient Platypus | **River surface:** the ground ripples like water and he surfaces with a splash |
+| Bog Witch | **Cauldron rise:** green bog bubbles up and she rises out of it |
+| Kong | **Jungle drop:** leaves shake down and he drops out of the sky with a ground-shaking landing |
 
 Each lasts 3.0-3.4 s (`HeroEntrances.SPECS`: duration, impact time, shake, camera framing). The world holds still meanwhile (`main.intro`), the camera frames the event (riding down with Vicki and the Arachnid), and the hero is seen arriving, using the real model and its clips. At the impact moment the arrival does what the comet did: 250 damage (Damage stat and Meteor ability level apply) and knockback to every enemy within 8 m. It ends with the hero standing on the spot, `entrance_landed` fires once and the run starts. Leftover debris fades for 3 s, then the entrance frees itself. Everything is built in code (particles, MultiMesh swarms for shards, crows, bats, leaves, confetti and rocks, ground decals that drape over the terrain, lights), so it works on every outdoor map. **Sounds:** `tools/gen_entrance_sounds.py` writes `audio/entrances/<id>.wav`, timed to each entrance. **Test:** `godot --headless --fixed-fps 60 --path . res://tools/test_entrances.tscn [-- --only=<id>]` runs every character's entrance on the outdoor maps in turn. **Screenshots:** `godot --fixed-fps 60 --path . res://tools/shot_entrance.tscn -- <id> <map> /out/prefix 1.0,2.0` captures frames mid-entrance.
 

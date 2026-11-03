@@ -43,6 +43,12 @@ const SPECS := {
 	"pharaoh":          ["sarcophagus_rise", 3.3, 2.2,  0.45, 9.0, 7.0, -0.2, -0.3],
 	"necromancer":      ["grave_rise",       3.3, 1.95, 0.45, 8.5, 7.0, -0.24, -0.3],
 	"singe":            ["fuse_flare",       3.0, 1.9,  0.5, 9.5, 7.0, -0.32, -0.3],
+	"death":            ["reaper_mist",      3.2, 2.2,  0.4, 9.0, 7.0, -0.2, -0.3],
+	"billy_bulldog":    ["dig_out",          3.0, 1.6,  0.45, 8.5, 6.8, -0.3, -0.3],
+	"cowboy":           ["dust_devil",       3.2, 2.0,  0.35, 9.5, 7.0, -0.22, -0.3],
+	"platypus":         ["river_surface",    3.1, 1.7,  0.4, 8.5, 7.0, -0.3, -0.3],
+	"bog_witch":        ["cauldron_rise",    3.3, 2.1,  0.4, 9.0, 7.0, -0.24, -0.3],
+	"kong":             ["jungle_drop",      3.0, 1.9,  0.9, 10.0, 7.5, 0.05, -0.3],
 }
 
 ## The kind of the latest run-start entrance (tests): one of the SPECS kinds, "comet" /
@@ -2445,3 +2451,68 @@ func _singe() -> void:
 		_burst(target + Vector3(0, 1.5, 0), 3.0, orange, 0.4)
 		_ring(target, RADIUS, Color(1.0, 0.5, 0.12, 0.7), 0.5)
 		Abilities.ignite_area(get_tree(), target, 4.0)   # a little imp of hot coals: the bushes catch
+
+
+# ------------------------------------------------------------------ The last six (HeroBody)
+## A shared shape: something gathers on the spot (mist, dirt, dust, water, bog), the hero rises
+## or bursts out of it (or drops in) at `hit_at`, a burst and a ring as the arrival hurts.
+
+func _six(gather: Color, burst: Color, rise_from: float, up: bool) -> void:
+	if s.is_empty():
+		var g := _emitter(0.35, 1.2, 40, Color(gather, 0.0), Color(gather, 0.0), false, target + Vector3(0, 0.15, 0))
+		var grad := Gradient.new()
+		grad.set_color(0, Color(gather, 0.0))
+		grad.add_point(0.25, Color(gather, 0.75))
+		grad.set_color(1, Color(gather, 0.0))
+		g.color_ramp = grad
+		g.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+		g.emission_ring_axis = Vector3.UP
+		g.emission_ring_radius = 1.8
+		g.emission_ring_inner_radius = 0.2
+		g.emission_ring_height = 0.1
+		g.direction = Vector3.UP
+		g.initial_velocity_min = 0.5
+		g.initial_velocity_max = 1.8
+		g.gravity = Vector3(0, 0.6, 0)
+		g.scale_amount_curve = _grow_curve()
+		s["g"] = g
+	(s["g"] as CPUParticles3D).emitting = t < hit_at + 0.4
+	if not is_landed:
+		var k := _eo(_k(hit_at - 0.9, hit_at + 0.1))
+		hero.visible = t >= hit_at - 0.95
+		hero.position = Vector3(0, lerpf(rise_from, 0.0, k if up else _ei(_k(hit_at - 0.7, hit_at))), 0)
+	if _at(hit_at):
+		_burst(target + Vector3(0, 0.8, 0), 3.0, burst, 0.45)
+		_ring(target, RADIUS, Color(burst, 0.6), 0.5)
+		_pop(target + Vector3(0, 0.3, 0), 40, 0.3, 0.9, Color(gather, 0.9), Color(gather, 0.0), 6.0, 9.0, false)
+		hero.play_ability(2)
+
+
+## Death: a cold blue mist pools on the ground, and he rises slowly out of it.
+func _death() -> void:
+	_six(Color(0.55, 0.75, 0.9), Color(0.55, 0.9, 1.0), -2.2, true)
+
+
+## Billy Bulldog: the dirt churns, and he digs his way out with a hop.
+func _billy_bulldog() -> void:
+	_six(Color(0.5, 0.4, 0.28), Color(0.85, 0.7, 0.45), -1.6, true)
+
+
+## Cowboy: a dust devil spins up on the spot and he strolls out of it as it blows away.
+func _cowboy() -> void:
+	_six(Color(0.82, 0.68, 0.48), Color(1.0, 0.8, 0.45), -1.8, true)
+
+
+## The Platypus: the ground ripples like water and he surfaces with a splash.
+func _platypus() -> void:
+	_six(Color(0.45, 0.7, 0.85), Color(0.6, 0.9, 1.0), -1.6, true)
+
+
+## The Bog Witch: green bog bubbles up and she rises out of it.
+func _bog_witch() -> void:
+	_six(Color(0.42, 0.6, 0.2), Color(0.7, 1.0, 0.3), -2.0, true)
+
+
+## Kong: leaves shake down from above and he drops out of the sky with a ground-shaking landing.
+func _kong() -> void:
+	_six(Color(0.35, 0.55, 0.25), Color(0.9, 0.7, 0.45), 12.0, false)
