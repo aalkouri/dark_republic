@@ -246,6 +246,9 @@ var frost_ring: GroundDisc
 var _frost_t := 0.0
 var _frost_spin := 0.0
 var aura_mat: StandardMaterial3D
+var _stink_fumes: CPUParticles3D   # Stink Aura: wisps of green fumes rising off the ground
+var _stink_flies: CPUParticles3D   # ...and a few flies buzzing round
+var _stink_r := -1.0
 var _aura_pulse := 0.0
 var _rings: Array = []     # [MeshInstance3D, age, radius]
 var _ring_mat: StandardMaterial3D
@@ -332,8 +335,10 @@ func _ready() -> void:
 	add_child(mmi)
 
 	aura_mesh = GroundDisc.create(1.0, Color(0.55, 1.0, 0.35, 0.18))   # drapes over the hills
+	aura_mesh.set_pattern(1)   # swirling blotches of fumes with a brighter rim
 	aura_mesh.visible = false
 	add_child(aura_mesh)
+	_build_stink_particles()
 	frost_mesh = GroundDisc.create(1.0, Color(0.55, 0.85, 1.0, 0.16), true)
 	frost_mesh.visible = false
 	add_child(frost_mesh)
@@ -487,6 +492,95 @@ static func char_unlocked(char_id: String) -> bool:
 	return false
 
 
+## The Stink Aura's particles (cheap CPU particles: 16 wisps, 6 flies), hidden until you own it.
+func _build_stink_particles() -> void:
+	_stink_fumes = CPUParticles3D.new()
+	_stink_fumes.amount = 16
+	_stink_fumes.lifetime = 1.8
+	_stink_fumes.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+	_stink_fumes.emission_ring_axis = Vector3.UP
+	_stink_fumes.emission_ring_height = 0.1
+	_stink_fumes.direction = Vector3.UP
+	_stink_fumes.spread = 15.0
+	_stink_fumes.gravity = Vector3(0, 0.25, 0)
+	_stink_fumes.initial_velocity_min = 0.5
+	_stink_fumes.initial_velocity_max = 1.1
+	_stink_fumes.scale_amount_min = 0.6
+	_stink_fumes.scale_amount_max = 1.3
+	var grow := Curve.new()
+	grow.add_point(Vector2(0, 0.4))
+	grow.add_point(Vector2(1, 1.6))
+	_stink_fumes.scale_amount_curve = grow
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(0.6, 0.85, 0.2, 0.0))
+	ramp.add_point(0.2, Color(0.55, 0.85, 0.2, 0.35))
+	ramp.set_color(1, Color(0.35, 0.45, 0.1, 0.0))
+	_stink_fumes.color_ramp = ramp
+	var q := QuadMesh.new()
+	q.size = Vector2(0.9, 0.9)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.vertex_color_use_as_albedo = true
+	var g := GradientTexture2D.new()
+	g.fill = GradientTexture2D.FILL_RADIAL
+	g.fill_from = Vector2(0.5, 0.5)
+	g.fill_to = Vector2(1.0, 0.5)
+	var gr := Gradient.new()
+	gr.set_color(0, Color(1, 1, 1, 1))
+	gr.set_color(1, Color(1, 1, 1, 0))
+	g.gradient = gr
+	m.albedo_texture = g
+	q.material = m
+	_stink_fumes.mesh = q
+	_stink_fumes.top_level = true
+	_stink_fumes.emitting = false
+	_stink_fumes.visible = false
+	add_child(_stink_fumes)
+	_stink_flies = CPUParticles3D.new()
+	_stink_flies.amount = 6
+	_stink_flies.lifetime = 3.0
+	_stink_flies.local_coords = true
+	_stink_flies.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+	_stink_flies.emission_ring_axis = Vector3.UP
+	_stink_flies.emission_ring_height = 0.6
+	_stink_flies.gravity = Vector3.ZERO
+	_stink_flies.orbit_velocity_min = 0.35
+	_stink_flies.orbit_velocity_max = 0.7
+	_stink_flies.initial_velocity_min = 0.0
+	_stink_flies.initial_velocity_max = 0.4
+	_stink_flies.spread = 180.0
+	var fq := QuadMesh.new()
+	fq.size = Vector2(0.07, 0.07)
+	var fm := StandardMaterial3D.new()
+	fm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fm.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	fm.albedo_color = Color(0.05, 0.06, 0.03)
+	fq.material = fm
+	_stink_flies.mesh = fq
+	_stink_flies.top_level = true
+	_stink_flies.emitting = false
+	_stink_flies.visible = false
+	add_child(_stink_flies)
+
+
+func _tick_stink_particles(feet: Vector3, r: float) -> void:
+	if not _stink_fumes.emitting:
+		_stink_fumes.visible = true
+		_stink_fumes.emitting = true
+		_stink_flies.visible = true
+		_stink_flies.emitting = true
+	_stink_fumes.global_position = feet + Vector3(0, 0.15, 0)
+	_stink_flies.global_position = feet + Vector3(0, 0.9, 0)
+	if absf(r - _stink_r) > 0.05:
+		_stink_r = r
+		_stink_fumes.emission_ring_radius = r * 0.92
+		_stink_fumes.emission_ring_inner_radius = r * 0.15
+		_stink_flies.emission_ring_radius = r * 0.6
+		_stink_flies.emission_ring_inner_radius = r * 0.3
+
+
 static func _fx_material(c: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -544,6 +638,7 @@ func tick(dt: float) -> void:
 		aura_mesh.visible = true
 		aura_mesh.global_position = feet + Vector3(0.0, 0.06, 0.0)
 		aura_mesh.scale = Vector3(r, 1.0, r)
+		_tick_stink_particles(feet, r)
 		aura_t -= dt
 		if aura_t <= 0.0:
 			aura_t = stats.value("aura_tick") / haste

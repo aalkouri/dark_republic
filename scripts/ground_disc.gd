@@ -18,8 +18,15 @@ uniform float inner = 0.0;   // > 0: a ring (band from inner to 1)
 uniform float arc = 4.0;     // < PI: only a wedge this many radians either side of local -Z
 uniform float fill = 1.0;    // < 1: a telegraph, solid out to `fill` of the radius, faint beyond
 uniform vec4 clip_rect = vec4(-1e9, -1e9, 1e9, 1e9);   // world x/z min, x/z max: only drawn inside
+uniform float pattern = 0.0;   // 1: Stink Aura (drifting, swirling blotches of fumes, a brighter rim)
 varying vec2 local_uv;
 varying vec2 wxz;
+
+float h2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vn(vec2 p) {
+	vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(h2(i), h2(i + vec2(1.0, 0.0)), f.x), mix(h2(i + vec2(0.0, 1.0)), h2(i + vec2(1.0, 1.0)), f.x), f.y);
+}
 
 void vertex() {
 	local_uv = UV;
@@ -41,9 +48,22 @@ void fragment() {
 		a *= 1.0 - smoothstep(arc - 0.03, arc, ang);
 	}
 	if (fill < 1.0) { a *= d < fill ? 1.0 : (d > 0.93 ? 0.9 : 0.28); }
+	vec3 col = color.rgb;
+	if (pattern > 0.5) {
+		vec2 q = (local_uv - 0.5) * 2.0;
+		float t = TIME * 0.25;
+		mat2 rot = mat2(vec2(cos(t), sin(t)), vec2(-sin(t), cos(t)));
+		vec2 w = rot * q;
+		float n = vn(w * 3.2 + vec2(TIME * 0.35, -TIME * 0.2)) * 0.6 + vn(q * 7.5 - vec2(TIME * 0.5, TIME * 0.3)) * 0.4;
+		float blot = smoothstep(0.35, 0.75, n);
+		col = mix(vec3(0.22, 0.32, 0.08), vec3(0.72, 0.95, 0.25), blot);
+		float rim = smoothstep(0.82, 0.97, d);
+		col = mix(col, vec3(0.8, 1.0, 0.4), rim * 0.6);
+		a *= 0.45 + 1.1 * blot + rim * 1.4;
+	}
 	if (a <= 0.001) { discard; }
-	ALBEDO = color.rgb;
-	ALPHA = a;
+	ALBEDO = col;
+	ALPHA = clamp(a, 0.0, 1.0);
 }
 """
 
@@ -75,6 +95,11 @@ func set_arc(half_angle: float) -> void:
 ## Telegraph fill: solid out to `f` of the radius, a faint area with a bright rim beyond it.
 func set_fill(f: float) -> void:
 	_mat.set_shader_parameter("fill", f)
+
+
+## A pattern instead of a flat colour (1: the Stink Aura's swirling fumes).
+func set_pattern(p: int) -> void:
+	_mat.set_shader_parameter("pattern", float(p))
 
 
 func set_lift(metres: float) -> void:
