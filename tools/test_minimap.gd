@@ -8,6 +8,7 @@ var main: Node
 
 func _ready() -> void:
 	Wallet.persist = false
+	Wallet.unlock_levels["map"] = 1   # the minimap is an Unlocks purchase
 	var stand_in := Node.new()
 	get_tree().root.add_child.call_deferred(stand_in)
 	await get_tree().process_frame

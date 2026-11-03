@@ -18,6 +18,7 @@ func _ready() -> void:
 		mode = "cloud"
 	get_tree().create_timer(2300.0, true, false, true).timeout.connect(func(): get_tree().quit(1))   # never hang
 	Wallet.persist = false
+	Wallet.unlock_levels["map"] = 1   # the minimap is an Unlocks purchase
 	Settings.selected_character = "fire_wizard"
 	Settings.selected_map = "swamp"
 	Settings.show_minimap = true

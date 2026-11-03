@@ -48,6 +48,8 @@ var settings_menu: SettingsMenu
 var draft_root: Control
 var draft_cards: Array = []   # [Button, title Label, body Label, UpgradeIcon, level Label, BAN Button, banned veil]
 var draft_bans: Label
+var draft_refresh: Button          # Refresh the cards (Unlocks > Reroll)
+var draft_refresh_txt: Label
 var end_root: Control
 var ability_slots: Array = []   # AbilitySlot
 var tooltip: PanelContainer
@@ -353,10 +355,39 @@ func _build_draft(root: Control) -> void:
 	var title := _label("LEVEL UP!", 48)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(title)
+	var bans_row := HBoxContainer.new()   # "Bans left" and, with Unlocks > Reroll, the Refresh button
+	bans_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	bans_row.add_theme_constant_override("separation", 24)
+	vb.add_child(bans_row)
 	draft_bans = _label("", 18)
 	draft_bans.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	draft_bans.add_theme_color_override("font_color", Color(1.0, 0.55, 0.5))
-	vb.add_child(draft_bans)
+	bans_row.add_child(draft_bans)
+	draft_refresh = Button.new()
+	draft_refresh.focus_mode = Control.FOCUS_NONE
+	draft_refresh.custom_minimum_size = Vector2(200, 36)
+	draft_refresh.add_theme_stylebox_override("normal", _ban_style(Color(0.85, 0.65, 0.2), Color(0.16, 0.11, 0.03, 0.95)))
+	draft_refresh.add_theme_stylebox_override("hover", _ban_style(Color(1.0, 0.85, 0.35), Color(0.26, 0.18, 0.05, 0.97)))
+	draft_refresh.add_theme_stylebox_override("pressed", _ban_style(Color(1.0, 0.95, 0.6), Color(0.34, 0.24, 0.06, 1.0)))
+	draft_refresh.add_theme_stylebox_override("disabled", _ban_style(Color(0.25, 0.22, 0.2), Color(0.08, 0.07, 0.07, 0.9)))
+	var rrow := HBoxContainer.new()
+	rrow.alignment = BoxContainer.ALIGNMENT_CENTER
+	rrow.add_theme_constant_override("separation", 6)
+	rrow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	draft_refresh.add_child(rrow)
+	draft_refresh_txt = _label("", 16)
+	draft_refresh_txt.add_theme_color_override("font_color", Color(1.0, 0.92, 0.7))
+	rrow.add_child(draft_refresh_txt)
+	var rcoin := CoinIcon.new()
+	rcoin.custom_minimum_size = Vector2(22, 22)
+	rcoin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	rrow.add_child(rcoin)
+	draft_refresh.pressed.connect(func():
+		if main.refresh_draft():
+			play_ui("pick"))
+	draft_refresh.mouse_entered.connect(func(): if not draft_refresh.disabled: play_ui("hover"))
+	bans_row.add_child(draft_refresh)
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 20)
 	vb.add_child(hb)
@@ -499,7 +530,7 @@ func _build_draft(root: Control) -> void:
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body_box.add_child(body)
 		btn.add_child(veil)
-		draft_cards.append([btn, ttl, body, tome, lvl, ban, veil, conv])
+		draft_cards.append([btn, ttl, body, tome, lvl, ban, veil, conv, ban_txt])
 
 
 ## Card frame outlined thickly in the rarity colour (brighter on hover).
@@ -1103,9 +1134,16 @@ func mark_banned(i: int) -> void:
 
 
 func _refresh_bans() -> void:
-	draft_bans.text = tr("Bans left: %d / %d   ·   %d coins each") % [main.bans_left, main.BANS_PER_RUN, main.BAN_COST]
+	if main.free_bans_left > 0:
+		draft_bans.text = tr("Bans left: %d / %d   ·   %d free") % [main.bans_left, main.BANS_PER_RUN, mini(main.free_bans_left, main.bans_left)]
+	else:
+		draft_bans.text = tr("Bans left: %d / %d   ·   %d coins each") % [main.bans_left, main.BANS_PER_RUN, main.BAN_COST]
 	for i in draft_cards.size():
 		(draft_cards[i][5] as Button).disabled = not main.can_ban(i)
+		(draft_cards[i][8] as Label).text = tr("BAN  FREE") if main.ban_cost() == 0 else tr("BAN  %d") % main.BAN_COST
+	draft_refresh.visible = Wallet.unlock_level("reroll") >= 1
+	draft_refresh_txt.text = tr("REFRESH  %d  ·  %d left") % [Unlocks.REFRESH_COST, main.refreshes_left]
+	draft_refresh.disabled = not main.can_refresh()
 
 
 static func _ban_style(border: Color, fill: Color) -> StyleBoxFlat:

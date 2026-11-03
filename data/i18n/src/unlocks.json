@@ -1,0 +1,250 @@
+{
+ "1 free ban a run": [
+  "1 bloqueo gratis por partida",
+  "1 ban gratuit par partie",
+  "حظر مجاني واحد لكل جولة",
+  "1 kostenloser Bann pro Lauf",
+  "每局1次免费禁用",
+  "1ランにつき無料バン1回"
+ ],
+ "2 free bans a run": [
+  "2 bloqueos gratis por partida",
+  "2 bans gratuits par partie",
+  "حظران مجانيان لكل جولة",
+  "2 kostenlose Banns pro Lauf",
+  "每局2次免费禁用",
+  "1ランにつき無料バン2回"
+ ],
+ "3 free bans a run": [
+  "3 bloqueos gratis por partida",
+  "3 bans gratuits par partie",
+  "3 حظر مجاني لكل جولة",
+  "3 kostenlose Banns pro Lauf",
+  "每局3次免费禁用",
+  "1ランにつき無料バン3回"
+ ],
+ "1 refresh a run": [
+  "1 renovación por partida",
+  "1 actualisation par partie",
+  "تحديث واحد لكل جولة",
+  "1 Neuauslosung pro Lauf",
+  "每局1次刷新",
+  "1ランにつき更新1回"
+ ],
+ "2 refreshes a run": [
+  "2 renovaciones por partida",
+  "2 actualisations par partie",
+  "تحديثان لكل جولة",
+  "2 Neuauslosungen pro Lauf",
+  "每局2次刷新",
+  "1ランにつき更新2回"
+ ],
+ "3 refreshes a run": [
+  "3 renovaciones por partida",
+  "3 actualisations par partie",
+  "3 تحديثات لكل جولة",
+  "3 Neuauslosungen pro Lauf",
+  "每局3次刷新",
+  "1ランにつき更新3回"
+ ],
+ "4 refreshes a run": [
+  "4 renovaciones por partida",
+  "4 actualisations par partie",
+  "4 تحديثات لكل جولة",
+  "4 Neuauslosungen pro Lauf",
+  "每局4次刷新",
+  "1ランにつき更新4回"
+ ],
+ "5 refreshes a run": [
+  "5 renovaciones por partida",
+  "5 actualisations par partie",
+  "5 تحديثات لكل جولة",
+  "5 Neuauslosungen pro Lauf",
+  "每局5次刷新",
+  "1ランにつき更新5回"
+ ],
+ "BAN  FREE": [
+  "BLOQUEAR  GRATIS",
+  "BANNIR  GRATUIT",
+  "حظر  مجاني",
+  "BANNEN  GRATIS",
+  "禁用  免费",
+  "バン  無料"
+ ],
+ "Bans left: %d / %d   ·   %d free": [
+  "Bloqueos restantes: %d / %d   ·   %d gratis",
+  "Bans restants : %d / %d   ·   %d gratuits",
+  "الحظر المتبقي: %d / %d   ·   %d مجاني",
+  "Banns übrig: %d / %d   ·   %d gratis",
+  "剩余禁用：%d / %d   ·   %d 次免费",
+  "残りバン：%d / %d   ·   無料 %d"
+ ],
+ "Click to buy: %s coins": [
+  "Haz clic para comprar: %s monedas",
+  "Cliquez pour acheter : %s pièces",
+  "انقر للشراء: %s عملة",
+  "Klicken zum Kaufen: %s Münzen",
+  "点击购买：%s 金币",
+  "クリックで購入：%s コイン"
+ ],
+ "Free Ban": [
+  "Bloqueo gratis",
+  "Ban gratuit",
+  "حظر مجاني",
+  "Kostenloser Bann",
+  "免费禁用",
+  "無料バン"
+ ],
+ "Fully upgraded": [
+  "Mejorado al máximo",
+  "Entièrement amélioré",
+  "تمت الترقية بالكامل",
+  "Voll aufgewertet",
+  "已满级",
+  "最大強化"
+ ],
+ "Items": [
+  "Objetos",
+  "Objets",
+  "العناصر",
+  "Gegenstände",
+  "道具",
+  "アイテム"
+ ],
+ "Makes your bans on the level-up cards free.": [
+  "Hace gratis tus bloqueos de cartas al subir de nivel.",
+  "Rend gratuits vos bans de cartes de niveau.",
+  "يجعل حظرك لبطاقات رفع المستوى مجانياً.",
+  "Macht deine Banns bei Stufenaufstiegskarten kostenlos.",
+  "让升级卡牌的禁用免费。",
+  "レベルアップカードのバンが無料になる。"
+ ],
+ "Maps": [
+  "Mapas",
+  "Cartes",
+  "الخرائط",
+  "Karten",
+  "地图",
+  "マップ"
+ ],
+ "Max level %d": [
+  "Nivel máximo %d",
+  "Niveau max %d",
+  "أقصى مستوى %d",
+  "Max. Stufe %d",
+  "最高等级 %d",
+  "最大レベル %d"
+ ],
+ "Next: %s": [
+  "Siguiente: %s",
+  "Suivant : %s",
+  "التالي: %s",
+  "Nächste: %s",
+  "下一级：%s",
+  "次：%s"
+ ],
+ "Not found yet: pick it up in a run to add it here.": [
+  "Aún no encontrado: consíguelo en una partida para añadirlo aquí.",
+  "Pas encore trouvé : obtenez-le en partie pour l'ajouter ici.",
+  "لم يُعثر عليه بعد: احصل عليه في جولة لإضافته هنا.",
+  "Noch nicht gefunden: hol es dir in einem Lauf, um es hier hinzuzufügen.",
+  "尚未发现：在一局中获得它即可加入此处。",
+  "未発見：ランで手に入れるとここに追加される。"
+ ],
+ "Now: %s": [
+  "Ahora: %s",
+  "Actuel : %s",
+  "الآن: %s",
+  "Jetzt: %s",
+  "当前：%s",
+  "現在：%s"
+ ],
+ "REFRESH  %d  ·  %d left": [
+  "RENOVAR  %d  ·  quedan %d",
+  "ACTUALISER  %d  ·  %d restantes",
+  "تحديث  %d  ·  متبقٍ %d",
+  "NEU  %d  ·  %d übrig",
+  "刷新  %d  ·  剩余 %d",
+  "更新  %d  ·  残り %d"
+ ],
+ "Refresh the level-up cards for a new set (100 coins each).": [
+  "Renueva las cartas de nivel por un nuevo juego (100 monedas cada vez).",
+  "Renouvelle les cartes de niveau (100 pièces à chaque fois).",
+  "جدّد بطاقات رفع المستوى بمجموعة جديدة (100 عملة لكل مرة).",
+  "Lose die Stufenaufstiegskarten neu aus (je 100 Münzen).",
+  "刷新升级卡牌换一组新的（每次100金币）。",
+  "レベルアップカードを引き直す（1回100コイン）。"
+ ],
+ "Reroll": [
+  "Volver a tirar",
+  "Relance",
+  "إعادة السحب",
+  "Neu auslosen",
+  "重新抽取",
+  "リロール"
+ ],
+ "The minimap and the big map": [
+  "El minimapa y el mapa grande",
+  "La mini-carte et la grande carte",
+  "الخريطة المصغرة والخريطة الكبيرة",
+  "Die Minikarte und die große Karte",
+  "小地图和大地图",
+  "ミニマップと大マップ"
+ ],
+ "Tomes": [
+  "Tomos",
+  "Tomes",
+  "المجلدات",
+  "Folianten",
+  "典籍",
+  "書物"
+ ],
+ "UNLOCKS": [
+  "DESBLOQUEOS",
+  "DÉBLOCAGES",
+  "المفتوحات",
+  "FREISCHALTUNGEN",
+  "解锁",
+  "アンロック"
+ ],
+ "Unlocks": [
+  "Desbloqueos",
+  "Déblocages",
+  "المفتوحات",
+  "Freischaltungen",
+  "解锁",
+  "アンロック"
+ ],
+ "Unlock the Map in Unlocks": [
+  "Desbloquea el Mapa en Desbloqueos",
+  "Débloquez la Carte dans Déblocages",
+  "افتح الخريطة من قائمة المفتوحات",
+  "Schalte die Karte unter Freischaltungen frei",
+  "在解锁中解锁地图",
+  "アンロックでマップを解放しよう"
+ ],
+ "Unlocks the minimap and the big map (M).": [
+  "Desbloquea el minimapa y el mapa grande (M).",
+  "Débloque la mini-carte et la grande carte (M).",
+  "يفتح الخريطة المصغرة والخريطة الكبيرة (M).",
+  "Schaltet die Minikarte und die große Karte (M) frei.",
+  "解锁小地图和大地图（M）。",
+  "ミニマップと大マップ（M）を解放する。"
+ ],
+ "Upgrades": [
+  "Mejoras",
+  "Améliorations",
+  "الترقيات",
+  "Verbesserungen",
+  "强化",
+  "強化"
+ ],
+ "Weapons": [
+  "Armas",
+  "Armes",
+  "الأسلحة",
+  "Waffen",
+  "武器",
+  "武器"
+ ]
+}

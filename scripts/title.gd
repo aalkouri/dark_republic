@@ -2,7 +2,7 @@ extends Node3D
 ## Title screen: a living swamp diorama. The fire wizard stands on a mossy dais at night while
 ## the camera slowly orbits him; goblin silhouettes with glowing eyes lurk at the edge of his
 ## light, creep in and back off, and grunt now and then. "DARK REPUBLIC" burns over a menu of
-## Play / Settings / Quit (mouse, keyboard or gamepad).
+## Play / Unlocks / Settings / Quit (mouse, keyboard or gamepad).
 
 const GAME_SCENE := "res://scenes/main.tscn"
 const CHARACTER_SCENE := "res://scenes/character_select.tscn"
@@ -52,6 +52,9 @@ var _title_mat: ShaderMaterial
 var _menu: VBoxContainer
 var _settings: SettingsMenu
 var _stats: StatsScreen          # developer stats (temporary)
+var _unlocks: UnlocksMenu
+var _unlocks_button: Button
+var _unlocks_dot: Control
 var _stats_button: Button
 var _modes: ModeMenu
 var _reveal_sfx: AudioStreamPlayer
@@ -428,7 +431,12 @@ func _build_ui() -> void:
 	_menu.add_theme_constant_override("separation", 10)
 	root.add_child(_menu)
 	var play := _menu_button("Play", _play)   # -> the mode cards (ModeMenu) -> character select...
-	_menu_button("Settings", _open_settings)
+	_unlocks_button = _menu_button("Unlocks", _open_unlocks)   # upgrades bought with coins + the catalogue
+	_unlocks_dot = UnlocksMenu._Dot.new()   # something new found through play
+	_unlocks_dot.position = Vector2(250, 8)
+	_unlocks_dot.visible = UnlocksMenu.any_new()
+	_unlocks_button.add_child(_unlocks_dot)
+	var settings_btn := _menu_button("Settings", _open_settings)
 	_stats_button = _menu_button("Stats", _open_stats)   # no-i18n  (developer stats: temporary)
 	_stats_button.visible = Settings.dev_stats
 	_menu_button("Quit", func(): get_tree().quit())
@@ -460,8 +468,13 @@ func _build_ui() -> void:
 	_settings.closed.connect(func():
 		_menu.visible = true
 		_stats_button.visible = Settings.dev_stats
-		(_menu.get_child(1) as Button).grab_focus())
+		settings_btn.grab_focus())
 	root.add_child(_settings)
+	_unlocks = UnlocksMenu.create(self, _font)
+	_unlocks.closed.connect(func():
+		_menu.visible = true
+		_unlocks_dot.visible = UnlocksMenu.any_new()
+		_unlocks_button.grab_focus())
 	_stats = StatsScreen.create(self)
 	_stats.closed.connect(func(): _menu.visible = true; _stats_button.grab_focus())
 
@@ -505,6 +518,11 @@ func _menu_button(text: String, cb: Callable) -> Button:
 
 
 ## Developer stats (temporary): every recorded run, per character.
+func _open_unlocks() -> void:
+	_menu.visible = false
+	_unlocks.open()
+
+
 func _open_stats() -> void:
 	_menu.visible = false
 	_stats.open()

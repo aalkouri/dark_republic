@@ -138,7 +138,7 @@ func _process(dt: float) -> void:
 		_layer.position = Vector2.ZERO
 		_overlay.queue_redraw()
 		return
-	var on: bool = Settings.show_minimap and main != null and main.player != null and not main.intro
+	var on: bool = Settings.show_minimap and Unlocks.has_map() and main != null and main.player != null and not main.intro
 	visible = on
 	if not on:
 		return

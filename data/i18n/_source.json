@@ -1,6 +1,6 @@
 {
  "\nFPS %d": [
-  "hud.gd:1649"
+  "hud.gd:1692"
  ],
  "\"All other audio\" covers enemy sounds, hits and effects.": [
   "settings_menu.gd:212"
@@ -31,7 +31,7 @@
   "abilities.gd:396"
  ],
  "%s  Lv %d": [
-  "hud.gd:1655"
+  "hud.gd:1698"
  ],
  "%s  ·  %.1f / %d s": [
   "(runtime)"
@@ -50,10 +50,10 @@
  ],
  "%s / %s EXP": [
   "character_select.gd:895",
-  "hud.gd:1150"
+  "hud.gd:1193"
  ],
  "%s APPROACHES": [
-  "main.gd:863"
+  "main.gd:865"
  ],
  "%s Chest": [
   "chest.gd:64",
@@ -70,7 +70,7 @@
   "weapon_system.gd:477"
  ],
  "%s IS DEFEATED!": [
-  "main.gd:891"
+  "main.gd:893"
  ],
  "%s IS ENRAGED!": [
   "map_boss.gd:408"
@@ -92,13 +92,13 @@
   "forge.gd:207"
  ],
  "+%d shield": [
-  "hud.gd:1639"
+  "hud.gd:1682"
  ],
  "+%d skill point": [
-  "hud.gd:1210"
+  "hud.gd:1253"
  ],
  "+%d skill points": [
-  "hud.gd:1210"
+  "hud.gd:1253"
  ],
  "+%d%% from Damage": [
   "abilities.gd:248"
@@ -193,19 +193,37 @@
   "skill_tree.gd:110"
  ],
  ", blend_add": [
-  "hero_entrances.gd:635"
+  "hero_entrances.gd:641"
  ],
  ", unshaded": [
-  "hero_entrances.gd:633"
+  "hero_entrances.gd:639"
+ ],
+ "1 free ban a run": [
+  "unlocks.gd:17"
+ ],
+ "1 refresh a run": [
+  "unlocks.gd:20"
  ],
  "15:00 IN THE SWAMP!  Ghast can now be unlocked": [
-  "main.gd:596"
+  "main.gd:598"
+ ],
+ "2 free bans a run": [
+  "unlocks.gd:17"
+ ],
+ "2 refreshes a run": [
+  "unlocks.gd:20"
  ],
  "2 yd": [
   "abilities.gd:261"
  ],
+ "3 free bans a run": [
+  "unlocks.gd:17"
+ ],
  "3 of a kind: +%d levels (%d%% chance)   ·   otherwise: +1 level": [
   "slot_machine.gd:205"
+ ],
+ "3 refreshes a run": [
+  "unlocks.gd:20"
  ],
  "3-hit combo, wind slash": [
   "abilities.json"
@@ -215,6 +233,12 @@
  ],
  "360° spin, executes": [
   "abilities.json"
+ ],
+ "4 refreshes a run": [
+  "unlocks.gd:20"
+ ],
+ "5 refreshes a run": [
+  "unlocks.gd:20"
  ],
  "5 yd": [
   "abilities.gd:265"
@@ -229,7 +253,7 @@
   "abilities.json"
  ],
  "A GOBLIN WARLORD APPROACHES": [
-  "main.gd:748"
+  "main.gd:750"
  ],
  "A Legendary card you don't need can be converted into a chest key instead.": [
   "tips.json"
@@ -383,7 +407,7 @@
   "upgrades.json"
  ],
  "Armored Skeleton": [
-  "main.gd:764",
+  "main.gd:766",
   "skeleton_crowd.gd:412"
  ],
  "Ashen Ward": [
@@ -420,23 +444,34 @@
   "character_select.gd:708"
  ],
  "BAN  %d": [
-  "hud.gd:385"
+  "hud.gd:421",
+  "hud.gd:1143"
+ ],
+ "BAN  FREE": [
+  "hud.gd:1143"
  ],
  "BANNED": [
-  "hud.gd:436"
+  "hud.gd:472"
  ],
  "BOSS": [
   "map_boss.gd:58"
  ],
  "BURNING": [
-  "hud.gd:1674"
+  "hud.gd:1717"
  ],
  "Back": [
   "character_select.gd:807",
-  "settings_menu.gd:63"
+  "settings_menu.gd:63",
+  "unlocks_menu.gd:102"
+ ],
+ "Bans left": [
+  "hud.gd:358"
  ],
  "Bans left: %d / %d   ·   %d coins each": [
-  "hud.gd:1101"
+  "hud.gd:1140"
+ ],
+ "Bans left: %d / %d   ·   %d free": [
+  "hud.gd:1138"
  ],
  "Banshee Scream": [
   "abilities.json"
@@ -518,16 +553,16 @@
  ],
  "Bomber Skeleton": [
   "bomber_skeletons.gd:144",
-  "main.gd:762"
+  "main.gd:764"
  ],
  "Borderless fullscreen": [
   "settings_menu.gd:188"
  ],
  "Boss": [
-  "hud.gd:1203"
+  "hud.gd:1246"
  ],
  "Boss +%s": [
-  "hud.gd:1285"
+  "hud.gd:1328"
  ],
  "Boss attacks are always marked on the ground first, filling up red. You always get at least a second to move.": [
   "tips.json"
@@ -633,7 +668,7 @@
   "taglines.json"
  ],
  "Character level": [
-  "hud.gd:1208"
+  "hud.gd:1251"
  ],
  "Charge {20 m} headfirst where you aim": [
   "abilities.json"
@@ -642,10 +677,10 @@
   "abilities.json"
  ],
  "Chests": [
-  "hud.gd:1203"
+  "hud.gd:1246"
  ],
  "Chests +%s": [
-  "hud.gd:1285"
+  "hud.gd:1328"
  ],
  "Chests are the only way to level up abilities. At level 10 an ability is four times as strong and recharges 40% faster.": [
   "tips.json"
@@ -654,10 +689,10 @@
   "tips.json"
  ],
  "Chests opened": [
-  "hud.gd:1192"
+  "hud.gd:1235"
  ],
  "Choose it after Play": [
-  "hud.gd:1307"
+  "hud.gd:1350"
  ],
  "Choose your champion and map. Survive 10 minutes.": [
   "mode_menu.gd:14"
@@ -673,6 +708,9 @@
  ],
  "Click or press any key for the next tip": [
   "loader.gd:249"
+ ],
+ "Click to buy: %s coins": [
+  "unlocks_menu.gd:371"
  ],
  "Click to continue": [
   "unlock_reveal.gd:52"
@@ -699,7 +737,7 @@
   "tips.json"
  ],
  "Coins earned": [
-  "hud.gd:816"
+  "hud.gd:852"
  ],
  "Collect the shards below to forge it": [
   "character_select.gd:697"
@@ -717,7 +755,7 @@
   "upgrades.json"
  ],
  "Continue": [
-  "hud.gd:837",
+  "hud.gd:873",
   "item_found.gd:68",
   "slot_machine.gd:215"
  ],
@@ -725,13 +763,13 @@
   "settings_menu.gd:239"
  ],
  "Convert": [
-  "hud.gd:417"
+  "hud.gd:453"
  ],
  "Cooldown  %ss  ->  %ss": [
   "abilities.gd:398"
  ],
  "Cooldowns reset": [
-  "main.gd:1314"
+  "main.gd:1347"
  ],
  "Cowboy": [
   "characters.json"
@@ -768,21 +806,21 @@
   "abilities.json"
  ],
  "Cursed Coin": [
-  "hud.gd:1220",
+  "hud.gd:1263",
   "upgrades.json"
  ],
  "Cursed Coin  →   +%s coins": [
-  "hud.gd:1169"
+  "hud.gd:1212"
  ],
  "DARK REPUBLIC": [
   "loader.gd:274",
-  "title.gd:377"
+  "title.gd:380"
  ],
  "DESTROY Mode": [
   "abilities.json"
  ],
  "DODGE": [
-  "main.gd:986"
+  "main.gd:988"
  ],
  "Damage": [
   "upgrades.json"
@@ -803,7 +841,7 @@
   "abilities.json"
  ],
  "Dark Shard": [
-  "wallet.gd:279"
+  "wallet.gd:326"
  ],
  "Dark Wizard": [
   "characters.json"
@@ -914,10 +952,10 @@
   "skill_screen.gd:263"
  ],
  "EXP +%s   ·   lvl %d  (%s)": [
-  "hud.gd:1151"
+  "hud.gd:1194"
  ],
  "EXPERIENCE": [
-  "hud.gd:1202"
+  "hud.gd:1245"
  ],
  "Each bolt deals {90} damage and chains to {3} more enemies": [
   "abilities.json"
@@ -983,19 +1021,19 @@
   "taglines.json"
  ],
  "Elite %s": [
-  "hud.gd:1278"
+  "hud.gd:1321"
  ],
  "Elites": [
-  "hud.gd:1203"
+  "hud.gd:1246"
  ],
  "Elites +%s": [
-  "hud.gd:1285"
+  "hud.gd:1328"
  ],
  "Elites can drop power-ups like Magnet, Fear Idol and 5x Damage. Press E to grab one, but hurry: they vanish after 45 seconds.": [
   "tips.json"
  ],
  "Elites killed": [
-  "hud.gd:1190"
+  "hud.gd:1233"
  ],
  "Elites sometimes drop chest keys. Keys don't carry over to the next run, so use them!": [
   "tips.json"
@@ -1040,7 +1078,7 @@
   "abilities.json"
  ],
  "Enemies killed": [
-  "hud.gd:1188"
+  "hud.gd:1231"
  ],
  "Enemies on them take {15} damage and burn for {5%} of max HP per second for {3 s}": [
   "abilities.json"
@@ -1236,7 +1274,7 @@
   "abilities.json"
  ],
  "Fire Shard": [
-  "wallet.gd:279"
+  "wallet.gd:326"
  ],
  "Fireball Cooldown": [
   "upgrades.json"
@@ -1322,6 +1360,9 @@
  "Four thousand years of bad luck, all at once.": [
   "abilities.json"
  ],
+ "Free Ban": [
+  "unlocks.gd:15"
+ ],
  "Freezes every enemy around you solid.": [
   "abilities.json"
  ],
@@ -1350,6 +1391,9 @@
  "Fully forged": [
   "character_select.gd:503"
  ],
+ "Fully upgraded": [
+  "unlocks_menu.gd:373"
+ ],
  "Fungal Shield": [
   "abilities.json"
  ],
@@ -1357,7 +1401,7 @@
   "abilities.json"
  ],
  "GOBLIN WARLORD SLAIN!": [
-  "main.gd:934"
+  "main.gd:936"
  ],
  "Gaiden": [
   "characters.json"
@@ -1574,7 +1618,7 @@
   "upgrades.json"
  ],
  "Ice Shard": [
-  "wallet.gd:279"
+  "wallet.gd:326"
  ],
  "Ice Wizard": [
   "characters.json"
@@ -1613,6 +1657,9 @@
  "Item": [
   "(runtime)"
  ],
+ "Items": [
+  "unlocks_menu.gd:12"
+ ],
  "JACKPOT!": [
   "slot_machine.gd:340"
  ],
@@ -1645,31 +1692,31 @@
   "settings_menu.gd:242"
  ],
  "Kill bonus": [
-  "hud.gd:1216"
+  "hud.gd:1259"
  ],
  "Killed by": [
-  "hud.gd:1195"
+  "hud.gd:1238"
  ],
  "Killed by %s": [
-  "hud.gd:1131"
+  "hud.gd:1174"
  ],
  "Killing an elite cuts your ability cooldowns.": [
   "upgrades.json"
  ],
  "Kills": [
-  "hud.gd:1203"
+  "hud.gd:1246"
  ],
  "Kills %d\nEnemies %d\nSpeed %.1f m/s": [
-  "hud.gd:1647"
+  "hud.gd:1690"
  ],
  "Kills %s": [
-  "hud.gd:1285"
+  "hud.gd:1328"
  ],
  "Kills %s   →   +%s bonus": [
-  "hud.gd:1163"
+  "hud.gd:1206"
  ],
  "Kills %s   →   +0 bonus  (100 coins per 1,000 kills)": [
-  "hud.gd:1164"
+  "hud.gd:1207"
  ],
  "Kills during the ride heal you {1%} of max HP": [
   "abilities.json"
@@ -1690,7 +1737,7 @@
   "characters.json"
  ],
  "LEGENDARY": [
-  "hud.gd:986"
+  "hud.gd:1022"
  ],
  "LEGENDARY: the %s's weapon. %s": [
   "weapon_system.gd:482"
@@ -1699,14 +1746,14 @@
   "item_found.gd:56"
  ],
  "LEVEL UP!": [
-  "hud.gd:348",
-  "hud.gd:1210"
+  "hud.gd:355",
+  "hud.gd:1253"
  ],
  "LEVEL UP!  lvl %d   ·   +%d skill point": [
-  "hud.gd:1155"
+  "hud.gd:1198"
  ],
  "LEVEL UP!  lvl %d   ·   +%d skill points": [
-  "hud.gd:1155"
+  "hud.gd:1198"
  ],
  "LOADING": [
   "loader.gd:200",
@@ -1714,7 +1761,7 @@
   "loader.gd:412"
  ],
  "LV %d": [
-  "hud.gd:1645"
+  "hud.gd:1688"
  ],
  "LV 1": [
   "hud.gd:108"
@@ -1789,10 +1836,11 @@
   "upgrades.json"
  ],
  "Level %d / %d": [
-  "abilities.gd:377"
+  "abilities.gd:377",
+  "unlocks_menu.gd:365"
  ],
  "Level reached": [
-  "hud.gd:1187"
+  "hud.gd:1230"
  ],
  "Leveled up. Still lost.": [
   "taglines.json"
@@ -1804,16 +1852,16 @@
   "taglines.json"
  ],
  "Lid": [
-  "hero_entrances.gd:2189"
+  "hero_entrances.gd:2195"
  ],
  "Light Fingers, Sharp Knives": [
   "characters.json"
  ],
  "Light Shard": [
-  "wallet.gd:279"
+  "wallet.gd:326"
  ],
  "Lightning Shard": [
-  "wallet.gd:279"
+  "wallet.gd:326"
  ],
  "Lightning arcs from your staff and jumps between enemies.": [
   "weapon_system.gd:217"
@@ -1872,22 +1920,23 @@
  "Lv %d": [
   "ability_slot.gd:163",
   "ability_slot.gd:183",
-  "hud.gd:884",
-  "hud.gd:987"
+  "hud.gd:920",
+  "hud.gd:1023"
  ],
  "Lv %d → %d": [
   "item_found.gd:66",
-  "upgrade_db.gd:239"
+  "upgrade_db.gd:241"
  ],
  "MAGNET! All orbs incoming": [
   "powerup_manager.gd:21"
  ],
  "MAP  ·  hover your upgrades for details  ·  M or Esc to close": [
-  "hud.gd:165"
+  "hud.gd:171"
  ],
  "MAX": [
   "ability_slot.gd:163",
-  "item_found.gd:58"
+  "item_found.gd:58",
+  "unlocks_menu.gd:297"
  ],
  "MOVEMENT +80% for 15 s!": [
   "powerup_manager.gd:21"
@@ -1908,10 +1957,17 @@
   "skill_tree.gd:55"
  ],
  "Main menu": [
-  "hud.gd:313"
+  "hud.gd:320"
+ ],
+ "Makes your bans on the level-up cards free.": [
+  "unlocks.gd:16"
  ],
  "Map": [
-  "settings.gd:29"
+  "settings.gd:29",
+  "unlocks.gd:12"
+ ],
+ "Maps": [
+  "unlocks_menu.gd:12"
  ],
  "Maraca Blasters": [
   "abilities.json"
@@ -1932,6 +1988,9 @@
   "abilities.gd:384",
   "forge_menu.gd:216",
   "forge_menu.gd:239"
+ ],
+ "Max level %d": [
+  "unlocks_menu.gd:383"
  ],
  "Melee kick that poisons for 2% of max HP per second; each stack slows 10% (max 5)": [
   "abilities.json"
@@ -1965,10 +2024,10 @@
   "upgrades.json"
  ],
  "Most damage taken": [
-  "hud.gd:1196"
+  "hud.gd:1239"
  ],
  "Most damage: %s (%d)": [
-  "hud.gd:1132"
+  "hud.gd:1175"
  ],
  "Mouse sensitivity": [
   "settings_menu.gd:240"
@@ -2006,10 +2065,10 @@
   "settings_menu.gd:226"
  ],
  "NEW": [
-  "upgrade_db.gd:239"
+  "upgrade_db.gd:241"
  ],
  "NEW CHAMPION": [
-  "hud.gd:1313"
+  "hud.gd:1356"
  ],
  "NEW ITEM": [
   "item_found.gd:56"
@@ -2018,10 +2077,10 @@
   "character_select.gd:986"
  ],
  "NEW MAP": [
-  "hud.gd:1307"
+  "hud.gd:1350"
  ],
  "NEW WEAPON": [
-  "upgrade_db.gd:232"
+  "upgrade_db.gd:234"
  ],
  "NUKE! WAVE CLEARED!": [
   "powerup_manager.gd:21"
@@ -2043,6 +2102,9 @@
  ],
  "Next level: %s x%s, cooldown -%d%%": [
   "abilities.gd:382"
+ ],
+ "Next: %s": [
+  "unlocks_menu.gd:369"
  ],
  "No skill points (earn one each level)": [
   "skill_tree.gd:175"
@@ -2066,8 +2128,14 @@
   "forge.gd:201",
   "forge_menu.gd:214"
  ],
+ "Not found yet: pick it up in a run to add it here.": [
+  "unlocks_menu.gd:356"
+ ],
  "Now for sale in Characters: %s coins": [
-  "hud.gd:1314"
+  "hud.gd:1357"
+ ],
+ "Now: %s": [
+  "unlocks_menu.gd:367"
  ],
  "Now: %s x%s, cooldown -%d%%": [
   "abilities.gd:380"
@@ -2116,10 +2184,10 @@
   "taglines.json"
  ],
  "PAUSED": [
-  "hud.gd:307"
+  "hud.gd:314"
  ],
  "PAUSED  ·  hover an ability or upgrade for details  ·  release Alt to resume": [
-  "hud.gd:595"
+  "hud.gd:631"
  ],
  "PLAY": [
   "character_select.gd:884"
@@ -2184,7 +2252,7 @@
  ],
  "Play": [
   "character_select.gd:811",
-  "title.gd:430"
+  "title.gd:433"
  ],
  "Poison": [
   "enemy_manager.gd:952"
@@ -2241,16 +2309,19 @@
   "mode_menu.gd:15"
  ],
  "Quit": [
-  "title.gd:434"
+  "title.gd:442"
  ],
  "Quit to desktop": [
-  "hud.gd:314"
+  "hud.gd:321"
+ ],
+ "REFRESH  %d  ·  %d left": [
+  "hud.gd:1145"
  ],
  "REWARDS": [
-  "hud.gd:1211"
+  "hud.gd:1254"
  ],
  "RUN": [
-  "hud.gd:1185"
+  "hud.gd:1228"
  ],
  "Rage against the dungeon": [
   "taglines.json"
@@ -2310,6 +2381,9 @@
  "Reed Clones": [
   "abilities.json"
  ],
+ "Refresh the level-up cards for a new set (100 coins each).": [
+  "unlocks.gd:19"
+ ],
  "Regenerate 0.6 HP/s": [
   "skill_tree.gd:24",
   "skill_tree.gd:82"
@@ -2324,6 +2398,9 @@
  "Render scale": [
   "settings_menu.gd:194"
  ],
+ "Reroll": [
+  "unlocks.gd:18"
+ ],
  "Reset keys to defaults": [
   "settings_menu.gd:253"
  ],
@@ -2331,13 +2408,13 @@
   "abilities.json"
  ],
  "Restart run": [
-  "hud.gd:312"
+  "hud.gd:319"
  ],
  "Restores your HP and shield to what they were {8 s} ago": [
   "abilities.json"
  ],
  "Resume": [
-  "hud.gd:310"
+  "hud.gd:317"
  ],
  "Rewind": [
   "abilities.json"
@@ -2395,15 +2472,12 @@
  "SKILL POINTS": [
   "skill_screen.gd:108"
  ],
- "STAMINA": [
-  "hud.gd:138"
- ],
  "STARTING BONUSES": [
   "character_select.gd:35",
   "character_select.gd:449"
  ],
  "SURVIVE": [
-  "main.gd:511"
+  "main.gd:513"
  ],
  "Sage": [
   "skill_tree.gd:63"
@@ -2452,8 +2526,8 @@
   "abilities.json"
  ],
  "Settings": [
-  "hud.gd:311",
-  "title.gd:431"
+  "hud.gd:318",
+  "title.gd:439"
  ],
  "Shackle Swing": [
   "abilities.json"
@@ -2469,7 +2543,7 @@
   "characters.json"
  ],
  "Shards won:": [
-  "hud.gd:901"
+  "hud.gd:937"
  ],
  "Sharpen": [
   "skill_tree.gd:38"
@@ -2519,19 +2593,19 @@
   "enemy_manager.gd:290"
  ],
  "Skill bonus": [
-  "hud.gd:1218"
+  "hud.gd:1261"
  ],
  "Skills": [
   "character_select.gd:809"
  ],
  "Skills  →   +%s coins": [
-  "hud.gd:1167"
+  "hud.gd:1210"
  ],
  "Skills last for every run with this character.": [
   "skill_screen.gd:298"
  ],
  "Skip this upgrade for a chest key: 60% bronze, 30% silver, 10% gold": [
-  "hud.gd:407"
+  "hud.gd:443"
  ],
  "Slam Cooldown": [
   "upgrades.json"
@@ -2709,13 +2783,13 @@
   "map_picker.gd:20"
  ],
  "Survival coins": [
-  "hud.gd:1215"
+  "hud.gd:1258"
  ],
  "Survive 15:00 in the Swamp on Unrelenting": [
   "character_select.gd:126"
  ],
  "Survived %s   →   %s coins": [
-  "hud.gd:1165"
+  "hud.gd:1208"
  ],
  "Survivors come out shrunk: half damage and {double} damage taken for {20 s}": [
   "abilities.json"
@@ -2788,7 +2862,7 @@
  ],
  "THOG": [
   "main.gd:85",
-  "main.gd:868",
+  "main.gd:870",
   "thog_boss.gd:433",
   "thog_boss.gd:531"
  ],
@@ -2796,7 +2870,7 @@
   "thog_boss.gd:385"
  ],
  "THOG IS DEFEATED!": [
-  "main.gd:889"
+  "main.gd:891"
  ],
  "THOG IS ENRAGED!": [
   "thog_boss.gd:553"
@@ -2805,7 +2879,7 @@
   "thog_boss.gd:403"
  ],
  "THOG THE TROLL": [
-  "main.gd:838",
+  "main.gd:840",
   "thog_boss.gd:630"
  ],
  "THOG THE TROLL  ·  ENRAGED": [
@@ -2815,7 +2889,7 @@
   "thog_boss.gd:665"
  ],
  "THOG THE TROLL APPROACHES": [
-  "main.gd:839"
+  "main.gd:841"
  ],
  "TIP": [
   "loader.gd:248",
@@ -2938,6 +3012,9 @@
  "The last {15} enemy corpses near you rise for {15 s} and fight the horde ({25} damage per hit)": [
   "abilities.json"
  ],
+ "The minimap and the big map": [
+  "unlocks.gd:14"
+ ],
  "The rubble stays for {10 s} as a wall enemies can't cross": [
   "abilities.json"
  ],
@@ -2982,7 +3059,7 @@
   "map_picker.gd:27"
  ],
  "Thorns": [
-  "main.gd:652",
+  "main.gd:654",
   "upgrades.json"
  ],
  "Thorns Damage": [
@@ -3022,10 +3099,10 @@
   "taglines.json"
  ],
  "Time %s   ·   Level %d   ·   Kills %d": [
-  "hud.gd:1126"
+  "hud.gd:1169"
  ],
  "Time +%s": [
-  "hud.gd:1285"
+  "hud.gd:1328"
  ],
  "Time Warp": [
   "skill_tree.gd:59",
@@ -3033,13 +3110,13 @@
   "abilities.json"
  ],
  "Time alive": [
-  "hud.gd:1203"
+  "hud.gd:1246"
  ],
  "Time freezes for {2 s} while you mark up to {30} enemies in view": [
   "abilities.json"
  ],
  "Time survived": [
-  "hud.gd:1186"
+  "hud.gd:1229"
  ],
  "Toadstool Knight": [
   "toadstool_boss.gd:72",
@@ -3093,14 +3170,17 @@
  "Tome of Vitality": [
   "upgrades.json"
  ],
+ "Tomes": [
+  "unlocks_menu.gd:12"
+ ],
  "Tomes ×%d": [
-  "hud.gd:1661"
+  "hud.gd:1704"
  ],
  "Torch-lit halls, a feast to trample, skeletons.": [
   "map_picker.gd:21"
  ],
  "Total EXP": [
-  "hud.gd:1206"
+  "hud.gd:1249"
  ],
  "Total party kill? Not on my watch.": [
   "taglines.json"
@@ -3142,7 +3222,10 @@
  ],
  "UNLOCKED!": [
   "hud.gd:82",
-  "hud.gd:1331"
+  "hud.gd:1374"
+ ],
+ "UNLOCKS": [
+  "unlocks_menu.gd:68"
  ],
  "UNRELENTING": [
   "character_select.gd:232",
@@ -3173,6 +3256,9 @@
   "character_select.gd:30",
   "character_select.gd:905"
  ],
+ "Unlock the Map in Unlocks": [
+  "main.gd:1180"
+ ],
  "Unlocks at level %d": [
   "skill_screen.gd:135",
   "skill_screen.gd:319",
@@ -3180,6 +3266,9 @@
  ],
  "Unlocks at level %d during a run": [
   "character_select.gd:710"
+ ],
+ "Unlocks the minimap and the big map (M).": [
+  "unlocks.gd:13"
  ],
  "Unrelenting": [
   "mode_menu.gd:16"
@@ -3201,6 +3290,9 @@
  ],
  "Updraft": [
   "skill_tree.gd:105"
+ ],
+ "Upgrades": [
+  "unlocks_menu.gd:12"
  ],
  "Valkyrie Spear": [
   "abilities.json"
@@ -3242,7 +3334,7 @@
   "enemy_manager.gd:371"
  ],
  "WASD move · Space jump · Shift/Ctrl slide · 1/2/3 abilities · Wheel zoom · hold Alt inspect · Esc pause\nF1 debug · F2 spawn 200 · F3 reset cooldowns": [
-  "hud.gd:222"
+  "hud.gd:228"
  ],
  "WRATH OF THE SANDS! FIND SHELTER!": [
   "pharaoh_boss.gd:454"
@@ -3261,6 +3353,9 @@
  ],
  "Weapon: %s": [
   "kit_db.gd:48"
+ ],
+ "Weapons": [
+  "unlocks_menu.gd:12"
  ],
  "Web Trap": [
   "abilities.json"
@@ -3305,10 +3400,10 @@
   "skill_tree.gd:97"
  ],
  "Win +%s": [
-  "hud.gd:1285"
+  "hud.gd:1328"
  ],
  "Win bonus": [
-  "hud.gd:1203"
+  "hud.gd:1246"
  ],
  "Windowed": [
   "settings_menu.gd:188"
@@ -3332,13 +3427,13 @@
   "upgrades.json"
  ],
  "YOU DIED": [
-  "hud.gd:1124"
+  "hud.gd:1167"
  ],
  "YOU WON!": [
-  "hud.gd:1124"
+  "hud.gd:1167"
  ],
  "YOUR DAMAGE": [
-  "hud.gd:1199"
+  "hud.gd:1242"
  ],
  "Yellow Potion: 5x damage": [
   "potion_manager.gd:18"
@@ -3383,7 +3478,7 @@
   "abilities.json"
  ],
  "Your damage: %s": [
-  "hud.gd:1139"
+  "hud.gd:1182"
  ],
  "Your dust trail deals {30} damage per second and knocks enemies back": [
   "abilities.json"
@@ -3454,8 +3549,8 @@
  ],
  "max level": [
   "character_select.gd:895",
-  "hud.gd:1150",
-  "hud.gd:1207"
+  "hud.gd:1193",
+  "hud.gd:1250"
  ],
  "mini-blob damage": [
   "abilities.gd:50"
@@ -3504,11 +3599,11 @@
   "abilities.gd:57"
  ],
  "unshaded add": [
-  "hero_entrances.gd:875",
-  "hero_entrances.gd:1343",
-  "hero_entrances.gd:2026",
-  "hero_entrances.gd:2271",
-  "hero_entrances.gd:2396"
+  "hero_entrances.gd:881",
+  "hero_entrances.gd:1349",
+  "hero_entrances.gd:2032",
+  "hero_entrances.gd:2277",
+  "hero_entrances.gd:2402"
  ],
  "wisp damage": [
   "abilities.gd:38"

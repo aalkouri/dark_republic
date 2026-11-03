@@ -28,6 +28,9 @@ var bosses_defeated: Array = []        # boss ids beaten at least once ("thog": 
 var feats: Array = []                  # one-off achievements that unlock things ("unrelenting_swamp_15")
 var seen_unlocks: Array = []           # unlocks whose reveal has played ("map:forest"...)
 var shards := {"fire": 0, "ice": 0, "lightning": 0, "dark": 0}
+var unlock_levels := {}                # Unlocks menu: upgrade id -> level bought ("map", "free_ban", "reroll")
+var discovered: Array = []             # catalogue: weapon:<id>, tome:<id>, item:<id> found in a run
+var new_marks: Array = []              # catalogue squares found through play and not hovered yet ("map:forest"...)
 var forge := {}                        # weapon style -> forge level (Forge, 0-10)   # elemental shards (main weapon upgrades, later)
 var displayed := 0.0                   # what the counter shows (lags during a payout)
 var persist := true                    # off for test/screenshot runs
@@ -170,6 +173,9 @@ func defeat_boss(boss: String) -> bool:
 	if boss in bosses_defeated:
 		return false
 	bosses_defeated.append(boss)
+	for m in MapPicker.MAPS:   # a map this boss opens: a "new" dot in the Unlocks catalogue
+		if str(m.get("requires", "")) == boss:
+			mark_new("map:" + str(m["id"]))
 	_save()
 	return true
 
@@ -183,6 +189,47 @@ func mark_unlock_seen(key: String) -> void:
 	if not key in seen_unlocks:
 		seen_unlocks.append(key)
 		_save()
+
+
+## Unlocks menu: the level bought of upgrade `id` (0 = not yet).
+func unlock_level(id: String) -> int:
+	return int(unlock_levels.get(id, 0))
+
+
+func set_unlock_level(id: String, lv: int) -> void:
+	unlock_levels[id] = lv
+	_save()
+
+
+## Found `key` (weapon:<id>, tome:<id>, item:<id>) in a run: the first time, it's in the
+## catalogue with a "new" dot. True if it was new.
+func discover(key: String) -> bool:
+	if key in discovered:
+		return false
+	discovered.append(key)
+	mark_new(key)
+	return true
+
+
+func is_discovered(key: String) -> bool:
+	return key in discovered
+
+
+## A "new" dot on a catalogue square (and its tab) until it's hovered.
+func mark_new(key: String) -> void:
+	if not key in new_marks:
+		new_marks.append(key)
+		_save()
+
+
+func clear_new(key: String) -> void:
+	if key in new_marks:
+		new_marks.erase(key)
+		_save()
+
+
+func is_new(key: String) -> bool:
+	return key in new_marks
 
 
 func has_skill(id: String, skill: String) -> bool:
@@ -560,6 +607,9 @@ func _load() -> void:
 		feats = cfg.get_value("progress", "feats", [])
 		seen_unlocks = cfg.get_value("progress", "seen", [])
 		forge = cfg.get_value("characters", "forge", {})
+		unlock_levels = cfg.get_value("progress", "unlock_levels", {})
+		discovered = cfg.get_value("progress", "discovered", [])
+		new_marks = cfg.get_value("progress", "new_marks", [])
 		var sh: Dictionary = cfg.get_value("wallet", "shards", {})
 		for kind in SHARDS:
 			shards[kind] = int(sh.get(kind, 0))
@@ -583,4 +633,7 @@ func _save() -> void:
 	cfg.set_value("progress", "seen", seen_unlocks)
 	cfg.set_value("wallet", "shards", shards)
 	cfg.set_value("characters", "forge", forge)
+	cfg.set_value("progress", "unlock_levels", unlock_levels)
+	cfg.set_value("progress", "discovered", discovered)
+	cfg.set_value("progress", "new_marks", new_marks)
 	cfg.save(PATH)

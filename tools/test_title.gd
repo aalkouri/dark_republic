@@ -25,7 +25,7 @@ func _ready() -> void:
 	var labels := []
 	for b in title._menu.get_children():
 		labels.append((b as Button).text.strip_edges())
-	_check("menu: Play / Settings / Stats / Quit (no separate Characters)", labels == ["PLAY", "SETTINGS", "STATS", "QUIT"], str(labels))
+	_check("menu: Play / Unlocks / Settings / Stats / Quit (no separate Characters)", labels == ["PLAY", "UNLOCKS", "SETTINGS", "STATS", "QUIT"], str(labels))
 	_check("Play has keyboard/gamepad focus", (title._menu.get_child(0) as Button).has_focus(), "")
 	_check("title text", title._title.text == "DARK REPUBLIC", title._title.text)
 	var puns: Array = title.load_taglines()
@@ -43,7 +43,8 @@ func _ready() -> void:
 	_check("title music plays on the Music bus, looping", m.playing and m.bus == Settings.MUSIC_BUS and m.stream.get("loop") == true, m.bus)
 	_check("title plays Menu of Shadows", m == MenuMusic.player and MenuMusic.TRACK.ends_with("menu_of_shadows.mp3"), "")
 
-	(title._menu.get_child(1) as Button).pressed.emit()
+	await _test_unlocks(title)
+	(title._menu.get_child(2) as Button).pressed.emit()
 	await get_tree().process_frame
 	_check("Settings opens", title._settings.visible and not title._menu.visible, "")
 	title._settings.close()
@@ -144,6 +145,47 @@ func _ready() -> void:
 
 	print("TEST %s (%d failures)" % ["PASS" if fails == 0 else "FAIL", fails])
 	get_tree().quit(1 if fails else 0)
+
+
+## Unlocks: buying levels with coins, the catalogue tabs and the "new" dots.
+func _test_unlocks(title: Node) -> void:
+	var keep_persist := Wallet.persist
+	var keep_coins := Wallet.coins
+	Wallet.persist = false
+	Wallet.unlock_levels = {}
+	Wallet.discovered = []
+	Wallet.new_marks = []
+	Wallet.discover("tome:tome_damage")   # found in a run
+	title._unlocks_dot.visible = UnlocksMenu.any_new()
+	_check("the Unlocks button shows a dot when something new was found", title._unlocks_dot.visible, "")
+	(title._menu.get_child(1) as Button).pressed.emit()
+	await get_tree().process_frame
+	var um: UnlocksMenu = title._unlocks
+	_check("Unlocks opens on the Upgrades tab: Map, Free Ban, Reroll", um.visible and not title._menu.visible and um._squares.size() == 3, "%d" % um._squares.size())
+	Wallet.coins = 600
+	_check("Map costs 750: can't buy it with 600", not um.buy("map") and Wallet.unlock_level("map") == 0, "")
+	_check("Free Ban level 1 for 500", um.buy("free_ban") and Wallet.unlock_level("free_ban") == 1 and Wallet.coins == 100, "%d coins" % Wallet.coins)
+	Wallet.coins = 100000
+	for k in 6:
+		um.buy("reroll")
+	_check("Reroll stops at level 5 (500, 1000, 2000, 5000, 10000)", Wallet.unlock_level("reroll") == 5 and Wallet.coins == 100000 - 18500, "%d, %d coins" % [Wallet.unlock_level("reroll"), Wallet.coins])
+	_check("the Tomes tab has a dot (a tome found in play)", um.tab_has_new("tome") and not um.tab_has_new("weapon"), "")
+	um.show_tab("tome")
+	await get_tree().process_frame
+	var sq: Dictionary = um._squares.filter(func(q): return q["key"] == "tome:tome_damage")[0]
+	_check("...and so does the tome's square; the others are still '?'", (sq["dot"] as Control).visible and um._squares.size() >= 10, "")
+	um._hover(sq, true)
+	_check("hovering it clears both dots and explains it", not Wallet.is_new("tome:tome_damage") and not um.tab_has_new("tome") and um._tip.visible and "Damage" in um._tip_text.text, um._tip_text.text)
+	um._hover(sq, false)
+	um.show_tab("map")
+	await get_tree().process_frame
+	_check("Maps tab: one square per map", um._squares.size() == MapPicker.MAPS.size(), "")
+	um.close()
+	await get_tree().process_frame
+	_check("Back closes it", not um.visible and title._menu.visible, "")
+	Wallet.unlock_levels = {}
+	Wallet.coins = keep_coins
+	Wallet.persist = keep_persist
 
 
 func _check(name: String, ok: bool, detail: String) -> void:

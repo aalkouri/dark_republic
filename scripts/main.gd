@@ -171,6 +171,8 @@ var _shot_slow := -1.0   # --shot-slow=T: crawl (time scale 0.02) from T, to cat
 
 
 func _ready() -> void:
+	free_bans_left = Wallet.unlock_level("free_ban")
+	refreshes_left = Wallet.unlock_level("reroll")
 	Wallet.set_shown(true)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	# Main keeps running while paused (menus, input), but everything in the world freezes with the
@@ -1048,6 +1050,30 @@ func _open_draft(chained := false) -> void:
 const BANS_PER_RUN := 3
 const BAN_COST := 100   # coins
 var bans_left := BANS_PER_RUN
+var free_bans_left := 0          # Unlocks > Free Ban: this many of the run's bans cost nothing
+var refreshes_left := 0          # Unlocks > Reroll: Refreshes of the level-up cards this run
+
+
+## What the next ban costs (free while Free Ban levels last).
+func ban_cost() -> int:
+	return 0 if free_bans_left > 0 else BAN_COST
+
+
+## Refresh: a whole new set of level-up cards for 100 coins (needs Unlocks > Reroll).
+func can_refresh() -> bool:
+	return state == "levelup" and refreshes_left > 0 and Wallet.coins >= Unlocks.REFRESH_COST
+
+
+func refresh_draft() -> bool:
+	if not can_refresh() or not Wallet.spend(Unlocks.REFRESH_COST):
+		return false
+	refreshes_left -= 1
+	var fresh := db.draft(3, stats.value("luck"), MAX_WEAPONS)
+	if fresh.is_empty():
+		return false
+	current_draft = fresh
+	hud.show_draft(current_draft)
+	return true
 
 
 ## Can reward card i be banned right now? (a ban left, 100 coins, and it isn't the last card)
@@ -1055,13 +1081,17 @@ func can_ban(i: int) -> bool:
 	if state != "levelup" or i < 0 or i >= current_draft.size() or current_draft[i].get("banned", false):
 		return false
 	var open := current_draft.filter(func(p): return not p.get("banned", false)).size()
-	return bans_left > 0 and Wallet.coins >= BAN_COST and open > 1
+	return bans_left > 0 and Wallet.coins >= ban_cost() and open > 1
 
 
 ## BAN: pay 100 coins to remove reward card i from this draft and from every later draft
 ## this run. Three per run.
 func ban_upgrade(i: int) -> bool:
-	if not can_ban(i) or not Wallet.spend(BAN_COST):
+	if not can_ban(i):
+		return false
+	if free_bans_left > 0:
+		free_bans_left -= 1   # a free one (Unlocks > Free Ban)
+	elif not Wallet.spend(BAN_COST):
 		return false
 	bans_left -= 1
 	db.banned[current_draft[i]["id"]] = true
@@ -1146,6 +1176,9 @@ func _open_slot_machine(tier: int) -> void:
 ## M: pause on the big map (the whole arena, every pickup and marker); the inventory stays
 ## hoverable like the Alt view. M or Esc closes it.
 func open_map() -> void:
+	if not Unlocks.has_map():   # bought in the title's Unlocks menu
+		hud.flash_message("Unlock the Map in Unlocks", 2.0)
+		return
 	hud.set_inspect(false)
 	state = "map"
 	get_tree().paused = true

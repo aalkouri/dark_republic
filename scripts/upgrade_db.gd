@@ -200,6 +200,8 @@ func apply(pick: Dictionary, stats: Stats) -> void:
 	var d: Dictionary = defs[id]
 	var lv := level_of(id)
 	levels[id] = lv + 1
+	if lv == 0 and not d.has("signature") and d["kind"] in ["weapon", "tome", "item"]:
+		Wallet.discover(str(d["kind"]) + ":" + id)   # found: in the Unlocks catalogue (with a "new" dot)
 	if d["kind"] == "weapon" and lv == 0:
 		return  # unlocking a weapon uses its base stats
 	for m in _scaled_mods(d, int(pick["rarity"])):

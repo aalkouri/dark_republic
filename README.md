@@ -496,6 +496,8 @@ Picking one up while it's active refreshes its timer; active power-ups and their
 
 `scripts/minimap.gd`, in the HUD's **top-right corner** just under the coin and shard counters (the kills / enemies counter moved down below it). A round, semi-transparent dark map with a gold rim, 216 px across, showing **65 m** around you. It **turns with the camera**: you're the white arrow in the middle, always pointing the way the camera looks, and a gold **N** on the rim shows north.
 
+**The map is an unlock:** the minimap and the big map only show once **Map** is bought in Unlocks (750 coins); until then M says "Unlock the Map in Unlocks".
+
 **The big map (M, rebindable as "Map"):** pauses the run on a big square map in the middle of the screen: the **whole arena, north up**, with everything the minimap shows (chests, keys, potions, power-ups, items, crypts / statues to open, waygates, the boss, safe zones) and you as an arrow where you stand, turned the way you look. Like holding Alt, the mouse is free so you can **hover your weapons, tomes and items** in the bottom left for their details. M or Esc closes it and the run carries on. It's a second `Minimap` made full (`make_full`); `hud.set_big_map`, `main.open_map` / `close_map`.
 - **Blips:** enemies as tiny dim red dots (sampled, at most 300), elites purple, bosses a big red diamond with a skull; unopened chests in their tier's colour (opened ones disappear); power-ups as their own icons in a pulsing ring; dropped keys and potions; the portal out once the boss is down (a violet swirl, or a violet arrow on the rim); sub-bosses (an orange skull hexagon) and waygates (an arch: dim, bright aqua or muted teal; see **Sub-bosses and waygates**).
 - **Map context:** the arena edge, the swamp pools, the Caldera's lava pools and rivers, and the Castle's walls with their doorways.
@@ -633,7 +635,23 @@ Every run generates a new dark swamp (`scripts/world_builder.gd`):
 - **Music:** "Tension Drop" (`audio/music/tension_drop.mp3`) starts with the level and loops until the run ends, then fades out. Change `SWAMP_MUSIC` / `MUSIC_VOLUME_DB` in `scripts/main.gd`.
 - **Ability sounds:** Inferno and Fire Nova play their sound on the key press and take effect 1 s later (`INFERNO_DELAY`, `NOVA_DELAY`). Meteor plays its sound on the cast and an explosion when it lands. The explosion is synthesised by `tools/gen_explosion_sound.py`. All of them are in `audio/abilities/` and use the SFX bus.
 - **Menu music:** "Menu of Shadows" (`audio/music/menu_of_shadows.mp3`) loops on the title and character select screens. The `MenuMusic` autoload (`scripts/menu_music.gd`) plays it, so it carries on without restarting between the two screens and fades out when a run starts.
-- **Level-up cards:** each card has a big icon as its centrepiece: tomes are books, weapons are bronze medallions and items are silver charms. The name sits under the icon, and the effect is in its own dark box. The card is outlined thickly in its rarity colour (grey, blue, purple or gold). Icons are set in `data/upgrades.json` (`"icon": {"glyph", "cover", "tint"}`) and drawn by `scripts/upgrade_icon.gd`. To preview all of them, run `godot --path . --script res://tools/render_upgrade_icons.gd -- /out.png`.
+- ## Unlocks
+
+**Unlocks** on the title (under Play) opens a menu of squares in five tabs (`scripts/unlocks_menu.gd`, data in `scripts/unlocks.gd`). Hovering a square explains it.
+
+- **Upgrades** (bought with coins, saved in `Wallet.unlock_levels`; click a square to buy its next level, the cost is under it with level pips):
+
+| Upgrade | Levels | Costs | What it does |
+|---|---|---|---|
+| Map | 1 | 750 | The minimap and the big map (M) |
+| Free Ban | 3 | 500 / 1,000 / 2,000 | That many of the run's 3 bans cost nothing (the BAN button reads FREE) |
+| Reroll | 5 | 500 / 1,000 / 2,000 / 5,000 / 10,000 | That many **Refreshes** a run: a REFRESH button beside "Bans left" on the level-up cards deals a whole new set for 100 coins. Hidden until level 1 |
+
+- **Weapons, Tomes, Items, Maps:** a catalogue of everything there is. Weapons, tomes and items stay dark with a "?" until you first pick one up in a run (`Wallet.discover`, from `UpgradeDB.apply`); maps until their boss falls. Anything found through play gets a **red dot** on its square, on its tab and on the title's Unlocks button (`Wallet.new_marks`); hovering the square clears it, and the tab's dot goes when its last one does.
+
+**Test:** `test_title` (buying, the tabs and dots), `test_items` (Free Ban and Refresh in a run).
+
+**Level-up cards:** each card has a big icon as its centrepiece: tomes are books, weapons are bronze medallions and items are silver charms. The name sits under the icon, and the effect is in its own dark box. The card is outlined thickly in its rarity colour (grey, blue, purple or gold). Icons are set in `data/upgrades.json` (`"icon": {"glyph", "cover", "tint"}`) and drawn by `scripts/upgrade_icon.gd`. To preview all of them, run `godot --path . --script res://tools/render_upgrade_icons.gd -- /out.png`.
 - **Character select abilities:** the selected character's three abilities appear as the same squares as the in-run ability bar. Hover one for what it does, its cooldown and the run level it unlocks at (`Abilities.describe_lines`).
 
 ## Thog the Troll (the Swamp boss)

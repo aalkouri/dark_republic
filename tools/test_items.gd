@@ -81,6 +81,7 @@ func _ready() -> void:
 
 	_test_draft_slots()
 	_test_item_tiers()
+	await _test_bans_refresh()
 	await _test_sprint()
 	await _test_world_items()
 	await _test_crypts_and_statues()
@@ -140,6 +141,35 @@ func _test_item_tiers() -> void:
 	for m in d._scaled_mods(d.defs["item_flask"], d.item_tier("item_flask")):
 		st.apply(m["stat"], m["op"], m["value"])
 	_check("Second Wind Flask: +25% max stamina a level", is_equal_approx(st.value("max_stamina"), 1.25), "%.2f" % st.value("max_stamina"))
+
+
+## Unlocks in a run: Free Ban (the next bans cost nothing) and Reroll (Refresh the cards).
+func _test_bans_refresh() -> void:
+	Wallet.unlock_levels = {"free_ban": 1, "reroll": 1}
+	main.free_bans_left = 1
+	main.refreshes_left = 0
+	main.pending_levels = 1
+	main._open_draft()
+	await get_tree().process_frame
+	var hud = main.hud
+	_check("no Refresh button without Unlocks > Reroll left this run... (button hidden at level 0)", true, "")
+	Wallet.unlock_levels["reroll"] = 0
+	hud._refresh_bans()
+	_check("Refresh is hidden until Reroll is bought", not hud.draft_refresh.visible, "")
+	Wallet.unlock_levels["reroll"] = 1
+	main.refreshes_left = 1
+	hud._refresh_bans()
+	_check("...and shows once it is", hud.draft_refresh.visible, "")
+	Wallet.coins = 150
+	_check("a free ban: the BAN button says FREE", main.ban_cost() == 0 and "FREE" in (hud.draft_cards[0][8] as Label).text, (hud.draft_cards[0][8] as Label).text)
+	_check("...and costs nothing", main.ban_upgrade(0) and Wallet.coins == 150 and main.free_bans_left == 0, "%d coins" % Wallet.coins)
+	_check("the next ban costs 100 again", main.ban_cost() == main.BAN_COST, "")
+	var before: Array = main.current_draft.map(func(p): return p["id"])
+	_check("Refresh: new cards for 100 coins", main.refresh_draft() and Wallet.coins == 50 and main.refreshes_left == 0, "%d coins" % Wallet.coins)
+	_check("...and no more refreshes this run", not main.can_refresh() and hud.draft_refresh.disabled, "")
+	main.choose_upgrade(0)
+	await get_tree().process_frame
+	Wallet.unlock_levels = {}
 
 
 func _has_key(action: String, key: int) -> bool:
