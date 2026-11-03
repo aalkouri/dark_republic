@@ -15,7 +15,7 @@ const HATS := ["wizard", "wizard_stars", "wizard_bent", "hood", "tricorn", "wing
 const ITEMS := ["staff_fire", "staff_ice", "staff_wood", "staff_thunder", "staff_dark", "club", "chains",
 	"crossbow", "spear", "daggers", "katana", "flask", "web", "scythe", "bone", "revolver", "maracas",
 	"ladle", "sword", "crook_flail", "none"]
-const FX := ["embers", "snow", "stars", "sparks", "shadow", "wisps", "bubbles", "spores", "sand", "none"]
+var FX: Array = CharacterIcon.FX_KINDS   # every motif the portraits know
 
 var fails := 0
 
