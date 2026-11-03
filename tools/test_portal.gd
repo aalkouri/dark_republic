@@ -140,7 +140,7 @@ func _map(map: String) -> void:
 	main.player.bot_move = Vector2.ZERO
 	_check("%s: walking into it completes the map (end screen, won)" % map, main.state == "won" and main.boss_won and main.hud.end_root.visible, main.state)
 	_check("%s: the end screen says YOU WON!" % map, main.hud.end_title.text == tr("YOU WON!"), main.hud.end_title.text)
-	var btns := main.hud.end_root.find_children("*", "Button", true, false).filter(func(b): return (b as Button).is_visible_in_tree())
+	var btns: Array = main.hud.end_root.find_children("*", "Button", true, false).filter(func(b): return (b as Button).is_visible_in_tree())
 	_check("%s: the end screen's only button is Continue" % map, btns.size() == 1 and btns[0] == main.hud.end_continue, str(btns.map(func(b): return b.text)))
 	_check("%s: shards left on the ground are banked on the way in (%d)" % [map, left], aft.drops.count() == 0 and _sum(Wallet.shards) == total_before + n and _sum(main.shards_won) == n, "wallet %d -> %d, rolled %d, won %s" % [total_before, _sum(Wallet.shards), n, str(main.shards_won)])
 	_check("%s: the defeat was recorded (unlocks)" % map, Wallet.has_defeated(main.boss_id) and main.first_boss_kill, str(Wallet.bosses_defeated))
