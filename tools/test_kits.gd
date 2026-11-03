@@ -138,6 +138,8 @@ func _argyle_sock() -> void:
 	_check("...and hits them every 0.5 s", kit.spin_hits >= 16 and h.sock.spin_rate > 0.0, "%d" % kit.spin_hits)
 	await _secs(4.0)
 	_check("...for 5 s", not kit.active("spin") and h.sock.spin_rate == 0.0, "")
+	await _secs(0.6)
+	_check("...then the sock turns back to face where it's going (eyes front)", absf(wrapf(h.sock.rotation.y, -PI, PI)) < 0.05, "%.2f" % h.sock.rotation.y)
 	_clear()
 	_cast(1)
 	await _secs(0.2)

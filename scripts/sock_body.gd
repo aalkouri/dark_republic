@@ -58,11 +58,16 @@ void fragment() {
 	}
 	// a soft knitted texture: fine horizontal rows
 	c *= 0.9 + 0.1 * sin(L * 260.0);
-	ALBEDO = c * dim;
+	float inside = FRONT_FACING ? 0.0 : 1.0;   // inside the tube (seen down the open cuff): dark and hollow
+	ALBEDO = mix(c, mix(col_cuff * 0.12, vec3(0.0), smoothstep(0.0, 0.08, L)), inside) * dim;
 	ROUGHNESS = 0.97;
+	SPECULAR = 0.5 * (1.0 - inside);
+	AO = 1.0 - inside;             // no light gets down inside it
+	AO_LIGHT_AFFECT = inside;
 	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 2.0);
 	float crackle = step(0.93, fract(sin(dot(floor(UV * vec2(40.0, 30.0)) + floor(TIME * 12.0), vec2(12.9898, 78.233))) * 43758.5453));
-	EMISSION = vec3(0.72, 0.35, 1.0) * charge * (rim * 1.2 + crackle * 1.5) + vec3(1.0, 0.85, 0.75) * hurt;
+	float body = smoothstep(0.24, 0.32, L) * (1.0 - inside);   // the static stays on the body, off the cuff and the opening
+	EMISSION = vec3(0.72, 0.35, 1.0) * charge * body * (rim * 1.2 + crackle * 1.5) + vec3(1.0, 0.85, 0.75) * hurt;
 }
 """
 
@@ -233,7 +238,10 @@ func animate(dt: float, speed: float, airborne: bool, lunge := 0.0, swell := 0.0
 	mat.set_shader_parameter("squash", squash)
 	position.y = 0.22 * bounce * lean
 	scale = Vector3.ONE * (1.0 + 0.15 * sin(swell * PI))
-	_spin += spin_rate * dt
+	if spin_rate != 0.0:
+		_spin += spin_rate * dt
+	else:   # out of a Spin Cycle: turn back to face the way it's going (toe and eyes first)
+		_spin = lerp_angle(wrapf(_spin, -PI, PI), 0.0, 1.0 - exp(-10.0 * dt))
 	rotation.y = _spin
 	# Eyes ride the bend; pupils wobble about on a spring (googly)
 	var h := clampf((1.3 - 0.35) / 1.1, 0.0, 1.0)
@@ -271,6 +279,6 @@ func set_charge(f: float) -> void:
 		mat.set_shader_parameter("charge", f)
 
 
-## Where its zaps leave from: the top of the cuff.
+## Where its zaps leave from: the front of the body, mid-leg (not the open top).
 func tip() -> Vector3:
-	return global_transform * Vector3(0, HEIGHT * 0.95, 0)
+	return global_transform * Vector3(0, HEIGHT * 0.55, -LEG_R)
