@@ -6,7 +6,8 @@ extends RefCounted
 ##   free_ban   3 levels  that many of the run's 3 bans cost nothing
 ##   reroll     5 levels  that many Refreshes a run on the level-up cards (100 coins each)
 ## Catalogue: weapons, tomes and items show once found in a run, maps once unlocked. Anything
-## found through play gets a "new" dot (Wallet.new_marks) on its square and its tab until hovered.
+## found through play gets a "new" dot (Wallet.new_marks) on its square and its tab until hovered;
+## hovering a new weapon, tome or item also pays DISCOVERY_REWARD coins (with the coin payout).
 
 const LIST := [
 	{"id": "map", "name": "Map", "glyph": "eye", "color": "#7fd8ff", "costs": [750],
@@ -20,6 +21,9 @@ const LIST := [
 		"levels": ["1 refresh a run", "2 refreshes a run", "3 refreshes a run", "4 refreshes a run", "5 refreshes a run"]},
 ]
 const REFRESH_COST := 100
+## Hovering a newly found weapon, tome or item (its red dot) pays this many coins, once.
+const DISCOVERY_REWARD := 150
+const REWARD_KINDS := ["weapon", "tome", "item"]
 
 static func find(id: String) -> Dictionary:
 	for u in LIST:

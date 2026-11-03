@@ -174,7 +174,12 @@ func _test_unlocks(title: Node) -> void:
 	await get_tree().process_frame
 	var sq: Dictionary = um._squares.filter(func(q): return q["key"] == "tome:tome_damage")[0]
 	_check("...and so does the tome's square; the others are still '?'", (sq["dot"] as Control).visible and um._squares.size() >= 10, "")
+	var c0 := Wallet.coins
 	um._hover(sq, true)
+	_check("hovering a new tome pays 150 coins", Wallet.coins == c0 + Unlocks.DISCOVERY_REWARD, "%d -> %d" % [c0, Wallet.coins])
+	um._hover(sq, false)
+	um._hover(sq, true)
+	_check("...only once", Wallet.coins == c0 + Unlocks.DISCOVERY_REWARD, "%d" % Wallet.coins)
 	_check("hovering it clears both dots and explains it", not Wallet.is_new("tome:tome_damage") and not um.tab_has_new("tome") and um._tip.visible and "Damage" in um._tip_text.text, um._tip_text.text)
 	um._hover(sq, false)
 	um.show_tab("map")

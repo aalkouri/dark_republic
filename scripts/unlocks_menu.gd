@@ -336,6 +336,9 @@ func _hover(sq: Dictionary, on: bool) -> void:
 		Wallet.clear_new(str(sq["key"]))
 		(sq["dot"] as Control).visible = false
 		_refresh_tabs()
+		# a newly found weapon, tome or item pays out (coins fly from it into the counter)
+		if str(sq["kind"]) in Unlocks.REWARD_KINDS:
+			Wallet.payout(Unlocks.DISCOVERY_REWARD, (sq["btn"] as Control).get_global_rect().get_center())
 	_tip_text.text = _describe(str(sq["kind"]), str(sq["id"]))
 	_tip.visible = true
 	_tip.reset_size()
