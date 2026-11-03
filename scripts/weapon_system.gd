@@ -521,7 +521,7 @@ static func char_unlocked(char_id: String) -> bool:
 ## The Stink Aura's particles (cheap CPU particles: 16 wisps, 6 flies), hidden until you own it.
 func _build_stink_particles() -> void:
 	_stink_fumes = CPUParticles3D.new()
-	_stink_fumes.amount = 16
+	_stink_fumes.amount = 18
 	_stink_fumes.lifetime = 1.8
 	_stink_fumes.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
 	_stink_fumes.emission_ring_axis = Vector3.UP
@@ -537,27 +537,27 @@ func _build_stink_particles() -> void:
 	grow.add_point(Vector2(0, 0.4))
 	grow.add_point(Vector2(1, 1.6))
 	_stink_fumes.scale_amount_curve = grow
-	var ramp := Gradient.new()
-	ramp.set_color(0, Color(0.6, 0.85, 0.2, 0.0))
-	ramp.add_point(0.2, Color(0.55, 0.85, 0.2, 0.35))
-	ramp.set_color(1, Color(0.35, 0.45, 0.1, 0.0))
+	var ramp := Gradient.new()   # only the fade (the colour is in the texture)
+	ramp.set_color(0, Color(1, 1, 1, 0.0))
+	ramp.add_point(0.2, Color(1, 1, 1, 0.75))
+	ramp.add_point(0.7, Color(1, 1, 1, 0.45))
+	ramp.set_color(1, Color(1, 1, 1, 0.0))
 	_stink_fumes.color_ramp = ramp
+	_stink_fumes.angle_min = 0.0   # each puff turned its own way, slowly rolling
+	_stink_fumes.angle_max = 360.0
+	_stink_fumes.angular_velocity_min = -25.0
+	_stink_fumes.angular_velocity_max = 25.0
 	var q := QuadMesh.new()
-	q.size = Vector2(0.9, 0.9)
+	q.size = Vector2(1.5, 1.5)
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	m.vertex_color_use_as_albedo = true
-	var g := GradientTexture2D.new()
-	g.fill = GradientTexture2D.FILL_RADIAL
-	g.fill_from = Vector2(0.5, 0.5)
-	g.fill_to = Vector2(1.0, 0.5)
-	var gr := Gradient.new()
-	gr.set_color(0, Color(1, 1, 1, 1))
-	gr.set_color(1, Color(1, 1, 1, 0))
-	g.gradient = gr
-	m.albedo_texture = g
+	m.albedo_color = Color(1, 1, 1, 1)
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	m.albedo_texture = _stink_cloud_tex()
+	m.disable_fog = true
 	q.material = m
 	_stink_fumes.mesh = q
 	_stink_fumes.top_level = true
@@ -589,6 +589,30 @@ func _build_stink_particles() -> void:
 	_stink_flies.emitting = false
 	_stink_flies.visible = false
 	add_child(_stink_flies)
+
+
+## A puff of green smoke: a soft round cloud broken up by noise, murky green in the middle,
+## sickly yellow-green wisps at the edges. Made once.
+static var _cloud_tex: Texture2D
+
+static func _stink_cloud_tex() -> Texture2D:
+	if _cloud_tex != null:
+		return _cloud_tex
+	var n := FastNoiseLite.new()
+	n.seed = 7
+	n.frequency = 0.022
+	n.fractal_octaves = 3
+	var img := Image.create(128, 128, false, Image.FORMAT_RGBA8)
+	for y in 128:
+		for x in 128:
+			var d := Vector2(x - 63.5, y - 63.5).length() / 63.5
+			var v := n.get_noise_2d(x, y) * 0.5 + 0.5
+			var a := clampf((1.0 - d) * 1.5, 0.0, 1.0) * clampf(v * 1.3 + 0.05, 0.0, 1.0)
+			var c := Color(0.22, 0.42, 0.08).lerp(Color(0.62, 0.85, 0.22), clampf(v * 1.2 + d * 0.3 - 0.2, 0.0, 1.0))
+			img.set_pixel(x, y, Color(c, a))
+	img.generate_mipmaps()
+	_cloud_tex = ImageTexture.create_from_image(img)
+	return _cloud_tex
 
 
 func _tick_stink_particles(feet: Vector3, r: float) -> void:

@@ -11,10 +11,8 @@ const TRAIL_HOLD := 0.35
 const TRAIL_SPEED := 0.9       # fraction of max HP per second it slides down
 var hp_label: Label
 var shield_bar: ProgressBar
-var stamina_bar: ProgressBar
-var stamina_label: Label
-const STAMINA_COL := Color(0.75, 0.95, 0.3)
-const WINDED_COL := Color(1.0, 0.45, 0.12)
+var stamina_bar: ProgressBar      # under the character, only while it isn't full
+const STAMINA_W := 76.0
 var xp_bar: ProgressBar
 var level_label: Label
 var timer_label: Label
@@ -130,14 +128,20 @@ func setup(m) -> void:
 	root.add_child(hp_label)
 	# Stamina (Sprint): a thin yellow-green bar under the health bar, live; it flashes orange
 	# while you're winded (ran it dry) and dims when it's full
-	stamina_bar = _bar(STAMINA_COL)
-	stamina_bar.position = Vector2(20, 89)
-	stamina_bar.size = Vector2(240, 9)
+	# Stamina (Sprint): a thin white bar just under the character, following them on screen;
+	# hidden while it's full
+	stamina_bar = _bar(Color(0.97, 0.97, 0.95))
+	var sbg := StyleBoxFlat.new()
+	sbg.bg_color = Color(0, 0, 0, 0.55)
+	sbg.set_border_width_all(1)
+	sbg.border_color = Color(0, 0, 0, 0.8)
+	sbg.set_corner_radius_all(3)
+	stamina_bar.add_theme_stylebox_override("background", sbg)
+	(stamina_bar.get_theme_stylebox("fill") as StyleBoxFlat).set_corner_radius_all(3)
+	stamina_bar.size = Vector2(STAMINA_W, 7)
 	stamina_bar.max_value = Player.STAMINA_MAX
+	stamina_bar.visible = false
 	root.add_child(stamina_bar)
-	stamina_label = _label(tr("STAMINA"), 11)
-	stamina_label.position = Vector2(266, 85)
-	root.add_child(stamina_label)
 
 	timer_label = _label("00:00", 40)
 	timer_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -269,21 +273,22 @@ func _bar(fill: Color) -> ProgressBar:
 
 
 func _update_stamina(p: Player) -> void:
-	stamina_bar.max_value = p.stamina_max()
-	stamina_bar.size.x = 240.0 * minf(p.stamina_max() / Player.STAMINA_MAX, 1.6)   # a longer bar with the Second Wind Flask
-	stamina_label.position.x = stamina_bar.position.x + stamina_bar.size.x + 6.0
-	stamina_bar.value = p.stamina
 	var full := p.stamina >= p.stamina_max() - 0.01
+	var cam := get_viewport().get_camera_3d()
+	stamina_bar.visible = not full and cam != null and not cam.is_position_behind(p.global_position) and not main.intro
+	if not stamina_bar.visible:
+		return
+	stamina_bar.max_value = p.stamina_max()
+	stamina_bar.value = p.stamina
+	stamina_bar.size.x = STAMINA_W * minf(p.stamina_max() / Player.STAMINA_MAX, 1.6)   # longer with the Second Wind Flask
+	var at := cam.unproject_position(p.global_position - Vector3(0, 0.15, 0))
+	stamina_bar.position = at + Vector2(-stamina_bar.size.x * 0.5, 10.0)
 	var fg := stamina_bar.get_theme_stylebox("fill") as StyleBoxFlat
-	if p.winded:
+	if p.winded:   # ran dry: it flashes a warm red until it's back to 30%
 		var f := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.012)
-		fg.bg_color = WINDED_COL.lerp(Color(1.0, 0.8, 0.5), f * 0.4)
+		fg.bg_color = Color(1.0, 0.55, 0.45).lerp(Color.WHITE, f * 0.5)
 	else:
-		fg.bg_color = STAMINA_COL.lightened(0.15) if p.sprinting else STAMINA_COL
-	var a := 0.55 if full else 1.0
-	stamina_bar.modulate.a = a
-	stamina_label.modulate.a = a
-	stamina_label.add_theme_color_override("font_color", WINDED_COL if p.winded else Color(0.85, 0.95, 0.7))
+		fg.bg_color = Color(0.97, 0.97, 0.95)
 
 
 func _dim(root: Control) -> Control:
