@@ -87,6 +87,8 @@ var map_boss: MapBoss              # the Forest's / Castle's boss once it has ar
 var boss_won := false              # the run was won by killing the boss (and leaving through the portal)
 var boss_down := false             # Classic: the boss has fallen; no more monsters come (BossAftermath opens the portal)
 var _boss_down_at := 0.0           # run_time when he fell (the run's time and coins stop there)
+var time_stop := 0.0               # > 0: the run clock and spawns are held (Death's Overtime)
+var xp_bonus := 1.0                # kills drop this much XP (Overtime: 2x)
 var item_drops: ItemDrops         # items dropped by burnt trees / crypts / statues
 var _item_queue: Array = []        # items picked up while a menu was up
 var aftermath: BossAftermath       # the boss's shards on the ground and the portal out
@@ -519,8 +521,8 @@ func enemy_damage_mult() -> float:
 ## Unrelenting: XP gem value multiplier (1 until 10:00, then shrinking).
 func xp_drop_mult() -> float:
 	if not endless:
-		return 1.0
-	return 1.0 / (1.0 + maxf(0.0, run_time - ENDLESS_FROM) / 60.0 * ENDLESS_XP_PER_MIN)
+		return xp_bonus
+	return xp_bonus / (1.0 + maxf(0.0, run_time - ENDLESS_FROM) / 60.0 * ENDLESS_XP_PER_MIN)
 
 
 func _exit_tree() -> void:
@@ -559,9 +561,13 @@ func _physics_process(dt: float) -> void:
 		abilities.tick(dt)
 		_castle_intro()
 		return
-	run_time += dt
+	if time_stop > 0.0:   # Death's Overtime: the clock and the spawns hold still
+		time_stop -= dt
+	else:
+		run_time += dt
 	_ability_fire(dt)
-	_spawn_director(dt)
+	if time_stop <= 0.0:
+		_spawn_director(dt)
 
 	var t0 := Time.get_ticks_usec()
 	enemies.tick(dt, player.global_position)

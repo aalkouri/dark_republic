@@ -195,11 +195,12 @@ func _loco_robotico() -> void:
 	ws.maraca_tempo = 0.0
 	var s0 := body.shakes
 	var side0 := body._side
+	em.epic[front[2]] = 1   # an elite at the back of the three
 	ws.fire("maracas", "orb", 1.0)
-	var all_front := true
+	var n_hit := 0
 	for i in front:
-		all_front = all_front and em.hp[i] < em.hp_max[i]
-	_check("Maraca Blasters: a sonic pulse hits everything in the 6 m cone", all_front and ws.pulses >= 1, "")
+		n_hit += 1 if em.hp[i] < em.hp_max[i] else 0
+	_check("Maraca Blasters: a pulse hits 2 enemies in the 6 m cone, the elite first", n_hit == 2 and em.hp[front[2]] < em.hp_max[front[2]] and em.hp[front[0]] < em.hp_max[front[0]] and ws.pulses >= 1, "%d hit" % n_hit)
 	_check("...but not behind him or past 6 m", em.hp[behind] == em.hp_max[behind] and em.hp[far] == em.hp_max[far], "")
 	var hit1: float = em.hp_max[front[0]] - em.hp[front[0]]
 	ws.fire("maracas", "orb", 1.0)

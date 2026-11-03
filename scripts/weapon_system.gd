@@ -53,9 +53,11 @@ const STYLE_CHAR := {
 	"scarab": "pharaoh",
 	"soul": "necromancer",
 	"ember": "singe",
+	"scythe": "death", "bite": "billy_bulldog", "revolver": "cowboy", "spur": "platypus",
+	"bile": "bog_witch", "chains": "kong",
 }
-const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static", "maracas", "acid", "spore", "venom", "scarab", "soul", "ember"]
-const MELEE := ["trunk", "spear", "katana", "club", "maracas", "acid", "spore"]
+const STYLES := ["fire", "ice", "thunder", "dark", "arcane", "trunk", "wail", "silver", "spear", "daggers", "katana", "flask", "club", "static", "maracas", "acid", "spore", "venom", "scarab", "soul", "ember", "scythe", "bite", "revolver", "spur", "bile", "chains"]
+const MELEE := ["trunk", "spear", "katana", "club", "maracas", "acid", "spore", "scythe", "bite", "spur", "chains"]
 const SIG_WEIGHT := 0.45        # vs 3-10 for normal rewards: a rare find...
 const SIG_WEIGHT_TOTAL := 1.35  # ...and all of them together stay rare
 const SIG_RARITY := 3           # always Legendary
@@ -159,7 +161,8 @@ const MARACA_REACH := 6.0        # Maraca Blasters: a sonic pulse fills a cone..
 const MARACA_ARC := 60.0
 const MARACA_BUILD := 1.0        # ...tempo built per second while moving (0..1)...
 const MARACA_DRAIN := 1.5        # ...and lost per second standing still
-const MARACA_HASTE := 0.6        # full tempo: pulses come 60% faster
+const MARACA_HASTE := 0.3        # full tempo: pulses come 30% faster
+const MARACA_TARGETS := 2         # each pulse hits at most 2 enemies (+1 per extra Quantity), elites and bosses first
 const ACID_RADIUS := 2.5         # Acid Body: burns everything touching you...
 const ACID_EVERY := 0.5          # ...in pulses this far apart ("every" in its kit: 30/s = 15 a pulse)
 const ACID_GROW := 0.01          # +1% size per kill it makes...
@@ -184,6 +187,24 @@ const EMBER_SPEED := 1.3         # Fireflick: embers flicked in pairs...
 const EMBER_RANGE := 14.0
 const EMBER_FRAC := 0.03         # ...that set what they hit burning for 3% of max HP per second...
 const EMBER_TIME := 2.0          # ...for 2 s
+const SCYTHE_REACH := 4.0        # Scythe Sweep (Death): a 360 deg spin...
+const SCYTHE_REAP := 0.10         # ...that reaps anything under 10% HP (not the boss)
+const BITE_REACH := 2.0           # Bite (Billy Bulldog): a lunge at the nearest...
+const BITE_ARC := 90.0
+const BITE_SHAKE_EVERY := 5       # ...every 5th bite shakes it for 3x
+const BITE_SHAKE := 3.0
+const REVOLVER_SHOTS := 6         # Six-Shooter (Cowboy): 6 shots, then a reload
+const REVOLVER_RELOAD := 1.5
+const REVOLVER_SPEED := 1.9
+const SPUR_REACH := 2.2           # Venom Spur (Platypus): a kick that poisons...
+const SPUR_ARC := 110.0
+const SPUR_POISON := 0.02         # ...2% of max HP a second, stacking (max 5), each stack slows 10%
+const SPUR_STACKS := 5
+const BILE_RADIUS := 3.0          # Ladle of Bile (Bog Witch): lobbed splashes, slowing 20%
+const BILE_SLOW := 0.8
+const BILE_RANGE := 16.0
+const CHAINS_REACH := 4.0         # Shackle Swing (Kong): chains all round, knockback
+const CHAINS_KNOCK := 3.0
 const MELEE_SEEK := 1.6          # melee weapons swing once an enemy is within reach x this
 
 ## Level-up card for the starting weapon, per style (the rest come from data/abilities.json).
@@ -256,6 +277,9 @@ var _flasks: Array = []    # {from, to, t, dmg, node}
 var _puddles: Array = []   # {pos, t, disc: AcidPuddle, tick}
 var _sectors := {}         # arc degrees -> unit fan mesh
 var _flask_mesh: Mesh
+var _bile_mesh: Mesh
+var _rev_shots := 0               # Six-Shooter: shots left in the cylinder before a reload
+var _rev_reload := 0.0
 var _whoosh: AudioStreamPlayer
 var _glass: AudioStreamPlayer   # Volatile Flasks: a vial shattering on landing
 var _glass_gap := 0.0
@@ -591,6 +615,7 @@ static func _fx_material(c: Color) -> StandardMaterial3D:
 
 
 func tick(dt: float) -> void:
+	_rev_reload = maxf(0.0, _rev_reload - dt)
 	var dmg_mult := stats.value("damage")
 	var haste := maxf(0.1, stats.value("attack_speed"))
 	var area := stats.value("area")
@@ -738,6 +763,26 @@ func _fire_from(sty: String, pre: String, feet: Vector3, mult: float, model: Her
 			return _thrust(feet, mult, pre, model)
 		"flask":
 			return _throw_flasks(feet, mult, pre, model)
+		"scythe":
+			return _swing(feet, mult, pre, model, SCYTHE_REACH, 360.0, sty)
+		"bite":
+			return _swing(feet, mult, pre, model, BITE_REACH, BITE_ARC, sty)
+		"spur":
+			return _swing(feet, mult, pre, model, SPUR_REACH, SPUR_ARC, sty)
+		"chains":
+			return _swing(feet, mult, pre, model, CHAINS_REACH, 360.0, sty)
+		"bile":
+			return _throw_bile(feet, mult, pre, model)
+		"revolver":
+			if pre == "orb" and _rev_reload > 0.0:
+				return false   # reloading
+			var ok := _fire_orbs(chest, mult, sty, pre, model)
+			if ok and pre == "orb":
+				_rev_shots += 1
+				if _rev_shots >= REVOLVER_SHOTS:
+					_rev_shots = 0
+					_rev_reload = REVOLVER_RELOAD * (Forge.REVOLVER_RELOAD if special.has("revolver") else 1.0)
+			return ok
 	return _fire_orbs(chest, mult, sty, pre, model)
 
 
@@ -921,6 +966,11 @@ func _fire_orbs(origin: Vector3, dmg_mult: float, sty := "fire", pre := "orb", m
 			life = 1.2
 			if hunting:
 				dmg *= RosterKit.HUNT_DAMAGE
+		"revolver":   # bullets: silver streaks, fast, pierce 1
+			kind = "silver"
+			speed *= REVOLVER_SPEED
+			pierce += 1
+			life = 1.0
 		"daggers":
 			kind = "dagger"
 			speed *= DAGGER_SPEED
@@ -1140,12 +1190,21 @@ func _fire_maracas(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase)
 	combo["maracas" + pre] = step + 1
 	var dmg := _dmg(pre, "maracas", dmg_mult)
 	var cos_half := cos(deg_to_rad(MARACA_ARC * 0.5))
+	var hit := []   # [priority, distance, index]: bosses, then elites, then the nearest
 	for e in enemies.query_radius(chest, reach, false):
 		var d := enemies.pos[e] - feet
 		d.y = 0.0
 		var l := d.length()
 		if l > enemies.t_radius[enemies.typ[e]] * enemies.sz[e] + 0.6 and d.dot(dir) / maxf(l, 0.001) < cos_half:
 			continue
+		var pri := 2 if (enemies.is_boss(e) or enemies.typ[e] == EnemyManager.SUB_BOSS) else (1 if enemies.epic[e] == 1 else 0)
+		hit.append([pri, l, e])
+	hit.sort_custom(func(a, b): return a[0] > b[0] or (a[0] == b[0] and a[1] < b[1]))
+	for h in hit.slice(0, MARACA_TARGETS + extra):
+		var e: int = h[2]
+		var d := enemies.pos[e] - feet
+		d.y = 0.0
+		var l := d.length()
 		enemies.damage(e, dmg, d.normalized() * 2.0 if l > 0.05 else dir * 2.0)
 		if special.has("maracas"):   # forged: the pulse shoves them back
 			enemies.knock(e, d if l > 0.05 else dir, Forge.MARACA_KNOCK, 0.25)
@@ -1250,6 +1309,16 @@ func _swing(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase, reach:
 			col = Color(1.0, 0.95, 0.95, 0.7)
 			if step % 3 == 2:
 				dmg *= Forge.KATANA_THIRD if special.has("katana") else 1.25
+		"scythe":
+			col = Color(0.75, 0.7, 0.9, 0.55)
+		"bite":
+			col = Color(1.0, 0.95, 0.85, 0.6)
+			if step % BITE_SHAKE_EVERY == BITE_SHAKE_EVERY - 1:
+				dmg *= BITE_SHAKE
+		"spur":
+			col = Color(0.75, 1.0, 0.35, 0.55)
+		"chains":
+			col = Color(0.8, 0.78, 0.72, 0.55)
 	for e in enemies.query_radius(chest, reach, false):
 		var d := enemies.pos[e] - feet
 		d.y = 0.0
@@ -1265,6 +1334,20 @@ func _swing(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase, reach:
 				enemies.knock(e, d if l > 0.05 else dir, CLUB_KNOCK, 0.35)
 				if special.has("club"):
 					enemies.stun(e, Forge.CLUB_STUN)
+			"scythe":   # anything left under 10% HP is reaped outright (not the boss)
+				if not enemies.damage(e, dmg) and not enemies.is_boss(e) and enemies.hp[e] < enemies.hp_max[e] * (SCYTHE_REAP + (Forge.SCYTHE_REAP if special.has("scythe") else 0.0)):
+					enemies.damage(e, enemies.hp[e] + 1.0)
+			"bite":
+				enemies.damage(e, dmg, d.normalized() * 2.0)
+				if special.has("bite"):
+					enemies.stun(e, Forge.BITE_STUN)
+			"spur":
+				enemies.damage(e, dmg)
+				enemies.poison(e, SPUR_POISON, 3.0, Forge.SPUR_STACKS if special.has("spur") else SPUR_STACKS)
+				enemies.slow(e, 1.0 - 0.1 * enemies.poison_n[e], 3.0)
+			"chains":
+				enemies.damage(e, dmg)
+				enemies.knock(e, d if l > 0.05 else dir, CHAINS_KNOCK * (Forge.CHAINS_KNOCK if special.has("chains") else 1.0), 0.3)
 			"wail":
 				enemies.damage(e, dmg)
 				enemies.slow(e, WAIL_SLOW, WAIL_SLOW_TIME)
@@ -1362,6 +1445,53 @@ func _throw_flasks(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase)
 	return true
 
 
+## Ladle of Bile (the Bog Witch): lobs a glob of bile at the nearest enemies; it splashes for
+## damage in BILE_RADIUS and slows 20% (no puddle).
+func _throw_bile(feet: Vector3, dmg_mult: float, pre: String, model: HeroBase) -> bool:
+	var chest := feet + Vector3(0, 0.9, 0)
+	var targets := enemies.nearest_k(chest, BILE_RANGE, _count(pre))
+	if targets.is_empty():
+		return false
+	var from := chest + Vector3(0, 0.6, 0)
+	if model != null:
+		from = model.attack(enemies.center_of(targets[0]))
+	if _bile_mesh == null:
+		var sm := SphereMesh.new()
+		sm.radius = 0.18
+		sm.height = 0.3
+		sm.radial_segments = 10
+		sm.rings = 5
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(0.62, 0.8, 0.18)
+		m.emission_enabled = true
+		m.emission = Color(0.45, 0.65, 0.1)
+		m.emission_energy_multiplier = 0.8
+		sm.material = m
+		_bile_mesh = sm
+	var dmg := _dmg(pre, "bile", dmg_mult)
+	for t in targets:
+		var to := enemies.pos[t] + enemies.heading(t) * FLASK_FLIGHT * 0.6
+		to.y = SwampWater.height_at(to.x, to.z)
+		var mi := MeshInstance3D.new()
+		mi.mesh = _bile_mesh
+		mi.top_level = true
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(mi)
+		mi.global_position = from
+		_flasks.append({"from": from, "to": to, "t": 0.0, "dmg": dmg, "src": enemies.src, "node": mi, "flight": FLASK_FLIGHT * randf_range(0.95, 1.1), "bile": true})
+	return true
+
+
+func _bile_splash(at: Vector3, dmg: float) -> void:
+	var r := BILE_RADIUS * stats.value("area") * (Forge.BILE_SIZE if special.has("bile") else 1.0)
+	for e in enemies.query_radius(at + Vector3(0, 0.6, 0), r, false):
+		enemies.damage(e, dmg)
+		enemies.slow(e, BILE_SLOW, 2.0)
+	_spawn_ring(at, r)
+	if _fx_mgr != null:
+		_fx_mgr.burst(at + Vector3(0, 0.4, 0), r * 0.8, Color(0.55, 0.75, 0.15, 0.7), 0.35)
+
+
 func _update_flasks(dt: float) -> void:
 	_glass_gap -= dt
 	for k in range(_flasks.size() - 1, -1, -1):
@@ -1376,7 +1506,10 @@ func _update_flasks(dt: float) -> void:
 			mi.queue_free()
 			_flasks.remove_at(k)
 			enemies.src = str(f.get("src", ""))
-			_flask_burst(f["to"], f["dmg"])
+			if f.get("bile", false):
+				_bile_splash(f["to"], f["dmg"])
+			else:
+				_flask_burst(f["to"], f["dmg"])
 	for k in range(_puddles.size() - 1, -1, -1):
 		var pd: Dictionary = _puddles[k]
 		pd["t"] -= dt

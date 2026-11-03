@@ -326,7 +326,7 @@
 
     "loco_robotico": {
       "role": "Party robot that stuns crowds, then lasers them",
-      "weapon": { "name": "Maraca Blasters", "icon": { "glyph": "burst", "cover": "#3a1f40", "tint": "#ff9ae8" }, "desc": "Alternating sonic pulses in a 6 m cone: 20 damage each, faster while you keep moving", "short": "Sonic cone, faster moving", "damage": "20", "every": 0.4 },
+      "weapon": { "name": "Maraca Blasters", "icon": { "glyph": "burst", "cover": "#3a1f40", "tint": "#ff9ae8" }, "desc": "Alternating sonic pulses in a 6 m cone: 20 damage to up to 2 enemies (elites and bosses first; more with Quantity), faster while you keep moving", "short": "Sonic cone, faster moving", "damage": "20", "every": 0.8 },
       "abilities": [
         { "name": "Party Mode", "cooldown": 30, "icon": { "glyph": "note", "color": "#ff5ad8" },
           "text": "Drops a disco ball. Everyone dances.",

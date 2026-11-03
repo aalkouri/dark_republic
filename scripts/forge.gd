@@ -31,6 +31,12 @@ const SPEAR_JAVELIN_EVERY := 3           # Valkyrie Spear: every 3rd throw is a 
 const DAGGER_BLEED := 2.0                # Twin Daggers: bleeds deal double
 const KATANA_THIRD := 2.0                # Katana: the 3rd cut deals 2x (not 1.25x)
 const FLASK_SIZE := 1.5                  # Volatile Flasks: bursts and puddles 50% bigger
+const SCYTHE_REAP := 0.10                # Scythe Sweep: reaps under 20% (10% + 10%)
+const BITE_STUN := 0.4                   # Bite: every bite stuns
+const REVOLVER_RELOAD := 0.5             # Six-Shooter: reload takes half as long
+const SPUR_STACKS := 8                   # Venom Spur: poison stacks 8 times
+const BILE_SIZE := 1.5                   # Ladle of Bile: splashes 50% bigger
+const CHAINS_KNOCK := 2.0                # Shackle Swing: double knockback
 const CLUB_STUN := 0.6                   # Big Club: stuns everything it hits
 const STATIC_TARGETS := 2                # Static Cling: zaps 2 more enemies
 const MARACA_KNOCK := 3.5                # Maraca Blasters: pulses knock enemies back (m)
@@ -66,6 +72,12 @@ const RECIPES := {
 	"scarab": {"fire": 2, "lightning": 1, "light": 2},    # The Pharaoh (desert sun and storm, gold)
 	"soul": {"ice": 1, "dark": 3, "light": 1},            # The Necromancer (the grave's chill, souls)
 	"ember": {"fire": 3, "dark": 2},                      # Singe (lava and obsidian)
+	"scythe": {"ice": 1, "dark": 4},                      # Death
+	"bite": {"fire": 2, "light": 3},                      # Billy Bulldog (a good, warm boy)
+	"revolver": {"fire": 3, "lightning": 2},              # Cowboy (gunpowder and a quick draw)
+	"spur": {"lightning": 3, "dark": 2},                  # Sentient Platypus (electro-bill, venom)
+	"bile": {"ice": 1, "dark": 2, "light": 2},            # Bog Witch
+	"chains": {"fire": 2, "ice": 2, "lightning": 1},      # Kong
 }
 ## Weapon specials, unlocked at forge level 1.
 const SPECIALS := {
@@ -90,6 +102,12 @@ const SPECIALS := {
 	"scarab": "Scarabs seek on to 1 more enemy",
 	"soul": "Each hit heals you 1 HP (up to 4 a second)",
 	"ember": "Burns deal double damage",
+	"scythe": "Reaps enemies under 20% HP",
+	"bite": "Every bite stuns for 0.4 s",
+	"revolver": "Reloads twice as fast",
+	"spur": "Poison stacks 8 times",
+	"bile": "Splashes are 50% bigger",
+	"chains": "Knockback is twice as strong",
 }
 
 
