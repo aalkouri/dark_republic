@@ -184,7 +184,8 @@ func _test_keys_and_open() -> void:
 	var tiers := [0, 0, 0]
 	for k in 6000:
 		tiers[km.roll_tier()] += 1
-	_check("keys: bronze usually, silver sometimes, gold rarely", tiers[0] > tiers[1] * 2 and tiers[1] > tiers[2] * 2, str(tiers))
+	# bronze ~57%, silver ~24%, gold ~20% of drops (bronze and silver cut 65%, gold kept)
+	_check("keys: bronze most, then silver, then gold", tiers[0] > tiers[1] * 2 and tiers[1] > tiers[2] and absf(tiers[2] / 6000.0 - 0.199) < 0.03, str(tiers))
 	km.keys = PackedInt32Array([0, 0, 0])
 	for d in km._drops:
 		(d["node"] as Node).queue_free()

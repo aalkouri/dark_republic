@@ -1081,11 +1081,15 @@ func show_end(won: bool) -> void:
 		end_exp.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
 	# Coins: shown here, banked when they pour into the counter
 	run_reward = Wallet.run_reward(main.run_time, main.kills, main.stats.value("coin_gain"))
+	run_reward["cursed"] = int(main.item_coins)   # Cursed Coin drops
+	run_reward["total"] = int(run_reward["total"]) + int(main.item_coins)
 	var bonus_line := tr("Kills %s   →   +%s bonus") % [Wallet.fmt(main.kills), Wallet.fmt(run_reward["bonus"])] if run_reward["bonus"] > 0 \
 		else tr("Kills %s   →   +0 bonus  (100 coins per 1,000 kills)") % Wallet.fmt(main.kills)
 	end_coin_lines.text = tr("Survived %s   →   %s coins") % [_fmt_time(main.run_time), Wallet.fmt(run_reward["time"])] + "\n" + bonus_line
 	if run_reward["extra"] > 0:
 		end_coin_lines.text += "\n" + tr("Skills  →   +%s coins") % Wallet.fmt(run_reward["extra"])
+	if run_reward["cursed"] > 0:
+		end_coin_lines.text += "\n" + tr("Cursed Coin  →   +%s coins") % Wallet.fmt(run_reward["cursed"])
 	_fill_ledger(won, lvl, next, gained_levels)
 	_pot_left = run_reward["total"]
 	end_pot.text = "+" + Wallet.fmt(_pot_left)
@@ -1135,6 +1139,8 @@ func _fill_ledger(won: bool, lvl: int, next: int, gained_levels: int) -> void:
 	_ledger_row(tr("Kill bonus"), "+" + Wallet.fmt(run_reward["bonus"]), Color(0.95, 0.85, 0.6))
 	if run_reward["extra"] > 0:
 		_ledger_row(tr("Skill bonus"), "+" + Wallet.fmt(run_reward["extra"]), Color(0.95, 0.85, 0.6))
+	if int(run_reward.get("cursed", 0)) > 0:
+		_ledger_row(tr("Cursed Coin"), "+" + Wallet.fmt(run_reward["cursed"]), Color(0.95, 0.85, 0.6))
 	# fit the screen: the ledger scrolls only if it's taller than there's room for
 	var room := get_viewport().get_visible_rect().size.y - 420.0 - (end_unlocks.size.y if end_unlocks.visible else 0.0)
 	end_scroll.custom_minimum_size.y = clampf(float(end_ledger.get_child_count()) * 26.0, 120.0, maxf(room, 200.0))

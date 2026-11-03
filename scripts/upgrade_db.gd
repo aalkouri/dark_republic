@@ -186,8 +186,8 @@ func _fmt_mod(m: Dictionary) -> String:
 	var name: String = text(stat_names.get(m["stat"], m["stat"]))
 	var v: float = m["value"]
 	match m["op"]:
-		"add":
-			return "+%d%% %s" % [roundi(v * 100.0), name]
+		"add":   # a drawback item can lower a stat (Glass Cannon Skull: -10% Max HP)
+			return "%s%d%% %s" % ["-" if v < 0.0 else "+", roundi(absf(v) * 100.0), name]
 		"mult":
 			if v < 1.0:
 				return "-%d%% %s" % [roundi((1.0 - v) * 100.0), name]

@@ -1,0 +1,16 @@
+{
+ "Cursed Coin": ["Moneda maldita", "Pièce maudite", "العملة الملعونة", "Verfluchte Münze", "诅咒硬币", "呪いのコイン"],
+ "Enemies sometimes drop a coin, but you take more damage.": ["Los enemigos a veces sueltan una moneda, pero recibes más daño.", "Les ennemis lâchent parfois une pièce, mais vous subissez plus de dégâts.", "يسقط الأعداء أحيانًا عملة، لكنك تتلقى ضررًا أكبر.", "Gegner lassen manchmal eine Münze fallen, aber du erleidest mehr Schaden.", "敌人有时会掉落硬币，但你受到的伤害更多。", "敵がときどきコインを落とすが、受けるダメージが増える。"],
+ "Glass Cannon Skull": ["Calavera de cañón de cristal", "Crâne canon de verre", "جمجمة المدفع الزجاجي", "Glaskanonen-Schädel", "玻璃大炮骷髅", "ガラスの大砲の頭蓋骨"],
+ "Hit much harder, but with less health.": ["Golpea mucho más fuerte, pero con menos salud.", "Frappez bien plus fort, mais avec moins de santé.", "اضرب بقوة أكبر بكثير، لكن بصحة أقل.", "Schlage viel härter zu, aber mit weniger Leben.", "攻击大幅增强，但生命值降低。", "攻撃力が大きく上がるが、体力が減る。"],
+ "Hourglass": ["Reloj de arena", "Sablier", "الساعة الرملية", "Sanduhr", "沙漏", "砂時計"],
+ "Killing an elite cuts your ability cooldowns.": ["Matar a un élite reduce el tiempo de recarga de tus habilidades.", "Tuer une élite réduit le temps de recharge de vos capacités.", "قتل عدو نخبة يقلل فترات تهدئة قدراتك.", "Eine Elite zu töten verkürzt deine Fähigkeiten-Abklingzeiten.", "击杀精英会缩短技能冷却时间。", "エリートを倒すとアビリティのクールダウンが短くなる。"],
+ "Mirror Shard": ["Fragmento de espejo", "Éclat de miroir", "شظية المرآة", "Spiegelscherbe", "镜之碎片", "鏡のかけら"],
+ "Chance to dodge an attack entirely.": ["Probabilidad de esquivar un ataque por completo.", "Chance d'esquiver complètement une attaque.", "فرصة لتفادي الهجوم بالكامل.", "Chance, einem Angriff komplett auszuweichen.", "有几率完全闪避一次攻击。", "攻撃を完全に回避する確率。"],
+ "Coin Drop Chance": ["Probabilidad de soltar moneda", "Chance de pièce", "فرصة إسقاط عملة", "Münzchance", "硬币掉落几率", "コインドロップ率"],
+ "Damage Taken": ["Daño recibido", "Dégâts subis", "الضرر المتلقى", "Erlittener Schaden", "受到的伤害", "被ダメージ"],
+ "Dodge Chance": ["Probabilidad de esquivar", "Chance d'esquive", "فرصة التفادي", "Ausweichchance", "闪避几率", "回避率"],
+ "Seconds Cut per Elite Kill": ["Segundos reducidos por élite", "Secondes retirées par élite", "ثوانٍ مقتطعة لكل نخبة", "Sekunden weniger pro Elite", "每击杀精英减少秒数", "エリート撃破ごとの短縮秒数"],
+ "DODGE": ["ESQUIVA", "ESQUIVE", "تفادي", "AUSGEWICHEN", "闪避", "回避"],
+ "Cursed Coin  →   +%s coins": ["Moneda maldita  →   +%s monedas", "Pièce maudite  →   +%s pièces", "العملة الملعونة  →   +%s عملة", "Verfluchte Münze  →   +%s Münzen", "诅咒硬币  →   +%s 金币", "呪いのコイン  →   +%s コイン"]
+}

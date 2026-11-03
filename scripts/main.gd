@@ -31,6 +31,7 @@ const BASE_STATS := {
 	"crit_chance": 0.03, "crit_damage": 1.5,   # every hit: 3% to crit for 1.5x (crit tomes and skills raise them)
 	"coin_gain": 1.0, "ability_cdr": 1.0, "start_shield": 0.0,   # from character skills
 	"jump_height": 1.0,   # jump apex multiplier (character bonuses)
+	"coin_drop_chance": 0.0, "damage_taken": 1.0, "dodge_chance": 0.0, "hourglass_cut": 0.0,   # items
 }
 
 static var smoke_restarts := 0
@@ -66,6 +67,9 @@ var xp_next := 0.0
 var kills := 0
 var elites_killed := 0              # for character EXP
 var chests_opened := 0
+var item_coins := 0                 # Cursed Coin drops this run (added to the run's coins)
+var _item_sfx := {}                 # name -> AudioStreamPlayer (item sounds)
+var _coin_sfx_t := 0.0
 var shards_won := {}   # elemental shards from bosses this run (banked as they drop)
 var _chest_queue: Array[int] = []   # tiers of chests opened while a menu was up
 var pending_levels := 0
@@ -330,6 +334,7 @@ func _ready() -> void:
 	add_child(player)
 	player.global_position = Vector3(0, water.ground_height(0, 0) + 0.5, 0)
 	player.died.connect(_on_player_died)
+	player.dodged.connect(_on_player_dodged)
 	if stats.value("start_shield") > 0.0:
 		player.add_shield(stats.value("max_hp") * stats.value("start_shield"))
 
@@ -383,6 +388,7 @@ func _ready() -> void:
 	add_child(keys)
 	enemies.epic_killed.connect(func(p: Vector3):
 		elites_killed += 1
+		_hourglass()
 		potions.on_elite_killed(p)
 		keys.on_elite_killed(p + Vector3(0.8, 0, 0)))
 	chests = ChestManager.new()
@@ -904,11 +910,65 @@ func complete_run() -> void:
 
 func _on_enemy_killed(p: Vector3, type_id: int) -> void:
 	kills += 1
+	var cc := stats.value("coin_drop_chance")
+	if cc > 0.0 and rng.randf() < cc:
+		_cursed_coin(p)
 	gems.spawn(p + Vector3(0, 0.5, 0), enemies.t_xp[type_id] * xp_drop_mult() * enemies.kill_xp_mult)
 	if type_id == EnemyManager.BOSS:
 		gems.magnetise_all()
 		_award_shards()
 		hud.flash_message("GOBLIN WARLORD SLAIN!", 4.0)
+
+
+## Cursed Coin: this kill dropped a coin (banked with the run's coins at the end).
+func _cursed_coin(p: Vector3) -> void:
+	item_coins += 1
+	var cam := get_viewport().get_camera_3d()
+	if hud and cam and not cam.is_position_behind(p):
+		hud.popup("+1", cam.unproject_position(p + Vector3(0, 1.6, 0)), Color(1.0, 0.82, 0.25), 20)
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _coin_sfx_t > 0.09:
+		_coin_sfx_t = now
+		_item_sound("coin_clink", randf_range(0.92, 1.1), -8.0)
+
+
+## Hourglass: an elite died, so every ability's running cooldown drops by hourglass_cut seconds.
+func _hourglass() -> void:
+	var secs := stats.value("hourglass_cut")
+	if secs <= 0.0 or abilities == null:
+		return
+	var cut := PackedFloat32Array()
+	for i in abilities.cooldown.size():
+		var before: float = abilities.cooldown[i]
+		abilities.cooldown[i] = maxf(0.0, before - secs)
+		cut.append(before - abilities.cooldown[i])
+	if hud:
+		hud.show_cooldown_cuts(cut)
+	_item_sound("hourglass_turn", 1.0, -5.0)
+
+
+## Mirror Shard turned a hit aside.
+func _on_player_dodged() -> void:
+	var cam := get_viewport().get_camera_3d()
+	if hud and cam:
+		hud.popup(tr("DODGE"), cam.unproject_position(player.global_position + Vector3(0, 2.6, 0)) - Vector2(40, 0), Color(0.75, 0.95, 1.0), 26)
+
+
+func _item_sound(sname: String, pitch := 1.0, db := 0.0) -> void:
+	if not _item_sfx.has(sname):
+		var a := AudioStreamPlayer.new()
+		a.bus = Settings.SFX_BUS
+		a.max_polyphony = 3
+		var path := "res://audio/items/%s.wav" % sname
+		if ResourceLoader.exists(path):
+			a.stream = load(path)
+		add_child(a)
+		_item_sfx[sname] = a
+	var p: AudioStreamPlayer = _item_sfx[sname]
+	if p.stream != null:
+		p.pitch_scale = pitch
+		p.volume_db = db
+		p.play()
 
 
 # ------------------------------------------------------------------ progression

@@ -58,6 +58,10 @@ var _glow_from := Color.WHITE
 var _glow_to := Color.WHITE
 var untouchable := false   # no damage at all, telegraphed boss hits included (Death Roll)
 var _break_sfx: AudioStreamPlayer
+var _dodge_sfx: AudioStreamPlayer
+signal dodged   # Mirror Shard turned a hit aside
+const DODGE_SOUND := "res://audio/items/mirror_dodge.wav"
+const DODGE_CAP := 0.6   # Mirror Shard can't make you untouchable
 const SHIELD_BREAK_SOUND := "res://audio/ui/shield_break.wav"
 var water: SwampWater
 var in_water := false
@@ -195,6 +199,7 @@ func _on_stat_changed(stat: String) -> void:
 		var new_max := stats.value("max_hp")
 		hp += maxf(0.0, new_max - max_hp)
 		max_hp = new_max
+		hp = minf(hp, max_hp)   # max HP can drop too (Glass Cannon Skull)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -591,12 +596,17 @@ func top_damage_source() -> Array:
 func hurt(amount: float, source := "") -> bool:
 	if meteor_form or untouchable or invuln > 0.0 or hp <= 0.0:
 		return false
+	if stats.has_stat("dodge_chance") and randf() < minf(stats.value("dodge_chance"), DODGE_CAP):   # Mirror Shard
+		_dodge()
+		return false
 	invuln = IFRAMES
 	model.play_hit()
 	if god_mode:
 		return true
 	var armor := stats.value("armor")
 	amount *= 20.0 / (20.0 + armor) * dmg_taken
+	if stats.has_stat("damage_taken"):
+		amount *= stats.value("damage_taken")   # Cursed Coin
 	_note_hit(source, amount)
 	var absorbed := minf(shield, amount)
 	_drain_shield(absorbed)
@@ -694,6 +704,23 @@ func _drain_shield(amount: float) -> void:
 	if shield <= 0.001:
 		shield = 0.0
 		_shield_break()
+
+
+## Mirror Shard: the hit glances off. A glassy shimmer, a "DODGE" pop and a short grace window.
+func _dodge() -> void:
+	invuln = IFRAMES
+	dodged.emit()
+	if _dodge_sfx == null:
+		_dodge_sfx = AudioStreamPlayer.new()
+		_dodge_sfx.bus = Settings.SFX_BUS
+		_dodge_sfx.max_polyphony = 2
+		_dodge_sfx.volume_db = -4.0
+		if ResourceLoader.exists(DODGE_SOUND):
+			_dodge_sfx.stream = load(DODGE_SOUND)
+		add_child(_dodge_sfx)
+	if _dodge_sfx.stream != null:
+		_dodge_sfx.pitch_scale = randf_range(0.94, 1.08)
+		_dodge_sfx.play()
 
 
 func _shield_break() -> void:

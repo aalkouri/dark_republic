@@ -313,6 +313,22 @@ A second, persistent currency for upgrading your main weapon in the Forge. There
 
 Each map card in the picker shows its two shards over the corner of the picture. The boss **drops them on the ground** as glowing crystals round his body (see **Boss rules: after the boss**); each one is banked the moment you walk over it (`Wallet.shards`, saved in `user://progress.cfg`), with a chime and the counter popping, and listed under **Shards won** on the end screen. Any kind can still be bought with coins in the Forge.
 
+## Items
+
+Items come up on level-up cards alongside weapons and tomes (`data/upgrades.json`, behaviour in `item_effects.gd`, `main.gd` and `player.gd`):
+
+| Item | Per level | Max |
+|---|---|---|
+| Blast Bomb | Enemies have a chance to explode on death | 5 |
+| Vampire Fang | +4% chance to heal on a kill | 5 |
+| Feather | +1 mid-air jump | 2 |
+| **Cursed Coin** | +2% chance a kill drops a coin (banked with the run's coins, shown as "Cursed Coin" on the end screen), but +6% damage taken. Rarity doesn't scale it | 5 |
+| **Glass Cannon Skull** | +20% damage, -10% max HP. Rarity doesn't scale it | 4 |
+| **Hourglass** | Each elite kill cuts every running ability cooldown by 1 s (scaled by rarity) | 5 |
+| **Mirror Shard** | +4% chance (scaled by rarity, capped at 60%) to dodge a hit completely: a glassy shimmer, a DODGE pop and a short grace window | 5 |
+
+Sounds for the new items come from `tools/gen_item_sounds.py` (`audio/items/`).
+
 ## The Forge (weapon upgrades)
 
 Shards forge a character's signature weapon, up to **level 10** (`scripts/forge.gd`, menu in `forge_menu.gd`). Each weapon has its own recipe of **5 shards**; level 1 costs exactly those, and each later level scales the recipe up: **5, 10, 15, 20, 30, 40, 50, 60, 75, 100** shards.

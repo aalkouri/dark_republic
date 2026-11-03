@@ -51,6 +51,42 @@ func _draw() -> void:
 			_poly(inner, dark)
 			_poly([Vector2(28, 17), Vector2(36, 17), Vector2(34, 36), Vector2(30, 36)], Color(1.0, 0.9, 0.4) * dim)
 			draw_circle(Vector2(32, 43), 3.5, Color(1.0, 0.9, 0.4) * dim)
+		"cursed_coin":   # a gold coin with a skull stamped on it, a purple curse wisp curling off
+			draw_circle(Vector2(30, 34), 21, c.darkened(0.3))
+			draw_circle(Vector2(30, 34), 17, c)
+			draw_arc(Vector2(30, 34), 17, 0, TAU, 32, dark, 2)
+			draw_circle(Vector2(30, 31), 7, dark)
+			_poly([Vector2(25, 34), Vector2(35, 34), Vector2(33, 42), Vector2(27, 42)], dark)
+			draw_circle(Vector2(27, 31), 2.2, c)
+			draw_circle(Vector2(33, 31), 2.2, c)
+			draw_polyline(PackedVector2Array([Vector2(44, 20), Vector2(50, 14), Vector2(46, 8), Vector2(54, 4)]), Color(0.75, 0.35, 1.0), 3)
+			draw_circle(Vector2(24, 26), 3, light)
+		"glass_skull":   # a pale glass skull with a crack across the crown
+			draw_circle(Vector2(32, 27), 20, Color(c, 0.85))
+			_poly([Vector2(20, 36), Vector2(44, 36), Vector2(41, 54), Vector2(23, 54)], Color(c, 0.85))
+			draw_circle(Vector2(24, 30), 6, dark)
+			draw_circle(Vector2(40, 30), 6, dark)
+			_poly([Vector2(32, 36), Vector2(28, 43), Vector2(36, 43)], dark)
+			for k in 3:
+				draw_line(Vector2(26 + k * 6, 47), Vector2(26 + k * 6, 54), dark, 2)
+			draw_polyline(PackedVector2Array([Vector2(30, 8), Vector2(34, 15), Vector2(29, 19), Vector2(33, 24)]), Color(1, 1, 1, 0.9), 2)
+			draw_circle(Vector2(24, 17), 3, Color(1, 1, 1, 0.7))
+		"hourglass":   # two glass bulbs in a wooden frame, sand running down
+			var wood := Color(0.55, 0.36, 0.2) * Color(dim, dim, dim, 1.0)
+			_poly([Vector2(12, 6), Vector2(52, 6), Vector2(52, 12), Vector2(12, 12)], wood)
+			_poly([Vector2(12, 52), Vector2(52, 52), Vector2(52, 58), Vector2(12, 58)], wood)
+			_poly([Vector2(18, 12), Vector2(46, 12), Vector2(34, 32), Vector2(46, 52), Vector2(18, 52), Vector2(30, 32)], Color(0.85, 0.95, 1.0, 0.35))
+			_poly([Vector2(24, 20), Vector2(40, 20), Vector2(33, 30), Vector2(31, 30)], c)
+			_poly([Vector2(32, 40), Vector2(44, 52), Vector2(20, 52)], c)
+			draw_line(Vector2(32, 30), Vector2(32, 44), light, 2)
+		"mirror":   # a jagged mirror shard with a bright glint
+			_poly([Vector2(26, 4), Vector2(48, 14), Vector2(42, 40), Vector2(30, 60), Vector2(16, 34)], c)
+			_poly([Vector2(26, 4), Vector2(48, 14), Vector2(32, 26)], light)
+			_poly([Vector2(16, 34), Vector2(30, 60), Vector2(30, 36)], dark)
+			draw_line(Vector2(22, 16), Vector2(40, 46), Color(1, 1, 1, 0.6), 2)
+			for k in 4:
+				var a := TAU * k / 4.0 + PI / 4.0
+				draw_line(Vector2(44, 12), Vector2(44, 12) + Vector2(cos(a), sin(a)) * 7, Color(1, 1, 1), 2)
 		"heart":
 			draw_circle(Vector2(22, 24), 12, c)
 			draw_circle(Vector2(42, 24), 12, c)
