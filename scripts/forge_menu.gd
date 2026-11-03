@@ -91,18 +91,26 @@ func _ready() -> void:
 	_now = _lbl("", 19, Color(0.85, 0.8, 0.75))
 	_now.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_now.position = Vector2(330, 100)
-	_now.size = Vector2(225, 220)
+	_now.size = Vector2(196, 220)
 	_now.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	panel.add_child(_now)
 	_arrow = Control.new()   # a forged iron arrow, its edges glowing like metal fresh from the fire
-	_arrow.position = Vector2(556, 146)
+	_arrow.position = Vector2(552, 146)
 	_arrow.size = Vector2(52, 36)
 	_arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_arrow.draw.connect(_draw_arrow)
 	panel.add_child(_arrow)
+	for x in [537.0, 619.0]:   # thin dividers keep the arrow clear of the text either side
+		var rule := ColorRect.new()
+		rule.color = Color(0.85, 0.55, 0.22, 0.35)
+		rule.position = Vector2(x, 100)
+		rule.size = Vector2(2, 100)
+		rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_child(rule)
+		_rules.append(rule)
 	_next = _lbl("", 19, Color(0.7, 1.0, 0.7))
 	_next.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_next.position = Vector2(612, 100)
+	_next.position = Vector2(636, 100)
 	_next.size = Vector2(230, 220)
 	_next.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	panel.add_child(_next)
@@ -155,6 +163,17 @@ func _ready() -> void:
 
 
 var _arrow: Control
+var _rules: Array = []
+
+## Centre the arrow (and size the dividers) on the "now" text: on its middle line.
+func _place_arrow() -> void:
+	var lines := maxi(maxi(_now.get_line_count(), _next.get_line_count()), 1)   # the taller column
+	var lh := float(_now.get_line_height())
+	var mid := _now.position.y + lh * lines * 0.5
+	_arrow.position.y = mid - _arrow.size.y * 0.5
+	for r in _rules:
+		(r as ColorRect).position.y = _now.position.y
+		(r as ColorRect).size.y = lh * lines
 
 ## The arrow between "now" and "after forging": a dark iron arrow with a hot orange rim that
 ## glows and fades like cooling metal.
@@ -195,6 +214,7 @@ func _refresh() -> void:
 	_level.text = tr("Forge level %d / %d") % [lvl, Forge.MAX_LEVEL] if lvl > 0 else tr("Not forged yet")
 	_now.text = "\n".join(Forge.describe(style, lvl))
 	_next.text = tr("Max level") if maxed else "\n".join(Forge.describe(style, lvl + 1))
+	_place_arrow.call_deferred()   # once the labels have wrapped
 	for c in _cost_row.get_children():
 		c.queue_free()
 	if not maxed:
