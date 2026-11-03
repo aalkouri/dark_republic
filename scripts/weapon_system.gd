@@ -1691,7 +1691,7 @@ func _bile_burst_fx(at: Vector3, r: float) -> void:
 	sm.emission_sphere_radius = r * 0.25
 	sm.global_position = at + Vector3(0, 0.5, 0)
 	sm.restart()
-	var disc := AcidPuddle.create(r * 0.55, at, self)
+	var disc := AcidPuddle.create(r * 0.45, at, self)
 	disc.as_bile()
 	_puddles.append({"pos": at, "t": BILE_PUDDLE_TIME, "disc": disc, "tick": 0.0, "r": 0.0, "src": "", "visual": true})
 	if _bile_hiss_gap <= 0.0:

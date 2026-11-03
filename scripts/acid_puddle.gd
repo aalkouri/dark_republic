@@ -130,9 +130,9 @@ var _mat: ShaderMaterial
 ## The Bog Witch's bile instead of flask acid: murkier swamp greens and no glass shards
 ## (a glob of bile, not a vial). Call right after create().
 func as_bile() -> void:
-	_mat.set_shader_parameter("body", Color(0.42, 0.62, 0.1))
+	_mat.set_shader_parameter("body", Color(0.3, 0.46, 0.07))
 	_mat.set_shader_parameter("deep", Color(0.16, 0.24, 0.04))
-	_mat.set_shader_parameter("glow", Color(0.78, 0.9, 0.3))
+	_mat.set_shader_parameter("glow", Color(0.62, 0.78, 0.2))
 	if shards != null:
 		shards.queue_free()
 		shards = null
