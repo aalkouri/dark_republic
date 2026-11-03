@@ -242,8 +242,11 @@ func _test_keys_and_open() -> void:
 	await _secs(0.3)
 	_check("...lands in the ability bar, then back to the run", main.state == "playing" and not get_tree().paused and main.hud.slot_machine == null, main.state)
 	_check("the opened chest is still there a moment after the slot machine closes", not c.gone and c.visible, "")
-	await _secs(1.2)
-	_check("...then it vanishes", c.gone and not c.visible, "")
+	await _secs(1.0)
+	var sank_y := c.position.y
+	_check("...then the lid shuts and it sinks into the ground", c.gone and c.visible and c._sink_t > 0.0, "")
+	await _secs(1.6)
+	_check("...until it's gone", c.gone and not c.visible and c.position.y < sank_y - 0.3, "y %.2f" % c.position.y)
 	main._award_shards()
 	var got := 0
 	for kind in main.shards_won:

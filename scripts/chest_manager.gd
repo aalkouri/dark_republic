@@ -84,7 +84,7 @@ func tick(_dt: float) -> void:
 			return   # one at a time
 
 
-## The boss has fallen: every chest still standing vanishes in a puff (opened or not).
+## The boss has fallen: every chest still standing sinks into the ground (opened or not).
 func clear_all() -> void:
 	for c in chests:
 		if is_instance_valid(c) and not c.gone:

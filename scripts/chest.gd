@@ -15,10 +15,14 @@ var _lid: Node3D
 var _hint: Label3D
 var prompt: ActivatePrompt   # Press E (the Activate key) when you can open it
 var _light: OmniLight3D
-var gone := false        # vanished after it was opened (tests, minimap)
+var gone := false        # used up: sinking (or sunk) into the ground (tests, minimap)
 var _open_t := 0.0       # seconds since it opened, counted while the game runs
+var _sink_t := -1.0      # >= 0: sinking
+var _y0 := 0.0
 const VANISH_AFTER := 0.5   # once the slot machine is closed, it lingers this long open...
-const VANISH_TIME := 0.45   # ...then shrinks away in a puff of sparkles
+const CLOSE_TIME := 0.3     # ...the lid falls shut...
+const SINK_TIME := 1.5      # ...and it grinds down into the ground, like the crypts
+const SINK_DEPTH := 1.0
 
 
 func _ready() -> void:
@@ -91,27 +95,58 @@ func _box(parent: Node3D, size: Vector3, at: Vector3, mat: Material) -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
+	if _sink_t >= 0.0:
+		if not get_tree().paused:
+			_tick_sink(dt)
+		return
 	if is_open and not gone:
 		_lid.rotation.x = lerpf(_lid.rotation.x, -1.9, 1.0 - exp(-8.0 * dt))
 		if not get_tree().paused:   # wait for the slot machine to close
 			_open_t += dt
-			var k := clampf((_open_t - VANISH_AFTER) / VANISH_TIME, 0.0, 1.0)
-			if k > 0.0:
-				var e := k * k
-				scale = Vector3.ONE * maxf(0.001, 1.0 + 0.15 * sin(k * PI) - e)
-				_light.light_energy = 3.0 * (1.0 - e)
-			if k >= 1.0:
+			if _open_t >= VANISH_AFTER:
 				_vanish()
 
 
-## Opened and emptied: gone in a puff of sparkles in its trim colour.
+## Used up (opened, or the boss fell): the lid falls shut, then the chest sinks into the ground
+## with a rumble and a puff of dust, and is gone.
 func _vanish() -> void:
+	if _sink_t >= 0.0 or (gone and not visible):
+		return
 	gone = true
-	visible = false
-	for f in get_tree().root.find_children("*", "FxManager", true, false):
-		(f as FxManager).burst(global_position + Vector3(0, 0.5, 0), 1.4, TIER_COLORS[tier], 0.45)
-		break
-	set_process(false)
+	is_open = true
+	prompt.visible = false
+	_hint.visible = false
+	_sink_t = 0.0
+	_y0 = position.y
+	var snd := AudioStreamPlayer3D.new()
+	snd.bus = Settings.SFX_BUS
+	snd.unit_size = 8.0
+	snd.volume_db = -6.0
+	snd.pitch_scale = 1.6   # a shorter, smaller rumble than a crypt's
+	if ResourceLoader.exists("res://audio/items/sink_rumble.wav"):
+		snd.stream = load("res://audio/items/sink_rumble.wav")
+	add_child(snd)
+	snd.position.y = 0.4
+	snd.play()
+
+
+func _tick_sink(dt: float) -> void:
+	_sink_t += dt
+	_lid.rotation.x = lerpf(_lid.rotation.x, 0.0, 1.0 - exp(-16.0 * dt))   # the lid falls shut
+	var k := clampf((_sink_t - CLOSE_TIME) / SINK_TIME, 0.0, 1.0)
+	if k > 0.0 and _sink_t - dt <= CLOSE_TIME:   # it starts to go: dust round the base
+		for f in get_tree().root.find_children("*", "FxManager", true, false):
+			for a in 5:
+				var ang := TAU * a / 5.0
+				(f as FxManager).burst(global_position + Vector3(cos(ang) * 0.7, 0.2, sin(ang) * 0.7), 0.8, Color(0.55, 0.5, 0.42, 0.6), 0.5)
+			break
+	position.y = _y0 - SINK_DEPTH * k * k
+	rotation.z = sin(_sink_t * 38.0) * 0.02 * (1.0 - k) * (1.0 if k > 0.0 else 0.0)   # a grinding judder
+	_light.light_energy = lerpf(_light.light_energy, 0.0, 1.0 - exp(-4.0 * dt))
+	if k >= 1.0:
+		visible = false
+		_sink_t = -1.0
+		set_process(false)
 
 
 ## "Needs a Silver Key" floating over the chest while you stand by it without one.
