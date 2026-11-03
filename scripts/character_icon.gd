@@ -44,8 +44,7 @@ func _draw() -> void:
 	var fx: String = data.get("fx", "none")
 	if fx == "none" or fx == "":
 		fx = "motes"   # every portrait has a particle motif
-	if fx in ["shadow", "wisps", "spiders", "bats"]:
-		_fx(fx)
+	# (every motif is drawn over the portrait, across the whole box, so it always shows)
 	var item: String = data.get("item", "none")
 	if item in ["web", "katana", "scythe"]:
 		_item(item)          # behind the body
@@ -62,8 +61,7 @@ func _draw() -> void:
 	_extras()
 	if item not in ["web", "katana", "scythe", "none"]:
 		_item(item)
-	if fx not in ["shadow", "wisps", "spiders", "bats"]:
-		_fx(fx)
+	_fx(fx)
 	if locked:
 		_padlock()
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -549,10 +547,12 @@ func _fx(kind: String) -> void:
 				if fmod(_t * 3.0 + k * 0.7, 2.0) < 0.6:
 					var p := Vector2(fmod(x + _t * 14.0, 128.0), fmod(h * 500.0 + _t * 9.0, 110.0) + 8.0)
 					draw_polyline(PackedVector2Array([p, p + Vector2(4, 5), p + Vector2(-1, 8), p + Vector2(5, 14)]), Color(1.0, 0.95, 0.4), 1.5)
-			"shadow":
-				_ellipse(Vector2(fmod(x + _t * 6.0 * (1.0 if k % 2 else -1.0) + 128.0, 128.0), 120 + 4.0 * sin(_t + k)), 14, 6, Color(0.35, 0.1, 0.5, 0.18))
+			"shadow":   # dark violet smoke rising through the whole box
+				draw_circle(Vector2(x + 4.0 * sin(_t * 0.9 + k), y), 3.0 + (k % 3) * 1.2, Color(0.6, 0.25, 0.9, 0.3))
+				draw_circle(Vector2(x + 4.0 * sin(_t * 0.9 + k), y), 1.4 + (k % 2) * 0.5, Color(0.85, 0.6, 1.0, 0.8))
 			"wisps":
-				draw_circle(Vector2(x + 3.0 * sin(_t * 1.3 + k), y), 3.0 + (k % 3), Color(0.8, 0.95, 1.0, 0.12))
+				draw_circle(Vector2(x + 3.0 * sin(_t * 1.3 + k), y), 3.0 + (k % 3), Color(0.8, 0.95, 1.0, 0.16))
+				draw_circle(Vector2(x + 3.0 * sin(_t * 1.3 + k), y), 1.0, Color(0.9, 1.0, 1.0, 0.5))
 			"bubbles":
 				if k % 2 == 0:
 					draw_arc(Vector2(x + 1.5 * sin(_t * 2.0 + k), y), 2.0 + (k % 3), 0, TAU, 12, Color(0.6, 1.0, 0.5, 0.7), 1.0)
@@ -566,10 +566,10 @@ func _fx(kind: String) -> void:
 					draw_circle(c, 1.2, Color(0.1, 0.1, 0.06, 0.9))
 					draw_circle(c + Vector2(-1.2, -1.0), 1.0, Color(0.8, 0.9, 1.0, 0.35))
 			"bats":   # little bats flapping across
-				if k % 3 == 0:
-					var c := Vector2(fmod(x + _t * (12.0 + k), 140.0) - 6.0, 18.0 + h * 50.0 + 3.0 * sin(_t * 3.0 + k))
-					var flap := 2.5 * sin(_t * 14.0 + k)
-					_poly([c, c + Vector2(-6, -flap), c + Vector2(-3, 1), c + Vector2(0, 2), c + Vector2(3, 1), c + Vector2(6, -flap)], Color(0.08, 0.02, 0.04, 0.9))
+				if k % 2 == 0:
+					var c := Vector2(fmod(x + _t * (12.0 + k), 140.0) - 6.0, 10.0 + fmod(h * 233.0, 108.0) + 3.0 * sin(_t * 3.0 + k))
+					var flap := 3.5 * sin(_t * 14.0 + k)
+					_poly([c, c + Vector2(-8, -flap), c + Vector2(-4, 1.5), c + Vector2(0, 3), c + Vector2(4, 1.5), c + Vector2(8, -flap)], Color(0.85, 0.2, 0.25, 0.95))
 			"feathers":   # white feathers swaying down
 				if k % 2 == 0:
 					var c := Vector2(x + 6.0 * sin(_t * 1.2 + k), fall * 0.8)
@@ -587,22 +587,22 @@ func _fx(kind: String) -> void:
 				_poly([c + Vector2(cos(a), sin(a)) * 3.0, c + Vector2(cos(a + 1.9), sin(a + 1.9)) * 1.4, c - Vector2(cos(a), sin(a)) * 2.0, c + Vector2(cos(a - 1.9), sin(a - 1.9)) * 1.4], Color(1.0, 0.6, 0.7, 0.8))
 			"spiders":   # tiny spiders letting themselves down on threads
 				if k % 3 == 0:
-					var drop := 20.0 + 40.0 * (0.5 + 0.5 * sin(_t * 0.8 + k))
+					var drop := 20.0 + 95.0 * (0.5 + 0.5 * sin(_t * 0.8 + k))
 					draw_line(Vector2(x, 0), Vector2(x, drop), Color(0.9, 0.9, 1.0, 0.35), 0.7)
-					draw_circle(Vector2(x, drop), 2.0, Color(0.12, 0.05, 0.14, 0.95))
+					draw_circle(Vector2(x, drop), 2.2, Color(0.62, 0.28, 0.7, 0.95))
 					for leg in 4:
 						var ly := drop - 1.5 + leg
-						draw_line(Vector2(x - 4, ly - 1), Vector2(x + 4, ly - 1), Color(0.12, 0.05, 0.14, 0.8), 0.6)
+						draw_line(Vector2(x - 4, ly - 1), Vector2(x + 4, ly - 1), Color(0.62, 0.28, 0.7, 0.8), 0.7)
 			"paws":   # paw prints appearing one after another, then fading
 				var age := fmod(_t * 0.8 + h * 4.0, 2.0)
 				if age < 1.5:
-					var c := Vector2(x, 100.0 - fmod(k * 13.0, 70.0))
+					var c := Vector2(x, 118.0 - fmod(k * 23.0, 108.0))
 					var col := Color(0.95, 0.85, 0.65, 0.5 * (1.0 - age / 1.5))
 					draw_circle(c, 2.4, col)
 					for t2 in 3:
 						draw_circle(c + Vector2(-2.6 + t2 * 2.6, -3.2), 1.0, col)
 			"dust":   # dust blowing across the plains
-				var c := Vector2(fmod(x + _t * (20.0 + k * 2.0), 140.0) - 6.0, 80.0 + h * 44.0 + 3.0 * sin(_t * 1.5 + k))
+				var c := Vector2(fmod(x + _t * (20.0 + k * 2.0), 140.0) - 6.0, 8.0 + fmod(h * 377.0, 114.0) + 3.0 * sin(_t * 1.5 + k))
 				draw_circle(c, 1.6 + (k % 3), Color(0.85, 0.65, 0.4, 0.35))
 			"static":   # purple static crackling over the knit
 				if fmod(_t * 4.0 + k * 0.9, 2.0) < 0.5:
@@ -611,7 +611,7 @@ func _fx(kind: String) -> void:
 			"ripples":   # rings spreading on the water
 				if k % 3 == 0:
 					var age := fmod(_t * 0.6 + h * 3.0, 1.0)
-					_ellipse_arc(Vector2(x, 96.0 + h * 26.0), 2.0 + age * 14.0, (2.0 + age * 14.0) * 0.35, Color(0.6, 0.9, 1.0, 0.5 * (1.0 - age)))
+					_ellipse_arc(Vector2(x, 14.0 + fmod(h * 311.0, 104.0)), 2.0 + age * 14.0, (2.0 + age * 14.0) * 0.35, Color(0.6, 0.9, 1.0, 0.5 * (1.0 - age)))
 			"leaves":   # jungle leaves tumbling down
 				var c := Vector2(x + 7.0 * sin(_t * 0.9 + k), fall)
 				var a := _t * 1.5 + k

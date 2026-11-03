@@ -794,6 +794,7 @@ func _build_model_stage(vp: SubViewport) -> void:
 	_model_pivot.add_child(disc)
 	_hero_preview = HeroModel.new()
 	_model_pivot.add_child(_hero_preview)
+	_hero_preview.set_preview()   # no flames on him here
 
 
 func _build_footer() -> void:

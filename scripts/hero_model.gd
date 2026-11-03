@@ -104,6 +104,16 @@ func _ready() -> void:
 	_particles.append(hem)
 
 
+## Character select: no fire on him (the staff's flame and the embers off his coat), like
+## every other character's preview.
+func set_preview() -> void:
+	if flame != null:
+		flame.visible = false
+	for p in _particles:
+		p.emitting = false
+		p.visible = false
+
+
 # ------------------------------------------------------------------ building
 
 func _prepare_materials() -> void:
