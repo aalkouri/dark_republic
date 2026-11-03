@@ -5,7 +5,7 @@ extends Node3D
 ## it shakes (per-instance shake in the shader), rustles (one of 4 synthesised sounds, from the
 ## bush, rate-limited) and sometimes throws out a little burst of leaves.
 ## Bushes burn (ignite / ignite_area): BURN_TIME s of flames while they char black, then they're
-## gone, leaving a ScorchMark that smokes for the rest of the match.
+## gone, leaving the ground clean.
 
 const RADIUS := 1.3              # how close (metres, horizontally) counts as "in" a bush
 const MIN_SPEED := 1.2           # standing still in a bush doesn't rustle it
@@ -356,7 +356,7 @@ func _tick_fires(dt: float) -> void:
 			(fl[0] as Node).queue_free()
 			(fl[1] as Node).queue_free()
 			_fires.erase(i)
-			ScorchMark.spawn(self, pos[i], clampf(RADIUS * size[i] * 0.95, 1.0, 2.2))
+			# (no scorch mark left behind)
 
 
 func _rustle(at: Vector3) -> void:

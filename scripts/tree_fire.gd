@@ -3,7 +3,7 @@ extends Node3D
 ## A burning tree. Ignite a burnable prop (trees and fallen trees, in GROUP) and it burns for
 ## BURN_TIME seconds (then it drops loot: Events.prop_burnt -> ItemDrops): flames over its whole shape, ember glow, flickering light, while the wood
 ## and foliage char patchily to black. When the fire dies the blackened tree crumbles into the
-## ground (COLLAPSE seconds) and is gone, leaving a ScorchMark: a charred patch that smokes and
+## ground (COLLAPSE seconds) and is gone, leaving the ground clean (it used to leave a glowing
 ## sizzles for the rest of the match. Nothing burns twice.
 
 const GROUP := "burnable"
@@ -80,7 +80,7 @@ func _burnt_out() -> void:
 	var r := clampf(maxf(foot.x, foot.y) * 0.32, 1.6, 4.5)
 	var at := body.global_transform * Vector3(_aabb.get_center().x, 0.0, _aabb.get_center().z)
 	at.y = SwampWater.height_at(at.x, at.z)
-	ScorchMark.spawn(body.get_parent(), at, r)
+	# (no scorch mark left behind any more: the ground is clean once the tree has crumbled)
 	Events.prop_burnt.emit(at)   # a random item (or, rarely, a shard) drops where it stood
 	for c in body.get_children():
 		if c is CollisionShape3D:

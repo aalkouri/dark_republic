@@ -426,7 +426,7 @@ To add a clip: generate it on the same rig in Higgsfield, then run `godot --head
 |---|---|---|---|
 | 1 | Inferno | 30 s | Ignites every goblin: 5% of max HP per second for 10 s. Burning goblins that die explode for 50% of their max HP within 2 yd (chains) |
 | 2 | Fire Nova | 45 s | Ring of fire expands from the floor under you to 18 m: 80 dmg, knocks enemies back 5 yd |
-| 3 | **Meteor (ultimate)** | 2 min | Trees, fallen trees and bushes in the blast catch fire and burn, then crumble away leaving a smoking scorch mark. The wizard vanishes (invulnerable, untouchable) and becomes a giant flaming copy of his own head, which crashes where you aim 3 s later: 250 dmg (scales with Damage) in 8 m plus knockback. He reappears at the crash site, and the ground burns for 3 s, dealing 3% of max HP per second to goblins in a 7 m radius |
+| 3 | **Meteor (ultimate)** | 2 min | Trees, fallen trees and bushes in the blast catch fire and burn, then crumble away. The wizard vanishes (invulnerable, untouchable) and becomes a giant flaming copy of his own head, which crashes where you aim 3 s later: 250 dmg (scales with Damage) in 8 m plus knockback. He reappears at the crash site, and the ground burns for 3 s, dealing 3% of max HP per second to goblins in a 7 m radius |
 
 **Attacks:** his starting weapon hurls **Fireballs**. Each time it fires, he swings his staff down at the target and the fireballs launch from the staff tip.
 
@@ -512,7 +512,7 @@ The two outdoor maps share the same 440 m arena, terrain generator (hills, berm,
 
 ### Fire in the woods
 
-Trees, fallen logs and bushes all burn (`TreeFire`, `BushField.ignite`). The Fire Wizard's Meteor lights everything in its blast. **Every other character's ultimate** sets the woods around them ablaze too (`Abilities.ULT_FIRE_RADIUS`: 10-30 m depending on the ultimate's reach). A tree burns for 15 s and a bush for 7 s, charring black. Then the remains crumble into the ground and are **gone**, collision and all. Each leaves a **scorch mark** (`scripts/scorch_mark.gd`) for the rest of the match: a black patch draped over the ground and ringed with ash, glowing embers, a thin column of smoke, and a quiet looping sizzle (`audio/forest/sizzle.wav`) you hear within 16 m. Nothing burns twice.
+Trees, fallen logs and bushes all burn (`TreeFire`, `BushField.ignite`). The Fire Wizard's Meteor lights everything in its blast. **Every other character's ultimate** sets the woods around them ablaze too (`Abilities.ULT_FIRE_RADIUS`: 10-30 m depending on the ultimate's reach). A tree burns for 3 s and a bush for 7 s, charring black. Then the remains crumble into the ground and are **gone**, collision and all, leaving the ground clean (no scorch mark). Nothing burns twice.
 
 ## The Castle
 

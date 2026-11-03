@@ -178,7 +178,7 @@ func _test_bush_fire(bf: BushField) -> void:
 	await get_tree().create_timer(BushField.BURN_TIME * 0.5).timeout
 	await get_tree().create_timer(BushField.BURN_TIME * 0.5 + 0.3).timeout
 	_check("the burnt bush is gone", bf.burnt[i] == 1 and not bf.bushes_at(p).has(i), "")
-	_check("...leaving a smoking scorch mark for the rest of the match", get_tree().get_nodes_in_group(ScorchMark.GROUP).size() > marks0, "")
+	_check("...leaving no scorch mark behind", get_tree().get_nodes_in_group(ScorchMark.GROUP).size() == marks0, "")
 	_check("...and you can't light it again", not bf.ignite(i), "")
 
 

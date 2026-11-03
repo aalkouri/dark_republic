@@ -213,14 +213,13 @@ func _check_meteor(root: Node3D, player: Player, water: SwampWater) -> void:
 	_check("...and it's no longer a tree (out of the burnable group, no collision)", not standing.is_in_group(TreeFire.GROUP)
 		and standing.find_children("*", "CollisionShape3D", false, false).all(func(c): return c.disabled), "")
 	var marks := get_tree().get_nodes_in_group(ScorchMark.GROUP)
-	var mark_ok := false
+	var mark_near := false
 	for m in marks:
 		if Vector2((m as Node3D).global_position.x - standing.global_position.x, (m as Node3D).global_position.z - standing.global_position.z).length() < 3.0:
-			mark_ok = true
-	_check("...a smoking scorch mark is left where it stood", mark_ok, "%d marks" % marks.size())
+			mark_near = true
+	_check("...and no glowing scorch mark is left where it stood", not mark_near, "%d marks" % marks.size())
 	await get_tree().create_timer(TreeFire.COLLAPSE + 0.5).timeout
 	_check("...the charred tree crumbles away and is gone", not is_instance_valid(standing), "")
-	_check("...the scorch mark stays for the rest of the match", get_tree().get_nodes_in_group(ScorchMark.GROUP).size() == marks.size(), "")
 	var shared: ShaderMaterial = MeshBuilder.prop_material()
 	var shared_char = shared.get_shader_parameter("char_amount")
 	_check("only the burnt tree is blackened", shared_char == null or is_equal_approx(shared_char, 0.0), "")
