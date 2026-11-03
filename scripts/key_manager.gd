@@ -54,6 +54,28 @@ func on_elite_killed(at: Vector3) -> bool:
 	return true
 
 
+var _sfx: AudioStreamPlayer
+var _sfx_ms := -1000
+
+## The key pickup sound (a jingle and a lock "chk", brighter for silver and gold). One at a time:
+## a new one never stacks on top of one still playing (keys grabbed together play once).
+func _pickup_sfx(tier: int) -> void:
+	if _sfx == null:
+		_sfx = AudioStreamPlayer.new()
+		_sfx.bus = Settings.SFX_BUS
+		_sfx.max_polyphony = 1
+		_sfx.volume_db = -3.0
+		add_child(_sfx)
+	var now := Time.get_ticks_msec()
+	if _sfx.playing and now - _sfx_ms < 450:
+		return
+	var path := "res://audio/items/key_pickup_%d.wav" % tier
+	if ResourceLoader.exists(path):
+		_sfx_ms = now
+		_sfx.stream = load(path)
+		_sfx.play()
+
+
 func has_key(tier: int) -> bool:
 	return keys[tier] > 0
 
@@ -140,6 +162,7 @@ func tick(dt: float, pickup_range: float) -> void:
 			root.global_position += to.normalized() * minf(dist, (10.0 + age) * dt * 2.0)
 		if dist < PICKUP_DIST:
 			keys[d["tier"]] += 1
+			_pickup_sfx(int(d["tier"]))
 			collected.emit(d["tier"])
 			root.queue_free()
 			_drops.remove_at(k)

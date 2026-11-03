@@ -14,6 +14,9 @@ crypt_open       A crypt door scraping open: stone grinding on stone, a low thud
 statue_crack     A statue cracking: sharp stone cracks and a patter of grit.
 sink_rumble      The crypt / statue sinking into the earth: a long low rumble with grinding,
                  dirt trickling.
+key_pickup_0..2  Picking up a chest key (bronze, silver, gold): a key ring jingling (three
+                 quick thin-metal clinks) and a tiny turn-of-the-lock "chk", brighter and with
+                 a soft chime on top for silver and gold.
 
     python3 tools/gen_item_sounds.py
 """
@@ -156,6 +159,24 @@ def sink_rumble(rng):
     finish(buf, "sink_rumble", 0.8)
 
 
+def key_pickup(rng, tier):
+    buf = np.zeros(int(SR * 0.75))
+    metal = [(1.0, 1.0, 1.0), (1.48, 0.6, 1.3), (2.83, 0.35, 1.9), (4.3, 0.2, 2.6)]
+    base = [2100, 2600, 3100][tier]
+    t0 = 0.0
+    for k in range(3):   # the jingle: three quick clinks, each its own pitch
+        f = base * rng.uniform(0.85, 1.2)
+        place(buf, modal(f, 0.35, 16.0, metal, 0.5 - k * 0.08), t0)
+        t0 += rng.uniform(0.045, 0.075)
+    chk = rng.standard_normal(int(SR * 0.03)) * np.exp(-t_of(0.03) * 140)
+    place(buf, bp(chk, 1200, 5000) * 0.6, t0 + 0.05)   # the lock "chk"
+    if tier > 0:
+        bell = [(1.0, 1.0, 1.0), (2.0, 0.3, 1.5), (3.0, 0.15, 2.0)]
+        f = [0, 1568.0, 2093.0][tier]
+        place(buf, modal(f, 0.6, 5.5, bell, 0.28 + 0.1 * tier), t0 + 0.08)
+    finish(buf, "key_pickup_%d" % tier, 0.6)
+
+
 if __name__ == "__main__":
     r = np.random.default_rng(7)
     mirror_dodge(r)
@@ -166,3 +187,5 @@ if __name__ == "__main__":
     crypt_open(r)
     statue_crack(r)
     sink_rumble(r)
+    for tier in range(3):
+        key_pickup(r, tier)
