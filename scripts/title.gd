@@ -82,11 +82,32 @@ func _ready() -> void:
 
 # ------------------------------------------------------------------ world
 
+## The swamp behind the menu is built once and kept: coming back to the title (from the
+## character select, the end of a run, the pause menu) reuses it instead of growing the whole
+## swamp again, which took seconds.
+static var _cached_world: Node3D
+static var _cached_water: SwampWater
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE and is_instance_valid(_cached_world) and _cached_world.get_parent() == self:
+		remove_child(_cached_world)   # keep it for next time (not freed with the title)
+
+
 func _build_world() -> void:
+	if is_instance_valid(_cached_world):
+		add_child(_cached_world)
+		move_child(_cached_world, 0)
+		SwampWater.current = _cached_water
+		return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = WORLD_SEED
-	WorldBuilder.build(self, rng, 110.0)
-	for n in get_children():
+	var holder := Node3D.new()
+	holder.name = "TitleWorld"   # no-i18n
+	add_child(holder)
+	_cached_water = WorldBuilder.build(holder, rng, 110.0)
+	_cached_world = holder
+	for n in holder.get_children():
 		if n is WorldEnvironment:
 			var env: Environment = (n as WorldEnvironment).environment
 			env.fog_density = 0.03                       # thicker, moodier

@@ -24,7 +24,7 @@ signal finished(path: String)
 
 const TIPS := "res://data/tips.json"
 const MAIN_SCENE := "res://scenes/main.tscn"
-const SLOW_SCENES := ["res://scenes/main.tscn", "res://scenes/title.tscn"]
+const SLOW_SCENES := ["res://scenes/main.tscn"]   # the title keeps its swamp now (fast after the first time)
 const TIP_TIME := 4.5        # seconds each tip stays up
 const TIP_FADE := 0.4        # crossfade between tips (out, then in)
 const FADE_IN := 0.15

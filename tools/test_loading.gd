@@ -128,7 +128,7 @@ func _ready() -> void:
 	var t_end := Time.get_ticks_msec() + 3000
 	while not Loader.busy and Time.get_ticks_msec() < t_end:
 		await get_tree().process_frame
-	_check("Back to the title goes through the loading screen", Loader.busy and Loader.showing and Loader.shown_count == shown + 1, "")
+	_check("Back to the title goes through the loader (the screen only shows if it's slow: the title keeps its swamp now)", Loader.busy and Loader.last_path == "res://scenes/title.tscn", Loader.last_path)
 	await get_tree().scene_changed
 	_check("...to the title", get_tree().current_scene.name == "Title", get_tree().current_scene.name)
 	await _wait_idle(3.0)
