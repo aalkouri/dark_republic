@@ -13,7 +13,9 @@ extends Node
 
 signal changed
 
-const PATH := "user://settings.cfg"
+const SavePaths := preload("res://scripts/save_paths.gd")
+## user://settings.cfg, or a throwaway copy in test and screenshot runs (SavePaths)
+var PATH := SavePaths.path("settings.cfg")
 const MUSIC_BUS := "Music"
 const SFX_BUS := "SFX"
 
@@ -84,6 +86,10 @@ func _ready() -> void:
 	# internationalization/rendering/root_node_layout_direction = Left-to-Right.)
 	apply_audio()
 	apply_video()
+
+
+func _exit_tree() -> void:
+	SavePaths.clean_up()   # a test or screenshot run's throwaway save folder
 
 
 # ------------------------------------------------------------------ language

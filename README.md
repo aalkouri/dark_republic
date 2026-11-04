@@ -936,6 +936,8 @@ tools/               headless micro-benchmarks
 
 ## Testing
 
+**Tests never touch your own save.** Any run started on a `res://tools/` scene, or with `--smoketest`, `--shot...` or `--isolated`, starts from a fresh state and keeps its settings, progress and run stats in a throwaway folder of its own (`user://isolated/<process id>/`, deleted when it quits; `scripts/save_paths.gd`). So results don't depend on what you've unlocked, and tests that reset or rewrite the save files (`test_settings`, `test_modes`, `test_intro`) only change their own copies. Parallel runs each get their own folder.
+
 **Playtest bot** (`tools/playtest.gd`): plays real runs and reports wins and deaths.
 `godot --headless --fixed-fps 60 --path . res://tools/playtest.tscn -- --chars=thunder_wizard --runs=5 --map=forest --out=results.txt` writes one line per run, plus a JSON line per run to `results.txt.jsonl` (upgrades in order, pickups, and on a death the **last 10 s**: HP, goblins within 8 m and what was touching it). While a boss is up it logs his health and distance every 15 s. It kites the horde, dodges boss markers and steps out of boss clouds, drifts back toward a boss more than 26 m away, hops while Overcharge is up, and picks upgrades from a fixed priority list. It doesn't go after potions, so a person does better. `--boss-at=T` brings the boss early. Two processes in parallel suit a 2-core machine.
 

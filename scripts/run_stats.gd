@@ -7,7 +7,9 @@ extends Node
 ## you took by source and the damage you dealt by weapon / ability. StatsScreen reads it.
 ## One line per run, written when the run ends (or when you quit or restart mid-run).
 
-const PATH := "user://run_stats.jsonl"
+const SavePaths := preload("res://scripts/save_paths.gd")
+## user://run_stats.jsonl, or a throwaway copy in test and screenshot runs (SavePaths)
+static var PATH: String = SavePaths.path("run_stats.jsonl")
 
 var main: Node
 var _keys := [0, 0, 0]

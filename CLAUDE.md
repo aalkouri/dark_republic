@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Dark Republic is a 3D survivors-like roguelite in **Godot 4.7 (GDScript, Forward Plus, Jolt Physics)**. There is no build step: open `project.godot` in Godot and press F5. `README.md` (~1,000 lines) is the detailed reference for every feature, with exact numbers, file names and test commands. Read the section for the area you're touching before changing it, and update it when behaviour changes. (Its "Known limitations" section at the end is out of date.)
 
-On this machine neither `godot` nor `git` is on the PATH, so ask the user where the Godot executable is before running anything.
+Neither `godot` nor `git` may be on the PATH on the developer's Windows PC; ask where the Godot executable is before running anything. Use the `_console.exe` build there, so output is captured.
 
 ## Commands
 
@@ -15,6 +15,8 @@ All tests are headless scenes in `tools/`. Each prints `ok`/`FAIL` lines and a f
 ```bash
 godot --headless --path . res://tools/test_wallet.tscn
 ```
+
+Runs started on a `res://tools/` scene (or with `--smoketest`, `--shot...`, `--isolated`) are isolated: `scripts/save_paths.gd` gives them a fresh throwaway save folder, so they never read or write the player's real `settings.cfg`, `progress.cfg` or `run_stats.jsonl`. Any new save file must get its path from `SavePaths.path(...)` too.
 
 Some tests need `--fixed-fps 60` (swamp, entrances, minimap, chests, subboss, portal, bonuses). The README's Testing section lists the exact command for each.
 

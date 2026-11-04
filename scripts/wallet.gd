@@ -12,7 +12,9 @@ extends CanvasLayer
 signal changed(coins: int)
 signal payout_finished
 
-const PATH := "user://progress.cfg"
+const SavePaths := preload("res://scripts/save_paths.gd")
+## user://progress.cfg, or a throwaway copy in test and screenshot runs (SavePaths)
+var PATH := SavePaths.path("progress.cfg")
 const COINS_PER_SECOND := 1
 const KILL_BONUS := 100
 const KILLS_PER_BONUS := 1000
