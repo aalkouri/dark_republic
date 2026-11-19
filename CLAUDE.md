@@ -18,7 +18,7 @@ godot --headless --path . res://tools/test_wallet.tscn
 
 Runs started on a `res://tools/` scene (or with `--smoketest`, `--shot...`, `--isolated`) are isolated: `scripts/save_paths.gd` gives them a fresh throwaway save folder, so they never read or write the player's real `settings.cfg`, `progress.cfg` or `run_stats.jsonl`. Any new save file must get its path from `SavePaths.path(...)` too.
 
-Some tests need `--fixed-fps 60` (swamp, entrances, minimap, chests, subboss, portal, bonuses). The README's Testing section lists the exact command for each.
+Some tests need `--fixed-fps 60` (abilities, bonuses, chests, entrances, items, minimap, playable_bosses, portal, subboss, swamp, ...); without it their timing checks fail. Each test's header comment (first lines of `tools/test_*.gd`) has its exact command, flags included: keep it accurate. Checks that compare exact damage must set `em.crit_chance = 0.0` first, since every hit can crit at random.
 
 ```bash
 # Full smoke test: bot plays, 1400-enemy stress phase, death screen, restart

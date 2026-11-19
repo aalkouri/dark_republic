@@ -37,6 +37,13 @@ func _ready() -> void:
 		if only != "" and id != only:
 			continue
 		print("--- ", id)
+		# Close the previous character's run first: left going in the background it can pause the
+		# tree (a chest, the inspect view...), and paused, this character's model stops animating
+		# and its timed checks fail at random.
+		if main != null and is_instance_valid(main):
+			main.queue_free()
+			await get_tree().process_frame
+		get_tree().paused = false
 		_static_checks(id)
 		await _holster(id)
 		await _preview(id)
@@ -580,6 +587,7 @@ func _load(id: String) -> void:
 	get_tree().change_scene_to_file.call_deferred("res://scenes/main.tscn")
 	await get_tree().scene_changed
 	main = get_tree().current_scene
+	main.xp_next = 1.0e12   # no level-up pausing the run mid-check (kills during the entrance give XP)
 	for f in 60 * 15:
 		await get_tree().physics_frame
 		if not main.intro:

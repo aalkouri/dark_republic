@@ -326,8 +326,14 @@ func _run_checks() -> void:
 	var t0 := sk.thrown
 	var h0 := sk.bone_hits
 	var i := em.spawn(EnemyManager.SKELETON, Vector3(-30, 0, 150))
-	var j := em.spawn(EnemyManager.SKELETON, Vector3(-50, 0, 150), 1.0, true)
-	_check("skeletons spawn (and an armoured epic)", i >= 0 and j >= 0 and em.typ[i] == EnemyManager.SKELETON and em.epic[j], "")
+	# Only armoured (epic) skeletons throw, and only from 3-17 m: two of them start 16 m out, with
+	# their first throw due early (normally a random 1-3 s), so each gets one in well before
+	# closing to melee range at 3.9 m/s.
+	var j := em.spawn(EnemyManager.SKELETON, Vector3(-56, 0, 150), 1.0, true)
+	var j2 := em.spawn(EnemyManager.SKELETON, Vector3(-56, 0, 147), 1.0, true)
+	em.throw_t[j] = 0.4
+	em.throw_t[j2] = 0.9
+	_check("skeletons spawn (and armoured epics)", i >= 0 and j >= 0 and j2 >= 0 and em.typ[i] == EnemyManager.SKELETON and em.epic[j] and em.epic[j2], "")
 	await get_tree().physics_frame
 	await get_tree().process_frame
 	_check("plain and armoured skeletons are drawn by their own meshes", sk._mm.visible_instance_count >= 1 and sk._mm_armored.visible_instance_count >= 1,
@@ -374,7 +380,11 @@ func _run_checks() -> void:
 	_check("a bomber starts sunk in the floor (harmless)", bi >= 0 and em.is_harmless(bi) and em.rise_t[bi] > 0.0, "")
 	var det0 := bm.detonations
 	var hp_before: float = player.hp
-	var g_uid: int = em.uid[em.spawn(EnemyManager.GRUNT, Vector3(21.5, 0, 151), 50.0)]
+	# A bystander inside the blast radius (3.5 m) but off the bomber's path, stunned so it stays
+	# put: walking in, it could get between the bomber and you and stop it reaching you.
+	var g_row := em.spawn(EnemyManager.GRUNT, Vector3(20, 0, 152), 50.0)
+	em.stun_t[g_row] = 999.0
+	var g_uid: int = em.uid[g_row]
 	var nh0 := 0.0
 	await get_tree().physics_frame
 	nh0 = _hp_of(em, g_uid)

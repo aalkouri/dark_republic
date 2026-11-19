@@ -112,8 +112,10 @@ func _test_select() -> void:
 	Wallet.shards["lightning"] = 3
 	cs._refresh_forge()
 	var grew := 0.0
-	for f in 40:
+	var waited := 0.0   # watch for 0.7 s of game time, not a frame count (frames vary without --fixed-fps)
+	while waited < 0.7:
 		await get_tree().process_frame
+		waited += get_process_delta_time()
 		grew = maxf(grew, cs._weapon_icon.scale.x)
 	_check("all collected: the weapon pulses under green plus signs", cs._pluses.active and grew > 1.03 and cs._pluses._plus.size() > 0, "x%.2f, %d pluses" % [grew, cs._pluses._plus.size()])
 	var keep: int = cs._shown
@@ -190,6 +192,7 @@ func _test_run() -> void:
 	# every 5th Fireball hit explodes like a level 1 Blast Bomb
 	var ws: WeaponSystem = main.weapons
 	var em: EnemyManager = main.enemies
+	em.crit_chance = 0.0   # damage checks below compare exact amounts; a random crit would skew them
 	ws.orb_t = 999.0
 	for i in em.count:
 		em.dead[i] = 1
@@ -241,6 +244,7 @@ func _test_specials() -> void:
 	main.xp_next = 1e12
 	var ws: WeaponSystem = main.weapons
 	var em: EnemyManager = main.enemies
+	em.crit_chance = 0.0   # damage checks below compare exact amounts; a random crit would skew them
 	ws.orb_t = 999.0
 	_check("forged weapons have their specials on in the run", ws.special.size() == WeaponSystem.STYLES.size(), str(ws.special.keys()))
 	var p: Vector3 = main.player.global_position

@@ -1,6 +1,6 @@
 extends Node
 ## Chests, keys, the slot machine and ability levels.
-##   godot --headless --path . res://tools/test_chests.tscn
+##   godot --headless --path . --fixed-fps 60 res://tools/test_chests.tscn
 
 var fails := 0
 var main: Node

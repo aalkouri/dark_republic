@@ -946,7 +946,7 @@ tools/               headless micro-benchmarks
 godot --headless --path . --fixed-fps 60 -- --smoketest --smoke-seconds=240
 
 # Gameplay spec tests (abilities, burn/explosions, epics, potions, shield, immunity)
-godot --headless --path . res://tools/test_abilities.tscn
+godot --headless --path . --fixed-fps 60 res://tools/test_abilities.tscn
 
 # Screenshot: cast Meteor at 1 s, capture at 4 s
 godot --path . -- --shot=/tmp/shot.png --shot-at=4 --shot-cast=0@1 --shot-spawn=120
