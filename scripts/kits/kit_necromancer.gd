@@ -92,9 +92,9 @@ func tick(dt: float) -> void:
 	_tick_spikes(dt)
 
 
-func _body() -> NecromancerBody:
+func _body():
 	var h := player.model as RosterHero
-	return h.boss as NecromancerBody if h != null and h.boss is NecromancerBody else null
+	return h.boss if h != null and (h.boss is NecromancerBody or h.boss is RigBody) else null
 
 
 func _floor(p: Vector3) -> Vector3:
@@ -152,7 +152,7 @@ func _soul_drain() -> void:
 	play("soul_drain")
 	_drain_t = DRAIN_TIME
 	_drain_tick = 0.0
-	var b := _body()
+	var b = _body()
 	if b:
 		b.hold(DRAIN_TIME)
 	if not is_instance_valid(_drain_beam):

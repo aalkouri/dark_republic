@@ -1904,7 +1904,9 @@ func _loco_robotico() -> void:
 		s["disco"] = lights
 		_restore.append(func() -> void:
 			if hero.loco:
-				hero.loco.party = false)
+				hero.loco.party = false
+			elif hero.boss is RigBody:
+				hero.boss.party = false)
 	# The piñata swings in on its rope from the side
 	var pivot := target + Vector3(0, 13.0, 0) + _fwd * 0.5
 	var length := 10.8
@@ -1976,6 +1978,8 @@ func _loco_robotico() -> void:
 		hero.scale = Vector3(1.0, maxf(0.25 + 0.75 * up, 0.01), 1.0)
 		if hero.loco and t >= 2.4:
 			hero.loco.party = true
+		elif hero.boss is RigBody and t >= 2.4:
+			hero.boss.party = true
 		if _at(2.5):
 			hero.play_ability(0)
 

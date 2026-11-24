@@ -57,15 +57,15 @@ func _load(id: String, style: String) -> KitPart:
 	if id == "kong":   # Kong has a rigged model (models/kong/), not a HeroBody
 		_check("kong: plays on his own rigged model", player.model.get("skeleton") != null and body == null, str(player.model.get("skeleton")))
 	else:
-		_check("%s: built in code (HeroBody '%s')" % [id, id], body is HeroBody and (body as HeroBody).kind == id, str(body))
+		_check("%s: plays on its generated, auto-rigged model (RigBody '%s')" % [id, id], body is RigBody and (body as RigBody).kind == id and (body as RigBody).tree != null, str(body))
 	_clear()
 	var e := _spawn(EnemyManager.GRUNT, 2.0 if WeaponSystem.MELEE.has(style) else 6.0, 0.0, 50.0)
 	await _secs(0.05)
 	var fired: bool = ws.fire(style, "orb", 1.0)
 	await _secs(0.8)   # projectiles / lobs land
 	_check("%s: the weapon (%s) hits" % [id, style], fired and em.hp[e] < em.hp_max[e], "fired %s, hp %.0f / %.0f" % [fired, em.hp[e], em.hp_max[e]])
-	if body is HeroBody:
-		_check("%s: the body swings / shoots" % id, (body as HeroBody).attacks >= 1, "")
+	if body is RigBody:
+		_check("%s: the body swings / shoots" % id, (body as RigBody).attacks >= 1, "")
 	return ab.roster.part
 
 

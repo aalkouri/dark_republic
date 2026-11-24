@@ -120,9 +120,9 @@ func tick(dt: float) -> void:
 	_tick_eruption(dt)
 
 
-func _body() -> SingeBody:
+func _body():
 	var h := player.model as RosterHero
-	return h.boss as SingeBody if h != null and h.boss is SingeBody else null
+	return h.boss if h != null and (h.boss is SingeBody or h.boss is RigBody) else null
 
 
 func _floor(p: Vector3) -> Vector3:
@@ -232,7 +232,7 @@ func _cannonball() -> void:
 	_ball_t = 0.0
 	begin_scripted()
 	player.invuln = maxf(player.invuln, BALL_TIME + 0.2)
-	var b := _body()
+	var b = _body()
 	if b:
 		b.set_curl(true)
 	_ball_marker = GroundDisc.create(BALL_RADIUS, Color(LAVA, 0.3), true)
@@ -257,7 +257,7 @@ func _tick_ball(dt: float) -> void:
 	if _ball_t >= 1.0:
 		_ball_t = -1.0
 		end_scripted(_ball_to)
-		var b := _body()
+		var b = _body()
 		if b:
 			b.set_curl(false)
 		_ball_land(_ball_to)

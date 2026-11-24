@@ -1,6 +1,6 @@
 extends Node
-## Intro (the anime short): after the studio logo the splash goes to the intro (unless
-## Settings > Gameplay turns it off); it plays video/intro_anime.ogv (~30 s, sound effects on the
+## Intro (the cartoon short): after the studio logo the splash goes to the intro (unless
+## Settings > Gameplay turns it off); it plays video/intro_cartoon.ogv (~45 s, sound effects on the
 ## SFX bus), and any key, click or pad button skips to the title.
 ##   godot --headless --path . res://tools/test_intro.tscn
 
@@ -28,8 +28,8 @@ func _ready() -> void:
 	_check("...and saves it", cf.get_value("gameplay", "play_intro", true) == false, "")
 	Settings.play_intro = saved_intro
 	Settings.save_settings()
-	_check("about 30 seconds long", intro.LENGTH >= 28.0 and intro.LENGTH <= 33.0, str(intro.LENGTH))
-	_check("the anime video is loaded", intro._player != null and intro._player.stream != null, "")
+	_check("about 45 seconds long", intro.LENGTH >= 42.0 and intro.LENGTH <= 48.0, str(intro.LENGTH))
+	_check("the intro video is loaded", intro._player != null and intro._player.stream != null, "")
 	_check("its sound plays on the SFX bus", intro._player.bus == Settings.SFX_BUS, intro._player.bus)
 	_check("the coin counter is hidden during the intro", not Wallet.panel.visible, "")
 	var v: VideoStream = load(intro.VIDEO)

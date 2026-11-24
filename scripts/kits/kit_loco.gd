@@ -77,9 +77,12 @@ func tick(dt: float) -> void:
 	_tick_destroy(dt)
 
 
-func _body() -> LocoBody:
+## LocoBody (built in code) or RigBody (the generated model): both have party / destroy / turret_yaw / hand().
+func _body():
 	var m = player.model
-	return m.loco if m is RosterHero else null
+	if not (m is RosterHero):
+		return null
+	return m.loco if m.loco else (m.boss if m.boss is RigBody else null)
 
 
 static func _hue(h: float) -> Color:
@@ -375,14 +378,14 @@ func _tick_destroy(dt: float) -> void:
 		return
 	_destroy_t -= dt
 	_beam_angle = wrapf(_beam_angle + BEAM_SPIN * dt, -PI, PI)
-	var body := _body()
+	var body = _body()
 	if body:
 		body.turret_yaw = _beam_angle
 	var at := feet()
 	var y := 1.05
 	for k in 2:
 		var d := beam_dir(k)
-		var from := (body.hand(1 - k) if body else at + Vector3(0, y, 0) + d * 0.8)
+		var from: Vector3 = (body.hand(1 - k) if body is LocoBody else at + Vector3(0, y, 0) + d * 0.8)
 		var end := at + d * BEAM_RANGE + Vector3(0, 0.6, 0)
 		var mid := (from + end) * 0.5
 		var len := from.distance_to(end)

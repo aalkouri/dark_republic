@@ -182,9 +182,8 @@ func _argyle_sock() -> void:
 
 func _loco_robotico() -> void:
 	var h := player.model as RosterHero
-	var body := h.loco
-	_check("Loco Robotico is built in code: wheels, a TV face, a sombrero and two maracas", body != null and body.mat != null
-		and body.screen_mat != null and body._wheels.size() == 2 and body._maracas.size() == 2 and body._hat != null, "")
+	var body: RigBody = h.boss as RigBody
+	_check("Loco Robotico plays on his generated model, a maraca for each hand", body is RigBody and body.tree != null and body.weapons.size() == 2, "")
 	_clear()
 	var front := []
 	for k in 3:
@@ -469,13 +468,12 @@ func _blob() -> void:
 
 func _toadstool_knight() -> void:
 	var h := player.model as RosterHero
-	var body := h.knight
-	_check("the Toadstool Knight is the boss's body at player size: silver plate, toadstool cap, a sword", body != null and body.model != null
-		and body.model._cap_mats.size() == 3 and is_instance_valid(body.model.blade) and body.model.blade.is_visible_in_tree()
-		and ToadstoolBody.SCALE < 1.0 and body.tree != null and body.tree.active, "")
+	var body: RigBody = h.boss as RigBody
+	_check("the Toadstool Knight plays on his generated model (small), with the boss's sword", body is RigBody and body.height < 1.6
+		and body.weapons.size() == 1 and body.tree != null and body.tree.active, "")
 	var rm := RosterModel.create("toadstool_knight")
 	add_child(rm)
-	_check("...and character select shows him too", rm._knight != null and rm._knight.model != null, "")
+	_check("...and character select shows him too", rm._boss is RigBody, "")
 	rm.queue_free()
 	var dmg: float = main.stats.value("damage")
 
@@ -609,7 +607,7 @@ func _toadstool_knight() -> void:
 	await _secs(0.1)
 	dummy.play_death()
 	await _secs(1.6)
-	_check("...and when he falls he plays a death (topples over backwards)", dummy.knight.dead and dummy.knight.model.rotation.x > 1.0, "%.2f" % dummy.knight.model.rotation.x)
+	_check("...and when he falls he plays a death (topples over backwards)", dummy.boss.dead and dummy.boss.model.rotation.x < -1.0, "%.2f" % dummy.boss.model.rotation.x)
 	dummy.queue_free()
 
 
@@ -797,8 +795,8 @@ func _arachnid() -> void:
 
 
 func _thog() -> void:
-	_check("Thog plays on the Ogre's rig, re-skinned blue and bigger", (player.model as RosterHero)._rig.scale.x > 1.1
-		and RosterHero.model_of("thog") == "ogre", "")
+	_check("Thog plays on his own generated model, rigged", (player.model as RosterHero).skeleton != null
+		and RosterHero.model_of("thog") == "thog", "")
 	_clear()
 	var a := _spawn(EnemyManager.TANK, 2.5, 0.0, 10.0)
 	var b := _spawn(EnemyManager.TANK, 2.6, PI, 10.0)   # behind him

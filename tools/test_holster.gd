@@ -6,8 +6,8 @@ extends Node
 ##   godot --headless --path . res://tools/test_holster.tscn
 
 const RIGGED := ["ice_wizard", "thunder_wizard", "dark_wizard", "merlin", "ogre", "vampire_hunter",
-	"vicki", "rogue", "gaiden", "dr_croc", "thog"]
-const NO_WEAPON := ["ghast", "argyle_sock", "blob", "arachnid", "singe"]
+	"vicki", "rogue", "gaiden", "dr_croc"]
+const NO_WEAPON := ["ghast", "argyle_sock", "blob", "arachnid", "singe", "thog"]
 var fails := 0
 var stage: Node3D
 
@@ -102,6 +102,9 @@ func _knight() -> void:
 	var h := RosterHero.create("toadstool_knight")
 	stage.add_child(h)
 	await _frames(3)
+	if h.boss is RigBody:
+		await _rig_body("toadstool_knight", h)
+		return
 	var k := h.knight
 	_check("Toadstool Knight: sword sheathed at his hip at rest", not h.is_drawn() and not k.model.blade.visible and k.stowed.size() == 1 and k.stowed[0].visible, "")
 	var tip := h.attack(h.global_position + Vector3(0, 1, -5))
@@ -117,6 +120,9 @@ func _loco() -> void:
 	var h := RosterHero.create("loco_robotico")
 	stage.add_child(h)
 	await _frames(3)
+	if h.boss is RigBody:
+		await _rig_body("loco_robotico", h)
+		return
 	var l := h.loco
 	_check("Loco Robotico: maracas tucked in his belt at rest", not h.is_drawn() and not l._hand_maracas[0].visible and l._belt_maracas[0].visible, "")
 	var tip := h.attack(h.global_position + Vector3(0, 1, -5))
@@ -135,6 +141,9 @@ func _playable_boss(id: String) -> void:
 	stage.add_child(h)
 	await _frames(3)
 	var b: Node3D = h.boss
+	if b is RigBody:
+		await _rig_body(id, h)
+		return
 	var st: Array = b.get("stowed")
 	var hand := func() -> bool:
 		return (b as PharaohBody).model.hand_r.visible if b is PharaohBody else (b as NecromancerBody).staff.visible
@@ -144,6 +153,21 @@ func _playable_boss(id: String) -> void:
 	_check("...shots leave from its head", tip.distance_to(b.call("tip")) < 0.01, "")
 	await _secs(2.5)
 	_check("...put away again after", not h.is_drawn() and not hand.call(), "")
+	h.free()
+
+
+## The generated models (RigBody): the old body's weapon appears in the hand to attack or cast and
+## is gone again after; there is no belt / back copy.
+func _rig_body(id: String, h: RosterHero) -> void:
+	var b := h.boss as RigBody
+	var shown := func() -> bool:
+		return b.weapons.all(func(w): return (w as Node3D).visible)
+	_check("%s: holds its weapon(s), hidden at rest (%d)" % [id, b.weapons.size()], not h.is_drawn() and not b.weapons.is_empty() and not b.weapons.any(func(w): return (w as Node3D).visible), "")
+	var tip := h.attack(h.global_position + Vector3(0, 1, -5))
+	_check("...an attack draws it", h.is_drawn() and shown.call(), "")
+	_check("...shots leave from the hand", tip.distance_to(b.tip()) < 0.01 and tip.distance_to(h.global_position) < 3.0, "")
+	await _secs(3.0)
+	_check("...put away again after", not h.is_drawn() and not b.weapons.any(func(w): return (w as Node3D).visible), "")
 	h.free()
 
 

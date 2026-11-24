@@ -16,6 +16,8 @@ const KINDS := ["pharaoh", "necromancer", "singe", "death", "billy_bulldog", "co
 
 
 static func create(kind: String) -> Node3D:
+	if RigBody.has_model(kind):   # an AI-generated, auto-rigged model replaces the code-built body
+		return RigBody.create(kind)
 	match kind:
 		"pharaoh":
 			return PharaohBody.create()
@@ -29,7 +31,7 @@ static func create(kind: String) -> Node3D:
 
 
 static func is_kind(kind: String) -> bool:
-	return kind in KINDS
+	return kind in KINDS or (kind in ["toadstool", "loco"] and RigBody.has_model(kind))
 
 
 ## An overlay laid over every mesh of a body: dims it (immune) and flashes it white (hurt).

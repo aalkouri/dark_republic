@@ -189,10 +189,11 @@ const CFG := {
 		"main": Color(1.0, 0.6, 0.25), "deep": Color(0.25, 0.2, 0.15), "light": Color(1.0, 0.88, 0.65),
 		"motes": false,
 	},
+	# Thog has his own model now (AI-generated, auto-rigged; clips from tools/gen_rig_clips.py). He
+	# fights bare-handed: the model holds no club.
 	"thog": {
-		"model": "ogre", "skin": "res://models/ogre/thog_skin.jpg", "scale": 1.2, "weapon_scale": 1.35,
-		"fire": [0.8, 1.8667], "fire_speed": 1.3,
-		"cast": [[1.4, 2.4], [0.4, 1.5], [0.4, 1.9]], "cast_speed": [1.2, 1.4, 1.0],
+		"fire": [0.05, 0.8], "fire_speed": 1.7,
+		"cast": [[0.0, 1.0], [1.1, 2.1], [2.2, 3.4]], "cast_speed": [1.3, 1.3, 1.0],
 		"main": Color(0.45, 0.68, 1.0), "deep": Color(0.15, 0.25, 0.5), "light": Color(0.82, 0.9, 1.0),
 		"motes": false,
 	},
@@ -275,7 +276,7 @@ func _ready() -> void:
 		add_child(sock)
 		_floaty = true
 		return
-	if cfg0.get("procedural", "") == "loco":
+	if cfg0.get("procedural", "") == "loco" and not RigBody.has_model("loco"):
 		loco = LocoBody.create()
 		_rig = loco
 		add_child(loco)
@@ -287,7 +288,7 @@ func _ready() -> void:
 		add_child(spider)
 		_floaty = true
 		return
-	if cfg0.get("procedural", "") == "toadstool":
+	if cfg0.get("procedural", "") == "toadstool" and not RigBody.has_model("toadstool"):
 		knight = ToadstoolBody.create()
 		_rig = knight
 		add_child(knight)

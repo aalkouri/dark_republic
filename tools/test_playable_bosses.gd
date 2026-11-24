@@ -100,10 +100,10 @@ func _holster(id: String) -> void:
 	if id == "singe":
 		_check("singe: no held weapon to put away (his claws and embers)", not h.is_drawn() and h.weapons.is_empty() and h.stowed.is_empty(), "")
 		var tip := h.attack(h.global_position + Vector3(0, 1, -5))
-		_check("singe: embers leave from his claw", tip.distance_to(h.global_position) < 2.0 and (b as SingeBody).attacks == 1, "%.2f" % tip.distance_to(h.global_position))
+		_check("singe: embers leave from his claw", tip.distance_to(h.global_position) < 2.0 and int(b.get("attacks")) == 1, "%.2f" % tip.distance_to(h.global_position))
 	else:
 		var st: Array = b.get("stowed")
-		_check("%s: weapon put away at rest (on the belt / back)" % id, not h.is_drawn() and _stowed_visible(st) and not _hand_visible(b), "")
+		_check("%s: weapon put away at rest (on the belt / back)" % id, not h.is_drawn() and (b is RigBody or _stowed_visible(st)) and not _hand_visible(b), "")
 		for s in st:
 			var local := h.global_transform.affine_inverse() * (s as Node3D).global_position
 			_check("%s: ...on the body (%.2f, %.2f, %.2f)" % [id, local.x, local.y, local.z], Vector2(local.x, local.z).length() < 0.75 and local.y > 0.4 and local.y < 1.9, "")
@@ -115,7 +115,7 @@ func _holster(id: String) -> void:
 		await _secs(0.6)
 		_check("%s: stays out while attacking again" % id, h.is_drawn(), "")
 		await _secs(2.2)
-		_check("%s: put away again after a pause" % id, not h.is_drawn() and _stowed_visible(st), "")
+		_check("%s: put away again after a pause" % id, not h.is_drawn() and (b is RigBody or _stowed_visible(st)), "")
 		h.play_hit()
 		await _secs(0.1)
 		_check("%s: getting hit doesn't draw it" % id, not h.is_drawn(), "")
@@ -142,6 +142,9 @@ func _holster(id: String) -> void:
 
 
 func _hand_visible(b: Node3D) -> bool:
+	if b is RigBody:   # the generated models: the old body's weapons, shown while drawn
+		var ws: Array = (b as RigBody).weapons
+		return not ws.is_empty() and ws.all(func(w): return (w as Node3D).visible)
 	if b is PharaohBody:
 		return (b as PharaohBody).model.hand_l.visible and (b as PharaohBody).model.hand_r.visible
 	if b is NecromancerBody:
@@ -159,6 +162,8 @@ func _stowed_visible(st: Array) -> bool:
 
 
 func _cast_pose(id: String, b: Node3D) -> bool:
+	if b is RigBody:
+		return (b as RigBody).pose == "cast"
 	match id:
 		"pharaoh": return (b as PharaohBody).model.pose == "raise"
 		"necromancer": return (b as NecromancerBody).model._pose == "rise"
@@ -167,6 +172,8 @@ func _cast_pose(id: String, b: Node3D) -> bool:
 
 
 func _running(id: String, b: Node3D) -> bool:
+	if b is RigBody:
+		return (b as RigBody).pose == "run"
 	match id:
 		"pharaoh":
 			var m := (b as PharaohBody).model
@@ -179,6 +186,8 @@ func _running(id: String, b: Node3D) -> bool:
 
 
 func _died(id: String, b: Node3D) -> bool:
+	if b is RigBody:   # topples over backwards
+		return (b as RigBody).pose == "die" and (b as RigBody).model.rotation.x < -1.0
 	match id:
 		"pharaoh": return (b as PharaohBody).model.pose == "die" and (b as PharaohBody).model.scale.y < PharaohBody.SCALE * 0.8
 		"necromancer": return (b as NecromancerBody).model.crumble > 0.9
@@ -404,8 +413,8 @@ func _necromancer() -> void:
 	var hp1 := player.hp
 	_cast(1)
 	await _secs(1.02)
-	var body := (player.model as RosterHero).boss as NecromancerBody
-	_check("Soul Drain: a beam from his staff (levelled)", kit.active("drain") and is_instance_valid(kit._drain_beam) and body.model._pose == "channel" and body.drawn, body.model._pose)
+	var body = (player.model as RosterHero).boss
+	_check("Soul Drain: a beam from his staff (levelled)", kit.active("drain") and is_instance_valid(kit._drain_beam) and (body.pose == "cast" if body is RigBody else body.model._pose == "channel") and body.drawn, str(body.get("pose")))
 	var drained := 0
 	var dps := 0.0
 	for u in beam:
@@ -497,7 +506,7 @@ func _singe() -> void:
 	_check("...the marks burn out after 4 s", kit._marks.is_empty(), "%d" % kit._marks.size())
 	# Lava Cannonball
 	_clear()
-	var body := (player.model as RosterHero).boss as SingeBody
+	var body = (player.model as RosterHero).boss
 	var from := player.global_position
 	_cast(1)
 	var to: Vector3 = kit._ball_to

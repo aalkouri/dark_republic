@@ -1,14 +1,14 @@
 extends Control
-## Intro: the 30-second anime short (video/intro_anime.ogv, made with Higgsfield from the game's
-## character models). Five fire-wizard-led heroes asleep in the castle barracks wake to a
-## stampede, rush to the wall, see Thog and the goblin horde, and the wizard ends it as the Meteor.
+## Intro: the 45-second cartoon short (video/intro_cartoon.ogv, AI-generated from pictures of the
+## game's characters). Five fire-wizard-led heroes asleep in the castle barracks wake to a stampede
+## (the wizard rings the wall bell), rush to the wall, see Thog and the goblin horde, and charge.
 ## Plays after the studio logo on the first launch only (then its setting turns itself off; Settings >
 ## Gameplay > Play intro on startup turns it back on), with its sound effects on the SFX bus.
 ## Any key, click or gamepad button skips to the title.
 
-const VIDEO := "res://video/intro_anime.ogv"
+const VIDEO := "res://video/intro_cartoon.ogv"
 const NEXT_SCENE := "res://scenes/title.tscn"
-const LENGTH := 30.2          # seconds, for reference (the video's own end drives the exit)
+const LENGTH := 44.7          # seconds, for reference (the video's own end drives the exit)
 const FADE_OUT := 0.6         # the video ends on a white flash; fade from it into the title
 
 var _player: VideoStreamPlayer
