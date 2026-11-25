@@ -792,5 +792,3 @@ func _update_goblins(dt: float) -> void:
 		c.b = dis
 		c.a = 0.0   # tells the goblin shader b is the disintegration
 		_goblin_mm.set_instance_color(k, c)
-
-
